@@ -1,0 +1,10 @@
+.DS_Store
+.cache
+package-lock.json
+node_modules/
+.env
+.env-mainnet
+.env-testnet
+.env-local
+*.zip
+*.bak
