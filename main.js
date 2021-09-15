@@ -37,5 +37,21 @@ Program
     }
   });
 
+  // `archway build`
+
+  // `archway configure`
+  
+  // `archway deploy`
+  
+  // `archway network`
+  
+  // `archway new`
+  
+  // `archway query`
+  
+  // `archway test`
+  
+  // `archway tx`
+
 // Do cmd parsing
 Program.parse(process.argv);
