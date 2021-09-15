@@ -30,7 +30,14 @@ async function doCloneRepository(config = null, repo = null) {
   }
 };
 
-function makeConfig() {
+function makeConfig(configIndex) {
+  // XXX TODO: Remove this when ready to unveil
+  if (parseInt(configIndex) !== 1) {
+    console.log('Please use the Testnet configuration for now.');
+    console.log('XXX TODO: Localhost, Mainnet configurations');
+    return;
+  }
+
   const readline = require('readline').createInterface({
     input: process.stdin,
     output: process.stdout
@@ -57,7 +64,25 @@ function makeConfig() {
           repo = repos[selected-1];
           readline.question('Name of project ("My Project") ', title => {
             let projectName = title.trim();
-            let networkConfig = Testnet;
+            let networkConfig;
+            switch (configIndex) {
+              case 1:
+              case '1':
+                networkConfig = Testnet;
+                break;
+              case 2:
+              case '2':
+                console.log('XXX TODO: Localhost');
+                readline.close();
+                return;
+              case 3:
+              case '3':
+                console.log('XXX TODO: Mainnet');
+                readline.close();
+                return;
+              default:
+                console.log('Error selecting network config', configIndex);
+            }
             projectName = projectName.split(' ');
             projectName = projectName.join('-').toLowerCase();
             networkConfig.title = projectName;
