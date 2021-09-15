@@ -25,14 +25,14 @@ Program
   .command('accounts')
   .description('List available wasmd accounts or add new account')
   .option('-a, --add <label>', 'Add a new wasmd account')
-  .action(async () => {
-    let add = (Program.add) ? true : false;
+  .action(async (options) => {
+    let add = (options.add) ? true : false;
     // List accounts
     if (!add) {
       await Tools.Accounts();
     // Add new account
     } else {
-      let name = Program.add;
+      let name = options.add;
       await Tools.Accounts(true, name);
     }
   });

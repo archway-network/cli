@@ -9,29 +9,28 @@ async function getListAccounts() {
   source.on('error', (err) => {
     console.log('Error listing keys', err);
   });
-  
-  // const readline = require('readline').createInterface({
-  //   input: process.stdin,
-  //   output: process.stdout
-  // });
 
-  // source.on('close', () => {
-  //   readline.question('Add new account? (Y/N default: N): ', addAccount => {
-  //     if (addAccount.toLowerCase() !== 'y' || 'yes') {
-  //       console.log('Ok!');
-  //       readline.close();
-  //     } else {
-  //       readline.question('Name of account to be added: ', accountName => {
-  //         if (!accountName || accountName.length < 3 || typeof accountName !== 'string') {
-  //           readline.close();
-  //         } else {
-  //           doAddAccount(accountName);
-  //           readline.close();
-  //         }
-  //       });
-  //     }
-  //   });
-  // });
+  source.on('close', () => {
+    const readline = require('readline').createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    readline.question('Add new account? (Y/N default: N): ', addAccount => {
+      if (addAccount.toLowerCase() !== 'y' && addAccount.toLowerCase() !== 'yes') {
+        console.log('Ok!');
+        readline.close();
+      } else {
+        readline.question('Name of account to be added: ', accountName => {
+          if (!accountName || accountName.length < 3 || typeof accountName !== 'string') {
+            readline.close();
+          } else {
+            doAddAccount(accountName);
+            readline.close();
+          }
+        });
+      }
+    });
+  });
 };
 
 async function doAddAccount(name = null) {
