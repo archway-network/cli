@@ -115,7 +115,7 @@ const newArchway = async () => {
       readline.question('Select environment type (1-3 default: 1): ', environment => {
         envI = parseInt(environment);
         if (envI !== 1 && envI !== 2 && envI !== 3) {
-          console.log('Ok!');
+          console.log('Error: unrecognized environment', environment);
           readline.close();
         } else {
           readline.close();
