@@ -1,0 +1,53 @@
+{
+  "title": "",
+  "version": "",
+  "network": {
+    "chainId": "pebblenet-1",
+    "isMainnet": false,
+    "fees": {
+      "feeDenom": "upebble",
+      "feeStake": "urock"
+    },
+    "gas": {
+      "prices": "0.001upebble",
+      "mode": "auto",
+      "adjustment": "1.3"
+    },
+    "wasm": {
+      "bech32Hrp": "wasm",
+      "wasmd": "v0.18.0",
+      "configDir": ".wasmd",
+      "binary": "wasmd"
+    },
+    "urls": {
+      "genesis": "https://raw.githubusercontent.com/CosmWasm/testnets/master/pebblenet-1/config/genesis.json",
+      "appConfig": "https://raw.githubusercontent.com/CosmWasm/testnets/master/pebblenet-1/config/app.toml",
+      "config": "https://raw.githubusercontent.com/CosmWasm/testnets/master/pebblenet-1/config/config.toml",
+      "rpc": {
+        "url": "https://rpc.pebblenet.cosmwasm.com",
+        "port": 443,
+        "faucets": ["https://faucet.pebblenet.cosmwasm.com"]
+      }
+    },
+    "cosmoVisor": {
+      "version": "v0.42.9",
+      "home": "/root/.wasmd",
+      "name": "wasmd"
+    },
+    "cosmjs": "v0.26.0",
+    "seedNode": "237e83d7de8f3e2062f095c78a158254e361fc7b@10.0.0.2:26656"
+  },
+  "developer": {
+    "dApp": {
+      "dAppFee": 0,
+      "gasPoolContract": null,
+      "rewardsContract": null
+    },
+    "scripts": {
+      "test": "RUST_BACKTRACE=1 cargo unit-test",
+      "build": "cargo build",
+      "wasm": "cargo wasm"
+    },
+    "deployments": {}
+  }
+}
