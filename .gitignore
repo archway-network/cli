@@ -8,3 +8,4 @@ node_modules/
 .env-local
 *.zip
 *.bak
+config.json

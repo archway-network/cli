@@ -10,12 +10,10 @@
     "type": "git",
     "url": "git+https://github.com/archway-network/archway-cli.git"
   },
-  "keywords": [
-    "Archway",
-    "Cosmos",
-    "CLI",
-    "wasm"
-  ],
+  "bin": {
+    "archway": "main.js"
+  },
+  "keywords": ["Archway","Cosmos","CLI","wasm"],
   "author": "drew@infiniteinternet.ca",
   "license": "MIT",
   "bugs": {
