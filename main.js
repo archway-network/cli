@@ -18,4 +18,24 @@ if (Dotenv.error) {
  * @see commander (https://www.npmjs.com/package/commander)
  */
 Program.version('Archway dApp developer CLI\nv0.0.1', '-v, --version', 'output the current version');
+
+// Commands
+// `archway accounts`
+Program
+  .command('accounts')
+  .description('List available wasmd accounts or add new account')
+  .option('-a, --add <label>', 'Add a new wasmd account')
+  .action(async () => {
+    let add = (Program.add) ? true : false;
+    // List accounts
+    if (!add) {
+      await Tools.Accounts();
+    // Add new account
+    } else {
+      let name = Program.add;
+      await Tools.Accounts(true, name);
+    }
+  });
+
+// Do cmd parsing
 Program.parse(process.argv);

@@ -13,7 +13,12 @@
   "bin": {
     "archway": "main.js"
   },
-  "keywords": ["Archway","Cosmos","CLI","wasm"],
+  "keywords": [
+    "Archway",
+    "Cosmos",
+    "CLI",
+    "wasm"
+  ],
   "author": "drew@infiniteinternet.ca",
   "license": "MIT",
   "bugs": {
