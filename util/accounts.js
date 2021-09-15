@@ -3,6 +3,8 @@
 const { spawn } = require("child_process");
 
 async function getListAccounts() {
+  console.log('Printing list of active accounts...\n');
+
   const source = spawn('wasmd', ['keys', 'list'], { stdio: 'inherit' });
   
   // Listeners

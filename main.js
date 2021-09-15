@@ -1,17 +1,9 @@
 #!/usr/bin/env node
 
-const Dotenv = require('dotenv').config();
+// const Dotenv = require('dotenv').config();
 const Tools = require(__dirname + '/util');
 const { Command } = require('commander');
 const Program = new Command();
-
-// Config parser
-let config;
-if (Dotenv.error) {
-  throw Dotenv.error
-} else {
-  config = Dotenv.parsed;
-}
 
 /**
  * CLI worker
@@ -46,6 +38,12 @@ Program
   // `archway network`
   
   // `archway new`
+  Program
+  .command('new')
+  .description('Create a new dApp project for Archway Network')
+  .action(async () => {
+    await Tools.New();
+  });
   
   // `archway query`
   
