@@ -6,7 +6,7 @@ const Testnet = require('../data/testnet.json');
 const FileSystem = require('fs');
 
 const repos = [
-  {label:'Increment', docs:'', git:'https://github.com/CosmWasm/cosmwasm-template.git'}
+  {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'https://github.com/CosmWasm/cosmwasm-template.git'}
 ];
 const ok = [1];
 const baseVersion = '0.0.1';
