@@ -32,6 +32,19 @@ Program
   // `archway build`
 
   // `archway configure`
+  Program
+    .command('configure')
+    .description('Print or modify developer environment settings')
+    .option('-m, --modify <key>', 'Modify a particular setting; command will fail if <key> does not yet exist.')
+    .action(async (options) => {
+      let modify = (options.modify) ? true : false;
+      if (!modify) {
+        await Tools.Configure();
+      } else {
+        let param = options.modify
+        await Tools.Configure(true, param);
+      }
+    });
   
   // `archway deploy`
   
@@ -39,11 +52,11 @@ Program
   
   // `archway new`
   Program
-  .command('new')
-  .description('Create a new dApp project for Archway Network')
-  .action(async () => {
-    await Tools.New();
-  });
+    .command('new')
+    .description('Create a new dApp project for Archway Network')
+    .action(async () => {
+      await Tools.New();
+    });
   
   // `archway query`
   
