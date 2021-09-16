@@ -3,6 +3,7 @@
 const { spawn } = require("child_process");
 
 const Testnet = require('../data/testnet.json');
+const FileSystem = require('fs');
 
 const repos = [
   {label:'Increment', docs:'', git:'https://github.com/CosmWasm/cosmwasm-template.git'}
@@ -24,11 +25,39 @@ async function doCloneRepository(config = null, repo = null) {
         source.on('error', (err) => {
           console.log(`Error generating project ${title}`, err);
         });
+
+        source.on('close', () => {
+          let path = process.cwd() + '/' + config.title;
+          config.path = path;
+          config.type = repo;
+          doCreateConfigFile(config);
+        });
         break;
       }
     }
   }
 };
+
+function doCreateConfigFile(config = null) {
+  if (!config) {
+    console.log('Error creating config file', config);
+  } else if (typeof config !== 'object') {
+    console.log('Error creating config file', config);
+  } else if (!config.title || !config.version || !config.network || !config.path || !config.type) {
+    console.log('Error creating config file', config);
+  }
+
+  let path = config.path + '/config.json';
+  let json = JSON.stringify(config, null, 2);
+
+  FileSystem.writeFile(path, json, (err) => {
+    if (err)
+      console.log('Error writing config to file system', [config, err]);
+    else {
+      console.log('Successfully created new ' + config.type + ' project in path ' + config.path + ' with network configuration ' + config.network.chainId + '.\nConfig file location: ' + path + '\n');
+    }
+  });
+}
 
 function makeConfig(configIndex) {
   // XXX TODO: Remove this when ready to unveil
@@ -43,7 +72,7 @@ function makeConfig(configIndex) {
     output: process.stdout
   });
 
-  readline.question('Use starter template? (Y/N default: Y): ', useTemplate => {
+  readline.question('Use starter template? (Y/N default: N): ', useTemplate => {
     if (useTemplate.toLowerCase() !== 'y' && useTemplate.toLowerCase() !== 'yes') {
       console.log('TODO: Blank slate project clone');
       readline.close();
@@ -104,7 +133,7 @@ const newArchway = async () => {
     output: process.stdout
   });
 
-  readline.question('Configure environment (Y/N default: Y)?: ', configure => {
+  readline.question('Configure environment (Y/N default: N)?: ', configure => {
     let envI;
     if (configure.toLowerCase() !== 'y' && configure.toLowerCase() !== 'yes') {
       envI = 1;
