@@ -1,7 +1,16 @@
 # archway-cli
 
+### Installation:
+```
+git clone git@github.com:archway-network/archway-cli.git
+cd archway-cli 
+npm install -g
+```
+
 ### Usage: 
-`archway [options] [command]`
+```
+archway [options] [command]
+```
 
 ### Options:
 ```
