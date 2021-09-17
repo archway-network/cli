@@ -10,7 +10,7 @@ function tryBuilding() {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
       return;
     } else {
-      console.log('Building project......\n');
+      console.log('Building project...\n');
 
       let config = require(configPath);
       let scripts = config.developer.scripts;

@@ -44,7 +44,7 @@
       "rewardsContract": null
     },
     "scripts": {
-      "test": "RUST_BACKTRACE=1 cargo unit-test",
+      "test": "cargo unit-test",
       "build": "cargo build",
       "wasm": "cargo wasm"
     },

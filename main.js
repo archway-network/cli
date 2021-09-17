@@ -82,6 +82,12 @@ Program
   // `archway query`
   
   // `archway test`
+  Program
+    .command('test')
+    .description('Run unit tests')
+    .action(async () => {
+      await Tools.Test();
+    });
   
   // `archway tx`
 
