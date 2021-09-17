@@ -47,6 +47,14 @@ Program
     });
   
   // `archway deploy`
+
+  // `archway faucet`
+  Program
+    .command('faucet')
+    .description('Request Testnet funds from faucet')
+    .action(async () => {
+      await Tools.Faucet();
+    });  
   
   // `archway network`
   Program

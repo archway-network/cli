@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/archway-network/archway-cli#readme",
   "dependencies": {
+    "axios": "^0.21.4",
     "commander": "^8.2.0",
     "dotenv": "^10.0.0"
   }

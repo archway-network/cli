@@ -1,6 +1,5 @@
 // archway-cli/util/network.js
 
-// const { spawn } = require("child_process");
 const FileSystem = require('fs');
 
 function migrateNetworks(networkInt = null) {
@@ -14,7 +13,7 @@ function printNetConfig() {
   let configPath = process.cwd() + '/config.json';
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
-      console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of valid Archway project.');
+      console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
       return;
     } else {
       let config = require(configPath);

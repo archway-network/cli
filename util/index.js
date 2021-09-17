@@ -4,6 +4,7 @@ const Accounts = require('./accounts');
 const Build = require('./build');
 const Configure = require('./configure');
 const Deploy = require('./deploy');
+const Faucet = require('./faucet');
 const Network = require('./network');
 const New = require('./new');
 const Query = require('./query');
@@ -15,6 +16,7 @@ module.exports = {
   Build: Build,
   Configure: Configure,
   Deploy: Deploy,
+  Faucet: Faucet,
   Network: Network,
   New: New,
   Query: Query,

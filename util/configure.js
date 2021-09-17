@@ -1,6 +1,5 @@
 // archway-cli/util/configure.js
 
-// const { spawn } = require("child_process");
 const FileSystem = require('fs');
 const StringUtility = require('util');
 
