@@ -9,7 +9,7 @@ npm install -g
 
 ### Usage: 
 ```
-archway [options] [command]
+archway [command] [options]
 ```
 
 ### Options:
