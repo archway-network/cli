@@ -48,6 +48,6 @@
       "build": "cargo build",
       "wasm": "cargo wasm"
     },
-    "deployments": {}
+    "deployments": []
   }
 }
