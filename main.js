@@ -54,6 +54,18 @@ Program
     });
   
   // `archway deploy`
+  Program
+    .command('deploy')
+    .description('Deploy dApp to network, or test deployability')
+    .option('-d, --dryrun', 'Test deployability; builds an unoptimized wasm binary')
+    .action(async (options) => {
+      let dryrun = (options.dryrun) ? true : false;
+      if (!dryrun) {
+        await Tools.Deploy();
+      } else {
+        await Tools.Deploy(true);
+      }
+    });
 
   // `archway faucet`
   Program
