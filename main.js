@@ -30,6 +30,13 @@ Program
   });
 
   // `archway build`
+  Program
+    .command('build')
+    .description('Build current project')
+    .action(async () => {
+      await Tools.Build();
+    });
+
 
   // `archway configure`
   Program
@@ -54,7 +61,7 @@ Program
     .description('Request Testnet funds from faucet')
     .action(async () => {
       await Tools.Faucet();
-    });  
+    });
   
   // `archway network`
   Program
