@@ -20,8 +20,9 @@ archway [options] [command]
 
 ### Commands:
 ```
-accounts [options]  List available wasmd accounts or add new account
+accounts [options]   List available wasmd accounts or add new account
 configure [options]  Print or modify developer environment settings
-new                 Create a new dApp project for Archway Network
-help [command]      display help for command
+new                  Create a new dApp project for Archway Network
+network              Show network settings or migrate between networks
+help [command]       display help for command
 ```

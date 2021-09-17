@@ -18,34 +18,37 @@ function printNetConfig() {
       return;
     } else {
       let config = require(configPath);
-      let chainId = config.network.chainId, 
-          rpc = config.network.urls.rpc.url + ':' + config.network.urls.rpc.port;
+      let chainId = config.network.chainId,
+          rpc = config.network.urls.rpc.url + ':' + config.network.urls.rpc.port,
           faucet = String(config.network.urls.rpc.faucets),
-          networks = ['  1. Testnet', '  2. Localhost', '  3. Mainnet'],
+          networks = ['1. Testnet', '2. Localhost', '3. Mainnet'],
           currentNetwork;
 
       switch (chainId) {
         case 'pebblenet-1': {
           networks[0] += '*';
-          currentNetwork = networks[0];
+          currentNetwork = networks[0].replace('1. ','').replace('*','');
           break;
         }
         case 'localhost': {
           networks[1] += '*';
-          currentNetwork = networks[1];
+          currentNetwork = networks[1].replace('2. ','').replace('*','');
           break;
         }
         case 'mainnet': {
           networks[2] += '*';
-          currentNetwork = networks[2];
+          currentNetwork = networks[2].replace('3. ','').replace('*','');
         }
       }
 
       let networksMsg = networks.join('\n');
-      console.log('\n\n',networksMsg,'\n\n');
-      console.log('Using: ' + currentNetwork.replace('*','') + '\n');
-      console.log('RPC: ' + rpc + '\n');
-      console.log('Faucet: ' + faucet + '\n');
+      console.log('\n');
+      console.log(networksMsg);
+      console.log('\n');
+      console.log('Using:  ' + currentNetwork);
+      console.log('RPC:    ' + rpc);
+      console.log('Faucet: ' + faucet);
+      console.log('\n');
 
       const readline = require('readline').createInterface({
         input: process.stdin,
@@ -74,3 +77,9 @@ function printNetConfig() {
     }
   });
 }
+
+const showOrMigrateNetwork = () => {
+  printNetConfig();
+}
+
+module.exports = showOrMigrateNetwork;

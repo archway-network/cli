@@ -49,6 +49,12 @@ Program
   // `archway deploy`
   
   // `archway network`
+  Program
+    .command('network')
+    .description('Show network settings or migrate between networks')
+    .action(async () => {
+      await Tools.Network();
+    });
   
   // `archway new`
   Program
