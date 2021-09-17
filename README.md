@@ -22,6 +22,7 @@ archway [options] [command]
 ```
 accounts [options]   List available wasmd accounts or add new account
 configure [options]  Print or modify developer environment settings
+faucet               Request Testnet funds from faucet
 new                  Create a new dApp project for Archway Network
 network              Show network settings or migrate between networks
 help [command]       display help for command
