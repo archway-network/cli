@@ -57,6 +57,7 @@ Program
   Program
     .command('deploy')
     .description('Deploy dApp to network, or test deployability')
+    .option('-a, --args', 'JSON encoded constructor arguments for contract deployment, e.g. --args \'{"key":"value"}\'')
     .option('-d, --dryrun', 'Test deployability; builds an unoptimized wasm binary')
     .action(async (options) => {
       let dryrun = (options.dryrun) ? true : false;

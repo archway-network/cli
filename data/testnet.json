@@ -35,7 +35,15 @@
       "name": "wasmd"
     },
     "cosmjs": "v0.26.0",
-    "seedNode": "237e83d7de8f3e2062f095c78a158254e361fc7b@10.0.0.2:26656"
+    "seedNode": "237e83d7de8f3e2062f095c78a158254e361fc7b@10.0.0.2:26656",
+    "optimizers": {
+      "docker": {
+        "type": "volume",
+        "source": "registry_cache",
+        "target": "/usr/local/cargo/registry",
+        "image": "cosmwasm/rust-optimizer:0.12.0"
+      }
+    }
   },
   "developer": {
     "dApp": {
