@@ -20,13 +20,13 @@ archway [command] [options]
 
 ### Commands:
 ```
-accounts [options]   List available wasmd accounts or add new account
+accounts [options]   List available wallets or add new wallet
 build                Build current project
-configure [options]  Print or modify developer environment settings
-deploy [options]     Deploy dApp to network, or test deployability
+configure [options]  Print or modify environment settings
+deploy [options]     Deploy to network, or test deployability
 faucet               Request Testnet funds from faucet
-new                  Create a new dApp project for Archway Network
 network              Show network settings or migrate between networks
+new                  Create a new project for Archway network
 run [options]        Run a custom script of your own creation
 test                 Run unit tests
 help [command]       display help for command

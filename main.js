@@ -41,7 +41,7 @@ Program
   // `archway configure`
   Program
     .command('configure')
-    .description('Print or modify developer environment settings')
+    .description('Print or modify environment settings')
     .option('-m, --modify <key>', 'Modify a particular setting; command will fail if <key> does not yet exist.')
     .action(async (options) => {
       let modify = (options.modify) ? true : false;
@@ -56,7 +56,7 @@ Program
   // `archway deploy`
   Program
     .command('deploy')
-    .description('Deploy dApp to network, or test deployability')
+    .description('Deploy to network, or test deployability')
     .option('-a, --args', 'JSON encoded constructor arguments for contract deployment, e.g. --args \'{"key":"value"}\'')
     .option('-d, --dryrun', 'Test deployability; builds an unoptimized wasm binary')
     .action(async (options) => {
@@ -87,7 +87,7 @@ Program
   // `archway new`
   Program
     .command('new')
-    .description('Create a new dApp project for Archway Network')
+    .description('Create a new project for Archway network')
     .action(async () => {
       await Tools.New();
     });
