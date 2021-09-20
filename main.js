@@ -15,8 +15,8 @@ Program.version('Archway dApp developer CLI\nv0.0.1', '-v, --version', 'output t
 // `archway accounts`
 Program
   .command('accounts')
-  .description('List available wasmd accounts or add new account')
-  .option('-a, --add <label>', 'Add a new wasmd account')
+  .description('List available wallets or add new wallet')
+  .option('-a, --add <label>', 'Add a new wallet')
   .action(async (options) => {
     let add = (options.add) ? true : false;
     // List accounts
@@ -98,7 +98,7 @@ Program
   Program
     .command('run')
     .description('Run a custom script of your own creation')
-    .requiredOption('-s, --script <key>', 'Name of the script you wish to run; scripts can be added by modifying config.json in the root folder of your project.')
+    .requiredOption('-s, --script <key>', 'Name of script to run (example: "archway run -s build"); add scripts by modifying config.json')
     .action(async (options) => {
       try {
         await Tools.Script(options.script);

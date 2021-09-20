@@ -19,7 +19,7 @@ function printNetConfig() {
       let config = require(configPath);
       let chainId = config.network.chainId,
           rpc = config.network.urls.rpc.url + ':' + config.network.urls.rpc.port,
-          faucet = String(config.network.urls.rpc.faucets),
+          faucet = config.network.urls.faucets[0],
           networks = ['1. Testnet', '2. Localhost', '3. Mainnet'],
           currentNetwork;
 
