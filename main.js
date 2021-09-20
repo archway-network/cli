@@ -94,6 +94,19 @@ Program
   
   // `archway query`
   
+  // `archway script`
+  Program
+    .command('run')
+    .description('Run a custom script of your own creation')
+    .requiredOption('-s, --script <key>', 'Name of the script you wish to run; scripts can be added by modifying config.json in the root folder of your project.')
+    .action(async (options) => {
+      try {
+        await Tools.Script(options.script);
+      } catch(e) {
+        console.error('Error running custom script', [options.script]);
+      }
+    });
+
   // `archway test`
   Program
     .command('test')

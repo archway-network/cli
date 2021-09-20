@@ -5,8 +5,11 @@ const { spawn } = require("child_process");
 const Testnet = require('../data/testnet.json');
 const FileSystem = require('fs');
 
+// XXX TODO: Import repos from json in ../data
 const repos = [
-  {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'https://github.com/CosmWasm/cosmwasm-template.git'}
+  // {label:'Increment', docs:'https://github.com/CosmWasm/cosmwasm-template/blob/main/README.md', git:'https://github.com/CosmWasm/cosmwasm-template.git'}
+  {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'https://github.com/CosmWasm/cw-template.git'}
+  // {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'git@github.com:drewstaylor/cosmwasm-template-tutorial-v0.16.0.git'}
 ];
 const ok = [1];
 const baseVersion = '0.0.1';
@@ -19,7 +22,6 @@ async function doCloneRepository(config = null, repo = null) {
   } else {
     switch (repo) {
       case repos[0].label: {
-        // cargo generate --git https://github.com/CosmWasm/cosmwasm-template.git --name YOUR_PROJECT_NAME
         const source = spawn('cargo', ['generate', '--git', repos[0].git, '--name', config.title], { stdio: 'inherit' });
         
         source.on('error', (err) => {

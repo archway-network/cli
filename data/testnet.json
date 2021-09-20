@@ -25,9 +25,9 @@
       "config": "https://raw.githubusercontent.com/CosmWasm/testnets/master/pebblenet-1/config/config.toml",
       "rpc": {
         "url": "https://rpc.pebblenet.cosmwasm.com",
-        "port": 443,
-        "faucets": ["https://faucet.pebblenet.cosmwasm.com"]
-      }
+        "port": 443
+      },
+      "faucets": ["https://faucet.pebblenet.cosmwasm.com"]
     },
     "cosmoVisor": {
       "version": "v0.42.9",

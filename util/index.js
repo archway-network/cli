@@ -8,6 +8,7 @@ const Faucet = require('./faucet');
 const Network = require('./network');
 const New = require('./new');
 const Query = require('./query');
+const Script = require('./script');
 const Test = require('./test');
 const Tx = require('./tx');
 
@@ -20,6 +21,7 @@ module.exports = {
   Network: Network,
   New: New,
   Query: Query,
+  Script: Script,
   Test: Test,
   Tx: Tx
 };

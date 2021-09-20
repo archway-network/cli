@@ -48,7 +48,7 @@ async function faucetRequestWorker(address = null, config = null) {
 
   let feeDenom = config.network.fees.feeDenom;
   let chainId = config.network.chainId;
-  let faucet = config.network.urls.rpc.faucets[0]; // XXX TODO: Add option to use alternate faucets from array
+  let faucet = config.network.urls.faucets[0]; // XXX TODO: Add option to use alternate faucets from array
   let request = {
     "denom": feeDenom,
     "address": address
