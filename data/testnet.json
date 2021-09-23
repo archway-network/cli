@@ -56,7 +56,7 @@
       "build": "cargo build",
       "wasm": "cargo wasm",
       "query": "wasmd query wasm",
-      "tx": "wasmd tx wasm"
+      "tx": "wasmd tx wasm execute"
     },
     "deployments": []
   }

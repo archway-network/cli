@@ -114,7 +114,7 @@ Program
     .argument('[type]', 'Subcommands (*if required by query module); available types: ' + String(typeChoices))
     .requiredOption('-a, --args <value>', 'JSON encoded arguments for query (e.g. \'{"get_count": {}}\')')
     .option('-f, --flags <flags>', 'Send additional flags to wasmd by wrapping in a string; e.g. "--height 492520 --limit 10"')
-    .description('Query for data on Archway network; E.g. "archway query contract-state smart --args \'{"key": {}}\'")')
+    .description('Query for data on Archway network')
     .action(async (module, type, options) => {
       const args = {
         command: module,
@@ -147,6 +147,20 @@ Program
     });
   
   // `archway tx`
+  Program
+    .command('tx')
+    .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')
+    .option('-f, --flags <flags>', 'Send additional flags to wasmd by wrapping in a string; e.g. "--dry-run --amount 1"')
+    .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
+    .description('Execute a transaction on Archway network')
+    .action(async (options) => {
+      const args = {
+        tx: (options.args) ? options.args : null,
+        flags: (options.flags) ? options.flags : null,
+        contract: (options.contract) ? options.contract : null
+      };
+      await Tools.Tx(args);
+    });
 
 // Do cmd parsing
 Program.parse(process.argv);

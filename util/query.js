@@ -29,7 +29,7 @@ function tryQuery(args) {
       runScript.cmd = runScript.arr[0];
       runScript.params = runScript.arr.slice(1);
 
-      // Extend params to inlcude all subcommands and args
+      // Extend params to include subcommands and args
       
       // Lvl. 1 cmd
       runScript.params.push(args.command);
