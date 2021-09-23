@@ -335,11 +335,7 @@ function handleDeployment() {
       return;
     } else {
       let config = require(configPath);
-      // Step 1: Optimized Wasm binary
       await makeOptimizedWasm(config);
-      // Step 2: Upload archived executable to network
-      // Step 3: Create an instance of uploaded contract
-      // Step 4: Verify instance source code matches local build
     }
   });
 }
