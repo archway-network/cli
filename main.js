@@ -93,6 +93,37 @@ Program
     });
   
   // `archway query`
+  let modChoices = [
+    'code',
+    'contract',
+    'contract-history',
+    'contract-state',
+    'list-code',
+    'list-contract-by-code'
+  ];
+  let typeChoices = [
+    'smart',
+    'code_id',
+    'all',
+    'raw'
+  ];
+  
+  Program
+    .command('query')
+    .argument('<module>', 'Query module to use; available modules ' + String(modChoices))    
+    .argument('[type]', 'Subcommands as required by query module; available subcomamnds ' + String(typeChoices))
+    .requiredOption('-a, --args <value>', 'JSON encoded arguments for query (e.g. \'{"get_count": {}}\')')
+    .option('-f, --flags <flags>', 'Send additional flags to wasmd by wrapping in a string; e.g. "--height 492520 --limit 10"')
+    .description('Query for data on Archway network; Example query: "archway query contract-state smart --args \'{"get_count": {}}\'")')
+    .action(async (module, type, options) => {
+      const args = {
+        command: module,
+        subcommand: type,
+        query: (options.args) ? options.args : null,
+        flags: (options.flags) ? options.flags : null
+      };
+      await Tools.Query(args);
+    });
   
   // `archway script`
   Program

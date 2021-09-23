@@ -30,6 +30,54 @@ function tryWasm() {
   });
 };
 
+function doCreateConfigFile(config = null) {
+  if (!config) {
+    console.log('Error creating config file', config);
+  } else if (typeof config !== 'object') {
+    console.log('Error creating config file', config);
+  } else if (!config.title || !config.version || !config.network || !config.path || !config.type) {
+    console.log('Error creating config file', config);
+  }
+
+  let path = config.path + '/config.json';
+  let json = JSON.stringify(config, null, 2);
+
+  FileSystem.writeFile(path, json, (err) => {
+    if (err)
+      console.log('Error writing config to file system', [config, err]);
+    else {
+      console.log('Successfully updated config file: ' + path + '\n');
+    }
+  });
+}
+
+function storeDeployment(deployment = null) {
+  if (!deployment) {
+    console.error('Error saving deployment to config', deployment);
+    return;
+  } else if (typeof deployment !== 'object') {
+    console.error('Deployment must be an object, got:', [typeof deployment, deployment]);
+    return;
+  } else if (!deployment.type) {
+    console.error('Error saving deployment to config', deployment);
+    return;
+  }
+
+  let configPath = process.cwd() + '/config.json';
+  FileSystem.access(configPath, FileSystem.F_OK, (err) => {
+    if (err) {
+      console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
+      return;
+    } else {
+      let config = require(configPath);
+      config.developer.deployments.unshift(deployment);
+
+      // Update config file
+      doCreateConfigFile(config);
+    }
+  });
+}
+
 function dryRunner() {
   try {
     tryWasm();
@@ -38,7 +86,7 @@ function dryRunner() {
   }
 };
 
-function uploadArchivedExecutable(config = null) {//here
+function uploadArchivedExecutable(config = null) {
   // console.log('Ok?', config);
   if (!config || typeof config !== 'object') {
     console.error('Error processing config', config);
@@ -90,13 +138,10 @@ function uploadArchivedExecutable(config = null) {//here
       ];
       
       readline.close();
-      
-      // const source = spawn(runScript.cmd, runScript.params);
-      // const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
       const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });
+
       // # Get code ID
       // $ CODE_ID=$(echo $RES | jq -r '.logs[0].events[-1].attributes[0].value')
-      let codeId;
       source.stdout.on('data', (data) => {
         let outputMsg = Buffer.from(data).toString().trim();
         if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
@@ -107,10 +152,11 @@ function uploadArchivedExecutable(config = null) {//here
           try {
             let json = JSON.parse(outputMsg);
             let events = json.logs[0].events;
-            codeId = events[1].attributes[0].value;
+            let codeId = events[1].attributes[0].value;
             // # Query
             // $ wasmd query wasm list-contract-by-code $CODE_ID $NODE --output json
             if (codeId) {
+              storeDeployment({type: 'create', codeId: codeId, data: outputMsg});
               verifyWasmUpload(codeId, node, wasmPath, chainId);
             }
           } catch(e) {
@@ -276,7 +322,30 @@ function deployInstance(codeId = null) {
             ];
 
             readline.close();
-            const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
+            // const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
+            const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });//here
+
+            source.stdout.on('data', (data) => {
+              let outputMsg = Buffer.from(data).toString().trim();
+              if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
+                return;
+              }
+              console.log(outputMsg);
+              if (outputMsg.indexOf('txhash') > -1) {
+                try {
+                  let json = JSON.parse(outputMsg);
+                  let events = json.logs[0].events;
+                  let contractAddress = events[0].attributes[0].value;
+                  if (contractAddress) {
+                    // Store deployment
+                    storeDeployment({type: 'instatiate', address: contractAddress, data: outputMsg});
+                  }
+                } catch(e) {
+                  console.error('Error instantiating contract', e);
+                  return;
+                }
+              }
+            });
 
             source.on('error', (err) => {
               console.log('Error deploying instance of contract', err);

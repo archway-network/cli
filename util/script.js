@@ -23,7 +23,7 @@ function tryScript(key) {
       const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
 
       source.on('error', (err) => {
-        console.log('Error building project', err);
+        console.log('Error executing script', err);
       });
     }
   });

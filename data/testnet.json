@@ -54,7 +54,9 @@
     "scripts": {
       "test": "cargo unit-test",
       "build": "cargo build",
-      "wasm": "cargo wasm"
+      "wasm": "cargo wasm",
+      "query": "wasmd query wasm",
+      "tx": "wasmd tx wasm"
     },
     "deployments": []
   }
