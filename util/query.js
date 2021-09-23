@@ -42,25 +42,31 @@ function tryQuery(args) {
       // Address to query
       // XXX TODO: Allow override and selecting other deployments
       // For now defaults to most recent deployment
-      let deployment = config.developer.deployments[0];
-      let rpc = config.network.urls.rpc;
-      runScript.params.push(deployment.address);
+      let deployments = config.developer.deployments;
+      for (let i = 0; i < deployments.length; i++) {
+        if (deployments[i].address) {
+          let contract = deployments[i].address;
+          runScript.params.push(contract);
+          // Query to make
+          runScript.params.push(args.query);
 
-      // Query to make
-      runScript.params.push(args.query);
+          // Additional flags
+          let rpc = config.network.urls.rpc;
+          let node = rpc.url + ':' + rpc.port;
+          let flags = (args.flags) ? args.flags.split(' ') : [];
+          flags.push('--node');
+          flags.push(node);
+          flags.push('--output');
+          flags.push('json');
 
-      // Additional flags
-      let flags = (args.flags) ? args.flags.split(' ') : [];
-      flags.push('--node');
-      flags.push(rpc);
-      flags.push('--output');
-      flags.push('json');
+          const source = spawn(runScript.cmd, runScript.params.concat(flags), { stdio: 'inherit' });
 
-      const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
-
-      source.on('error', (err) => {
-        console.log('Error running query', err);
-      });
+          source.on('error', (err) => {
+            console.log('Error running query', err);
+          });
+          break;
+        }
+      }
     }
   });
 };
