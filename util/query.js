@@ -64,6 +64,10 @@ function tryQuery(args) {
           source.on('error', (err) => {
             console.log('Error running query', err);
           });
+
+          source.on('close', () => {
+            console.log('\nOk!');
+          })
           break;
         }
       }
