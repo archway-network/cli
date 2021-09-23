@@ -39,7 +39,7 @@ function dryRunner() {
 };
 
 function uploadArchivedExecutable(config = null) {//here
-  console.log('Ok?', config);
+  // console.log('Ok?', config);
   if (!config || typeof config !== 'object') {
     console.error('Error processing config', config);
     return;
@@ -58,65 +58,68 @@ function uploadArchivedExecutable(config = null) {//here
       console.error('Error reading wallet label', walletLabel);
       readline.close();
       return;
-    }
-    // # Store code
-    // $ RES=$(wasmd tx wasm store artifacts/YOUR_DOCKER_WASM_OUTPUT_FILE.wasm --from YOUR_WALLET_NAME --chain-id $CHAIN_ID $TXFLAG -y)
-    let runScript = {};
-    let wasmPath = 'artifacts/' + config.title + '.wasm';
-    let rpc = config.network.urls.rpc;
-    let node = rpc.url + ':' + rpc.port;
-    let gasPrices = config.network.gas.prices;
-    let gas = config.network.gas.mode;
-    let gasAdjustment = config.network.gas.adjustment;
+    } else {
+      // # Store code
+      // $ RES=$(wasmd tx wasm store artifacts/YOUR_DOCKER_WASM_OUTPUT_FILE.wasm --from YOUR_WALLET_NAME --chain-id $CHAIN_ID $TXFLAG -y)
+      let runScript = {};
+      let wasmPath = 'artifacts/' + config.title.replace(/-/g,'_') + '.wasm';
+      let rpc = config.network.urls.rpc;
+      let node = rpc.url + ':' + rpc.port;
+      let gasPrices = config.network.gas.prices;
+      let gas = config.network.gas.mode;
+      let gasAdjustment = config.network.gas.adjustment;
 
-    runScript.cmd = 'wasmd';
-    runScript.params = [
-      'tx',
-      'wasm',
-      'store',
-      wasmPath,
-      '--from',
-      walletLabel,
-      '--chain-id',
-      chainId,
-      '--node',
-      node,
-      '--gas-prices',
-      gasPrices,
-      '--gas',
-      gas,
-      '--gas-adjustment',
-      gasAdjustment
-    ];
-    
-    const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
-    // const source = spawn(runScript.cmd, runScript.params);
-
-    // # Get code ID
-    // $ CODE_ID=$(echo $RES | jq -r '.logs[0].events[-1].attributes[0].value')
-    let codeId;
-    source.stdout.on('data', (data) => {
-      let outputMsg = Buffer.from(data).toString().trim();
-      console.log('?', outputMsg);
-      if (outputMsg.indexOf('txhash') > -1) {
-        try {
-          let json = JSON.parse(outputMsg);
-          let events = json.logs[0].events;
-          codeId = events[0].attributes[-1].value;
-          // # Query
-          // $ wasmd query wasm list-contract-by-code $CODE_ID $NODE --output json
-        } catch(e) {
-          console.error('Error uploading contract', e);
+      runScript.cmd = 'wasmd';
+      runScript.params = [
+        'tx',
+        'wasm',
+        'store',
+        wasmPath,
+        '--from',
+        walletLabel,
+        '--chain-id',
+        chainId,
+        '--node',
+        node,
+        '--gas-prices',
+        gasPrices,
+        '--gas',
+        gas,
+        '--gas-adjustment',
+        gasAdjustment
+      ];
+      
+      readline.close();
+      
+      // const source = spawn(runScript.cmd, runScript.params);
+      // const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
+      const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });
+      // # Get code ID
+      // $ CODE_ID=$(echo $RES | jq -r '.logs[0].events[-1].attributes[0].value')
+      let codeId;
+      source.stdout.on('data', (data) => {
+        let outputMsg = Buffer.from(data).toString().trim();
+        if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
           return;
         }
-      }
-    });
-
-    source.on('close', () => {
-      if (codeId) {
-        verifyWasmUpload(codeId, node, wasmPath, chainId);
-      }
-    });
+        console.log(outputMsg);
+        if (outputMsg.indexOf('txhash') > -1) {
+          try {
+            let json = JSON.parse(outputMsg);
+            let events = json.logs[0].events;
+            codeId = events[1].attributes[0].value;
+            // # Query
+            // $ wasmd query wasm list-contract-by-code $CODE_ID $NODE --output json
+            if (codeId) {
+              verifyWasmUpload(codeId, node, wasmPath, chainId);
+            }
+          } catch(e) {
+            console.error('Error uploading contract', e);
+            return;
+          }
+        }
+      });
+    }
   });
 };
 
@@ -125,13 +128,13 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
     console.error('Error getting Code ID of wasm upload', codeId);
     return;
   } else if (!node) {
-    console.erroer('Error getting node setting', node);
+    console.error('Error getting node setting', node);
   } else if (!path) {
     console.error('Error getting path to wasm artifacts', path);
   } else if (!chainId) {
     console.error('Error getting network chain id', chainId);
   } else {
-    console.log('\nDownloading build artifact from ' + chainId + ' and saving as "download.wasm"...\n');
+    console.log('Downloading build artifact from ' + chainId + ' and saving as "./download.wasm"...');
   }
   // # Verify your uploaded code matches your local build
   // $ wasmd query wasm code $CODE_ID $NODE download.wasm
@@ -151,30 +154,34 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
   const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
 
   source.on('close', () => {
-    let downloadPath = process.cwd() + '/download.wasm';
-    FileSystem.access(downloadPath, FileSystem.F_OK, (err) => {
-      if (err) {
-        console.error('Error locating downloaded wasm file');
-        return;
-      } else {
-        // $ diff artifacts/YOUR_DOCKER_WASM_OUTPUT_FILE.wasm download.wasm
-        let diffMsgs = 0;
-        const verify = spawn('diff', [path, downloadPath]);
-        verify.stdout.on('data', (data) => {
-          let outputMsg = Buffer.from(data).toString().trim();
-          if (outputMsg.length) {
-            console.log(outputMsg)
-            ++diffMsgs;
-          }
-        });
-        verify.on('close', () => {
-          if (diffMsgs === 0) {
-            console.log('Integrity check Ok!\n');
-            deployInstance(codeId);
-          }
-        });
-      }
-    });
+    try {
+      let downloadPath = process.cwd() + '/download.wasm';
+      FileSystem.access(downloadPath, FileSystem.F_OK, (err) => {
+        if (err) {
+          console.error('Error locating downloaded wasm file');
+          return;
+        } else {
+          // $ diff artifacts/YOUR_DOCKER_WASM_OUTPUT_FILE.wasm download.wasm
+          let diffMsgs = 0;
+          const verify = spawn('diff', [path, downloadPath]);
+          verify.stdout.on('data', (data) => {
+            let outputMsg = Buffer.from(data).toString().trim();
+            if (outputMsg.length) {
+              console.log(outputMsg)
+              ++diffMsgs;
+            }
+          });
+          verify.on('close', () => {
+            if (diffMsgs === 0) {
+              console.log('Integrity check Ok!\n');
+              deployInstance(codeId);
+            }
+          });
+        }
+      });
+    } catch(e) {
+      console.log('Error verifying upload', e);
+    }
   });
 };
 
@@ -301,6 +308,10 @@ function makeOptimizedWasm(config = null) {
     'type=volume,source=registry_cache,target=' + target,
     container
   ]);
+
+  source.stderr.on('err', (err) => {
+    console.log('Error building optimized wasm', err);
+  });
 
   source.stdout.on('data', (data) => {
     let outputMsg = Buffer.from(data).toString();
