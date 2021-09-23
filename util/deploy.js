@@ -124,6 +124,7 @@ function uploadArchivedExecutable(config = null) {//here
 };
 
 function verifyWasmUpload(codeId = null, node = null, path = null, chainId = null) {
+  console.log('\n');
   if (!codeId) {
     console.error('Error getting Code ID of wasm upload', codeId);
     return;
@@ -212,15 +213,17 @@ function deployInstance(codeId = null) {
         input: process.stdin,
         output: process.stdout
       });
-    
+
       readline.question('Send tx from which wallet in your keychain? (e.g. "main" or crtl+c to quit): ', walletLabel => {
         if (!walletLabel || walletLabel == '') {
           console.error('Error reading wallet label', walletLabel);
           readline.close();
           return;
         }
+
         let questionTwo = `Label this deployment? (e.g. "my deployment label", default: ${config.title} ${config.version}): `;
-        let questionThree = `JSON encoded constructor arguments (e.g. "{"count": 1}", default: "{}")`;
+        let questionThree = `JSON encoded constructor arguments (e.g. {"count": 0}, default: {}): `;
+
         readline.question(questionTwo, deploymentLabel => {
           if (!deploymentLabel) {
             deploymentLabel = config.title + ' ' + config.version;
@@ -272,6 +275,7 @@ function deployInstance(codeId = null) {
               '-y'
             ];
 
+            readline.close();
             const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
 
             source.on('error', (err) => {
