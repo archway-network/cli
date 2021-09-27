@@ -75,6 +75,14 @@ Program
     .action(async () => {
       await Tools.Faucet();
     });
+
+  // `archway history`
+  Program
+    .command('history')
+    .description('Print deployments history')
+    .action(async () => {
+      await Tools.DeployHistory();
+    });
   
   // `archway network`
   Program
@@ -107,7 +115,6 @@ Program
     ' all',
     ' raw'
   ];
-  
   Program
     .command('query')
     .argument('<module>', 'Query module to use; available modules: ' + String(modChoices))    

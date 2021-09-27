@@ -4,7 +4,7 @@ const FileSystem = require('fs');
 const StringUtility = require('util');
 
 function printDevConfig() {
-  console.log('Printing environment settings...');
+  console.log('Printing environment settings...\n');
 
   let configPath = process.cwd() + '/config.json';
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {

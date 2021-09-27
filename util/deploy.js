@@ -61,6 +61,9 @@ function storeDeployment(deployment = null) {
   } else if (!deployment.type) {
     console.error('Error saving deployment to config', deployment);
     return;
+  } else if (!deployment.chainId) {
+    console.error('Error saving deployment to config', deployment);
+    return;
   }
 
   let configPath = process.cwd() + '/config.json';
@@ -156,7 +159,12 @@ function uploadArchivedExecutable(config = null) {
             // # Query
             // $ wasmd query wasm list-contract-by-code $CODE_ID $NODE --output json
             if (codeId) {
-              storeDeployment({type: 'create', codeId: codeId, data: outputMsg});
+              storeDeployment({
+                type: 'create', 
+                codeId: codeId, 
+                chainId: chainId, 
+                data: outputMsg
+              });
               verifyWasmUpload(codeId, node, wasmPath, chainId);
             }
           } catch(e) {
@@ -338,7 +346,12 @@ function deployInstance(codeId = null) {
                   let contractAddress = events[0].attributes[0].value;
                   if (contractAddress) {
                     // Store deployment
-                    storeDeployment({type: 'instatiate', address: contractAddress, data: outputMsg});
+                    storeDeployment({
+                      type: 'instatiate', 
+                      address: contractAddress, 
+                      chainId: chainId,
+                      data: outputMsg
+                    });
                   }
                 } catch(e) {
                   console.error('Error instantiating contract', e);
