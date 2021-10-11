@@ -1,6 +1,6 @@
 // archway-cli/util/tx.js
 
-//wasmd tx wasm execute $CONTRACT $INCREMENT --from YOUR_WALLET_NAME $TXFLAG -y
+// E.g.: archwayd tx wasm execute $CONTRACT $INCREMENT --from YOUR_WALLET_NAME $TXFLAG -y
 
 const { spawn } = require("child_process");
 const FileSystem = require('fs');

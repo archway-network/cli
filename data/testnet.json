@@ -55,8 +55,8 @@
       "test": "cargo unit-test",
       "build": "cargo build",
       "wasm": "cargo wasm",
-      "query": "wasmd query wasm",
-      "tx": "wasmd tx wasm execute"
+      "query": "archwayd query wasm",
+      "tx": "archwayd tx wasm execute"
     },
     "deployments": []
   }

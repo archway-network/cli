@@ -157,7 +157,7 @@ Program
   Program
     .command('tx')
     .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')
-    .option('-f, --flags <flags>', 'Send additional flags to wasmd by wrapping in a string; e.g. "--dry-run --amount 1"')
+    .option('-f, --flags <flags>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--dry-run --amount 1"')
     .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
     .description('Execute a transaction on Archway network')
     .action(async (options) => {

@@ -7,7 +7,7 @@ const HttpClient = require('axios');
 async function getListAccounts() {
   console.log('Printing list of active accounts...\n');
 
-  const source = spawn('wasmd', ['keys', 'list'], { stdio: 'inherit' });
+  const source = spawn('archwayd', ['keys', 'list'], { stdio: 'inherit' });
 
   source.on('error', (err) => {
     console.log('Error listing keys', err);

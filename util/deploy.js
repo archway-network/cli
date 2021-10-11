@@ -111,7 +111,7 @@ function uploadArchivedExecutable(config = null) {
       return;
     } else {
       // # Store code
-      // $ RES=$(wasmd tx wasm store artifacts/YOUR_DOCKER_WASM_OUTPUT_FILE.wasm --from YOUR_WALLET_NAME --chain-id $CHAIN_ID $TXFLAG -y)
+      // $ RES=$(archwayd tx wasm store artifacts/YOUR_DOCKER_WASM_OUTPUT_FILE.wasm --from YOUR_WALLET_NAME --chain-id $CHAIN_ID $TXFLAG -y)
       let runScript = {};
       let wasmPath = 'artifacts/' + config.title.replace(/-/g,'_') + '.wasm';
       let rpc = config.network.urls.rpc;
@@ -120,7 +120,7 @@ function uploadArchivedExecutable(config = null) {
       let gas = config.network.gas.mode;
       let gasAdjustment = config.network.gas.adjustment;
 
-      runScript.cmd = 'wasmd';
+      runScript.cmd = 'archwayd';
       runScript.params = [
         'tx',
         'wasm',
@@ -157,7 +157,7 @@ function uploadArchivedExecutable(config = null) {
             let events = json.logs[0].events;
             let codeId = events[1].attributes[0].value;
             // # Query
-            // $ wasmd query wasm list-contract-by-code $CODE_ID $NODE --output json
+            // $ archwayd query wasm list-contract-by-code $CODE_ID $NODE --output json
             if (codeId) {
               storeDeployment({
                 type: 'create', 
@@ -192,10 +192,10 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
     console.log('Downloading build artifact from ' + chainId + ' and saving as "./download.wasm"...');
   }
   // # Verify your uploaded code matches your local build
-  // $ wasmd query wasm code $CODE_ID $NODE download.wasm
+  // $ archwayd query wasm code $CODE_ID $NODE download.wasm
   let runScript = {};
 
-  runScript.cmd = 'wasmd';
+  runScript.cmd = 'archwayd';
   runScript.params = [
     'query',
     'wasm',
@@ -302,10 +302,10 @@ function deployInstance(codeId = null) {
               }
             }
 
-            // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(wasmd keys show -a YOUR_WALLET_NAME) '{count:1}')
-            // $ wasmd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
+            // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
+            // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
             let runScript = {};
-            runScript.cmd = 'wasmd';
+            runScript.cmd = 'archwayd';
             runScript.params = [
               'tx',
               'wasm',
