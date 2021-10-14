@@ -449,11 +449,12 @@ function makeOptimizedWasm(config = null) {
     '--mount',
     'type=volume,source=registry_cache,target=' + target,
     container
-  ]);
+  ],
+  { stdio: ['inherit','pipe','inherit'] });//here
 
-  source.stderr.on('err', (err) => {
-    console.log('Error building optimized wasm', err);
-  });
+  // source.stderr.on('err', (err) => {
+  //   console.log('Error building optimized wasm', err);
+  // });
 
   source.stdout.on('data', (data) => {
     let outputMsg = Buffer.from(data).toString();
