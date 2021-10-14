@@ -8,8 +8,9 @@ const FileSystem = require('fs');
 // XXX TODO: Import repos from json in ../data
 const repos = [
   // {label:'Increment', docs:'https://github.com/CosmWasm/cosmwasm-template/blob/main/README.md', git:'https://github.com/CosmWasm/cosmwasm-template.git'}
-  {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'https://github.com/CosmWasm/cw-template.git'}
+  // {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'https://github.com/CosmWasm/cw-template.git'}
   // {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'git@github.com:drewstaylor/cosmwasm-template-tutorial-v0.16.0.git'}
+  {label:'Increment', docs:'https://github.com/drewstaylor/cw-template/blob/main/README.md', git:'git@github.com:drewstaylor/cw-template.git'}
 ];
 const ok = [1];
 const baseVersion = '0.0.1';

@@ -4,6 +4,36 @@ const { spawn } = require("child_process");
 const FileSystem = require('fs');
 const Path = require('path');
 
+const pScope = { 
+  args: null,
+  config: null
+};
+
+function b64(inString = '') {
+  if (typeof inString == 'string')
+    try {
+      return Buffer.from(inString).toString('base64');
+    } catch (e) {
+      console.log('Error: failed to create Base64 encoding for arguments ' + inString, e);
+      return false;
+    }
+  else
+    return false;
+}
+
+function toArchwayArgs (constructors) {
+  let constructorsB64 = b64(constructors);
+  let dAppConfig = pScope.config.developer.dApp;
+  let args = {
+    "reward_address": dAppConfig.rewardAddress, 
+    "gas_rebate_to_user": dAppConfig.gasRebate, 
+    "instantiation_request": constructorsB64, 
+    "collect_premium": dAppConfig.collectPremium, 
+    "premium_percentage_charged": dAppConfig.premiumPercentage
+  };
+  return args;
+};
+
 function tryWasm() {
   let configPath = process.cwd() + '/config.json';
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
@@ -14,6 +44,7 @@ function tryWasm() {
       console.log('Building wasm executable...\n');
 
       let config = require(configPath);
+      pScope.config = config;
       let scripts = config.developer.scripts;
       let runScript = {};
       runScript.raw = scripts.wasm;
@@ -37,6 +68,8 @@ function doCreateConfigFile(config = null) {
     console.log('Error creating config file', config);
   } else if (!config.title || !config.version || !config.network || !config.path || !config.type) {
     console.log('Error creating config file', config);
+  } else {
+    pScope.config = config;
   }
 
   let path = config.path + '/config.json';
@@ -241,7 +274,6 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
 };
 
 function deployInstance(codeId = null) {
-  let args; // XXX TODO: Allow use args override
   if (!codeId) {
     console.error('Error reading Code ID', codeId);
     return;
@@ -260,6 +292,8 @@ function deployInstance(codeId = null) {
       let gasPrices = config.network.gas.prices;
       let gas = config.network.gas.mode;
       let gasAdjustment = config.network.gas.adjustment;
+
+      pScope.config = config;
       
       console.log('Deploying an instance of ' + title + ' to ' + chainId + '...\n');
 
@@ -289,84 +323,104 @@ function deployInstance(codeId = null) {
             }
           }
 
-          readline.question(questionThree, constructors => {
-            if (!constructors) {
-              constructors = '{}';
-            } else if (typeof constructors !== 'string') {
-              constructors = '{}';
-            } else {
-              try {
-                JSON.parse(constructors);
-              } catch (e) {
-                constructors = '{}';
-              }
+          let argsExist = false;
+          if (typeof pScope.args == 'string') {
+            if (pScope.args.length) {
+              argsExist = true;
             }
+          }
 
-            // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
-            // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
-            let runScript = {};
-            runScript.cmd = 'archwayd';
-            runScript.params = [
-              'tx',
-              'wasm',
-              'instantiate',
-              codeId,
-              constructors,
-              '--from',
-              walletLabel,
-              '--label',
-              deploymentLabel,
-              '--chain-id',
-              chainId,
-              '--node',
-              node,
-              '--gas-prices',
-              gasPrices,
-              '--gas',
-              gas,
-              '--gas-adjustment',
-              gasAdjustment,
-              '-y'
-            ];
-
-            readline.close();
-            // const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
-            const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });//here
-
-            source.stdout.on('data', (data) => {
-              let outputMsg = Buffer.from(data).toString().trim();
-              if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
-                return;
-              }
-              console.log(outputMsg);
-              if (outputMsg.indexOf('txhash') > -1) {
+          if (!argsExist) {
+            readline.question(questionThree, constructors => {
+              if (!constructors) {
+                constructors = '{}';
+              } else if (typeof constructors !== 'string') {
+                constructors = '{}';
+              } else {
                 try {
-                  let json = JSON.parse(outputMsg);
-                  let events = json.logs[0].events;
-                  let contractAddress = events[0].attributes[0].value;
-                  if (contractAddress) {
-                    // Store deployment
-                    storeDeployment({
-                      type: 'instatiate', 
-                      address: contractAddress, 
-                      chainId: chainId,
-                      data: outputMsg
-                    });
-                  }
-                } catch(e) {
-                  console.error('Error instantiating contract', e);
-                  return;
+                  JSON.parse(constructors);
+                } catch (e) {
+                  constructors = '{}';
                 }
               }
-            });
 
-            source.on('error', (err) => {
-              console.log('Error deploying instance of contract', err);
+              readline.close();
+              doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainId, node, gasPrices, gas, gasAdjustment)
             });
-          });
+          } else {
+            doDeployment(codeId, pScope.args, walletLabel, deploymentLabel, chainId, node, gasPrices, gas, gasAdjustment);
+          }
         });
       });
     }
+  });
+}
+
+function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainId, node, gasPrices, gas, gasAdjustment) {
+  if (!codeId || !constructors || !walletLabel || !deploymentLabel || !chainId || !node || !gasPrices || !gas || !gasAdjustment) {
+    console.log('Error: deployment failed due to missing values', [codeId, constructors, walletLabel, deploymentLabel, chainId, node, gasPrices, gas, gasAdjustment]);
+    return;
+  }
+  let args = toArchwayArgs(constructors);
+  // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
+  // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
+  let runScript = {};
+  runScript.cmd = 'archwayd';
+  runScript.params = [
+    'tx',
+    'wasm',
+    'instantiate',
+    codeId,
+    args,
+    '--from',
+    walletLabel,
+    '--label',
+    deploymentLabel,
+    '--chain-id',
+    chainId,
+    '--node',
+    node,
+    '--gas-prices',
+    gasPrices,
+    '--gas',
+    gas,
+    '--gas-adjustment',
+    gasAdjustment,
+    '-y'
+  ];
+
+  // const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
+  const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });
+
+  source.stdout.on('data', (data) => {
+    let outputMsg = Buffer.from(data).toString().trim();
+    if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
+      return;
+    }
+    console.log(outputMsg);
+    if (outputMsg.indexOf('txhash') > -1) {
+      try {
+        let json = JSON.parse(outputMsg);
+        let events = json.logs[0].events;
+        let contractAddress = events[0].attributes[0].value;
+        if (contractAddress) {
+          // Store deployment
+          storeDeployment({
+            type: 'instatiate', 
+            address: contractAddress, 
+            chainId: chainId,
+            data: outputMsg
+          });
+        }
+      } catch(e) {
+        console.error('Error instantiating contract', e);
+        return;
+      }
+    }
+  });
+
+  source.on('error', (err) => {
+    console.log('Error deploying instance of contract', err);
   });
 }
 
@@ -417,12 +471,20 @@ function handleDeployment() {
       return;
     } else {
       let config = require(configPath);
+      pScope.config = config;
       await makeOptimizedWasm(config);
     }
   });
 }
 
-const deployer = (dryrun = null) => {
+const deployer = (args = null, dryrun = null) => {
+  if (args) {
+    if (typeof args == 'string') {
+      if (args.length) {
+        pScope.args = args;
+      }
+    }
+  }
   if (dryrun) {
     dryRunner();
   } else {

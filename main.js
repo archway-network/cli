@@ -61,10 +61,11 @@ Program
     .option('-d, --dryrun', 'Test deployability; builds an unoptimized wasm binary')
     .action(async (options) => {
       let dryrun = (options.dryrun) ? true : false;
+      let args = (options.args) ? options.args : null;
       if (!dryrun) {
-        await Tools.Deploy();
+        await Tools.Deploy(args);
       } else {
-        await Tools.Deploy(true);
+        await Tools.Deploy(args, dryrun);
       }
     });
 
@@ -120,7 +121,7 @@ Program
     .argument('<module>', 'Query module to use; available modules: ' + String(modChoices))    
     .argument('[type]', 'Subcommands (*if required by query module); available types: ' + String(typeChoices))
     .requiredOption('-a, --args <value>', 'JSON encoded arguments for query (e.g. \'{"get_count": {}}\')')
-    .option('-f, --flags <flags>', 'Send additional flags to wasmd by wrapping in a string; e.g. "--height 492520 --limit 10"')
+    .option('-f, --flags <flags>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--height 492520 --limit 10"')
     .description('Query for data on Archway network')
     .action(async (module, type, options) => {
       const args = {
