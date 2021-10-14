@@ -450,7 +450,7 @@ function makeOptimizedWasm(config = null) {
     'type=volume,source=registry_cache,target=' + target,
     container
   ],
-  { stdio: ['inherit','pipe','inherit'] });//here
+  { stdio: ['inherit','pipe','inherit'] });
 
   // source.stderr.on('err', (err) => {
   //   console.log('Error building optimized wasm', err);
