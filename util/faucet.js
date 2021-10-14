@@ -65,7 +65,18 @@ async function faucetRequestWorker(address = null, config = null) {
       if (response.data) {
         console.log(response.data);
       }
-      let statusMsg = 'Successfully requested funds to ' + address + ' on network ' + chainId + ' using faucet ' + faucet;
+      let statusMsg = 'Requested funds to ' + address + ' on network ' + chainId + ' using faucet ' + faucet;
+      if (response.data.transfers) {
+        if (response.data.transfers[0]) {
+          if (response.data.transfers[0].status) {
+            if (response.data.transfers[0].status == 'error') {
+              statusMsg += ' \nPanic! REQUEST FAILED';
+            } else {
+              statusMsg += ' \nSuccess! REQUEST SENT';
+            }
+          }
+        }
+      }
       console.log(statusMsg);
     } else {
       console('Error requesting funds from faucet', {faucet: faucet, error: response});
