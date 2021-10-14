@@ -89,7 +89,7 @@ function handleFaucetRequest() {
         output: process.stdout
       });
     
-      readline.question('Enter an address to receive Testnet funds (e.g. "wasm1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv"; Or, hit <enter> to list accounts): ', account => {
+      readline.question('Enter an address to receive Testnet funds (e.g. "archway1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv"; Or, hit <enter> to list accounts): ', account => {
         if (!account) {
           readline.close();
           getListAccounts();
