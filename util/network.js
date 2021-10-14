@@ -24,9 +24,14 @@ function printNetConfig() {
           currentNetwork;
 
       switch (chainId) {
-        case 'pebblenet-1': {
+        case 'constantine-1': {
           networks[0] += '*';
-          currentNetwork = networks[0].replace('1. ','').replace('*','');
+          currentNetwork = 'Constantine Testnet'
+          break;
+        }
+        case 'titus-1': {
+          networks[0] += '*';
+          currentNetwork += 'Titus Testnet'
           break;
         }
         case 'localhost': {
