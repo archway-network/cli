@@ -173,6 +173,8 @@ function uploadArchivedExecutable(config = null) {
         gasAdjustment
       ];
       
+      // console.log('Debug cmd:', runScript);
+
       readline.close();
       const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });
 
