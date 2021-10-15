@@ -10,9 +10,10 @@ const repos = [
   // {label:'Increment', docs:'https://github.com/CosmWasm/cosmwasm-template/blob/main/README.md', git:'https://github.com/CosmWasm/cosmwasm-template.git'}
   // {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'https://github.com/CosmWasm/cw-template.git'}
   // {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'git@github.com:drewstaylor/cosmwasm-template-tutorial-v0.16.0.git'}
-  {label:'Increment', docs:'https://github.com/drewstaylor/cw-template/blob/main/README.md', git:'git@github.com:drewstaylor/cw-template.git'}
+  {label:'Increment', docs:'https://github.com/drewstaylor/cw-template/blob/main/README.md', git:'git@github.com:drewstaylor/cw-template.git'},
+  {label:'Queue', docs:'https://github.com/drewstaylor/cw-queue-contract/blob/main/README.md', git:'git@github.com:drewstaylor/cw-queue-contract.git'}
 ];
-const ok = [1];
+const ok = [1,2];
 const baseVersion = '0.0.1';
 
 async function doCloneRepository(config = null, repo = null) {
@@ -31,6 +32,21 @@ async function doCloneRepository(config = null, repo = null) {
 
         source.on('close', () => {
           let path = process.cwd() + '/' + config.title;
+          config.path = path;
+          config.type = repo;
+          doCreateConfigFile(config);
+        });
+        break;
+      }
+      case repos[1].label: {
+        const source = spawn('cargo', ['generate', '--git', repos[1].git, '--name', 'queue'], { stdio: 'inherit' });
+        
+        source.on('error', (err) => {
+          console.log(`Error generating project queue`, err);
+        });
+
+        source.on('close', () => {
+          let path = process.cwd() + '/queue';
           config.path = path;
           config.type = repo;
           doCreateConfigFile(config);
