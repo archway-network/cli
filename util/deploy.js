@@ -373,7 +373,7 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
     'wasm',
     'instantiate',
     codeId,
-    args,
+    JSON.stringify(args),
     '--from',
     walletLabel,
     '--label',
