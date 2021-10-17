@@ -31,7 +31,8 @@ function toArchwayArgs (constructors) {
     "collect_premium": dAppConfig.collectPremium, 
     "premium_percentage_charged": dAppConfig.premiumPercentage
   };
-  return args;
+  // console.log('Debug ArchwayArgs', args);
+  return JSON.stringify(args);
 };
 
 function tryWasm() {
@@ -373,7 +374,7 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
     'wasm',
     'instantiate',
     codeId,
-    JSON.stringify(args),
+    args,
     '--from',
     walletLabel,
     '--label',
