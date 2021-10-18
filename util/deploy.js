@@ -373,7 +373,7 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
       input: process.stdin,
       output: process.stdout
     });
-    console.log('\nWarning: Rewards contract in developer config currently unset.\n')
+    console.log('\nWarning: Rewards address in developer config currently unset.\n');
     readline.question('Enter an address to receive developer rewards (e.g. "archway1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv"): ', rewardAddress => {
       args['reward_address'] = rewardAddress;
       if (pScope.config) {
