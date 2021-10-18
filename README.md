@@ -1,4 +1,17 @@
-# archway-cli
+# Archway Developer CLI
+
+Make sure you've installed and configured a few dependencies. For full installation and setup instructions visit https://docs.archway.io/docs/create/getting-started/install
+
+### Dependencies
+
+- [Rustc](https://www.rust-lang.org/tools/install "Install Rust")
+- [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html "Install Cargo")
+- [Cargo Generate](https://crates.io/crates/cargo-generate "Install Cargo Generate")
+- [Archwayd](https://github.com/archway-network/archway/tree/main/cmd/archwayd "Install Archway Daemon")
+- [Docker](https://docs.docker.com/get-docker "Install Docker")
+- [Npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm "Install Node.js and NPM")
+- [Archway Developer CLI](https://github.com/archway-network/archway-cli "Install develolper CLI")
+
 
 ### Installation:
 ```
