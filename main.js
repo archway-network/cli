@@ -57,7 +57,7 @@ Program
   Program
     .command('deploy')
     .description('Deploy to network, or test deployability')
-    .option('-a, --args', 'JSON encoded constructor arguments for contract deployment, e.g. --args \'{"key":"value"}\'')
+    .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment, e.g. --args \'{"key":"value"}\'')
     .option('-d, --dryrun', 'Test deployability; builds an unoptimized wasm binary')
     .action(async (options) => {
       let dryrun = (options.dryrun) ? true : false;
@@ -118,7 +118,7 @@ Program
   ];
   Program
     .command('query')
-    .argument('<module>', 'Query module to use; available modules: ' + String(modChoices))    
+    .argument('<module>', 'Query module to use; available modules: ' + String(modChoices))
     .argument('[type]', 'Subcommands (*if required by query module); available types: ' + String(typeChoices))
     .requiredOption('-a, --args <value>', 'JSON encoded arguments for query (e.g. \'{"get_count": {}}\')')
     .option('-f, --flags <flags>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--height 492520 --limit 10"')

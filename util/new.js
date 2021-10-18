@@ -1,17 +1,16 @@
 // archway-cli/util/new.js
 
 const { spawn } = require("child_process");
-
-const Testnet = require('../data/testnet.json');
 const FileSystem = require('fs');
+
+const Testnet = {
+  constantine: require('../data/testnet.constantine.json'),
+  titus: require('../data/testnet.titus.json')
+};
 
 // XXX TODO: Import repos from json in ../data
 const repos = [
-  // {label:'Increment', docs:'https://github.com/CosmWasm/cosmwasm-template/blob/main/README.md', git:'https://github.com/CosmWasm/cosmwasm-template.git'}
-  // {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'https://github.com/CosmWasm/cw-template.git'}
-  // {label:'Increment', docs:'https://github.com/CosmWasm/cw-template/blob/main/README.md', git:'git@github.com:drewstaylor/cosmwasm-template-tutorial-v0.16.0.git'}
-  {label:'Increment', docs:'https://github.com/drewstaylor/cw-template/blob/main/README.md', git:'git@github.com:drewstaylor/cw-template.git'},
-  {label:'Queue', docs:'https://github.com/drewstaylor/cw-queue-contract/blob/main/README.md', git:'git@github.com:drewstaylor/cw-queue-contract.git'}
+  {label:'Increment', docs:'https://github.com/drewstaylor/archway-template/blob/main/README.md', git:'git@github.com:drewstaylor/archway-template.git'}
 ];
 const ok = [1,2];
 const baseVersion = '0.0.1';
@@ -78,7 +77,7 @@ function doCreateConfigFile(config = null) {
   });
 }
 
-function makeConfig(configIndex) {
+function makeConfig(configIndex, defaultTestnet = 1) {
   // XXX TODO: Remove this when ready to unveil
   if (parseInt(configIndex) !== 1) {
     console.log('Please use the Testnet configuration for now.');
@@ -116,7 +115,11 @@ function makeConfig(configIndex) {
             switch (configIndex) {
               case 1:
               case '1':
-                networkConfig = Testnet;
+                if (defaultTestnet !== 2) {
+                  networkConfig = Testnet.constantine;
+                } else {
+                  networkConfig = Testnet.titus;
+                }
                 break;
               case 2:
               case '2':
@@ -153,11 +156,12 @@ const newArchway = async () => {
   });
 
   readline.question('Configure environment (Y/N default: N)?: ', configure => {
-    let envI;
+    let envI, testnetI;
     if (configure.toLowerCase() !== 'y' && configure.toLowerCase() !== 'yes') {
       envI = 1;
+      testnetI = 1;
       readline.close();
-      makeConfig(1);
+      makeConfig(envI, testnetI);
     } else {
       console.log('\n1. Testnet\n2. Localhost\n3. Mainnet\n');
       readline.question('Select environment type (1-3 default: 1): ', environment => {
@@ -166,8 +170,12 @@ const newArchway = async () => {
           console.log('Error: unrecognized environment', environment);
           readline.close();
         } else {
-          readline.close();
-          makeConfig(envI);
+          console.log('\n1. Constantine [stable]\n2. Titus [nightly]\n');
+          readline.question('Select a testnet to use (1-2 default: 1): ', netIndex => {
+            testnetI = parseInt(netIndex);
+            readline.close();
+            makeConfig(envI, testnetI);
+          });
         }
       });
     }

@@ -32,7 +32,7 @@ function toArchwayArgs (constructors) {
     "premium_percentage_charged": dAppConfig.premiumPercentage
   };
   // console.log('Debug ArchwayArgs', args);
-  return JSON.stringify(args);
+  return args;
 };
 
 function tryWasm() {
@@ -313,7 +313,7 @@ function deployInstance(codeId = null) {
         }
 
         let questionTwo = `Label this deployment? (e.g. "my deployment label", default: ${config.title} ${config.version}): `;
-        let questionThree = `JSON encoded constructor arguments (e.g. {"count": 0}, default: {}): `;
+        let questionThree = `JSON encoded constructor arguments (e.g. {"count":0}, default: {}): `;
 
         readline.question(questionTwo, deploymentLabel => {
           if (!deploymentLabel) {
@@ -333,6 +333,8 @@ function deployInstance(codeId = null) {
             }
           }
 
+          // console.log('Debug arguments', pScope);
+
           if (!argsExist) {
             readline.question(questionThree, constructors => {
               if (!constructors) {
@@ -351,6 +353,7 @@ function deployInstance(codeId = null) {
               doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainId, node, gasPrices, gas, gasAdjustment)
             });
           } else {
+            readline.close();
             doDeployment(codeId, pScope.args, walletLabel, deploymentLabel, chainId, node, gasPrices, gas, gasAdjustment);
           }
         });
@@ -365,66 +368,140 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
     return;
   }
   let args = toArchwayArgs(constructors);
-  // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
-  // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
-  let runScript = {};
-  runScript.cmd = 'archwayd';
-  runScript.params = [
-    'tx',
-    'wasm',
-    'instantiate',
-    codeId,
-    args,
-    '--from',
-    walletLabel,
-    '--label',
-    deploymentLabel,
-    '--chain-id',
-    chainId,
-    '--node',
-    node,
-    '--gas-prices',
-    gasPrices,
-    '--gas',
-    gas,
-    '--gas-adjustment',
-    gasAdjustment,
-    '-y'
-  ];
+  if (!args['reward_address']) {
+    const readline = require('readline').createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    console.log('\nWarning: Rewards contract in developer config currently unset.\n')
+    readline.question('Enter an address to receive developer rewards (e.g. "archway1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv"', rewardAddress => {
+      args['reward_address'] = rewardAddress;
+      if (pScope.config) {
+        pScope.config.developer.dApp.rewardAddress = rewardsAddress;
+      }
+      // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
+      // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
+      let runScript = {};
+      runScript.cmd = 'archwayd';
+      runScript.params = [
+        'tx',
+        'wasm',
+        'instantiate',
+        codeId,
+        args,
+        '--from',
+        walletLabel,
+        '--label',
+        deploymentLabel,
+        '--chain-id',
+        chainId,
+        '--node',
+        node,
+        '--gas-prices',
+        gasPrices,
+        '--gas',
+        gas,
+        '--gas-adjustment',
+        gasAdjustment,
+        '-y'
+      ];
 
-  // const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
-  const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });
+      // const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
+      const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });
 
-  source.stdout.on('data', (data) => {
-    let outputMsg = Buffer.from(data).toString().trim();
-    if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
-      return;
-    }
-    console.log(outputMsg);
-    if (outputMsg.indexOf('txhash') > -1) {
-      try {
-        let json = JSON.parse(outputMsg);
-        let events = json.logs[0].events;
-        let contractAddress = events[0].attributes[0].value;
-        if (contractAddress) {
-          // Store deployment
-          storeDeployment({
-            type: 'instatiate', 
-            address: contractAddress, 
-            chainId: chainId,
-            data: outputMsg
-          });
+      source.stdout.on('data', (data) => {
+        let outputMsg = Buffer.from(data).toString().trim();
+        if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
+          return;
         }
-      } catch(e) {
-        console.error('Error instantiating contract', e);
+        console.log(outputMsg);
+        if (outputMsg.indexOf('txhash') > -1) {
+          try {
+            let json = JSON.parse(outputMsg);
+            let events = json.logs[0].events;
+            let contractAddress = events[0].attributes[0].value;
+            if (contractAddress) {
+              // Store deployment
+              storeDeployment({
+                type: 'instatiate', 
+                address: contractAddress, 
+                chainId: chainId,
+                data: outputMsg
+              });
+            }
+          } catch(e) {
+            console.error('Error instantiating contract', e);
+            return;
+          }
+        }
+      });
+
+      source.on('error', (err) => {
+        console.log('Error deploying instance of contract', err);
+      });
+    });
+  } else {
+    // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
+    // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
+    let runScript = {}, jsonArgs = JSON.stringify(args);
+    runScript.cmd = 'archwayd';
+    runScript.params = [
+      'tx',
+      'wasm',
+      'instantiate',
+      codeId,
+      jsonArgs,
+      '--from',
+      walletLabel,
+      '--label',
+      deploymentLabel,
+      '--chain-id',
+      chainId,
+      '--node',
+      node,
+      '--gas-prices',
+      gasPrices,
+      '--gas',
+      gas,
+      '--gas-adjustment',
+      gasAdjustment,
+      '-y'
+    ];
+
+    // const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
+    const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });
+
+    source.stdout.on('data', (data) => {
+      let outputMsg = Buffer.from(data).toString().trim();
+      if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
         return;
       }
-    }
-  });
+      console.log(outputMsg);
+      if (outputMsg.indexOf('txhash') > -1) {
+        try {
+          let json = JSON.parse(outputMsg);
+          let events = json.logs[0].events;
+          let contractAddress = events[0].attributes[0].value;
+          if (contractAddress) {
+            // Store deployment
+            storeDeployment({
+              type: 'instatiate', 
+              address: contractAddress, 
+              chainId: chainId,
+              data: outputMsg
+            });
+          }
+        } catch(e) {
+          console.error('Error instantiating contract', e);
+          return;
+        }
+      }
+    });
 
-  source.on('error', (err) => {
-    console.log('Error deploying instance of contract', err);
-  });
+    source.on('error', (err) => {
+      console.log('Error deploying instance of contract', err);
+    });
+  }
 }
 
 function makeOptimizedWasm(config = null) {
