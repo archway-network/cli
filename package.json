@@ -1,6 +1,6 @@
 {
   "name": "archway-cli",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Archway developer CLI",
   "main": "main.js",
   "scripts": {
