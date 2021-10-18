@@ -13,7 +13,7 @@ Make sure you've installed and configured a few dependencies. For full installat
 - [Archway Developer CLI](https://github.com/archway-network/archway-cli "Install develolper CLI")
 
 
-### Installation:
+### CLI Installation:
 ```
 git clone git@github.com:archway-network/archway-cli.git
 cd archway-cli 
