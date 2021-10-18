@@ -374,21 +374,22 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
       output: process.stdout
     });
     console.log('\nWarning: Rewards contract in developer config currently unset.\n')
-    readline.question('Enter an address to receive developer rewards (e.g. "archway1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv"', rewardAddress => {
+    readline.question('Enter an address to receive developer rewards (e.g. "archway1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv"): ', rewardAddress => {
       args['reward_address'] = rewardAddress;
       if (pScope.config) {
-        pScope.config.developer.dApp.rewardAddress = rewardsAddress;
+        pScope.config.developer.dApp.rewardAddress = rewardAddress;
       }
+      readline.close();
       // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
       // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
-      let runScript = {};
+      let runScript = {}, jsonArgs = JSON.stringify(args);
       runScript.cmd = 'archwayd';
       runScript.params = [
         'tx',
         'wasm',
         'instantiate',
         codeId,
-        args,
+        jsonArgs,
         '--from',
         walletLabel,
         '--label',
