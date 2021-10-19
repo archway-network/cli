@@ -1,7 +1,7 @@
 {
-  "name": "archway-cli",
+  "name": "@archway-network/cli",
   "version": "1.0.0",
-  "description": "Archway developer CLI",
+  "description": "Develop WASM smart contracts with the Archway network developer CLI",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
