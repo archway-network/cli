@@ -1,6 +1,6 @@
 {
   "name": "@archwayhq/cli",
-  "version": "1.0.0",
+  "version": "1.0.0-beta",
   "description": "Develop WASM smart contracts with the Archway network developer CLI",
   "main": "main.js",
   "scripts": {
