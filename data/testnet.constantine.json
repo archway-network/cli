@@ -34,6 +34,13 @@
       }
     }
   },
+  "dependencies":{
+    "archwayd": {
+      "docker": {
+        "image": "drewstaylor/archwayd:latest"
+      }
+    }
+  },
   "developer": {
     "dApp": {
       "gasPoolContract": null,
