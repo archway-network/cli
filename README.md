@@ -14,6 +14,13 @@ Make sure you've installed and configured a few dependencies. For full installat
 
 
 ### CLI Installation:
+
+#### Install using `npm`:
+```
+npm install -g @archwayhq/cli
+```
+
+#### Install from source:
 ```
 git clone git@github.com:archway-network/archway-cli.git
 cd archway-cli 
