@@ -3,7 +3,7 @@
 const { spawn } = require("child_process");
 const FileSystem = require('fs');
 const Path = require('path');
-const constants  = require('./constants');
+const commands  = require('../constants/commands');
 
 const pScope = { 
   args: null,
@@ -158,9 +158,9 @@ function uploadArchivedExecutable(config = null) {
 
       // We need to copy the wasm file into the mapped directory of the archwayd docker container
       // in order to allow the archwayd use it
-      FileSystem.copyFile( wasmPath, constants.Archwayd.localDir +'/'+ wasmFileName, (err) => {
+      FileSystem.copyFile( wasmPath, commands.ArchwayDocker.localDir +'/'+ wasmFileName, (err) => {
         if (err){
-          console.error( `Cannot copy "${wasmPath}" to "${constants.Archwayd.localDir}":\n\t`, err);
+          console.error( `Cannot copy "${wasmPath}" to "${commands.ArchwayDocker.localDir}":\n\t`, err);
           return;
         }
         // console.log(`"${wasmPath}" was copied to the container volume`);
@@ -169,9 +169,9 @@ function uploadArchivedExecutable(config = null) {
       wasmPath = wasmFileName
 
 
-      runScript.cmd = constants.Archwayd.cmd;
+      runScript.cmd = commands.ArchwayDocker.cmd;
       // runScript.cmd = 'archwayd';
-      runScript.params = [ ...constants.Archwayd.args,
+      runScript.params = [ ...commands.ArchwayDocker.args,
         'tx',
         'wasm',
         'store',
@@ -251,9 +251,9 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
   // $ archwayd query wasm code $CODE_ID $NODE download.wasm
   let runScript = {};
 
-  runScript.cmd = constants.Archwayd.cmd;
+  runScript.cmd = commands.ArchwayDocker.cmd;
   // runScript.cmd = 'archwayd';
-  runScript.params = [...constants.Archwayd.args,
+  runScript.params = [...commands.ArchwayDocker.args,
     'query',
     'wasm',
     'code',
@@ -268,7 +268,7 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
   source.on('close', () => {
     try {
       // We need to update the path to where the docker container volume is mapped to
-      let downloadPath = constants.Archwayd.localDir + '/download.wasm';
+      let downloadPath = commands.ArchwayDocker.localDir + '/download.wasm';
       // let downloadPath = process.cwd() + '/download.wasm';
       FileSystem.access(downloadPath, FileSystem.F_OK, (err) => {
         if (err) {
@@ -407,9 +407,9 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
       // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
       let runScript = {}, jsonArgs = JSON.stringify(args);
       
-      runScript.cmd = constants.Archwayd.cmd;
+      runScript.cmd = commands.ArchwayDocker.cmd;
       // runScript.cmd = 'archwayd';
-      runScript.params = [...constants.Archwayd.args,
+      runScript.params = [...commands.ArchwayDocker.args,
         'tx',
         'wasm',
         'instantiate',
@@ -475,9 +475,9 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
     // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
     let runScript = {}, jsonArgs = JSON.stringify(args);
     
-    runScript.cmd = constants.Archwayd.cmd
+    runScript.cmd = commands.ArchwayDocker.cmd
     // runScript.cmd = 'archwayd';
-    runScript.params = [...constants.Archwayd.args,
+    runScript.params = [...commands.ArchwayDocker.args,
       'tx',
       'wasm',
       'instantiate',
