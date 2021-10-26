@@ -3,11 +3,13 @@
 const { spawn } = require("child_process");
 const FileSystem = require('fs');
 const HttpClient = require('axios');
+const constants  = require('./constants');
 
 async function getListAccounts() {
   console.log('Printing list of active accounts...\n');
 
-  const source = spawn('archwayd', ['keys', 'list'], { stdio: 'inherit' });
+  const source = spawn(constants.Archwayd.cmd, [...constants.Archwayd.args, 'keys', 'list'], { stdio: 'inherit' });
+  // const source = spawn('archwayd', ['keys', 'list'], { stdio: 'inherit' });
 
   source.on('error', (err) => {
     console.log('Error listing keys', err);

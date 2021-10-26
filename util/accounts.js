@@ -1,11 +1,14 @@
 // archway-cli/util/accounts.js
 
 const { spawn } = require("child_process");
+const constants  = require('./constants');
 
 async function getListAccounts() {
   console.log('Printing list of active accounts...\n');
 
-  const source = spawn('archwayd', ['keys', 'list'], { stdio: 'inherit' });
+
+  const source = spawn(constants.Archwayd.cmd, [...constants.Archwayd.args, 'keys', 'list'], { stdio: 'inherit'});
+  // const source = spawn('archwayd', ['keys', 'list'], { stdio: 'inherit'});
   
   // Listeners
   source.on('error', (err) => {
@@ -44,7 +47,8 @@ async function doAddAccount(name = null) {
     return process.exit();
   }
 
-  const source = spawn('archwayd', ['keys', 'add', name], { stdio: 'inherit' });
+  const source = spawn(constants.Archwayd.cmd, [...constants.Archwayd.args, 'keys', 'add', name], { stdio: 'inherit' });
+  // const source = spawn('archwayd', ['keys', 'add', name], { stdio: 'inherit' });
   
   source.on('error', (err) => {
     console.log(`Error adding wallet ${name} to keychain`, err);
