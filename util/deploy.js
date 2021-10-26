@@ -3,6 +3,7 @@
 const { spawn } = require("child_process");
 const FileSystem = require('fs');
 const Path = require('path');
+const constants  = require('./constants');
 
 const pScope = { 
   args: null,
@@ -78,9 +79,9 @@ function doCreateConfigFile(config = null) {
 
   FileSystem.writeFile(path, json, (err) => {
     if (err)
-      console.log('Error writing config to file system', [config, err]);
+      console.error('\n\rError writing config to file system', [config, err]);
     else {
-      console.log('Successfully updated config file: ' + path + '\n');
+      console.log('\n\rSuccessfully updated config file: ' + path + '\n\r');
     }
   });
 }
@@ -131,7 +132,7 @@ function uploadArchivedExecutable(config = null) {
   }
 
   let chainId = config.network.chainId;
-  console.log('\nUploading optimized executable to ' + chainId + '...\n');
+  console.log('\n\rUploading optimized executable to ' + chainId + '...\n\r');
 
   const readline = require('readline').createInterface({
     input: process.stdin,
@@ -147,15 +148,30 @@ function uploadArchivedExecutable(config = null) {
       // # Store code
       // $ RES=$(archwayd tx wasm store artifacts/YOUR_DOCKER_WASM_OUTPUT_FILE.wasm --from YOUR_WALLET_NAME --chain-id $CHAIN_ID $TXFLAG -y)
       let runScript = {};
-      let wasmPath = 'artifacts/' + config.title.replace(/-/g,'_') + '.wasm';
+      let wasmFileName = config.title.replace(/-/g,'_') + '.wasm';
+      let wasmPath = 'artifacts/' + wasmFileName;
       let rpc = config.network.urls.rpc;
       let node = rpc.url + ':' + rpc.port;
       let gasPrices = config.network.gas.prices;
       let gas = config.network.gas.mode;
       let gasAdjustment = config.network.gas.adjustment;
 
-      runScript.cmd = 'archwayd';
-      runScript.params = [
+      // We need to copy the wasm file into the mapped directory of the archwayd docker container
+      // in order to allow the archwayd use it
+      FileSystem.copyFile( wasmPath, constants.Archwayd.localDir +'/'+ wasmFileName, (err) => {
+        if (err){
+          console.error( `Cannot copy "${wasmPath}" to "${constants.Archwayd.localDir}":\n\t`, err);
+          return;
+        }
+        // console.log(`"${wasmPath}" was copied to the container volume`);
+      });
+      // Update the path after copying the file
+      wasmPath = wasmFileName
+
+
+      runScript.cmd = constants.Archwayd.cmd;
+      // runScript.cmd = 'archwayd';
+      runScript.params = [ ...constants.Archwayd.args,
         'tx',
         'wasm',
         'store',
@@ -183,10 +199,14 @@ function uploadArchivedExecutable(config = null) {
       // $ CODE_ID=$(echo $RES | jq -r '.logs[0].events[-1].attributes[0].value')
       source.stdout.on('data', (data) => {
         let outputMsg = Buffer.from(data).toString().trim();
-        if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
-          return;
-        }
-        console.log(outputMsg);
+        // Using docker it prompts only in the terminal so we need to show it to the user to avoid confusion
+        // if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
+        //   return;
+        // }
+        // console.log(outputMsg);
+        // `console.log()` adds some extra newline and tab characters, so let's use `stdout`
+        process.stdout.write( outputMsg);
+
         if (outputMsg.indexOf('txhash') > -1) {
           try {
             let json = JSON.parse(outputMsg);
@@ -216,23 +236,24 @@ function uploadArchivedExecutable(config = null) {
 function verifyWasmUpload(codeId = null, node = null, path = null, chainId = null) {
   console.log('\n');
   if (!codeId) {
-    console.error('Error getting Code ID of wasm upload', codeId);
+    console.error('\n\rError getting Code ID of wasm upload', codeId);
     return;
   } else if (!node) {
-    console.error('Error getting node setting', node);
+    console.error('\n\rError getting node setting', node);
   } else if (!path) {
-    console.error('Error getting path to wasm artifacts', path);
+    console.error('\n\rError getting path to wasm artifacts', path);
   } else if (!chainId) {
-    console.error('Error getting network chain id', chainId);
+    console.error('\n\rError getting network chain id', chainId);
   } else {
-    console.log('Downloading build artifact from ' + chainId + ' and saving as "./download.wasm"...');
+    console.log('\n\rDownloading build artifact from ' + chainId + ' and saving as "download.wasm"...');
   }
   // # Verify your uploaded code matches your local build
   // $ archwayd query wasm code $CODE_ID $NODE download.wasm
   let runScript = {};
 
-  runScript.cmd = 'archwayd';
-  runScript.params = [
+  runScript.cmd = constants.Archwayd.cmd;
+  // runScript.cmd = 'archwayd';
+  runScript.params = [...constants.Archwayd.args,
     'query',
     'wasm',
     'code',
@@ -246,10 +267,12 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
 
   source.on('close', () => {
     try {
-      let downloadPath = process.cwd() + '/download.wasm';
+      // We need to update the path to where the docker container volume is mapped to
+      let downloadPath = constants.Archwayd.localDir + '/download.wasm';
+      // let downloadPath = process.cwd() + '/download.wasm';
       FileSystem.access(downloadPath, FileSystem.F_OK, (err) => {
         if (err) {
-          console.error('Error locating downloaded wasm file');
+          console.error('\n\rError locating downloaded wasm file');
           return;
         } else {
           // $ diff artifacts/YOUR_DOCKER_WASM_OUTPUT_FILE.wasm download.wasm
@@ -383,8 +406,10 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
       // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
       // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
       let runScript = {}, jsonArgs = JSON.stringify(args);
-      runScript.cmd = 'archwayd';
-      runScript.params = [
+      
+      runScript.cmd = constants.Archwayd.cmd;
+      // runScript.cmd = 'archwayd';
+      runScript.params = [...constants.Archwayd.args,
         'tx',
         'wasm',
         'instantiate',
@@ -412,10 +437,14 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
 
       source.stdout.on('data', (data) => {
         let outputMsg = Buffer.from(data).toString().trim();
-        if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
-          return;
-        }
-        console.log(outputMsg);
+        // Using docker it prompts only in the terminal so we need to show it to the user to avoid confusion
+        // if (outputMsg.toLowerCase().indexOf('Enter keyring passphrase') > -1) {
+        //   return;
+        // }
+        // console.log(outputMsg);
+        // `console.log()` adds some extra newline and tab characters, so let's use `stdout`
+        process.stdout.write( outputMsg);
+
         if (outputMsg.indexOf('txhash') > -1) {
           try {
             let json = JSON.parse(outputMsg);
@@ -445,8 +474,10 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
     // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
     // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
     let runScript = {}, jsonArgs = JSON.stringify(args);
-    runScript.cmd = 'archwayd';
-    runScript.params = [
+    
+    runScript.cmd = constants.Archwayd.cmd
+    // runScript.cmd = 'archwayd';
+    runScript.params = [...constants.Archwayd.args,
       'tx',
       'wasm',
       'instantiate',
@@ -474,10 +505,14 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
 
     source.stdout.on('data', (data) => {
       let outputMsg = Buffer.from(data).toString().trim();
-      if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
-        return;
-      }
-      console.log(outputMsg);
+      // Using docker it prompts only in the terminal so we need to show it to the user to avoid confusion
+      // if (outputMsg.toLowerCase().indexOf('enter keyring passphrase') > -1) {
+      //   return;
+      // }
+      // console.log(outputMsg);
+      // `console.log()` adds some extra newline and tab characters, so let's use `stdout`
+      process.stdout.write( outputMsg);
+
       if (outputMsg.indexOf('txhash') > -1) {
         try {
           let json = JSON.parse(outputMsg);

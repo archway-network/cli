@@ -2,6 +2,7 @@
 
 const { spawn } = require("child_process");
 const FileSystem = require('fs');
+const constants  = require('./constants');
 
 function tryScript(key) {
   let configPath = process.cwd() + '/config.json';
@@ -19,6 +20,15 @@ function tryScript(key) {
       runScript.arr = runScript.raw.split(' ');
       runScript.cmd = runScript.arr[0];
       runScript.params = runScript.arr.slice(1);
+
+      // in order to have only one place for the archwayd docker command (i.e. in constants), 
+      // let's have an exception here
+      if( runScript.cmd == 'archwayd'){
+          runScript.Cmd = constants.Archwayd.cmd;
+          runScript.params = [...constants.Archwayd.args, ...runScript.params];
+      }
+
+      console.log( "\n\t\tCMD: ", runScript);
 
       const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
 
