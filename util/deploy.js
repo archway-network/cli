@@ -5,6 +5,9 @@ const FileSystem = require('fs');
 const Path = require('path');
 const commands  = require('../constants/commands');
 
+// We assign the right daemon command in the main function and use it in the rest of the code
+let archwaydCmd = null;
+
 const pScope = { 
   args: null,
   config: null
@@ -156,22 +159,26 @@ function uploadArchivedExecutable(config = null) {
       let gas = config.network.gas.mode;
       let gasAdjustment = config.network.gas.adjustment;
 
-      // We need to copy the wasm file into the mapped directory of the archwayd docker container
-      // in order to allow the archwayd use it
-      FileSystem.copyFile( wasmPath, commands.ArchwayDocker.localDir +'/'+ wasmFileName, (err) => {
-        if (err){
-          console.error( `Cannot copy "${wasmPath}" to "${commands.ArchwayDocker.localDir}":\n\t`, err);
-          return;
-        }
-        // console.log(`"${wasmPath}" was copied to the container volume`);
-      });
-      // Update the path after copying the file
-      wasmPath = wasmFileName
+      // If we use docker or for any reason need to copy the file to any other directory before upload
+      if ( archwaydCmd.localDir != '' && archwaydCmd.localDir != '.'){
+
+          // We need to copy the wasm file into the mapped directory of the archwayd docker container
+          // in order to allow the archwayd use it
+          FileSystem.copyFile( wasmPath, archwaydCmd.localDir +'/'+ wasmFileName, (err) => {
+            if (err){
+              console.error( `Cannot copy "${wasmPath}" to "${archwaydCmd.localDir}":\n\t`, err);
+              return;
+          }
+          // console.log(`"${wasmPath}" was copied to the container volume`);
+        });
+        // Update the path after copying the file
+        wasmPath = wasmFileName
+      }
 
 
-      runScript.cmd = commands.ArchwayDocker.cmd;
+      runScript.cmd = archwaydCmd.cmd;
       // runScript.cmd = 'archwayd';
-      runScript.params = [ ...commands.ArchwayDocker.args,
+      runScript.params = [ ...archwaydCmd.args,
         'tx',
         'wasm',
         'store',
@@ -251,9 +258,9 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
   // $ archwayd query wasm code $CODE_ID $NODE download.wasm
   let runScript = {};
 
-  runScript.cmd = commands.ArchwayDocker.cmd;
+  runScript.cmd = archwaydCmd.cmd;
   // runScript.cmd = 'archwayd';
-  runScript.params = [...commands.ArchwayDocker.args,
+  runScript.params = [...archwaydCmd.args,
     'query',
     'wasm',
     'code',
@@ -268,7 +275,7 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
   source.on('close', () => {
     try {
       // We need to update the path to where the docker container volume is mapped to
-      let downloadPath = commands.ArchwayDocker.localDir + '/download.wasm';
+      let downloadPath = archwaydCmd.localDir + '/download.wasm';
       // let downloadPath = process.cwd() + '/download.wasm';
       FileSystem.access(downloadPath, FileSystem.F_OK, (err) => {
         if (err) {
@@ -407,9 +414,9 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
       // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
       let runScript = {}, jsonArgs = JSON.stringify(args);
       
-      runScript.cmd = commands.ArchwayDocker.cmd;
+      runScript.cmd = archwaydCmd.cmd;
       // runScript.cmd = 'archwayd';
-      runScript.params = [...commands.ArchwayDocker.args,
+      runScript.params = [...archwaydCmd.args,
         'tx',
         'wasm',
         'instantiate',
@@ -475,9 +482,9 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
     // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
     let runScript = {}, jsonArgs = JSON.stringify(args);
     
-    runScript.cmd = commands.ArchwayDocker.cmd
+    runScript.cmd = archwaydCmd.cmd
     // runScript.cmd = 'archwayd';
-    runScript.params = [...commands.ArchwayDocker.args,
+    runScript.params = [...archwaydCmd.args,
       'tx',
       'wasm',
       'instantiate',
@@ -594,7 +601,8 @@ function handleDeployment() {
   });
 }
 
-const deployer = (args = null, dryrun = null) => {
+const deployer = (docker, args = null, dryrun = null) => {
+  archwaydCmd = docker ? commands.ArchwayDocker : commands.ArchwayBin;
   if (args) {
     if (typeof args == 'string') {
       if (args.length) {

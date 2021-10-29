@@ -4,6 +4,9 @@ const { spawn } = require("child_process");
 const FileSystem = require('fs');
 const commands  = require('../constants/commands');
 
+// We assign the right daemon command in the main function and use it in the rest of the code
+let archwaydCmd = null;
+
 function tryScript(key) {
   let configPath = process.cwd() + '/config.json';
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
@@ -22,13 +25,13 @@ function tryScript(key) {
       runScript.params = runScript.arr.slice(1);
 
       // in order to have only one place for the archwayd docker command (i.e. in constants), 
-      // let's have an exception here
+      // let's have an exception for the archway daemon here
       if( runScript.cmd == 'archwayd'){
-          runScript.Cmd = commands.ArchwayDocker.cmd;
-          runScript.params = [...commands.ArchwayDocker.args, ...runScript.params];
+          runScript.Cmd = archwaydCmd.cmd;
+          runScript.params = [...archwaydCmd.args, ...runScript.params];
       }
 
-      console.log( "\n\t\tCMD: ", runScript);
+      // console.log( "\n\t\tCMD: ", runScript);
 
       const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
 
@@ -39,7 +42,8 @@ function tryScript(key) {
   });
 };
 
-const scriptRunner = (key) => {
+const scriptRunner = (docker, key) => {
+  archwaydCmd = docker ? commands.ArchwayDocker : commands.ArchwayBin;
   if (typeof key !== 'string') {
     console.error('Error executing script', key);
     return;

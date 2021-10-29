@@ -6,7 +6,7 @@ module.exports={
     },
     ArchwayBin: {
         cmd: 'archwayd',
-        localDir: '',
-        args: ['']
+        localDir: '.',
+        args: []
     }
 }
