@@ -162,7 +162,7 @@ Program
         query: (options.args) ? options.args : null,
         flags: (options.flags) ? options.flags : null
       };
-      await Tools.Query(args);
+      await Tools.Query(docker, args);
     });
   
   // `archway script`
@@ -202,12 +202,19 @@ Program
     .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
     .description('Execute a transaction on Archway network')
     .action(async (options) => {
+      let docker = (options.docker) ? options.docker.toLowerCase() : false;
+      if (typeof docker == 'string') {
+        if (docker == 'true')
+          docker = true;
+        if (docker == 'false')
+          docker = false;
+      }
       const args = {
         tx: (options.args) ? options.args : null,
         flags: (options.flags) ? options.flags : null,
         contract: (options.contract) ? options.contract : null
       };
-      await Tools.Tx(args);
+      await Tools.Tx(docker, args);
     });
 
 // Do cmd parsing

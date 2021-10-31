@@ -6,7 +6,7 @@ const { spawn } = require("child_process");
 const commands  = require('../constants/commands');
 const FileSystem = require('fs');
 
-function tryExecuteTx(args) {
+function tryExecuteTx(docker, args) {
   if (typeof args !== 'object') {
     console.error('Error processing constructor args', args);
     return;
