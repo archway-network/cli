@@ -17,12 +17,16 @@ Program
   .command('accounts')
   .description('List available wallets or add new wallet')
   .option('-a, --add <label>', 'Add a new wallet')
-  // For the time being, since the only available option is `docker`, 
-  // we override it by setting it to true, in future we need to remove the default value
-  .option('-k, --docker', 'Use the docker version of archway daemon', true)
+  .option('-k, --docker <value>', 'Use the docker version of archway daemon, e.g. "--docker true" or "-k false"')
   .action(async (options) => {
     let add = (options.add) ? true : false;
-    let docker = (options.docker) ? true : false;
+    let docker = (options.docker) ? options.docker.toLowerCase() : false;
+    if (typeof docker == 'string') {
+      if (docker == 'true')
+        docker = true;
+      if (docker == 'false')
+        docker = false;
+    }
     // List accounts
     if (!add) {
       await Tools.Accounts(docker);
@@ -63,13 +67,17 @@ Program
     .description('Deploy to network, or test deployability')
     .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment, e.g. --args \'{"key":"value"}\'')
     .option('-d, --dryrun', 'Test deployability; builds an unoptimized wasm binary')
-    // For the time being, since the only available option is `docker`, 
-    // we override it by setting it to true, in future we need to remove the default value
-    .option('-k, --docker', 'Use the docker version of archway daemon', true)
+    .option('-k, --docker <value>', 'Use the docker version of archway daemon, e.g. "--docker true" or "-k false"')
     .action(async (options) => {
       let dryrun = (options.dryrun) ? true : false;
       let args = (options.args) ? options.args : null;
-      let docker = (options.docker) ? true : false;
+      let docker = (options.docker) ? options.docker.toLowerCase() : false;
+      if (typeof docker == 'string') {
+        if (docker == 'true')
+          docker = true;
+        if (docker == 'false')
+          docker = false;
+      }
       if (!dryrun) {
         await Tools.Deploy(docker, args);
       } else {
@@ -81,11 +89,15 @@ Program
   Program
     .command('faucet')
     .description('Request Testnet funds from faucet')
-    // For the time being, since the only available option is `docker`, 
-    // we override it by setting it to true, in future we need to remove the default value
-    .option('-k, --docker', 'Use the docker version of archway daemon', true)
+    .option('-k, --docker <value>', 'Use the docker version of archway daemon keyring, e.g. "--docker true" or "-k false"')
     .action(async (options) => {
-      let docker = (options.docker) ? true : false;
+      let docker = (options.docker) ? options.docker.toLowerCase() : false;
+      if (typeof docker == 'string') {
+        if (docker == 'true')
+          docker = true;
+        if (docker == 'false')
+          docker = false;
+      }
       await Tools.Faucet(docker);
     });
 
@@ -134,8 +146,16 @@ Program
     .argument('[type]', 'Subcommands (*if required by query module); available types: ' + String(typeChoices))
     .requiredOption('-a, --args <value>', 'JSON encoded arguments for query (e.g. \'{"get_count": {}}\')')
     .option('-f, --flags <flags>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--height 492520 --limit 10"')
+    .option('-k, --docker <value>', 'Use the docker version of archway daemon, e.g. "--docker true" or "-k false"')
     .description('Query for data on Archway network')
     .action(async (module, type, options) => {
+      let docker = (options.docker) ? options.docker.toLowerCase() : false;
+      if (typeof docker == 'string') {
+        if (docker == 'true')
+          docker = true;
+        if (docker == 'false')
+          docker = false;
+      }
       const args = {
         command: module,
         subcommand: type,
@@ -150,11 +170,15 @@ Program
     .command('run')
     .description('Run a custom script of your own creation')
     .requiredOption('-s, --script <key>', 'Name of script to run (example: "archway run -s build"); add scripts by modifying config.json')
-    // For the time being, since the only available option is `docker`, 
-    // we override it by setting it to true, in future we need to remove the default value
-    .option('-k, --docker', 'Use the docker version of archway daemon', true)
+    .option('-k, --docker <value>', 'Use the docker version of archway daemon, e.g. "--docker true" or "-k false"')
     .action(async (options) => {
-      let docker = (options.docker) ? true : false;
+      let docker = (options.docker) ? options.docker.toLowerCase() : false;
+      if (typeof docker == 'string') {
+        if (docker == 'true')
+          docker = true;
+        if (docker == 'false')
+          docker = false;
+      }
       try {
         await Tools.Script(docker, options.script);
       } catch(e) {

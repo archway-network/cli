@@ -1,9 +1,10 @@
 // archway-cli/util/query.js
 
 const { spawn } = require("child_process");
+const commands  = require('../constants/commands');
 const FileSystem = require('fs');
 
-function tryQuery(args) {
+function tryQuery(docker, args) {
   if (typeof args !== 'object') {
     console.error('Error processing query args', args);
     return;
@@ -24,7 +25,13 @@ function tryQuery(args) {
       let config = require(configPath);
       let scripts = config.developer.scripts;
       let runScript = {};
+      let dockerArchwayD, archwaydCmd;
       runScript.raw = scripts.query;
+      if (docker) {
+        dockerArchwayD = commands.ArchwayDocker;
+        archwaydCmd = dockerArchwayD.cmd + ' ' + dockerArchwayD.args.join(" ");
+        runScript.raw = runScript.raw.replace('archwayd', archwaydCmd);
+      }
       runScript.arr = runScript.raw.split(' ');
       runScript.cmd = runScript.arr[0];
       runScript.params = runScript.arr.slice(1);
@@ -75,9 +82,9 @@ function tryQuery(args) {
   });
 };
 
-const queryRunner = (args) => {
+const queryRunner = (docker, args) => {
   try {
-    tryQuery(args)
+    tryQuery(docker, args)
   } catch(e) {
     console.error('Error running query', e);
   }

@@ -3,6 +3,7 @@
 // E.g.: archwayd tx wasm execute $CONTRACT $INCREMENT --from YOUR_WALLET_NAME $TXFLAG -y
 
 const { spawn } = require("child_process");
+const commands  = require('../constants/commands');
 const FileSystem = require('fs');
 
 function tryExecuteTx(args) {
@@ -22,7 +23,13 @@ function tryExecuteTx(args) {
       let config = require(configPath);
       let scripts = config.developer.scripts;
       let runScript = {};
+      let dockerArchwayD, archwaydCmd;
       runScript.raw = scripts.tx;
+      if (docker) {
+        dockerArchwayD = commands.ArchwayDocker;
+        archwaydCmd = dockerArchwayD.cmd + ' ' + dockerArchwayD.args.join(" ");
+        runScript.raw = runScript.raw.replace('archwayd', archwaydCmd);
+      }
       runScript.arr = runScript.raw.split(' ');
       runScript.cmd = runScript.arr[0];
       runScript.params = runScript.arr.slice(1);
@@ -110,9 +117,9 @@ function doExecute(runScript, flags, args, config) {
   });
 }
 
-const txRunner = (args) => {
+const txRunner = (docker, args) => {
   try {
-    tryExecuteTx(args)
+    tryExecuteTx(docker, args);
   } catch(e) {
     console.error('Error executing transaction', e);
   }
