@@ -2,6 +2,7 @@
 
 // const Dotenv = require('dotenv').config();
 const Tools = require(__dirname + '/util');
+const FileSystem = require('fs');
 const { Command } = require('commander');
 const Program = new Command();
 
@@ -26,14 +27,33 @@ Program
         docker = true;
       if (docker == 'false')
         docker = false;
-    }
-    // List accounts
-    if (!add) {
-      await Tools.Accounts(docker);
-    // Add new account
+      // List accounts
+      if (!add) {
+        await Tools.Accounts(docker);
+      // Add new account
+      } else {
+        let name = options.add;
+        await Tools.Accounts(docker, true, name);
+      }
     } else {
-      let name = options.add;
-      await Tools.Accounts(docker, true, name);
+      // Load Docker value from config, or use native `archwayd`
+      let configPath = process.cwd() + '/config.json';
+      FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
+        if (!err) {
+          let config = require(configPath);
+          if (config.developer.archwayd.docker) {
+            docker = true;
+          }
+        }
+        // List accounts
+        if (!add) {
+          await Tools.Accounts(docker);
+        // Add new account
+        } else {
+          let name = options.add;
+          await Tools.Accounts(docker, true, name);
+        }
+      });
     }
   });
 
@@ -77,11 +97,27 @@ Program
           docker = true;
         if (docker == 'false')
           docker = false;
-      }
-      if (!dryrun) {
-        await Tools.Deploy(docker, args);
+
+        if (!dryrun) {
+          await Tools.Deploy(docker, args);
+        } else {
+          await Tools.Deploy(docker, args, dryrun);
+        }
       } else {
-        await Tools.Deploy(docker, args, dryrun);
+        let configPath = process.cwd() + '/config.json';
+        FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
+          if (!err) {
+            let config = require(configPath);
+            if (config.developer.archwayd.docker) {
+              docker = true;
+            }
+          }
+          if (!dryrun) {
+            await Tools.Deploy(docker, args);
+          } else {
+            await Tools.Deploy(docker, args, dryrun);
+          }
+        });
       }
     });
 
@@ -97,8 +133,20 @@ Program
           docker = true;
         if (docker == 'false')
           docker = false;
+
+        await Tools.Faucet(docker);
+      } else {
+        let configPath = process.cwd() + '/config.json';
+        FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
+          if (!err) {
+            let config = require(configPath);
+            if (config.developer.archwayd.docker) {
+              docker = true;
+            }
+          }
+          await Tools.Faucet(docker);     
+        });
       }
-      await Tools.Faucet(docker);
     });
 
   // `archway history`
@@ -155,14 +203,26 @@ Program
           docker = true;
         if (docker == 'false')
           docker = false;
+
+        const args = {
+          command: module,
+          subcommand: type,
+          query: (options.args) ? options.args : null,
+          flags: (options.flags) ? options.flags : null
+        };
+        await Tools.Query(docker, args);
+      } else {
+        let configPath = process.cwd() + '/config.json';
+        FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
+          if (!err) {
+            let config = require(configPath);
+            if (config.developer.archwayd.docker) {
+              docker = true;
+            }
+          }
+          await Tools.Query(docker, args);
+        });
       }
-      const args = {
-        command: module,
-        subcommand: type,
-        query: (options.args) ? options.args : null,
-        flags: (options.flags) ? options.flags : null
-      };
-      await Tools.Query(docker, args);
     });
   
   // `archway script`
@@ -178,11 +238,27 @@ Program
           docker = true;
         if (docker == 'false')
           docker = false;
-      }
-      try {
-        await Tools.Script(docker, options.script);
-      } catch(e) {
-        console.error('Error running custom script', [options.script]);
+
+        try {
+          await Tools.Script(docker, options.script);
+        } catch(e) {
+          console.error('Error running custom script', [options.script]);
+        }
+      } else {
+        let configPath = process.cwd() + '/config.json';
+        FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
+          if (!err) {
+            let config = require(configPath);
+            if (config.developer.archwayd.docker) {
+              docker = true;
+            }
+            try {
+              await Tools.Script(docker, options.script);
+            } catch(e) {
+              console.error('Error running custom script', [options.script]);
+            }   
+          }
+        });
       }
     });
 
