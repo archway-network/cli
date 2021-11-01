@@ -198,18 +198,18 @@ Program
     .description('Query for data on Archway network')
     .action(async (module, type, options) => {
       let docker = (options.docker) ? options.docker.toLowerCase() : false;
+      const args = {
+        command: module,
+        subcommand: type,
+        query: (options.args) ? options.args : null,
+        flags: (options.flags) ? options.flags : null
+      };
       if (typeof docker == 'string') {
         if (docker == 'true')
           docker = true;
         if (docker == 'false')
           docker = false;
 
-        const args = {
-          command: module,
-          subcommand: type,
-          query: (options.args) ? options.args : null,
-          flags: (options.flags) ? options.flags : null
-        };
         await Tools.Query(docker, args);
       } else {
         let configPath = process.cwd() + '/config.json';
@@ -276,21 +276,34 @@ Program
     .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')
     .option('-f, --flags <flags>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--dry-run --amount 1"')
     .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
+    .option('-k, --docker <value>', 'Use the docker version of archway daemon, e.g. "--docker true" or "-k false"')
     .description('Execute a transaction on Archway network')
     .action(async (options) => {
       let docker = (options.docker) ? options.docker.toLowerCase() : false;
-      if (typeof docker == 'string') {
-        if (docker == 'true')
-          docker = true;
-        if (docker == 'false')
-          docker = false;
-      }
       const args = {
         tx: (options.args) ? options.args : null,
         flags: (options.flags) ? options.flags : null,
         contract: (options.contract) ? options.contract : null
       };
-      await Tools.Tx(docker, args);
+      if (typeof docker == 'string') {
+        if (docker == 'true')
+          docker = true;
+        if (docker == 'false')
+          docker = false;
+
+        await Tools.Tx(docker, args);
+      } else {
+        let configPath = process.cwd() + '/config.json';
+        FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
+          if (!err) {
+            let config = require(configPath);
+            if (config.developer.archwayd.docker) {
+              docker = true;
+            }
+          }
+          await Tools.Tx(docker, args);
+        });
+      }
     });
 
 // Do cmd parsing
