@@ -49,6 +49,9 @@
       "query": "archwayd query wasm",
       "tx": "archwayd tx wasm execute"
     },
+    "archwayd": {
+      "docker": false
+    },
     "deployments": []
   }
 }

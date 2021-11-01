@@ -77,7 +77,7 @@ function doCreateConfigFile(config = null) {
   });
 }
 
-function makeConfig(configIndex, defaultTestnet = 1) {
+function makeConfig(configIndex, defaultTestnet = 1, docker = false) {
   // XXX TODO: Remove this when ready to unveil
   if (parseInt(configIndex) !== 1) {
     console.log('Please use the Testnet configuration for now.');
@@ -134,6 +134,10 @@ function makeConfig(configIndex, defaultTestnet = 1) {
               default:
                 console.log('Error selecting network config', configIndex);
             }
+            // Toggle `archwayd` type
+            if (docker && networkConfig['developer']) {
+              networkConfig.developer.archwayd.docker = true;
+            }
             projectName = projectName.split(' ');
             projectName = projectName.join('-').toLowerCase();
             networkConfig.title = projectName;
@@ -157,11 +161,18 @@ const newArchway = async () => {
 
   readline.question('Configure environment (Y/N default: N)?: ', configure => {
     let envI, testnetI;
+    let dockerArchwayD = false;
     if (configure.toLowerCase() !== 'y' && configure.toLowerCase() !== 'yes') {
       envI = 1;
       testnetI = 1;
-      readline.close();
-      makeConfig(envI, testnetI);
+      readline.question('Use Docker to run "archwayd" daemon (Y/N default: N)?: ', (archwaydType) => {
+        if (archwaydType.toLowerCase() == 'y' || archwaydType.toLowerCase() !== 'yes') {
+          dockerArchwayD = true;
+        }
+        // Make
+        readline.close();
+        makeConfig(envI, testnetI, dockerArchwayD);
+      });
     } else {
       console.log('\n1. Testnet\n2. Localhost\n3. Mainnet\n');
       readline.question('Select environment type (1-3 default: 1): ', environment => {
@@ -173,8 +184,14 @@ const newArchway = async () => {
           console.log('\n1. Constantine [stable]\n2. Titus [nightly]\n');
           readline.question('Select a testnet to use (1-2 default: 1): ', netIndex => {
             testnetI = parseInt(netIndex);
-            readline.close();
-            makeConfig(envI, testnetI);
+            readline.question('Use Docker to run "archwayd" daemon (Y/N default: N)?: ', (archwaydType) => {
+              if (archwaydType.toLowerCase() == 'y' || archwaydType.toLowerCase() !== 'yes') {
+                dockerArchwayD = true;
+              }
+              // Make
+              readline.close();
+              makeConfig(envI, testnetI, dockerArchwayD);
+            });
           });
         }
       });
