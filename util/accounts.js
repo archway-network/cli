@@ -49,7 +49,6 @@ async function doAddAccount(name = null) {
   }
 
   const source = spawn(archwaydCmd.cmd, [...archwaydCmd.args, 'keys', 'add', name], { stdio: 'inherit' });
-  // const source = spawn('archwayd', ['keys', 'add', name], { stdio: 'inherit' });
   
   source.on('error', (err) => {
     console.log(`Error adding wallet ${name} to keychain`, err);
