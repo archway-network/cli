@@ -102,14 +102,20 @@ function makeConfig(configIndex, defaultTestnet = 1, docker = false) {
         }
         console.log(msg);
       }
-      readline.question('Select starter template (1-1): ', template => {
+      readline.question('Select starter template (1-1 default: 1): ', template => {
+        if (!template) {
+          template = 1;
+        }
         let selected = parseInt(template), repo;
         if (ok.indexOf(selected) == -1) {
           console.log('Error selecting project template', [selected, template]);
           readline.close();
         } else {
           repo = repos[selected-1];
-          readline.question('Name of project ("My Project") ', title => {
+          readline.question('Name of project (default: "My Project"): ', title => {
+            if (!title) {
+              title = "My Project";
+            }
             let projectName = title.trim();
             let networkConfig;
             switch (configIndex) {
@@ -132,7 +138,7 @@ function makeConfig(configIndex, defaultTestnet = 1, docker = false) {
                 readline.close();
                 return;
               default:
-                console.log('Error selecting network config', configIndex);
+                networkConfig = Testnet.constantine;
             }
             // Toggle `archwayd` type
             if (docker && networkConfig['developer']) {
@@ -178,22 +184,21 @@ const newArchway = async () => {
       readline.question('Select environment type (1-3 default: 1): ', environment => {
         envI = parseInt(environment);
         if (envI !== 1 && envI !== 2 && envI !== 3) {
-          console.log('Error: unrecognized environment', environment);
-          readline.close();
-        } else {
-          console.log('\n1. Constantine [stable]\n2. Titus [nightly]\n');
-          readline.question('Select a testnet to use (1-2 default: 1): ', netIndex => {
-            testnetI = parseInt(netIndex);
-            readline.question('Use Docker to run "archwayd" daemon (Y/N default: N)?: ', (archwaydType) => {
-              if (archwaydType.toLowerCase() == 'y' || archwaydType.toLowerCase() !== 'yes') {
-                dockerArchwayD = true;
-              }
-              // Make
-              readline.close();
-              makeConfig(envI, testnetI, dockerArchwayD);
-            });
-          });
+          envI = 1;
         }
+        console.log('\n1. Constantine [stable]\n2. Titus [nightly]\n');
+        readline.question('Select a testnet to use (1-2 default: 1): ', netIndex => {
+          testnetI = parseInt(netIndex);
+          readline.question('Use Docker to run "archwayd" daemon (Y/N default: N)?: ', (archwaydType) => {
+            if (archwaydType.toLowerCase() == 'y' || archwaydType.toLowerCase() !== 'yes') {
+              dockerArchwayD = true;
+            }
+            // Make
+            readline.close();
+            makeConfig(envI, testnetI, dockerArchwayD);
+          });
+        });
+        
       });
     }
   });
