@@ -10,7 +10,7 @@ const Testnet = {
 
 // XXX TODO: Import repos from json in ../data
 const repos = [
-  {label:'Increment', docs:'https://github.com/drewstaylor/archway-template/blob/main/README.md', git:'git@github.com:drewstaylor/archway-template.git'}
+  {label:'Increment', docs:'https://github.com/drewstaylor/archway-template/blob/main/README.md', git:'https://github.com/drewstaylor/archway-template.git'}
 ];
 const ok = [1,2];
 const baseVersion = '0.0.1';
