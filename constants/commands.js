@@ -1,8 +1,8 @@
 module.exports = {
     ArchwayDocker: {
         cmd: 'docker',
-        localDir: '/var/tmp/.archwayd',
-        args: ['run', '--rm', '-it', '--volume=/var/tmp/.archwayd:/root/.archway', 'archwaynetwork/archwayd:latest']
+        localDir: `${process.env.HOME}/.archwayd`,
+        args: ['run', '--rm', '-it', `--volume=${process.env.HOME}/.archwayd:/root/.archway`, 'archwaynetwork/archwayd:latest']
     },
     ArchwayBin: {
         cmd: 'archwayd',
