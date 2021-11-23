@@ -42,7 +42,7 @@ async function doCloneRepository(config = null, template = null) {
     const source = spawn('cargo', ['generate', '--git', TemplatesRepository, '--name', config.title, template.subfolder], { stdio: 'inherit' });
 
     source.on('error', (err) => {
-      console.error(`Error generating project ${title}`, err);
+      console.error(`Error generating project ${config.title}`, err);
     });
 
     source.on('close', () => {
@@ -96,7 +96,7 @@ function doInitialCommit(config = null, configFilePath = null) {
   });
 
   source.on('close', () => {
-    console.error('Successfully created new ' + config.type + ' project in path ' + config.path + ' with network configuration ' + config.network.chainId + '.\nConfig file location: ' + configFilePath + '\n');
+    console.error(`Successfully created new ${config.type} project in path ${config.path} with network configuration ${config.network.chainId}.\nConfig file location: ${configFilePath}\n`);
   });
 }
 
