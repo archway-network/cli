@@ -7,10 +7,24 @@ const { Command } = require('commander');
 const Program = new Command();
 
 /**
+ * Gets semvar from ./package.json
+ */
+function getVersion() {
+  const pkgJson = require('./package.json');
+  let version = '';
+  if (typeof pkgJson !== 'object')
+    return version;
+  else {
+    version = (pkgJson['version']) ? pkgJson.version : '';
+  }
+  return version;
+}
+
+/**
  * CLI worker
  * @see commander (https://www.npmjs.com/package/commander)
  */
-Program.version('Archway dApp developer CLI\nv0.0.1', '-v, --version', 'output the current version');
+Program.version('Archway dApp developer CLI\n'+getVersion(), '-v, --version', 'output the current version');
 
 // Commands
 // `archway accounts`
