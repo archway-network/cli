@@ -4,7 +4,8 @@
   "description": "Develop WASM smart contracts with the Archway network developer CLI",
   "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "npx eslint main.js; npx eslint constants/; npx eslint util/;"
   },
   "repository": {
     "type": "git",
@@ -29,5 +30,8 @@
     "axios": "^0.21.4",
     "commander": "^8.2.0",
     "dotenv": "^10.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.3.0"
   }
 }
