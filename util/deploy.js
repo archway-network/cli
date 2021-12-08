@@ -37,7 +37,7 @@ function toArchwayArgs (constructors) {
   };
   // console.log('Debug ArchwayArgs', args);
   return args;
-};
+}
 
 function tryWasm() {
   let configPath = process.cwd() + '/config.json';
@@ -64,7 +64,7 @@ function tryWasm() {
       });
     }
   });
-};
+}
 
 function doCreateConfigFile(config = null) {
   if (!config) {
@@ -125,7 +125,7 @@ function dryRunner() {
   } catch(e) {
     console.error('Error creating wasm executable', e);
   }
-};
+}
 
 function uploadArchivedExecutable(config = null) {
   // console.log('Ok?', config);
@@ -238,7 +238,7 @@ function uploadArchivedExecutable(config = null) {
       });
     }
   });
-};
+}
 
 function verifyWasmUpload(codeId = null, node = null, path = null, chainId = null) {
   console.log('\n');
@@ -304,7 +304,7 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
       console.log('Error verifying upload', e);
     }
   });
-};
+}
 
 function deployInstance(codeId = null) {
   if (!codeId) {

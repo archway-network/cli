@@ -52,7 +52,7 @@ async function doCloneRepository(config = null, template = null) {
       doCreateConfigFile(config);
     });
   }
-};
+}
 
 function doCreateConfigFile(config = null) {
   if (!config) {
@@ -79,6 +79,7 @@ function doCreateConfigFile(config = null) {
 function doAddFiles(config = null, configFilePath = null) {
   const source = spawn('git', ['-C', config.path, 'add', '-A'], { stdio: 'inherit' });
 
+  let title = (config['title']) ? config.title : null;
   source.on('error', (err) => {
     console.error(`Error generating project ${title}`, err);
   });
@@ -91,6 +92,7 @@ function doAddFiles(config = null, configFilePath = null) {
 function doInitialCommit(config = null, configFilePath = null) {
   const source = spawn('git', ['-C', config.path, 'commit', '-m', 'Initialized with archway-cli'], { stdio: 'inherit' });
 
+  let title = (config['title']) ? config.title : null;
   source.on('error', (err) => {
     console.error(`Error generating project ${title}`, err);
   });
@@ -188,6 +190,6 @@ const newArchway = async () => {
   }
 
   readline.close();
-}
+};
 
 module.exports = newArchway;

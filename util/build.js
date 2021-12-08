@@ -27,7 +27,7 @@ function tryBuilding() {
       });
     }
   });
-};
+}
 
 const buildRunner = () => {
   try {

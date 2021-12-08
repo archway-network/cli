@@ -16,7 +16,7 @@ async function getListAccounts() {
   source.on('error', (err) => {
     console.log('Error listing keys', err);
   });
-};
+}
 
 function verifyIsTestnet() {
   let configPath = process.cwd() + '/config.json';
@@ -37,7 +37,7 @@ function verifyIsTestnet() {
       return isTestnet;
     }
   });
-};
+}
 
 async function faucetRequestWorker(address = null, config = null) {
   if (!address) {
@@ -129,6 +129,6 @@ const faucetRequest = (docker) => {
   } else {
     handleFaucetRequest();
   }
-}
+};
 
 module.exports = faucetRequest;

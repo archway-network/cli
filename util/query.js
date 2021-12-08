@@ -80,7 +80,7 @@ function tryQuery(docker, args) {
       }
     }
   });
-};
+}
 
 const queryRunner = (docker, args) => {
   try {

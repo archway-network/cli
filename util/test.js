@@ -27,7 +27,7 @@ function tryTesting() {
       });
     }
   });
-};
+}
 
 const testRunner = () => {
   try {

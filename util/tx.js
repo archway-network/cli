@@ -58,7 +58,7 @@ function tryExecuteTx(docker, args) {
       
     }
   });
-};
+}
 
 function doExecute(runScript, flags, args, config) {
 
@@ -98,7 +98,7 @@ function doExecute(runScript, flags, args, config) {
         flags.push(gasAdjustment);
 
 
-        params = runScript.params.concat(flags);
+        let params = runScript.params.concat(flags);
     
         readline.close();
         const source = spawn(runScript.cmd, params, { stdio: 'inherit' });

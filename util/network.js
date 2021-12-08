@@ -4,8 +4,8 @@ const FileSystem = require('fs');
 
 function migrateNetworks(networkInt = null) {
   console.log('Network migration is coming soon');
-  console.log('XXX TODO: This')
-};
+  console.log('XXX TODO: This', networkInt)
+}
 
 function printNetConfig() {
   console.log('Printing network settings...');
@@ -65,6 +65,7 @@ function printNetConfig() {
           readline.close();
           return;
         } else {
+          let envI;
           console.log('\n1. Testnet\n2. Localhost\n3. Mainnet\n');
           readline.question('Select environment type (1-3 default: 1): ', environment => {
             envI = parseInt(environment);
@@ -84,6 +85,6 @@ function printNetConfig() {
 
 const showOrMigrateNetwork = () => {
   printNetConfig();
-}
+};
 
 module.exports = showOrMigrateNetwork;

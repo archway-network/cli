@@ -21,7 +21,7 @@ function printDeployments() {
       }
     }
   })
-};
+}
 
 const handlePrintDeployments = () => {
   printDeployments();

@@ -40,7 +40,7 @@ function tryScript(key) {
       });
     }
   });
-};
+}
 
 const scriptRunner = (docker, key) => {
   archwaydCmd = docker ? commands.ArchwayDocker : commands.ArchwayBin;
