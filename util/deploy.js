@@ -4,6 +4,7 @@ const { spawn } = require("child_process");
 const FileSystem = require('fs');
 const Path = require('path');
 const commands  = require('../constants/commands');
+const ConfigTools = require('../constants/config');
 
 // We assign the right daemon command in the main function and use it in the rest of the code
 let archwaydCmd = null;
@@ -39,8 +40,8 @@ function toArchwayArgs (constructors) {
   return args;
 }
 
-function tryWasm() {
-  let configPath = process.cwd() + '/config.json';
+async function tryWasm() {
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -66,21 +67,18 @@ function tryWasm() {
   });
 }
 
-// XXX TODO: Make this a common utility module
-function doCreateConfigFile(config = null) {
+async function doCreateConfigFile(config = null) {
   if (!config) {
     console.log('Error creating config file', config);
   } else if (typeof config !== 'object') {
     console.log('Error creating config file', config);
-  } else if (!config.title || !config.version || !config.network || !config.path || !config.type) {
+  } else if (!config.title || !config.version || !config.network || !config.type) {
     console.log('Error creating config file', config);
   } else {
     pScope.config = config;
   }
 
-  // XXX TODO: Remove path dependency in config
-  // and use git to get top-level folder
-  let path = config.path + '/config.json';
+  let path = await ConfigTools.path();
   let json = JSON.stringify(config, null, 2);
 
   FileSystem.writeFile(path, json, (err) => {
@@ -92,7 +90,7 @@ function doCreateConfigFile(config = null) {
   });
 }
 
-function storeDeployment(deployment = null) {
+async function storeDeployment(deployment = null) {
   if (!deployment) {
     console.error('Error saving deployment to config', deployment);
     return;
@@ -107,7 +105,7 @@ function storeDeployment(deployment = null) {
     return;
   }
 
-  let configPath = process.cwd() + '/config.json';
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -131,7 +129,6 @@ function dryRunner() {
 }
 
 function uploadArchivedExecutable(config = null) {
-  // console.log('Ok?', config);
   if (!config || typeof config !== 'object') {
     console.error('Error processing config', config);
     return;
@@ -214,8 +211,8 @@ function uploadArchivedExecutable(config = null) {
         //   return;
         // }
         // console.log(outputMsg);
-        // `console.log()` adds some extra newline and tab characters, so let's use `stdout`
-        process.stdout.write( outputMsg);
+
+        process.stdout.write(outputMsg);
 
         if (outputMsg.indexOf('txhash') > -1) {
           try {
@@ -309,12 +306,12 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
   });
 }
 
-function deployInstance(codeId = null) {
+async function deployInstance(codeId = null) {
   if (!codeId) {
     console.error('Error reading Code ID', codeId);
     return;
   }
-  let configPath = process.cwd() + '/config.json';
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -590,8 +587,8 @@ function makeOptimizedWasm(config = null) {
   });
 }
 
-function handleDeployment() {
-  let configPath = process.cwd() + '/config.json';
+async function handleDeployment() {
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');

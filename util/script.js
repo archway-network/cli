@@ -3,12 +3,13 @@
 const { spawn } = require("child_process");
 const FileSystem = require('fs');
 const commands  = require('../constants/commands');
+const ConfigTools = require('../constants/config');
 
 // We assign the right daemon command in the main function and use it in the rest of the code
 let archwaydCmd = null;
 
-function tryScript(key) {
-  let configPath = process.cwd() + '/config.json';
+async function tryScript(key) {
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');

@@ -5,6 +5,7 @@ const Tools = require(__dirname + '/util');
 const FileSystem = require('fs');
 const { Command } = require('commander');
 const Program = new Command();
+const ConfigTools = require('./constants/config');
 
 /**
  * Gets semvar from ./package.json
@@ -51,7 +52,7 @@ Program
       }
     } else {
       // Load Docker value from config, or use native `archwayd`
-      let configPath = process.cwd() + '/config.json';
+      let configPath = await ConfigTools.path();
       FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
         if (!err) {
           let config = require(configPath);
@@ -118,7 +119,7 @@ Program
           await Tools.Deploy(docker, args, dryrun);
         }
       } else {
-        let configPath = process.cwd() + '/config.json';
+        let configPath = await ConfigTools.path();
         FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
           if (!err) {
             let config = require(configPath);
@@ -150,7 +151,7 @@ Program
 
         await Tools.Faucet(docker);
       } else {
-        let configPath = process.cwd() + '/config.json';
+        let configPath = await ConfigTools.path();
         FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
           if (!err) {
             let config = require(configPath);
@@ -226,7 +227,7 @@ Program
 
         await Tools.Query(docker, args);
       } else {
-        let configPath = process.cwd() + '/config.json';
+        let configPath = await ConfigTools.path();
         FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
           if (!err) {
             let config = require(configPath);
@@ -259,7 +260,7 @@ Program
           console.error('Error running custom script', [options.script]);
         }
       } else {
-        let configPath = process.cwd() + '/config.json';
+        let configPath = await ConfigTools.path();
         FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
           if (!err) {
             let config = require(configPath);
@@ -307,7 +308,7 @@ Program
 
         await Tools.Tx(docker, args);
       } else {
-        let configPath = process.cwd() + '/config.json';
+        let configPath = await ConfigTools.path();
         FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
           if (!err) {
             let config = require(configPath);

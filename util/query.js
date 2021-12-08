@@ -3,8 +3,9 @@
 const { spawn } = require("child_process");
 const commands  = require('../constants/commands');
 const FileSystem = require('fs');
+const ConfigTools = require('../constants/config');
 
-function tryQuery(docker, args) {
+async function tryQuery(docker, args) {
   if (typeof args !== 'object') {
     console.error('Error processing query args', args);
     return;
@@ -13,8 +14,7 @@ function tryQuery(docker, args) {
     return;
   }
 
-
-  let configPath = process.cwd() + '/config.json';
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');

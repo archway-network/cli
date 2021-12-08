@@ -46,8 +46,6 @@ async function doCloneRepository(config = null, template = null) {
     });
 
     source.on('close', () => {
-      let path = process.cwd() + '/' + config.title;
-      config.path = path;
       config.type = template;
       doCreateConfigFile(config);
     });
@@ -63,7 +61,7 @@ function doCreateConfigFile(config = null) {
     console.error('Error creating config file', config);
   }
 
-  let path = config.path + '/config.json';
+  let path = process.cwd() + '/' + config.title + '/config.json';
   let json = JSON.stringify(config, null, 2);
 
   FileSystem.writeFile(path, json, (err) => {

@@ -61,7 +61,7 @@ async function migrateNetworks(networkInt = 1, config) {
         // });
         console.log('Migrating from ' + network.current.chainId + ' to ' + network.new.chainId + '...');
         config.network = network.new;
-        doCreateConfigFile(config);
+        await doCreateConfigFile(config);
       } else {
         console.log('Nothing to update.\nOk!\n');
       }
@@ -75,7 +75,7 @@ async function migrateNetworks(networkInt = 1, config) {
 }
 
 // XXX TODO: Make this a common utility module
-function doCreateConfigFile(config = null) {
+async function doCreateConfigFile(config = null) {
   if (!config) {
     console.log('Error creating config file', config);
   } else if (typeof config !== 'object') {
@@ -84,9 +84,7 @@ function doCreateConfigFile(config = null) {
     console.log('Error creating config file', config);
   }
 
-  // XXX TODO: Remove path dependency in config
-  // and use git to get top-level folder
-  let path = config.path + '/config.json';
+  let path = await ConfigTools.path();
   let json = JSON.stringify(config, null, 2);
 
   FileSystem.writeFile(path, json, (err) => {
@@ -101,14 +99,7 @@ function doCreateConfigFile(config = null) {
 async function printNetConfig() {
   console.log('Printing network settings...');
 
-  let configPath = process.cwd() + '/config.json';
-  
-  //XXX: here
-  let test = await ConfigTools.path();
-  console.log('ConfigTools.path', test);
-  let test2 = await ConfigTools.config();
-  console.log('ConfigTools.config', test2);
-  
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');

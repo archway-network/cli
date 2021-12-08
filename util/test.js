@@ -2,9 +2,10 @@
 
 const { spawn } = require("child_process");
 const FileSystem = require('fs');
+const ConfigTools = require('../constants/config');
 
-function tryTesting() {
-  let configPath = process.cwd() + '/config.json';
+async function tryTesting() {
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');

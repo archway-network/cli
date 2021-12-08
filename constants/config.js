@@ -13,7 +13,7 @@ async function getConfigPath() {
   for await (const data of source.stdout) {
     let topLevel = Buffer.from(data).toString().trim();
     return topLevel + '/' + DefaultFilename;
-  };
+  }
 }
 
 module.exports = {

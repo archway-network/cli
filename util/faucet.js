@@ -4,6 +4,7 @@ const { spawn } = require("child_process");
 const FileSystem = require('fs');
 const HttpClient = require('axios');
 const commands  = require('../constants/commands');
+const ConfigTools = require('../constants/config');
 
 // We assign the right daemon command in the main function and use it in the rest of the code
 let archwaydCmd = null;
@@ -18,8 +19,8 @@ async function getListAccounts() {
   });
 }
 
-function verifyIsTestnet() {
-  let configPath = process.cwd() + '/config.json';
+async function verifyIsTestnet() {
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -90,8 +91,8 @@ async function faucetRequestWorker(address = null, config = null) {
   });
 }
 
-function handleFaucetRequest() {
-  let configPath = process.cwd() + '/config.json';
+async function handleFaucetRequest() {
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');

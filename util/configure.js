@@ -2,11 +2,12 @@
 
 const FileSystem = require('fs');
 const StringUtility = require('util');
+const ConfigTools = require('../constants/config');
 
-function printDevConfig() {
+async function printDevConfig() {
   console.log('Printing environment settings...\n');
 
-  let configPath = process.cwd() + '/config.json';
+  let configPath = await ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '.\nPlease run this command from the root folder of valid Archway project.');
@@ -18,7 +19,7 @@ function printDevConfig() {
   })
 }
 
-function doCreateConfigFile(config = null) {
+async function doCreateConfigFile(config = null) {
   if (!config) {
     console.log('Error creating config file', config);
   } else if (typeof config !== 'object') {
@@ -27,7 +28,7 @@ function doCreateConfigFile(config = null) {
     console.log('Error creating config file', config);
   }
 
-  let path = config.path + '/config.json';
+  let path = await ConfigTools.path();
   let json = JSON.stringify(config, null, 2);
 
   FileSystem.writeFile(path, json, (err) => {
@@ -39,12 +40,12 @@ function doCreateConfigFile(config = null) {
   });
 }
 
-function modifyConfig(key = null) {
+async function modifyConfig(key = null) {
   if (!key || typeof key !== 'string') {
     console.log(`Key "${key}" not found in config`);
     return;
   } else {
-    let configPath = process.cwd() + '/config.json', config;
+    let configPath = await ConfigTools.path(), config;
     FileSystem.access(configPath, FileSystem.F_OK, (err) => {
       if (err) {
         console.error('Error locating dApp config at path ' + configPath + '.\nPlease run this command from the root folder of valid Archway project.');
