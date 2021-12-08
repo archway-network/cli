@@ -1,10 +1,100 @@
 // archway-cli/util/network.js
 
 const FileSystem = require('fs');
+const util = require('util');
+const { createInterface } = require('readline');
 
-function migrateNetworks(networkInt = null) {
-  console.log('Network migration is coming soon');
-  console.log('XXX TODO: This', networkInt)
+const Testnet = {
+  constantine: require('../data/testnet.constantine.json'),
+  titus: require('../data/testnet.titus.json')
+};
+
+async function ask(readline, query, defaultValue = null) {
+  const question = util.promisify(readline.question).bind(readline);
+  return await question(`${query} (default: ${defaultValue}): `) || defaultValue;
+}
+
+async function askNumber(readline, query, defaultValue = null) {
+  const answer = await ask(readline, query, defaultValue);
+  return parseInt(answer);
+}
+
+async function migrateNetworks(networkInt = 1, config) {
+  if (typeof config !== 'object') {
+    console.log('Error reading config file', config);
+    return;
+  }
+  let network = { current: config.network, new: null };
+  switch (networkInt) {
+    // Testnet
+    case 1: {
+      let selectedTestnet = 1; // (default Constantine)
+      // Ask: Select a Testnet
+      const readline = createInterface({
+        input: process.stdin,
+        output: process.stdout
+      });
+      do {
+        console.log('\n1. Constantine [stable]\n2. Titus [nightly]\n');
+        selectedTestnet = await askNumber(readline, 'Select a testnet to use [1-2]', 1);
+      } while (!(selectedTestnet >= 1 && selectedTestnet <= 2))
+      readline.close();
+      // Update config
+      if (selectedTestnet == 1) {
+        // Constantine
+        network.new = Testnet.constantine.network;
+      } else if (selectedTestnet == 2) {
+        // Titus
+        network.new = Testnet.titus.network;
+      } else {
+        // Nothing
+        network.new = false;
+        return;
+      }
+      // Do update config
+      if (network.new.chainId !== network.current.chainId) {
+        // XXX DEBUG:
+        // console.log({
+        //   old: network.current,
+        //   new: network.new
+        // });
+        console.log('Migrating from ' + network.current.chainId + ' to ' + network.new.chainId + '...');
+        config.network = network.new;
+        doCreateConfigFile(config);
+      } else {
+        console.log('Nothing to update.\nOk!\n');
+      }
+      return;
+    }
+    default: {
+      console.log('Error migrating networks; unsupported network value', networkInt);
+      return;
+    }
+  }
+}
+
+// XXX TODO: Make this a common utility module
+function doCreateConfigFile(config = null) {
+  if (!config) {
+    console.log('Error creating config file', config);
+  } else if (typeof config !== 'object') {
+    console.log('Error creating config file', config);
+  } else if (!config.title || !config.version || !config.network || !config.path || !config.type) {
+    console.log('Error creating config file', config);
+  }
+
+  // XXX TODO: Remove path dependency in config
+  // and use git to get top-level folder
+  let path = config.path + '/config.json';
+  let json = JSON.stringify(config, null, 2);
+
+  FileSystem.writeFile(path, json, (err) => {
+    if (err)
+      console.error('\n\rError writing config to file system', [config, err]);
+    else {
+      console.log('\n\rSuccessfully updated config file: ' + path + '\n\r');
+    }
+  });
 }
 
 function printNetConfig() {
@@ -31,7 +121,7 @@ function printNetConfig() {
         }
         case 'titus-1': {
           networks[0] += '*';
-          currentNetwork += 'Titus Testnet'
+          currentNetwork = 'Titus Testnet'
           break;
         }
         case 'localhost': {
@@ -65,17 +155,16 @@ function printNetConfig() {
           readline.close();
           return;
         } else {
-          let envI;
           console.log('\n1. Testnet\n2. Localhost\n3. Mainnet\n');
           readline.question('Select environment type (1-3 default: 1): ', environment => {
-            envI = parseInt(environment);
+            let envI = parseInt(environment);
             if (envI !== 1 && envI !== 2 && envI !== 3) {
-              console.log('Error: unrecognized environment', environment);
+              envI = 1;
               readline.close();
             } else {
               readline.close();
-              migrateNetworks(envI);
             }
+            migrateNetworks(envI, config);
           });
         }
       });

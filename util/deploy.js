@@ -66,6 +66,7 @@ function tryWasm() {
   });
 }
 
+// XXX TODO: Make this a common utility module
 function doCreateConfigFile(config = null) {
   if (!config) {
     console.log('Error creating config file', config);
@@ -77,6 +78,8 @@ function doCreateConfigFile(config = null) {
     pScope.config = config;
   }
 
+  // XXX TODO: Remove path dependency in config
+  // and use git to get top-level folder
   let path = config.path + '/config.json';
   let json = JSON.stringify(config, null, 2);
 
