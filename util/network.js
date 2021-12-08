@@ -3,6 +3,7 @@
 const FileSystem = require('fs');
 const util = require('util');
 const { createInterface } = require('readline');
+const ConfigTools = require('../constants/config');
 
 const Testnet = {
   constantine: require('../data/testnet.constantine.json'),
@@ -97,10 +98,17 @@ function doCreateConfigFile(config = null) {
   });
 }
 
-function printNetConfig() {
+async function printNetConfig() {
   console.log('Printing network settings...');
 
   let configPath = process.cwd() + '/config.json';
+  
+  //XXX: here
+  let test = await ConfigTools.path();
+  console.log('ConfigTools.path', test);
+  let test2 = await ConfigTools.config();
+  console.log('ConfigTools.config', test2);
+  
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');

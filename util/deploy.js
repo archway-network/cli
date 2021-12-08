@@ -453,7 +453,7 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
         // }
         // console.log(outputMsg);
         // `console.log()` adds some extra newline and tab characters, so let's use `stdout`
-        process.stdout.write( outputMsg);
+        process.stdout.write(outputMsg);
 
         if (outputMsg.indexOf('txhash') > -1) {
           try {
