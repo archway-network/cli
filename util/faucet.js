@@ -1,10 +1,9 @@
 // archway-cli/util/faucet.js
 
 const { spawn } = require("child_process");
-const FileSystem = require('fs');
+// const FileSystem = require('fs');
 const HttpClient = require('axios');
 const commands  = require('../constants/commands');
-const ConfigTools = require('../constants/config');
 
 const TestnetData = {
   constantine: require('../data/testnet.constantine.json'),
