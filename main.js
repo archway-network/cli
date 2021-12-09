@@ -141,27 +141,14 @@ Program
     .command('faucet')
     .description('Request Testnet funds from faucet')
     .option('-k, --docker <value>', 'Use the docker version of archway daemon keyring, e.g. "--docker true" or "-k false"')
+    .option('-t, --testnet <value>', 'Testnet to request from; "constantine" or "titus" (default: "constantine")')
     .action(async (options) => {
-      let docker = (options.docker) ? options.docker.toLowerCase() : false;
+      let docker = (options.docker) ? options.docker.toLowerCase() : true; // XXX: Default true for now
+      let testnet = (options.testnet) ? options.testnet : "constantine";
       if (typeof docker == 'string') {
-        if (docker == 'true')
-          docker = true;
-        if (docker == 'false')
-          docker = false;
-
-        await Tools.Faucet(docker);
-      } else {
-        let configPath = await ConfigTools.path();
-        FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
-          if (!err) {
-            let config = require(configPath);
-            if (config.developer.archwayd.docker) {
-              docker = true;
-            }
-          }
-          await Tools.Faucet(docker);     
-        });
+        docker = Boolean(docker);
       }
+      await Tools.Faucet(docker, testnet);
     });
 
   // `archway history`

@@ -6,8 +6,15 @@ const HttpClient = require('axios');
 const commands  = require('../constants/commands');
 const ConfigTools = require('../constants/config');
 
+const TestnetData = {
+  constantine: require('../data/testnet.constantine.json'),
+  titus: require('../data/testnet.titus.json')
+};
+const chains = ['constantine', 'titus'];
+
 // We assign the right daemon command in the main function and use it in the rest of the code
 let archwaydCmd = null;
+let selectedNetwork = null;
 
 async function getListAccounts() {
   console.log('Printing list of active accounts...\n');
@@ -19,26 +26,30 @@ async function getListAccounts() {
   });
 }
 
-async function verifyIsTestnet() {
-  let configPath = await ConfigTools.path();
-  FileSystem.access(configPath, FileSystem.F_OK, (err) => {
-    if (err) {
-      console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
-      return null;
-    } else {
-      let config = require(configPath);
-      let chainId = config.network.chainId;
-      let isTestnet = false;
-      switch (chainId) {
-        case 'pebblenet-1': {
-          isTestnet = true;
-          break;
-        }
-      }
-      return isTestnet;
-    }
-  });
-}
+// async function verifyIsTestnet() {
+//   let configPath = await ConfigTools.path();
+//   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
+//     if (err) {
+//       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
+//       return null;
+//     } else {
+//       let config = require(configPath);
+//       let chainId = config.network.chainId;
+//       let isTestnet = false;
+//       switch (chainId) {
+//         case 'constantine-1': {
+//           isTestnet = true;
+//           break;
+//         }
+//         case 'titus-1': {
+//           isTestnet = true;
+//           break;
+//         }
+//       }
+//       return isTestnet;
+//     }
+//   });
+// }
 
 async function faucetRequestWorker(address = null, config = null) {
   if (!address) {
@@ -91,39 +102,51 @@ async function faucetRequestWorker(address = null, config = null) {
   });
 }
 
-async function handleFaucetRequest() {
-  let configPath = await ConfigTools.path();
-  FileSystem.access(configPath, FileSystem.F_OK, (err) => {
-    if (err) {
-      console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
-      return null;
-    } else {
-      let config = require(configPath);
+function handleFaucetRequest() {
+  let config;
+  if (!selectedNetwork) {
+    return console.log("Error selecting testnet network and chain ID", selectedNetwork);
+  }
+  switch (selectedNetwork) {
+    case chains[0]: {
+      config = TestnetData.constantine;
+      break;
+    }
+    case chains[1]: {
+      config = TestnetData.titus;
+      break;
+    }
+    default: {
+      config = TestnetData.constantine;
+    }
+  }
 
-      const readline = require('readline').createInterface({
-        input: process.stdin,
-        output: process.stdout
-      });
-    
-      readline.question('Enter an address to receive Testnet funds (e.g. "archway1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv"; Or, hit <enter> to list accounts): ', account => {
-        if (!account) {
-          readline.close();
-          getListAccounts();
-        } else {
-          readline.close();
-          faucetRequestWorker(account, config);
-        }
-      });
+  const readline = require('readline').createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
+
+  readline.question('Enter an address to receive Testnet funds (e.g. "archway1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv"; Or, hit <enter> to list accounts): ', account => {
+    if (!account) {
+      readline.close();
+      getListAccounts();
+    } else {
+      readline.close();
+      faucetRequestWorker(account, config);
     }
   });
 }
 
-const faucetRequest = (docker) => {
+const faucetRequest = (docker, testnet) => {
   archwaydCmd = docker ? commands.ArchwayDocker : commands.ArchwayBin;
-  const isTestnet = verifyIsTestnet();
-  if (isTestnet === null) {
-    return;
-  } else if (isTestnet === false) {
+
+  if (!testnet) {
+    testnet = chains[0];
+  }
+  selectedNetwork = testnet;
+
+  const isTestnet = true;
+  if (!isTestnet) {
     console.error('Error: requesting faucet funds is only possible with a Testnet network configuration.');
     console.error('Try "archway network --help" for information about switching network configurations.');
     return;
