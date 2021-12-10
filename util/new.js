@@ -26,7 +26,7 @@ async function doCloneRepository(config = null, repo = null) {
         const source = spawn('cargo', ['generate', '--git', repos[0].git, '--name', config.title], { stdio: 'inherit' });
         
         source.on('error', (err) => {
-          console.log(`Error generating project ${title}`, err);
+          console.log(`Error generating project ${config.title}`, err);
         });
 
         source.on('close', () => {
