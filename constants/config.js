@@ -1,5 +1,7 @@
 const { spawn } = require("child_process");
-const DefaultFilename = 'config.json';
+const path = require('path');
+
+const ConfigFilename = 'config.json';
 
 async function getConfig() {
   let configPath = await getConfigPath();
@@ -11,8 +13,8 @@ async function getConfigPath() {
   const source = spawn('cargo', ['locate-project', '--message-format', 'plain'], { stdio: ['inherit', 'pipe', 'inherit'] });
 
   for await (const data of source.stdout) {
-    let topLevel = Buffer.from(data).toString().trim();
-    return topLevel + '/' + DefaultFilename;
+    const cargoFilePath = Buffer.from(data).toString().trim();
+    return path.join(path.dirname(cargoFilePath), ConfigFilename);
   }
 }
 
