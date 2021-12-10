@@ -8,7 +8,7 @@ async function getConfig() {
 }
 
 async function getConfigPath() {
-  const source = spawn('git', ['rev-parse','--show-toplevel'], { stdio: ['inherit','pipe','inherit'] });
+  const source = spawn('cargo', ['locate-project', '--message-format', 'plain'], { stdio: ['inherit', 'pipe', 'inherit'] });
 
   for await (const data of source.stdout) {
     let topLevel = Buffer.from(data).toString().trim();
