@@ -59,7 +59,7 @@ function doCreateConfigFile(config = null) {
     console.error('Error creating config file', config);
   } else if (typeof config !== 'object') {
     console.error('Error creating config file', config);
-  } else if (!config.title || !config.version || !config.network || !config.path || !config.type) {
+  } else if (!config.title || !config.version || !config.network || !config.type) {
     console.error('Error creating config file', config);
   }
 
@@ -68,39 +68,44 @@ function doCreateConfigFile(config = null) {
 
   FileSystem.writeFile(path, json, (err) => {
     if (err) {
-      console.error('Error writing config to file system', [config, err]);
+      console.error('Error writing config to file system', [config, err, path, json]);
       return;
     }
-
-    doAddFiles(config, path);
+    // XXX @augusto: Below function is throwing errs
+    // doAddFiles(config, path);
+    let type = (config.type['label']) ? config.type.label : config.type;
+    console.error(`Successfully created new "${type}" project in path ${path.replace('/config.json','')} with network configuration ${config.network.chainId}.\nConfig file location: ${path}\n`);
   });
 }
 
-function doAddFiles(config = null, configFilePath = null) {
-  const source = spawn('git', ['-C', config.path, 'add', '-A'], { stdio: 'inherit' });
+// // XXX @augusto: Below function is throwing errs
+// function doAddFiles(config = null, configFilePath = null) {
+//   // const source = spawn('git', ['-C', config.path, 'add', '-A'], { stdio: 'inherit' });
 
-  let title = (config['title']) ? config.title : null;
-  source.on('error', (err) => {
-    console.error(`Error generating project ${title}`, err);
-  });
+//   let title = (config['title']) ? config.title : null;
+//   source.on('error', (err) => {
+//     console.error(`Error generating project ${title}`, err);
+//   });
 
-  source.on('close', () => {
-    doInitialCommit(config, configFilePath);
-  });
-}
+//   source.on('close', () => {
+//     // XXX @augusto: Below function is throwing errs
+//     // doInitialCommit(config, configFilePath);
+//   });
+// }
 
-function doInitialCommit(config = null, configFilePath = null) {
-  const source = spawn('git', ['-C', config.path, 'commit', '-m', 'Initialized with archway-cli'], { stdio: 'inherit' });
+// function doInitialCommit(config = null, configFilePath = null) {
+//   const source = spawn('git', ['-C', configFilePath, 'commit', '-m', 'Initialized with archway-cli'], { stdio: 'inherit' });
 
-  let title = (config['title']) ? config.title : null;
-  source.on('error', (err) => {
-    console.error(`Error generating project ${title}`, err);
-  });
+//   let title = (config['title']) ? config.title : null;
+//   source.on('error', (err) => {
+//     console.error(`Error generating project ${title}`, err);
+//   });
 
-  source.on('close', () => {
-    console.error(`Successfully created new ${config.type} project in path ${config.path} with network configuration ${config.network.chainId}.\nConfig file location: ${configFilePath}\n`);
-  });
-}
+//   source.on('close', () => {
+//     let type = (config.type['label']) ? config.type.label : config.type;
+//     console.error(`Successfully created new "${type}" project in path ${configFilePath.replace('/config.json','')} with network configuration ${config.network.chainId}.\nConfig file location: ${configFilePath}\n`);
+//   });
+// }
 
 async function selectTemplate(readline) {
   const useTemplate = await askBoolean(readline, 'Use starter template?', 'N');
