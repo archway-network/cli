@@ -4,6 +4,7 @@ const { spawn } = require('child_process');
 const FileSystem = require('fs');
 const util = require('util');
 const { createInterface } = require('readline');
+const path = require('path');
 
 const Testnet = {
   constantine: require('../data/testnet.constantine.json'),
@@ -59,25 +60,25 @@ function doCreateConfigFile(config = null) {
     console.error('Error creating config file', config);
   } else if (typeof config !== 'object') {
     console.error('Error creating config file', config);
-  } else if (!config.title || !config.version || !config.network || !config.path || !config.type) {
+  } else if (!config.title || !config.version || !config.network) {
     console.error('Error creating config file', config);
   }
 
-  let path = process.cwd() + '/' + config.title + '/config.json';
+  let configPath = path.join(process.cwd(), config.title, '/config.json');
   let json = JSON.stringify(config, null, 2);
 
-  FileSystem.writeFile(path, json, (err) => {
+  FileSystem.writeFile(configPath, json, (err) => {
     if (err) {
       console.error('Error writing config to file system', [config, err]);
       return;
     }
 
-    doAddFiles(config, path);
+    doAddFiles(config, path.dirname(configPath));
   });
 }
 
-function doAddFiles(config = null, configFilePath = null) {
-  const source = spawn('git', ['-C', config.path, 'add', '-A'], { stdio: 'inherit' });
+function doAddFiles(config = null, projectDir = null) {
+  const source = spawn('git', ['-C', projectDir, 'add', '-A'], { stdio: 'inherit' });
 
   let title = (config['title']) ? config.title : null;
   source.on('error', (err) => {
@@ -85,12 +86,12 @@ function doAddFiles(config = null, configFilePath = null) {
   });
 
   source.on('close', () => {
-    doInitialCommit(config, configFilePath);
+    doInitialCommit(config, projectDir);
   });
 }
 
-function doInitialCommit(config = null, configFilePath = null) {
-  const source = spawn('git', ['-C', config.path, 'commit', '-m', 'Initialized with archway-cli'], { stdio: 'inherit' });
+function doInitialCommit(config = null, projectDir = null) {
+  const source = spawn('git', ['-C', projectDir, 'commit', '-m', 'Initialized with archway-cli'], { stdio: 'inherit' });
 
   let title = (config['title']) ? config.title : null;
   source.on('error', (err) => {
@@ -98,7 +99,7 @@ function doInitialCommit(config = null, configFilePath = null) {
   });
 
   source.on('close', () => {
-    console.error(`Successfully created new ${config.type} project in path ${config.path} with network configuration ${config.network.chainId}.\nConfig file location: ${configFilePath}\n`);
+    console.error(`Successfully created new ${config.type.label} project in path ${projectDir} with network configuration ${config.network.chainId}\n`);
   });
 }
 
