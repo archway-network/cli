@@ -134,7 +134,7 @@ function selectNetworkConfig(configIndex, defaultTestnet) {
   }
 }
 
-async function makeConfig(readline, configIndex, defaultTestnet = 1, docker = false) {
+async function makeConfig(readline, configIndex, defaultTestnet = 1, docker = false, name = null) {
   // XXX TODO: Remove this when ready to unveil
   if (configIndex !== 1) {
     console.warn('Please use the Testnet configuration for now.');
@@ -143,13 +143,13 @@ async function makeConfig(readline, configIndex, defaultTestnet = 1, docker = fa
 
   const networkConfig = selectNetworkConfig(configIndex, defaultTestnet);
   const template = await selectTemplate(readline);
-  const title = await ask(readline, 'Name of the project', 'My Project');
 
   // Toggle `archwayd` type
   if (docker && networkConfig['developer']) {
     networkConfig.developer.archwayd.docker = true;
   }
-  networkConfig.title = title.trim().split(' ').join('-').toLowerCase();
+  name ||= await ask(readline, 'Name of the project', 'my-project');
+  networkConfig.title = name.trim().split(' ').join('-').toLowerCase();
   networkConfig.version = baseVersion;
 
   console.log('networkConfig', JSON.stringify(networkConfig));
@@ -158,7 +158,7 @@ async function makeConfig(readline, configIndex, defaultTestnet = 1, docker = fa
   await doCloneRepository(networkConfig, template);
 }
 
-const newArchway = async () => {
+const newArchway = async (name = null) => {
   const readline = createInterface({
     input: process.stdin,
     output: process.stdout
@@ -185,7 +185,7 @@ const newArchway = async () => {
       }
     }
 
-    await makeConfig(readline, configIndex, defaultTestnet, useDocker);
+    await makeConfig(readline, configIndex, defaultTestnet, useDocker, name);
   } catch (err) {
     console.error('Error creating new project', err);
   }
