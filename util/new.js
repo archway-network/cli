@@ -4,6 +4,7 @@ const { spawn } = require('child_process');
 const FileSystem = require('fs');
 const util = require('util');
 const { createInterface } = require('readline');
+const path = require('path');
 
 const Testnet = {
   constantine: require('../data/testnet.constantine.json'),
@@ -15,6 +16,7 @@ const TemplatesRepository = 'archway-network/archway-templates';
 // XXX TODO: Import repos from json in ../data
 const Templates = [
   { label: 'Increment', subfolder: 'increment' },
+  { label: 'CW20', subfolder: 'cw20/base' },
   { label: 'CW721 with off-chain metadata', subfolder: 'cw721/off-chain-metadata' },
   { label: 'CW721 with on-chain metadata', subfolder: 'cw721/on-chain-metadata' },
 ];
@@ -59,53 +61,48 @@ function doCreateConfigFile(config = null) {
     console.error('Error creating config file', config);
   } else if (typeof config !== 'object') {
     console.error('Error creating config file', config);
-  } else if (!config.title || !config.version || !config.network || !config.type) {
+  } else if (!config.title || !config.version || !config.network) {
     console.error('Error creating config file', config);
   }
 
-  let path = process.cwd() + '/' + config.title + '/config.json';
+  let configPath = path.join(process.cwd(), config.title, '/config.json');
   let json = JSON.stringify(config, null, 2);
 
-  FileSystem.writeFile(path, json, (err) => {
+  FileSystem.writeFile(configPath, json, (err) => {
     if (err) {
       console.error('Error writing config to file system', [config, err, path, json]);
       return;
     }
-    // XXX @augusto: Below function is throwing errs
-    // doAddFiles(config, path);
-    let type = (config.type['label']) ? config.type.label : config.type;
-    console.error(`Successfully created new "${type}" project in path ${path.replace('/config.json','')} with network configuration ${config.network.chainId}.\nConfig file location: ${path}\n`);
+
+    doAddFiles(config, path.dirname(configPath));
   });
 }
 
-// // XXX @augusto: Below function is throwing errs
-// function doAddFiles(config = null, configFilePath = null) {
-//   // const source = spawn('git', ['-C', config.path, 'add', '-A'], { stdio: 'inherit' });
+function doAddFiles(config = null, projectDir = null) {
+  const source = spawn('git', ['-C', projectDir, 'add', '-A'], { stdio: 'inherit' });
 
-//   let title = (config['title']) ? config.title : null;
-//   source.on('error', (err) => {
-//     console.error(`Error generating project ${title}`, err);
-//   });
+  let title = (config['title']) ? config.title : null;
+  source.on('error', (err) => {
+    console.error(`Error generating project ${title}`, err);
+  });
 
-//   source.on('close', () => {
-//     // XXX @augusto: Below function is throwing errs
-//     // doInitialCommit(config, configFilePath);
-//   });
-// }
+  source.on('close', () => {
+    doInitialCommit(config, projectDir);
+  });
+}
 
-// function doInitialCommit(config = null, configFilePath = null) {
-//   const source = spawn('git', ['-C', configFilePath, 'commit', '-m', 'Initialized with archway-cli'], { stdio: 'inherit' });
+function doInitialCommit(config = null, projectDir = null) {
+  const source = spawn('git', ['-C', projectDir, 'commit', '-m', 'Initialized with archway-cli'], { stdio: 'inherit' });
 
-//   let title = (config['title']) ? config.title : null;
-//   source.on('error', (err) => {
-//     console.error(`Error generating project ${title}`, err);
-//   });
+  let title = (config['title']) ? config.title : null;
+  source.on('error', (err) => {
+    console.error(`Error generating project ${title}`, err);
+  });
 
-//   source.on('close', () => {
-//     let type = (config.type['label']) ? config.type.label : config.type;
-//     console.error(`Successfully created new "${type}" project in path ${configFilePath.replace('/config.json','')} with network configuration ${config.network.chainId}.\nConfig file location: ${configFilePath}\n`);
-//   });
-// }
+  source.on('close', () => {
+    console.error(`Successfully created new ${config.type.label} project in path ${projectDir} with network configuration ${config.network.chainId}\n`);
+  });
+}
 
 async function selectTemplate(readline) {
   const useTemplate = await askBoolean(readline, 'Use starter template?', 'N');
@@ -138,7 +135,7 @@ function selectNetworkConfig(configIndex, defaultTestnet) {
   }
 }
 
-async function makeConfig(readline, configIndex, defaultTestnet = 1, docker = false) {
+async function makeConfig(readline, configIndex, defaultTestnet = 1, docker = false, name = null) {
   // XXX TODO: Remove this when ready to unveil
   if (configIndex !== 1) {
     console.warn('Please use the Testnet configuration for now.');
@@ -147,13 +144,13 @@ async function makeConfig(readline, configIndex, defaultTestnet = 1, docker = fa
 
   const networkConfig = selectNetworkConfig(configIndex, defaultTestnet);
   const template = await selectTemplate(readline);
-  const title = await ask(readline, 'Name of the project', 'My Project');
 
   // Toggle `archwayd` type
   if (docker && networkConfig['developer']) {
     networkConfig.developer.archwayd.docker = true;
   }
-  networkConfig.title = title.trim().split(' ').join('-').toLowerCase();
+  name ||= await ask(readline, 'Name of the project', 'my-project');
+  networkConfig.title = name.trim().split(' ').join('-').toLowerCase();
   networkConfig.version = baseVersion;
 
   console.log('networkConfig', JSON.stringify(networkConfig));
@@ -162,7 +159,7 @@ async function makeConfig(readline, configIndex, defaultTestnet = 1, docker = fa
   await doCloneRepository(networkConfig, template);
 }
 
-const newArchway = async () => {
+const newArchway = async (name = null) => {
   const readline = createInterface({
     input: process.stdin,
     output: process.stdout
@@ -189,7 +186,7 @@ const newArchway = async () => {
       }
     }
 
-    await makeConfig(readline, configIndex, defaultTestnet, useDocker);
+    await makeConfig(readline, configIndex, defaultTestnet, useDocker, name);
   } catch (err) {
     console.error('Error creating new project', err);
   }
