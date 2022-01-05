@@ -16,6 +16,7 @@ const TemplatesRepository = 'archway-network/archway-templates';
 // XXX TODO: Import repos from json in ../data
 const Templates = [
   { label: 'Increment', subfolder: 'increment' },
+  { label: 'CW20', subfolder: 'cw20/base' },
   { label: 'CW721 with off-chain metadata', subfolder: 'cw721/off-chain-metadata' },
   { label: 'CW721 with on-chain metadata', subfolder: 'cw721/on-chain-metadata' },
 ];
