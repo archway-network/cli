@@ -52,23 +52,28 @@ Program
       }
     } else {
       // Load Docker value from config, or use native `archwayd`
-      let configPath = await ConfigTools.path();
-      FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
-        if (!err) {
-          let config = require(configPath);
-          if (config.developer.archwayd.docker) {
-            docker = true;
+      try {
+        let configPath = await ConfigTools.path();
+        FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
+          if (!err) {
+            let config = require(configPath);
+            if (config.developer.archwayd.docker) {
+              docker = true;
+            }
           }
-        }
-        // List accounts
-        if (!add) {
-          await Tools.Accounts(docker);
-          // Add new account
-        } else {
-          let name = options.add;
-          await Tools.Accounts(docker, true, name);
-        }
-      });
+          // List accounts
+          if (!add) {
+            await Tools.Accounts(docker);
+            // Add new account
+          } else {
+            let name = options.add;
+            await Tools.Accounts(docker, true, name);
+          }
+        });
+      } catch (e) {
+        // No Docker
+        await Tools.Accounts(false);
+      }
     }
   });
 
