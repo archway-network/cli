@@ -84,7 +84,7 @@ async function doCreateConfigFile(config = null) {
     console.log('Error creating config file', config);
   }
 
-  let path = await ConfigTools.path();
+  let path = ConfigTools.path();
   let json = JSON.stringify(config, null, 2);
 
   FileSystem.writeFile(path, json, (err) => {
@@ -99,7 +99,7 @@ async function doCreateConfigFile(config = null) {
 async function printNetConfig() {
   console.log('Printing network settings...');
 
-  let configPath = await ConfigTools.path();
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -107,10 +107,10 @@ async function printNetConfig() {
     } else {
       let config = require(configPath);
       let chainId = config.network.chainId,
-          rpc = config.network.urls.rpc.url + ':' + config.network.urls.rpc.port,
-          faucet = config.network.urls.faucets[0],
-          networks = ['1. Testnet', '2. Localhost', '3. Mainnet'],
-          currentNetwork;
+        rpc = config.network.urls.rpc.url + ':' + config.network.urls.rpc.port,
+        faucet = config.network.urls.faucets[0],
+        networks = ['1. Testnet', '2. Localhost', '3. Mainnet'],
+        currentNetwork;
 
       switch (chainId) {
         case 'constantine-1': {
@@ -125,12 +125,12 @@ async function printNetConfig() {
         }
         case 'localhost': {
           networks[1] += '*';
-          currentNetwork = networks[1].replace('2. ','').replace('*','');
+          currentNetwork = networks[1].replace('2. ', '').replace('*', '');
           break;
         }
         case 'mainnet': {
           networks[2] += '*';
-          currentNetwork = networks[2].replace('3. ','').replace('*','');
+          currentNetwork = networks[2].replace('3. ', '').replace('*', '');
         }
       }
 

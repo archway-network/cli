@@ -2,14 +2,14 @@
 
 const { spawn } = require("child_process");
 const FileSystem = require('fs');
-const commands  = require('../constants/commands');
+const commands = require('../constants/commands');
 const ConfigTools = require('../constants/config');
 
 // We assign the right daemon command in the main function and use it in the rest of the code
 let archwaydCmd = null;
 
 async function tryScript(key) {
-  let configPath = await ConfigTools.path();
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -25,11 +25,11 @@ async function tryScript(key) {
       runScript.cmd = runScript.arr[0];
       runScript.params = runScript.arr.slice(1);
 
-      // in order to have only one place for the archwayd docker command (i.e. in constants), 
+      // in order to have only one place for the archwayd docker command (i.e. in constants),
       // let's have an exception for the archway daemon here
-      if( runScript.cmd == 'archwayd'){
-          runScript.Cmd = archwaydCmd.cmd;
-          runScript.params = [...archwaydCmd.args, ...runScript.params];
+      if (runScript.cmd == 'archwayd') {
+        runScript.Cmd = archwaydCmd.cmd;
+        runScript.params = [...archwaydCmd.args, ...runScript.params];
       }
 
       // console.log( "\n\t\tCMD: ", runScript);
@@ -51,7 +51,7 @@ const scriptRunner = (docker, key) => {
   } else {
     try {
       tryScript(key);
-    } catch(e) {
+    } catch (e) {
       console.error('Error executing script', [key, e]);
     }
   }

@@ -5,7 +5,7 @@ const FileSystem = require('fs');
 const ConfigTools = require('../constants/config');
 
 async function tryTesting() {
-  let configPath = await ConfigTools.path();
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -33,7 +33,7 @@ async function tryTesting() {
 const testRunner = () => {
   try {
     tryTesting();
-  } catch(e) {
+  } catch (e) {
     console.error('Error calling build script', e);
   }
 };

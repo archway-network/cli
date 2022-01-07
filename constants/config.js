@@ -1,21 +1,23 @@
-const { spawn } = require("child_process");
+const { spawnSync } = require("child_process");
 const path = require('path');
 
 const ConfigFilename = 'config.json';
 
-async function getConfig() {
-  let configPath = await getConfigPath();
+function getConfig() {
+  let configPath = getConfigPath();
   let config = require(configPath);
   return config;
 }
 
-async function getConfigPath() {
-  const source = spawn('cargo', ['locate-project', '--message-format', 'plain'], { stdio: ['inherit', 'pipe', 'inherit'] });
+function getConfigPath() {
+  const cargo = spawnSync(
+    'cargo',
+    ['locate-project', '--message-format', 'plain'],
+    { stdio: ['inherit', 'pipe', 'pipe'] }
+  );
 
-  for await (const data of source.stdout) {
-    const cargoFilePath = Buffer.from(data).toString().trim();
-    return path.join(path.dirname(cargoFilePath), ConfigFilename);
-  }
+  let cargoFilePath = (cargo.stdout) ? cargo.stdout.toString() : undefined;
+  return path.join(path.dirname(cargoFilePath), ConfigFilename);
 }
 
 module.exports = {

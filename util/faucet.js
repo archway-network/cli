@@ -3,7 +3,7 @@
 const { spawn } = require("child_process");
 // const FileSystem = require('fs');
 const HttpClient = require('axios');
-const commands  = require('../constants/commands');
+const commands = require('../constants/commands');
 
 const TestnetData = {
   constantine: require('../data/testnet.constantine.json'),
@@ -26,7 +26,7 @@ async function getListAccounts() {
 }
 
 // async function verifyIsTestnet() {
-//   let configPath = await ConfigTools.path();
+//   let configPath = ConfigTools.path();
 //   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
 //     if (err) {
 //       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -71,9 +71,9 @@ async function faucetRequestWorker(address = null, config = null) {
 
   HttpClient.post(faucet, request).then((response) => {
     if (!response || typeof response !== 'object') {
-      console('Error requesting funds from faucet', {faucet: faucet, error: response});
+      console('Error requesting funds from faucet', { faucet: faucet, error: response });
     } else if (!response.status) {
-      console('Error requesting funds from faucet', {faucet: faucet, error: response});
+      console('Error requesting funds from faucet', { faucet: faucet, error: response });
     }
 
     if (response.status == 200) {
@@ -94,10 +94,10 @@ async function faucetRequestWorker(address = null, config = null) {
       }
       console.log(statusMsg);
     } else {
-      console('Error requesting funds from faucet', {faucet: faucet, error: response});
+      console('Error requesting funds from faucet', { faucet: faucet, error: response });
     }
   }).catch((httpError) => {
-    console.error('Error requesting funds from faucet', {faucet: faucet, error: httpError});
+    console.error('Error requesting funds from faucet', { faucet: faucet, error: httpError });
   });
 }
 
