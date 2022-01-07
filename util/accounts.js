@@ -9,7 +9,7 @@ let archwaydCmd = null;
 async function getListAccounts() {
   console.log('Printing list of active accounts...\n');
 
-  source = spawn(archwaydCmd.cmd, [...archwaydCmd.args, 'keys', 'list'], { stdio: 'inherit'});
+  const source = spawn(archwaydCmd.cmd, [...archwaydCmd.args, 'keys', 'list'], { stdio: 'inherit'});
   
   // Listeners
   source.on('error', (err) => {
@@ -37,7 +37,7 @@ async function getListAccounts() {
       }
     });
   });
-};
+}
 
 async function doAddAccount(name = null) {
   if (!name) {
@@ -53,7 +53,7 @@ async function doAddAccount(name = null) {
   source.on('error', (err) => {
     console.log(`Error adding wallet ${name} to keychain`, err);
   });
-};
+}
 
 const listAccounts = async (docker, add = false, name = null) => {
   archwaydCmd = docker ? commands.ArchwayDocker : commands.ArchwayBin;

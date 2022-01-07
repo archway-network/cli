@@ -3,12 +3,13 @@
 const { spawn } = require("child_process");
 const FileSystem = require('fs');
 const Path = require('path');
-const commands  = require('../constants/commands');
+const commands = require('../constants/commands');
+const ConfigTools = require('../constants/config');
 
 // We assign the right daemon command in the main function and use it in the rest of the code
 let archwaydCmd = null;
 
-const pScope = { 
+const pScope = {
   args: null,
   config: null
 };
@@ -25,22 +26,22 @@ function b64(inString = '') {
     return false;
 }
 
-function toArchwayArgs (constructors) {
+function toArchwayArgs(constructors) {
   let constructorsB64 = b64(constructors);
   let dAppConfig = pScope.config.developer.dApp;
   let args = {
-    "reward_address": dAppConfig.rewardAddress, 
-    "gas_rebate_to_user": dAppConfig.gasRebate, 
-    "instantiation_request": constructorsB64, 
-    "collect_premium": dAppConfig.collectPremium, 
+    "reward_address": dAppConfig.rewardAddress,
+    "gas_rebate_to_user": dAppConfig.gasRebate,
+    "instantiation_request": constructorsB64,
+    "collect_premium": dAppConfig.collectPremium,
     "premium_percentage_charged": dAppConfig.premiumPercentage
   };
   // console.log('Debug ArchwayArgs', args);
   return args;
-};
+}
 
-function tryWasm() {
-  let configPath = process.cwd() + '/config.json';
+async function tryWasm() {
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -64,20 +65,20 @@ function tryWasm() {
       });
     }
   });
-};
+}
 
-function doCreateConfigFile(config = null) {
+async function doCreateConfigFile(config = null) {
   if (!config) {
     console.log('Error creating config file', config);
   } else if (typeof config !== 'object') {
     console.log('Error creating config file', config);
-  } else if (!config.title || !config.version || !config.network || !config.path || !config.type) {
+  } else if (!config.title || !config.version || !config.network || !config.type) {
     console.log('Error creating config file', config);
   } else {
     pScope.config = config;
   }
 
-  let path = config.path + '/config.json';
+  let path = ConfigTools.path();
   let json = JSON.stringify(config, null, 2);
 
   FileSystem.writeFile(path, json, (err) => {
@@ -89,7 +90,7 @@ function doCreateConfigFile(config = null) {
   });
 }
 
-function storeDeployment(deployment = null) {
+async function storeDeployment(deployment = null) {
   if (!deployment) {
     console.error('Error saving deployment to config', deployment);
     return;
@@ -104,7 +105,7 @@ function storeDeployment(deployment = null) {
     return;
   }
 
-  let configPath = process.cwd() + '/config.json';
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -122,13 +123,12 @@ function storeDeployment(deployment = null) {
 function dryRunner() {
   try {
     tryWasm();
-  } catch(e) {
+  } catch (e) {
     console.error('Error creating wasm executable', e);
   }
-};
+}
 
 function uploadArchivedExecutable(config = null) {
-  // console.log('Ok?', config);
   if (!config || typeof config !== 'object') {
     console.error('Error processing config', config);
     return;
@@ -151,7 +151,7 @@ function uploadArchivedExecutable(config = null) {
       // # Store code
       // $ RES=$(archwayd tx wasm store artifacts/YOUR_DOCKER_WASM_OUTPUT_FILE.wasm --from YOUR_WALLET_NAME --chain-id $CHAIN_ID $TXFLAG -y)
       let runScript = {};
-      let wasmFileName = config.title.replace(/-/g,'_') + '.wasm';
+      let wasmFileName = config.title.replace(/-/g, '_') + '.wasm';
       let wasmPath = 'artifacts/' + wasmFileName;
       let rpc = config.network.urls.rpc;
       let node = rpc.url + ':' + rpc.port;
@@ -160,14 +160,14 @@ function uploadArchivedExecutable(config = null) {
       let gasAdjustment = config.network.gas.adjustment;
 
       // If we use docker or for any reason need to copy the file to any other directory before upload
-      if ( archwaydCmd.localDir != '' && archwaydCmd.localDir != '.'){
+      if (archwaydCmd.localDir != '' && archwaydCmd.localDir != '.') {
 
-          // We need to copy the wasm file into the mapped directory of the archwayd docker container
-          // in order to allow the archwayd use it
-          FileSystem.copyFile( wasmPath, archwaydCmd.localDir +'/'+ wasmFileName, (err) => {
-            if (err){
-              console.error( `Cannot copy "${wasmPath}" to "${archwaydCmd.localDir}":\n\t`, err);
-              return;
+        // We need to copy the wasm file into the mapped directory of the archwayd docker container
+        // in order to allow the archwayd use it
+        FileSystem.copyFile(wasmPath, archwaydCmd.localDir + '/' + wasmFileName, (err) => {
+          if (err) {
+            console.error(`Cannot copy "${wasmPath}" to "${archwaydCmd.localDir}":\n\t`, err);
+            return;
           }
           // console.log(`"${wasmPath}" was copied to the container volume`);
         });
@@ -178,7 +178,7 @@ function uploadArchivedExecutable(config = null) {
 
       runScript.cmd = archwaydCmd.cmd;
       // runScript.cmd = 'archwayd';
-      runScript.params = [ ...archwaydCmd.args,
+      runScript.params = [...archwaydCmd.args,
         'tx',
         'wasm',
         'store',
@@ -196,11 +196,11 @@ function uploadArchivedExecutable(config = null) {
         '--gas-adjustment',
         gasAdjustment
       ];
-      
+
       // console.log('Debug cmd:', runScript);
 
       readline.close();
-      const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });
+      const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit', 'pipe', 'inherit'] });
 
       // # Get code ID
       // $ CODE_ID=$(echo $RES | jq -r '.logs[0].events[-1].attributes[0].value')
@@ -211,8 +211,8 @@ function uploadArchivedExecutable(config = null) {
         //   return;
         // }
         // console.log(outputMsg);
-        // `console.log()` adds some extra newline and tab characters, so let's use `stdout`
-        process.stdout.write( outputMsg);
+
+        process.stdout.write(outputMsg);
 
         if (outputMsg.indexOf('txhash') > -1) {
           try {
@@ -223,14 +223,14 @@ function uploadArchivedExecutable(config = null) {
             // $ archwayd query wasm list-contract-by-code $CODE_ID $NODE --output json
             if (codeId) {
               storeDeployment({
-                type: 'create', 
-                codeId: codeId, 
-                chainId: chainId, 
+                type: 'create',
+                codeId: codeId,
+                chainId: chainId,
                 data: outputMsg
               });
               verifyWasmUpload(codeId, node, wasmPath, chainId);
             }
-          } catch(e) {
+          } catch (e) {
             console.error('Error uploading contract', e);
             return;
           }
@@ -238,7 +238,7 @@ function uploadArchivedExecutable(config = null) {
       });
     }
   });
-};
+}
 
 function verifyWasmUpload(codeId = null, node = null, path = null, chainId = null) {
   console.log('\n');
@@ -300,18 +300,18 @@ function verifyWasmUpload(codeId = null, node = null, path = null, chainId = nul
           });
         }
       });
-    } catch(e) {
+    } catch (e) {
       console.log('Error verifying upload', e);
     }
   });
-};
+}
 
-function deployInstance(codeId = null) {
+async function deployInstance(codeId = null) {
   if (!codeId) {
     console.error('Error reading Code ID', codeId);
     return;
   }
-  let configPath = process.cwd() + '/config.json';
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -327,7 +327,7 @@ function deployInstance(codeId = null) {
       let gasAdjustment = config.network.gas.adjustment;
 
       pScope.config = config;
-      
+
       console.log('Deploying an instance of ' + title + ' to ' + chainId + '...\n');
 
       const readline = require('readline').createInterface({
@@ -413,7 +413,7 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
       // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
       // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
       let runScript = {}, jsonArgs = JSON.stringify(args);
-      
+
       runScript.cmd = archwaydCmd.cmd;
       // runScript.cmd = 'archwayd';
       runScript.params = [...archwaydCmd.args,
@@ -440,7 +440,7 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
       ];
 
       // const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
-      const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });
+      const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit', 'pipe', 'inherit'] });
 
       source.stdout.on('data', (data) => {
         let outputMsg = Buffer.from(data).toString().trim();
@@ -450,7 +450,7 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
         // }
         // console.log(outputMsg);
         // `console.log()` adds some extra newline and tab characters, so let's use `stdout`
-        process.stdout.write( outputMsg);
+        process.stdout.write(outputMsg);
 
         if (outputMsg.indexOf('txhash') > -1) {
           try {
@@ -460,13 +460,13 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
             if (contractAddress) {
               // Store deployment
               storeDeployment({
-                type: 'instatiate', 
-                address: contractAddress, 
+                type: 'instatiate',
+                address: contractAddress,
                 chainId: chainId,
                 data: outputMsg
               });
             }
-          } catch(e) {
+          } catch (e) {
             console.error('Error instantiating contract', e);
             return;
           }
@@ -481,7 +481,7 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
     // $ INIT=$(jq -n --arg YOUR_WALLET_NAME $(archwayd keys show -a YOUR_WALLET_NAME) '{count:1}')
     // $ archwayd tx wasm instantiate $CODE_ID "$INIT" --from YOUR_WALLET_NAME --label "your contract label" $TXFLAG -y
     let runScript = {}, jsonArgs = JSON.stringify(args);
-    
+
     runScript.cmd = archwaydCmd.cmd
     // runScript.cmd = 'archwayd';
     runScript.params = [...archwaydCmd.args,
@@ -508,7 +508,7 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
     ];
 
     // const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
-    const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit','pipe','inherit'] });
+    const source = spawn(runScript.cmd, runScript.params, { stdio: ['inherit', 'pipe', 'inherit'] });
 
     source.stdout.on('data', (data) => {
       let outputMsg = Buffer.from(data).toString().trim();
@@ -518,7 +518,7 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
       // }
       // console.log(outputMsg);
       // `console.log()` adds some extra newline and tab characters, so let's use `stdout`
-      process.stdout.write( outputMsg);
+      process.stdout.write(outputMsg);
 
       if (outputMsg.indexOf('txhash') > -1) {
         try {
@@ -528,13 +528,13 @@ function doDeployment(codeId, constructors, walletLabel, deploymentLabel, chainI
           if (contractAddress) {
             // Store deployment
             storeDeployment({
-              type: 'instatiate', 
-              address: contractAddress, 
+              type: 'instatiate',
+              address: contractAddress,
               chainId: chainId,
               data: outputMsg
             });
           }
-        } catch(e) {
+        } catch (e) {
           console.error('Error instantiating contract', e);
           return;
         }
@@ -554,7 +554,7 @@ function makeOptimizedWasm(config = null) {
   } else {
     console.log('Building optimized wasm binary...\n');
   }
-  
+
   let target = config.network.optimizers.docker.target;
   let targetSrc = Path.basename(process.cwd()) + '_cache';
   let container = config.network.optimizers.docker.image;
@@ -569,9 +569,11 @@ function makeOptimizedWasm(config = null) {
     // Registry mount
     '--mount',
     'type=volume,source=registry_cache,target=' + target,
+    '-e',
+    'CARGO_TERM_COLOR=always',
     container
   ],
-  { stdio: ['inherit','pipe','inherit'] });
+    { stdio: ['inherit', 'pipe', 'inherit'] });
 
   // source.stderr.on('err', (err) => {
   //   console.log('Error building optimized wasm', err);
@@ -587,8 +589,8 @@ function makeOptimizedWasm(config = null) {
   });
 }
 
-function handleDeployment() {
-  let configPath = process.cwd() + '/config.json';
+async function handleDeployment() {
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -596,7 +598,7 @@ function handleDeployment() {
     } else {
       let config = require(configPath);
       pScope.config = config;
-      await makeOptimizedWasm(config);
+      makeOptimizedWasm(config);
     }
   });
 }

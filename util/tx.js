@@ -3,16 +3,17 @@
 // E.g.: archwayd tx wasm execute $CONTRACT $INCREMENT --from YOUR_WALLET_NAME $TXFLAG -y
 
 const { spawn } = require("child_process");
-const commands  = require('../constants/commands');
+const commands = require('../constants/commands');
 const FileSystem = require('fs');
+const ConfigTools = require('../constants/config');
 
-function tryExecuteTx(docker, args) {
+async function tryExecuteTx(docker, args) {
   if (typeof args !== 'object') {
     console.error('Error processing constructor args', args);
     return;
   }
 
-  let configPath = process.cwd() + '/config.json';
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -55,10 +56,10 @@ function tryExecuteTx(docker, args) {
         runScript.params.push(contract);
         doExecute(runScript, flags, args, config);
       }
-      
+
     }
   });
-};
+}
 
 function doExecute(runScript, flags, args, config) {
 
@@ -73,10 +74,10 @@ function doExecute(runScript, flags, args, config) {
       readline.close();
       return;
     } else {
-      try {     
+      try {
         // Tx constructor args
         runScript.params.push(args.tx);
-    
+
         // Additional flags
         let rpc = config.network.urls.rpc;
         let node = rpc.url + ':' + rpc.port;
@@ -98,19 +99,19 @@ function doExecute(runScript, flags, args, config) {
         flags.push(gasAdjustment);
 
 
-        params = runScript.params.concat(flags);
-    
+        let params = runScript.params.concat(flags);
+
         readline.close();
         const source = spawn(runScript.cmd, params, { stdio: 'inherit' });
-    
+
         source.on('error', (err) => {
           console.log('Error executing transaction', err);
         });
-    
+
         source.on('close', () => {
           console.log('\nOk!');
         });
-      } catch(e) {
+      } catch (e) {
         console.log('Error executing transaction', e);
       }
     }
@@ -120,7 +121,7 @@ function doExecute(runScript, flags, args, config) {
 const txRunner = (docker, args) => {
   try {
     tryExecuteTx(docker, args);
-  } catch(e) {
+  } catch (e) {
     console.error('Error executing transaction', e);
   }
 };
