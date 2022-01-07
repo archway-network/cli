@@ -2,7 +2,6 @@
 
 // const Dotenv = require('dotenv').config();
 const Tools = require(__dirname + '/util');
-const FileSystem = require('fs');
 const { Command, Option } = require('commander');
 const Program = new Command();
 const Commands = require('./constants/commands');
