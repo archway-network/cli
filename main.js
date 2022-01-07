@@ -3,8 +3,9 @@
 // const Dotenv = require('dotenv').config();
 const Tools = require(__dirname + '/util');
 const FileSystem = require('fs');
-const { Command } = require('commander');
+const { Command, Option } = require('commander');
 const Program = new Command();
+const Commands = require('./constants/commands');
 const ConfigTools = require('./constants/config');
 
 /**
@@ -21,6 +22,18 @@ function getVersion() {
   return version;
 }
 
+function getDockerFromConfig() {
+  try {
+    let config = ConfigTools.config();
+    return config.developer.archwayd.docker;
+  } catch (error) {
+    return true;
+  }
+}
+
+const DockerOption = new Option('-k, --docker', 'Use the docker version of archway daemon')
+  .default(getDockerFromConfig());
+
 /**
  * CLI worker
  * @see commander (https://www.npmjs.com/package/commander)
@@ -33,42 +46,18 @@ Program
   .command('accounts')
   .description('List available wallets or add new wallet')
   .option('-a, --add <label>', 'Add a new wallet')
-  .option('-k, --docker <value>', 'Use the docker version of archway daemon, e.g. "--docker true" or "-k false"')
+  .addOption(DockerOption)
   .action(async (options) => {
-    let add = (options.add) ? true : false;
-    let docker = (options.docker) ? options.docker.toLowerCase() : false;
-    if (typeof docker == 'string') {
-      if (docker == 'true')
-        docker = true;
-      if (docker == 'false')
-        docker = false;
-      // List accounts
-      if (!add) {
-        await Tools.Accounts(docker);
-        // Add new account
-      } else {
-        let name = options.add;
-        await Tools.Accounts(docker, true, name);
-      }
+    if (options.docker) {
+      await Commands.checkHomePath();
+    }
+
+    if (options.add) {
+      // Add new account
+      let name = options.add;
+      await Tools.Accounts(options.docker, true, name);
     } else {
-      // Load Docker value from config, or use native `archwayd`
-      let configPath = await ConfigTools.path();
-      FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
-        if (!err) {
-          let config = require(configPath);
-          if (config.developer.archwayd.docker) {
-            docker = true;
-          }
-        }
-        // List accounts
-        if (!add) {
-          await Tools.Accounts(docker);
-          // Add new account
-        } else {
-          let name = options.add;
-          await Tools.Accounts(docker, true, name);
-        }
-      });
+      await Tools.Accounts(options.docker);
     }
   });
 
@@ -79,7 +68,6 @@ Program
   .action(async () => {
     await Tools.Build();
   });
-
 
 // `archway configure`
 Program
@@ -102,37 +90,19 @@ Program
   .description('Deploy to network, or test deployability')
   .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment, e.g. --args \'{"key":"value"}\'')
   .option('-d, --dryrun', 'Test deployability; builds an unoptimized wasm binary')
-  .option('-k, --docker <value>', 'Use the docker version of archway daemon, e.g. "--docker true" or "-k false"')
+  .addOption(DockerOption)
   .action(async (options) => {
     let dryrun = (options.dryrun) ? true : false;
     let args = (options.args) ? options.args : null;
-    let docker = (options.docker) ? options.docker.toLowerCase() : false;
-    if (typeof docker == 'string') {
-      if (docker == 'true')
-        docker = true;
-      if (docker == 'false')
-        docker = false;
 
-      if (!dryrun) {
-        await Tools.Deploy(docker, args);
-      } else {
-        await Tools.Deploy(docker, args, dryrun);
-      }
+    if (options.docker) {
+      await Commands.checkHomePath();
+    }
+
+    if (!dryrun) {
+      await Tools.Deploy(options.docker, args);
     } else {
-      let configPath = await ConfigTools.path();
-      FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
-        if (!err) {
-          let config = require(configPath);
-          if (config.developer.archwayd.docker) {
-            docker = true;
-          }
-        }
-        if (!dryrun) {
-          await Tools.Deploy(docker, args);
-        } else {
-          await Tools.Deploy(docker, args, dryrun);
-        }
-      });
+      await Tools.Deploy(options.docker, args, dryrun);
     }
   });
 
@@ -140,15 +110,16 @@ Program
 Program
   .command('faucet')
   .description('Request Testnet funds from faucet')
-  .option('-k, --docker <value>', 'Use the docker version of archway daemon keyring, e.g. "--docker true" or "-k false"')
+  .addOption(DockerOption)
   .option('-t, --testnet <value>', 'Testnet to request from; "constantine" or "titus" (default: "constantine")')
   .action(async (options) => {
-    let docker = (options.docker) ? options.docker.toLowerCase() : true; // XXX: Default true for now
     let testnet = (options.testnet) ? options.testnet : "constantine";
-    if (typeof docker == 'string') {
-      docker = Boolean(docker);
+
+    if (options.docker) {
+      await Commands.checkHomePath();
     }
-    await Tools.Faucet(docker, testnet);
+
+    await Tools.Faucet(options.docker, testnet);
   });
 
 // `archway history`
@@ -164,7 +135,7 @@ Program
   .command('network')
   .description('Show network settings or migrate between networks')
   .action(async () => {
-    await Tools.Network(docker, testnet);
+    await Tools.Network();
   });
 
 // `archway new`
@@ -197,35 +168,21 @@ Program
   .argument('[type]', 'Subcommands (*if required by query module); available types: ' + String(typeChoices))
   .requiredOption('-a, --args <value>', 'JSON encoded arguments for query (e.g. \'{"get_count": {}}\')')
   .option('-f, --flags <flags>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--height 492520 --limit 10"')
-  .option('-k, --docker <value>', 'Use the docker version of archway daemon, e.g. "--docker true" or "-k false"')
+  .addOption(DockerOption)
   .description('Query for data on Archway network')
   .action(async (module, type, options) => {
-    let docker = (options.docker) ? options.docker.toLowerCase() : false;
+    if (options.docker) {
+      await Commands.checkHomePath();
+    }
+
     const args = {
       command: module,
       subcommand: type,
       query: (options.args) ? options.args : null,
       flags: (options.flags) ? options.flags : null
     };
-    if (typeof docker == 'string') {
-      if (docker == 'true')
-        docker = true;
-      if (docker == 'false')
-        docker = false;
 
-      await Tools.Query(docker, args);
-    } else {
-      let configPath = await ConfigTools.path();
-      FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
-        if (!err) {
-          let config = require(configPath);
-          if (config.developer.archwayd.docker) {
-            docker = true;
-          }
-        }
-        await Tools.Query(docker, args);
-      });
-    }
+    await Tools.Query(options.docker, args);
   });
 
 // `archway script`
@@ -233,35 +190,16 @@ Program
   .command('run')
   .description('Run a custom script of your own creation')
   .requiredOption('-s, --script <key>', 'Name of script to run (example: "archway run -s build"); add scripts by modifying config.json')
-  .option('-k, --docker <value>', 'Use the docker version of archway daemon, e.g. "--docker true" or "-k false"')
+  .addOption(DockerOption)
   .action(async (options) => {
-    let docker = (options.docker) ? options.docker.toLowerCase() : false;
-    if (typeof docker == 'string') {
-      if (docker == 'true')
-        docker = true;
-      if (docker == 'false')
-        docker = false;
+    if (options.docker) {
+      await Commands.checkHomePath();
+    }
 
-      try {
-        await Tools.Script(docker, options.script);
-      } catch (e) {
-        console.error('Error running custom script', [options.script]);
-      }
-    } else {
-      let configPath = await ConfigTools.path();
-      FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
-        if (!err) {
-          let config = require(configPath);
-          if (config.developer.archwayd.docker) {
-            docker = true;
-          }
-          try {
-            await Tools.Script(docker, options.script);
-          } catch (e) {
-            console.error('Error running custom script', [options.script]);
-          }
-        }
-      });
+    try {
+      await Tools.Script(options.docker, options.script);
+    } catch (e) {
+      console.error('Error running custom script', [options.script]);
     }
   });
 
@@ -279,34 +217,20 @@ Program
   .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')
   .option('-f, --flags <flags>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--dry-run --amount 1"')
   .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
-  .option('-k, --docker <value>', 'Use the docker version of archway daemon, e.g. "--docker true" or "-k false"')
+  .addOption(DockerOption)
   .description('Execute a transaction on Archway network')
   .action(async (options) => {
-    let docker = (options.docker) ? options.docker.toLowerCase() : false;
+    if (options.docker) {
+      await Commands.checkHomePath();
+    }
+
     const args = {
       tx: (options.args) ? options.args : null,
       flags: (options.flags) ? options.flags : null,
       contract: (options.contract) ? options.contract : null
     };
-    if (typeof docker == 'string') {
-      if (docker == 'true')
-        docker = true;
-      if (docker == 'false')
-        docker = false;
 
-      await Tools.Tx(docker, args);
-    } else {
-      let configPath = await ConfigTools.path();
-      FileSystem.access(configPath, FileSystem.F_OK, async (err) => {
-        if (!err) {
-          let config = require(configPath);
-          if (config.developer.archwayd.docker) {
-            docker = true;
-          }
-        }
-        await Tools.Tx(docker, args);
-      });
-    }
+    await Tools.Tx(options.docker, args);
   });
 
 // Do cmd parsing

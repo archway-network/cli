@@ -7,7 +7,7 @@ const ConfigTools = require('../constants/config');
 async function printDevConfig() {
   console.log('Printing environment settings...\n');
 
-  let configPath = await ConfigTools.path();
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '.\nPlease run this command from the root folder of valid Archway project.');
@@ -28,7 +28,7 @@ async function doCreateConfigFile(config = null) {
     console.log('Error creating config file', config);
   }
 
-  let path = await ConfigTools.path();
+  let path = ConfigTools.path();
   let json = JSON.stringify(config, null, 2);
 
   FileSystem.writeFile(path, json, (err) => {
@@ -45,7 +45,7 @@ async function modifyConfig(key = null) {
     console.log(`Key "${key}" not found in config`);
     return;
   } else {
-    let configPath = await ConfigTools.path(), config;
+    let configPath = ConfigTools.path(), config;
     FileSystem.access(configPath, FileSystem.F_OK, (err) => {
       if (err) {
         console.error('Error locating dApp config at path ' + configPath + '.\nPlease run this command from the root folder of valid Archway project.');

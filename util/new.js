@@ -2,8 +2,8 @@
 
 const { spawn } = require('child_process');
 const FileSystem = require('fs');
-const util = require('util');
 const { createInterface } = require('readline');
+const prompt = require('../constants/prompt');
 const path = require('path');
 
 const Testnet = {
@@ -21,21 +21,6 @@ const Templates = [
   { label: 'CW721 with on-chain metadata', subfolder: 'cw721/on-chain-metadata' },
 ];
 const baseVersion = '0.0.1';
-
-async function ask(readline, query, defaultValue = null) {
-  const question = util.promisify(readline.question).bind(readline);
-  return await question(`${query} (default: ${defaultValue}): `) || defaultValue;
-}
-
-async function askBoolean(readline, query, defaultValue = 'N') {
-  const answer = await ask(readline, `${query} [Y/N]`, defaultValue);
-  return (answer.toLowerCase() === 'y' || answer.toLowerCase() === 'yes');
-}
-
-async function askNumber(readline, query, defaultValue = null) {
-  const answer = await ask(readline, query, defaultValue);
-  return parseInt(answer);
-}
 
 async function doCloneRepository(config = null, template = null) {
   if (!config || !template) {
@@ -105,7 +90,7 @@ function doInitialCommit(config = null, projectDir = null) {
 }
 
 async function selectTemplate(readline) {
-  const useTemplate = await askBoolean(readline, 'Use starter template?', 'N');
+  const useTemplate = await prompt.askBoolean(readline, 'Use starter template?', 'N');
   if (!useTemplate) {
     return { label: 'Default', subfolder: 'default' };
   }
@@ -116,7 +101,7 @@ async function selectTemplate(readline) {
     Templates.forEach((value, index) => {
       console.log(`${index + 1}. ${value.label} [https://github.com/${TemplatesRepository}/tree/main/${value.subfolder}]`);
     });
-    selected = await askNumber(readline, `\nSelect starter template [1-${Templates.length}]`, 1);
+    selected = await prompt.askNumber(readline, `\nSelect starter template [1-${Templates.length}]`, 1);
   } while (!(selected >= 1 && selected <= Templates.length))
 
   return Templates[selected - 1];
@@ -149,7 +134,7 @@ async function makeConfig(readline, configIndex, defaultTestnet = 1, docker = fa
   if (docker && networkConfig['developer']) {
     networkConfig.developer.archwayd.docker = true;
   }
-  name ||= await ask(readline, 'Name of the project', 'my-project');
+  name ||= await prompt.ask(readline, 'Name of the project', 'my-project');
   networkConfig.title = name.trim().split(' ').join('-').toLowerCase();
   networkConfig.version = baseVersion;
 
@@ -170,18 +155,18 @@ const newArchway = async (name = null) => {
   let configIndex = 1, defaultTestnet = 1;
 
   try {
-    const useDocker = await askBoolean(readline, 'Use Docker to run "archwayd" daemon?', 'Y');
-    const configure = await askBoolean(readline, 'Configure environment?', 'N');
+    const useDocker = await prompt.askBoolean(readline, 'Use Docker to run "archwayd" daemon?', 'Y');
+    const configure = await prompt.askBoolean(readline, 'Configure environment?', 'N');
     if (configure) {
       do {
         console.log('\n1. Testnet\n2. Localhost\n3. Mainnet\n');
-        configIndex = await askNumber(readline, 'Select environment type [1-3]', 1);
+        configIndex = await prompt.askNumber(readline, 'Select environment type [1-3]', 1);
       } while (!(configIndex >= 1 && configIndex <= 3))
 
       if (configIndex == 1) {
         do {
           console.log('\n1. Constantine [stable]\n2. Titus [nightly]\n');
-          defaultTestnet = await askNumber(readline, 'Select a testnet to use [1-2]', 1);
+          defaultTestnet = await prompt.askNumber(readline, 'Select a testnet to use [1-2]', 1);
         } while (!(defaultTestnet >= 1 && defaultTestnet <= 2))
       }
     }

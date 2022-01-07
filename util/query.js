@@ -1,7 +1,7 @@
 // archway-cli/util/query.js
 
 const { spawn } = require("child_process");
-const commands  = require('../constants/commands');
+const commands = require('../constants/commands');
 const FileSystem = require('fs');
 const ConfigTools = require('../constants/config');
 
@@ -14,7 +14,7 @@ async function tryQuery(docker, args) {
     return;
   }
 
-  let configPath = await ConfigTools.path();
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
@@ -37,10 +37,10 @@ async function tryQuery(docker, args) {
       runScript.params = runScript.arr.slice(1);
 
       // Extend params to include subcommands and args
-      
+
       // Lvl. 1 cmd
       runScript.params.push(args.command);
-      
+
       // Lvl. 2 cmd
       if (args.subcommand) {
         runScript.params.push(args.subcommand);
@@ -85,7 +85,7 @@ async function tryQuery(docker, args) {
 const queryRunner = (docker, args) => {
   try {
     tryQuery(docker, args)
-  } catch(e) {
+  } catch (e) {
     console.error('Error running query', e);
   }
 };

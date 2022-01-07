@@ -7,7 +7,7 @@ const ConfigTools = require('../constants/config');
 async function printDeployments() {
   console.log('Printing deployments...\n');
 
-  let configPath = await ConfigTools.path();
+  let configPath = ConfigTools.path();
   FileSystem.access(configPath, FileSystem.F_OK, (err) => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '.\nPlease run this command from the root folder of valid Archway project.');
