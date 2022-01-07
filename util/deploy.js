@@ -569,6 +569,8 @@ function makeOptimizedWasm(config = null) {
     // Registry mount
     '--mount',
     'type=volume,source=registry_cache,target=' + target,
+    '-e',
+    'CARGO_TERM_COLOR=always',
     container
   ],
     { stdio: ['inherit', 'pipe', 'inherit'] });
