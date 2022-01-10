@@ -4,6 +4,7 @@ const { createInterface } = require('readline');
 const prompt = require('./prompt');
 
 const archwayHome = `${process.env.HOME}/.archway`;
+const archwaydVersion = '0.0.1';
 
 function pathExists(path) {
   try {
@@ -49,7 +50,7 @@ module.exports = {
   ArchwayDocker: {
     cmd: 'docker',
     localDir: archwayHome,
-    args: ['run', '--rm', '-it', `--volume=${archwayHome}:/root/.archway`, 'archwaynetwork/archwayd:latest']
+    args: ['run', '--rm', '-it', `--volume=${archwayHome}:/root/.archway`, `archwaynetwork/archwayd:${archwaydVersion}`]
   },
   ArchwayBin: {
     cmd: 'archwayd',
