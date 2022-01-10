@@ -21,6 +21,9 @@
     "wasm"
   ],
   "author": "drew@infiniteinternet.ca",
+  "contributors": [
+    "Augusto Elesbão (https://github.com/aelesbao)"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/archway-network/archway-cli/issues"
