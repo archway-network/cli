@@ -5,14 +5,15 @@
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "npx eslint main.js; npx eslint constants/; npx eslint util/;"
+    "lint": "npx eslint src/**/*.js test/**/*.js",
+    "lint:fix": "npx eslint --fix src/**/*.js test/**/*.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/archway-network/archway-cli.git"
   },
   "bin": {
-    "archway": "main.js"
+    "archway": "src/index.js"
   },
   "keywords": [
     "Archway",

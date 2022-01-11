@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-// const Dotenv = require('dotenv').config();
 const Tools = require(__dirname + '/util');
 const { Command, Option } = require('commander');
 const Program = new Command();
