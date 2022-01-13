@@ -7,16 +7,10 @@ const Commands = require('./constants/commands');
 const ConfigTools = require('./constants/config');
 
 /**
- * Gets semvar from ./package.json
+ * Gets the version from package.json
  */
 function getVersion() {
-  const pkgJson = require('./package.json');
-  let version = '';
-  if (typeof pkgJson !== 'object')
-    return version;
-  else {
-    version = (pkgJson['version']) ? pkgJson.version : '';
-  }
+  const { version } = require('../package.json');
   return version;
 }
 
@@ -36,7 +30,7 @@ const DockerOption = new Option('-k, --docker', 'Use the docker version of archw
  * CLI worker
  * @see commander (https://www.npmjs.com/package/commander)
  */
-Program.version('Archway dApp developer CLI\n' + getVersion(), '-v, --version', 'output the current version');
+Program.version(`Archway dApp developer CLI\n${getVersion()}`, '-v, --version', 'output the current version');
 
 // Commands
 // `archway accounts`
