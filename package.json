@@ -2,34 +2,39 @@
   "name": "@archwayhq/cli",
   "version": "1.0.6-beta",
   "description": "Develop WASM smart contracts with the Archway network developer CLI",
-  "main": "main.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "npx eslint src/**/*.js test/**/*.js",
-    "lint:fix": "npx eslint --fix src/**/*.js test/**/*.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/archway-network/archway-cli.git"
-  },
-  "bin": {
-    "archway": "src/index.js"
-  },
+  "homepage": "https://github.com/archway-network/archway-cli#readme",
+  "repository": "github:archway-network/archway-cli",
   "keywords": [
-    "Archway",
-    "Cosmos",
-    "CLI",
-    "wasm"
+    "cli",
+    "archway",
+    "cosmos",
+    "cosmwasm",
+    "wasm",
+    "smart-contracts",
+    "blockchain",
+    "dapps",
+    "nft",
+    "tooling"
   ],
-  "author": "drew@infiniteinternet.ca",
+  "author": "Archway Network (https://archway.io)",
   "contributors": [
+    "Drew Taylor <drew@infiniteinternet.ca>",
     "Augusto Elesbão (https://github.com/aelesbao)"
   ],
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/archway-network/archway-cli/issues"
   },
-  "homepage": "https://github.com/archway-network/archway-cli#readme",
+  "bin": {
+    "archway": "src/index.js"
+  },
+  "files": [
+    "src/"
+  ],
+  "scripts": {
+    "lint": "npx eslint src/**/*.js test/**/*.js",
+    "lint:fix": "npx eslint --fix src/**/*.js test/**/*.js"
+  },
   "dependencies": {
     "axios": "^0.21.4",
     "commander": "^8.2.0",
@@ -37,5 +42,8 @@
   },
   "devDependencies": {
     "eslint": "^8.3.0"
+  },
+  "engines": {
+    "node": ">=0.14.0"
   }
 }
