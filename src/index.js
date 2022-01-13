@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const Tools = require(__dirname + '/util');
+const Tools = require('./commands');
 const { Command, Option } = require('commander');
 const Program = new Command();
 const Commands = require('./constants/commands');
