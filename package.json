@@ -25,7 +25,7 @@
   "contributors": [
     "Augusto Elesbão (https://github.com/aelesbao)"
   ],
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/archway-network/archway-cli/issues"
   },
