@@ -5,6 +5,9 @@ node_modules/
 .cache/
 build/
 
+# Test framework
+coverage/
+
 # dotenv environment variable files
 .env
 .env.mainnet
@@ -25,3 +28,4 @@ npm-debug.log*
 # Environment specific files
 .DS_Store
 *.bak
+.history

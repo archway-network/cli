@@ -32,6 +32,7 @@
     "src/"
   ],
   "scripts": {
+    "test": "jest",
     "lint": "npx eslint src/**/*.js test/**/*.js",
     "lint:fix": "npx eslint --fix src/**/*.js test/**/*.js"
   },
@@ -41,7 +42,8 @@
     "dotenv": "^10.0.0"
   },
   "devDependencies": {
-    "eslint": "^8.3.0"
+    "eslint": "^8.3.0",
+    "jest": "^27.4.7"
   },
   "engines": {
     "node": ">=0.14.0"
