@@ -1,4 +1,6 @@
 const { spawn } = require('child_process');
+const prompts = require('prompts');
+const { pathExists, mv } = require('../util/fs');
 
 const DefaultArchwaydVersion = '0.0.1';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
@@ -30,7 +32,7 @@ class DefaultArchwayClient {
     return [...this.getExtraArgs(), ...args];
   }
 
-  run(subCommand, ...args) {
+  async run(subCommand, ...args) {
     const command = this.getCommand();
     const parsedArgs = this.parseArgs([subCommand, ...args]);
     return spawn(command, parsedArgs, { stdio: ['inherit', 'pipe', 'pipe'] });
@@ -38,10 +40,19 @@ class DefaultArchwayClient {
 }
 
 class DockerArchwayClient extends DefaultArchwayClient {
-  constructor({ archwaydHome = DefaultArchwaydHome, archwaydVersion = DefaultArchwaydVersion, ...options }) {
+  constructor({
+    archwaydHome = DefaultArchwaydHome,
+    archwaydVersion = DefaultArchwaydVersion,
+    checkHomePath = false,
+    ...options
+  }) {
     super(options);
     this.archwaydHome = archwaydHome;
     this.archwaydVersion = archwaydVersion;
+
+    if (checkHomePath) {
+      DockerArchwayClient.#checkHomePath(this.archwaydHome);
+    }
   }
 
   getCommand() {
@@ -65,6 +76,34 @@ class DockerArchwayClient extends DefaultArchwayClient {
       `--volume=${archwaydHome}:/root/.archway`,
       `archwaynetwork/archwayd:${archwaydVersion}`
     ];
+  }
+
+  static async #checkHomePath(archwaydHome) {
+    const oldArchwayHome = '/var/tmp/.archwayd';
+    if (archwaydHome === oldArchwayHome || !await pathExists(oldArchwayHome)) {
+      return;
+    }
+
+    const newPathExists = await pathExists(archwaydHome);
+    const { move, overwrite } = await prompts({
+      type: 'confirm',
+      name: 'move',
+      message: `I've found a keystore in ${oldArchwayHome}. Would you like to move it to ${archwaydHome}?`,
+      initial: true
+    }, {
+      type: prev => prev && newPathExists ? 'confirm' : null,
+      name: 'overwrite',
+      message: `The directory ${archwaydHome} is not empty. Would you like to overwrite its contents?`,
+      initial: true
+    });
+
+    if (move) {
+      try {
+        await mv(oldArchwayHome, archwaydHome, overwrite);
+      } catch (error) {
+        console.error(`Failed to move directory: ${error.message}\n`);
+      }
+    }
   }
 }
 
