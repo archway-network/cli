@@ -32,16 +32,21 @@
     "src/"
   ],
   "scripts": {
+    "test": "jest",
     "lint": "npx eslint src/**/*.js test/**/*.js",
     "lint:fix": "npx eslint --fix src/**/*.js test/**/*.js"
   },
   "dependencies": {
     "axios": "^0.21.4",
+    "chalk": "^5.0.0",
+    "chalk-template": "^0.2.0",
     "commander": "^8.2.0",
-    "dotenv": "^10.0.0"
+    "dotenv": "^10.0.0",
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
-    "eslint": "^8.3.0"
+    "eslint": "^8.3.0",
+    "jest": "^27.4.7"
   },
   "engines": {
     "node": ">=0.14.0"
