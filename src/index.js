@@ -5,6 +5,7 @@ const { Command, Option } = require('commander');
 const Program = new Command();
 const Commands = require('./constants/commands');
 const ConfigTools = require('./constants/config');
+const { createClient } = require('./clients/archwayd');
 
 /**
  * Gets the version from package.json
@@ -40,17 +41,8 @@ Program
   .option('-a, --add <label>', 'Add a new wallet')
   .addOption(DockerOption)
   .action(async (options) => {
-    if (options.docker) {
-      await Commands.checkHomePath();
-    }
-
-    if (options.add) {
-      // Add new account
-      let name = options.add;
-      await Tools.Accounts(options.docker, true, name);
-    } else {
-      await Tools.Accounts(options.docker);
-    }
+    let client = await createClient({ checkHomePath: true, ...options });
+    await Tools.Accounts(client, options);
   });
 
 // `archway build`
