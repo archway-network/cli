@@ -55,7 +55,7 @@ function doCreateConfigFile(config = null) {
 
   FileSystem.writeFile(configPath, json, (err) => {
     if (err) {
-      console.error('Error writing config to file system', [config, err]);
+      console.error(`Error writing config to file system: ${configPath}`, [config, err]);
       return;
     }
 
