@@ -1,11 +1,12 @@
 #!/usr/bin/env node
 
-const Tools = require('./commands');
+const _ = require('lodash');
 const { Command, Option } = require('commander');
-const Program = new Command();
+const Tools = require('./commands');
 const Commands = require('./constants/commands');
 const ConfigTools = require('./constants/config');
 const { createClient } = require('./clients/archwayd');
+const { Environments, Testnets } = require('./networks');
 
 /**
  * Gets the version from package.json
@@ -18,20 +19,21 @@ function getVersion() {
 function getDockerFromConfig() {
   try {
     let config = ConfigTools.config();
-    return config.developer.archwayd.docker;
+    return _.get(config, 'developer.archwayd.docker', true);
   } catch (error) {
     return true;
   }
 }
 
-const DockerOption = new Option('-k, --docker', 'Use the docker version of archway daemon')
+const DockerOption = new Option('-k, --docker', 'Use the docker version of archwayd')
   .default(getDockerFromConfig());
 
 /**
  * CLI worker
  * @see commander (https://www.npmjs.com/package/commander)
  */
-Program.version(`Archway dApp developer CLI\n${getVersion()}`, '-v, --version', 'output the current version');
+const Program = new Command();
+Program.version(getVersion(), '-v, --version', 'output the current version');
 
 // Commands
 // `archway accounts`
@@ -126,9 +128,15 @@ Program
 Program
   .command('new')
   .description('Create a new project for Archway network')
-  .argument('[name]', 'project name')
-  .action(async (name) => {
-    await Tools.New(name);
+  .option('-k, --docker', 'Use the docker version of archwayd', true)
+  .option('--no-docker', 'Use the binary version of archwayd')
+  .addOption(new Option('-e, --environment <value>', 'Environment to use for the project').choices(Environments))
+  .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
+  .option('--template <value>', 'Project template to use')
+  .addOption(new Option('--no-template', 'Do not prompt for a project template').preset('default'))
+  .argument('[name]', 'Project name')
+  .action(async (name, options) => {
+    await Tools.New(name, options);
   });
 
 // `archway query`
@@ -218,4 +226,4 @@ Program
   });
 
 // Do cmd parsing
-Program.parse(process.argv);
+Program.parse();

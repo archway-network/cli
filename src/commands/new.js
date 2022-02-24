@@ -1,182 +1,151 @@
 // archway-cli/util/new.js
 
-const { spawn } = require('child_process');
-const FileSystem = require('fs');
-const { createInterface } = require('readline');
-const prompt = require('../constants/prompt');
-const path = require('path');
+const _ = require('lodash');
+const chalk = require('chalk');
+const { spawn } = require('promisify-child-process');
+const { prompts, PromptCancelledError } = require('../util/prompts');
+const Config = require('../util/config');
+const { Environments, EnvironmentsDetails, Testnets, TestnetsDetails, loadNetworkConfig } = require('../networks');
 
-const Testnet = {
-  constantine: require('../data/testnet.constantine.json'),
-  titus: require('../data/testnet.titus.json')
-};
 
 const TemplatesRepository = 'archway-network/archway-templates';
-
-// XXX TODO: Import repos from json in ../data
 const Templates = [
-  { label: 'Increment', subfolder: 'increment' },
-  { label: 'CW20', subfolder: 'cw20/base' },
-  { label: 'CW721 with off-chain metadata', subfolder: 'cw721/off-chain-metadata' },
-  { label: 'CW721 with on-chain metadata', subfolder: 'cw721/on-chain-metadata' },
+  { title: 'Increment', value: 'increment' },
+  { title: 'CW20', value: 'cw20/base' },
+  { title: 'CW721 with off-chain metadata', value: 'cw721/off-chain-metadata' },
+  { title: 'CW721 with on-chain metadata', value: 'cw721/on-chain-metadata' },
 ];
-const baseVersion = '0.0.1';
+const DefaultTemplate = 'default';
+const DefaultTemplateBranch = 'main';
 
-async function doCloneRepository(config = null, template = null) {
-  if (!config || !template) {
-    console.error('Error creating project with settings', [config, template]);
-  } else if (!config.title) {
-    console.error('Error creating project with settings', [config, template]);
-  } else {
-    const source = spawn('cargo', ['generate', '--git', TemplatesRepository, '--name', config.title, template.subfolder], { stdio: 'inherit' });
+const DefaultEnvironment = 'testnet';
+const DefaultTestnet = 'constantine';
+const DefaultProjectVersion = '0.1.0';
 
-    source.on('error', (err) => {
-      console.error(`Error generating project ${config.title}`, err);
-    });
-
-    source.on('close', () => {
-      config.type = template;
-      doCreateConfigFile(config);
-    });
+const ProjectSetupQuestions = [
+  {
+    type: 'text',
+    name: 'name',
+    message: 'Choose a name for your project',
+    validate: name => _.isEmpty(_.kebabCase(name)) ? 'Please inform a valid name for the project' : true,
+    format: _.kebabCase,
+  },
+  {
+    type: 'confirm',
+    name: 'useTemplate',
+    message: 'Do you want to use a starter template?',
+    initial: false
+  },
+  {
+    type: prev => prev ? 'select' : null,
+    name: 'template',
+    message: 'Choose a template',
+    choices: _.map(Templates, template => ({
+      description: `[https://github.com/${TemplatesRepository}/tree/main/${template.value}]`,
+      ...template
+    })),
+  },
+  {
+    type: 'confirm',
+    name: 'docker',
+    message: 'Use Docker to run the archwayd daemon?',
+    initial: true
+  },
+  {
+    type: 'select',
+    name: 'environment',
+    message: 'Select the project environment',
+    initial: _.indexOf(Environments, DefaultEnvironment),
+    choices: _.map(EnvironmentsDetails, (details, name) => ({
+      title: _.capitalize(name),
+      value: name,
+      ...details
+    })),
+    warn: 'This environment is unavailable for now'
+  },
+  {
+    type: prev => (prev === 'testnet') ? 'select' : null,
+    name: 'testnet',
+    message: 'Select a testnet to use',
+    initial: _.indexOf(Testnets, DefaultTestnet),
+    choices: _.map(TestnetsDetails, (details, name) => ({
+      title: _.capitalize(name),
+      value: name,
+      ...details
+    })),
+    warn: 'This network is unavailable for now'
   }
+];
+
+
+async function createProject(defaults = {}) {
+  const settings = await parseSettings(defaults);
+  const config = buildConfig(settings);
+
+  await cargoGenerate(config, settings.template);
+  await writeConfigFile(config);
+  await initialCommit(config);
+
+  return config;
 }
 
-function doCreateConfigFile(config = null) {
-  if (!config) {
-    console.error('Error creating config file', config);
-  } else if (typeof config !== 'object') {
-    console.error('Error creating config file', config);
-  } else if (!config.title || !config.version || !config.network) {
-    console.error('Error creating config file', config);
-  }
+async function parseSettings(defaults) {
+  prompts.override(_.omitBy({
+    ...defaults,
+    useTemplate: defaults.template ? true : undefined
+  }, _.isUndefined));
 
-  let configPath = path.join(process.cwd(), config.title, '/config.json');
-  let json = JSON.stringify(config, null, 2);
+  return await prompts(ProjectSetupQuestions);
+}
 
-  FileSystem.writeFile(configPath, json, (err) => {
-    if (err) {
-      console.error(`Error writing config to file system: ${configPath}`, [config, err]);
-      return;
+function buildConfig({ name, docker, environment, testnet }) {
+  const networkConfig = loadNetworkConfig(environment, testnet);
+  const projectConfig = {
+    name: name,
+    version: DefaultProjectVersion,
+    developer: {
+      archwayd: { docker }
     }
+  };
 
-    doAddFiles(config, path.dirname(configPath));
-  });
+  return { ...networkConfig, ...projectConfig };
 }
 
-function doAddFiles(config = null, projectDir = null) {
-  const source = spawn('git', ['-C', projectDir, 'add', '-A'], { stdio: 'inherit' });
-
-  let title = (config['title']) ? config.title : null;
-  source.on('error', (err) => {
-    console.error(`Error generating project ${title}`, err);
-  });
-
-  source.on('close', () => {
-    doInitialCommit(config, projectDir);
-  });
+async function cargoGenerate({ name, network: { name: networkName } }, template = DefaultTemplate) {
+  const branch = networkName ? `network/${networkName}` : DefaultTemplateBranch;
+  await spawn('cargo', [
+    'generate',
+    '--name', name,
+    '--git', TemplatesRepository,
+    '--branch', branch,
+    template
+  ], { stdio: 'inherit' });
 }
 
-function doInitialCommit(config = null, projectDir = null) {
-  const source = spawn('git', ['-C', projectDir, 'commit', '-m', 'Initialized with archway-cli'], { stdio: 'inherit' });
-
-  let title = (config['title']) ? config.title : null;
-  source.on('error', (err) => {
-    console.error(`Error generating project ${title}`, err);
-  });
-
-  source.on('close', () => {
-    console.error(`Successfully created new ${config.type.label} project in path ${projectDir} with network configuration ${config.network.chainId}\n`);
-  });
+async function writeConfigFile(config) {
+  const { name } = config;
+  await Config.write(config, name);
 }
 
-async function selectTemplate(readline) {
-  const useTemplate = await prompt.askBoolean(readline, 'Use starter template?', 'N');
-  if (!useTemplate) {
-    return { label: 'Default', subfolder: 'default' };
-  }
-
-  let selected = 0;
-  do {
-    console.log('');
-    Templates.forEach((value, index) => {
-      console.log(`${index + 1}. ${value.label} [https://github.com/${TemplatesRepository}/tree/main/${value.subfolder}]`);
-    });
-    selected = await prompt.askNumber(readline, `\nSelect starter template [1-${Templates.length}]`, 1);
-  } while (!(selected >= 1 && selected <= Templates.length))
-
-  return Templates[selected - 1];
+async function initialCommit({ name }) {
+  const git = async (...args) => spawn('git', ['-C', name, ...args], { stdio: 'inherit' });
+  await git('add', '-A');
+  await git('commit', '-m', 'Initialized with archway-cli');
 }
 
-function selectNetworkConfig(configIndex, defaultTestnet) {
-  switch (configIndex) {
-    case 1:
-      return (defaultTestnet !== 2) ? Testnet.constantine : Testnet.titus;
-    case 2:
-      throw 'XXX TODO: Localhost';
-    case 3:
-      throw 'XXX TODO: Mainnet';
-    default:
-      return Testnet.constantine;
-  }
-}
-
-async function makeConfig(readline, configIndex, defaultTestnet = 1, docker = false, name = null) {
-  // XXX TODO: Remove this when ready to unveil
-  if (configIndex !== 1) {
-    console.warn('Please use the Testnet configuration for now.');
-    throw 'XXX TODO: Localhost, Mainnet configurations';
-  }
-
-  const networkConfig = selectNetworkConfig(configIndex, defaultTestnet);
-  const template = await selectTemplate(readline);
-
-  // Toggle `archwayd` type
-  if (docker && networkConfig['developer']) {
-    networkConfig.developer.archwayd.docker = true;
-  }
-  name ||= await prompt.ask(readline, 'Name of the project', 'my-project');
-  networkConfig.title = name.trim().split(' ').join('-').toLowerCase();
-  networkConfig.version = baseVersion;
-
-  console.log('networkConfig', JSON.stringify(networkConfig));
-  console.log('template', template);
-
-  await doCloneRepository(networkConfig, template);
-}
-
-const newArchway = async (name = null) => {
-  const readline = createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
-  console.log('Creating new Archway dApp...\n');
-
-  let configIndex = 1, defaultTestnet = 1;
+async function main(name, options = {}) {
+  console.info(`Creating new Archway project...`);
 
   try {
-    const useDocker = await prompt.askBoolean(readline, 'Use Docker to run "archwayd" daemon?', 'Y');
-    const configure = await prompt.askBoolean(readline, 'Configure environment?', 'N');
-    if (configure) {
-      do {
-        console.log('\n1. Testnet\n2. Localhost\n3. Mainnet\n');
-        configIndex = await prompt.askNumber(readline, 'Select environment type [1-3]', 1);
-      } while (!(configIndex >= 1 && configIndex <= 3))
-
-      if (configIndex == 1) {
-        do {
-          console.log('\n1. Constantine [stable]\n2. Titus [nightly]\n');
-          defaultTestnet = await prompt.askNumber(readline, 'Select a testnet to use [1-2]', 1);
-        } while (!(defaultTestnet >= 1 && defaultTestnet <= 2))
-      }
+    const { network: { chainId } } = await createProject({ name, ...options });
+    console.info(chalk`{green Successfully created project {cyan ${name}} with network configuration {cyan ${chainId}}}`);
+  } catch (e) {
+    if (e instanceof PromptCancelledError) {
+      console.warn(chalk`{yellow ${e.message}}`);
+    } else {
+      console.error(chalk`{red.bold Failed to create project}\n${e.message || e}`);
     }
-
-    await makeConfig(readline, configIndex, defaultTestnet, useDocker, name);
-  } catch (err) {
-    console.error('Error creating new project', err);
   }
+}
 
-  readline.close();
-};
-
-module.exports = newArchway;
+module.exports = main;
