@@ -1,0 +1,48 @@
+{
+  "network": {
+    "name": "augusta",
+    "chainId": "augusta-1",
+    "type": "testnet",
+    "fees": {
+      "feeDenom": "uaugust"
+    },
+    "gas": {
+      "prices": "0.002uaugust",
+      "mode": "auto",
+      "adjustment": "1.3"
+    },
+    "wasm": {
+      "bech32Hrp": "archway",
+      "archwayd": "v0.0.2",
+      "configDir": ".archway",
+      "binary": "archwayd"
+    },
+    "urls": {
+      "rpc": {
+        "url": "https://rpc.augusta-1.archway.tech",
+        "port": 443
+      },
+      "faucets": [
+        "https://faucet.augusta-1.archway.tech"
+      ]
+    }
+  },
+  "developer": {
+    "dApp": {
+      "gasPoolContract": null,
+      "rewardAddress": null,
+      "gasRebate": false,
+      "collectPremium": false,
+      "premiumPercentage": 0
+    },
+    "scripts": {
+      "test": "cargo unit-test",
+      "build": "cargo build",
+      "optimize": "cargo run-script optimize",
+      "wasm": "cargo wasm",
+      "query": "archwayd query wasm",
+      "tx": "archwayd tx wasm execute"
+    },
+    "deployments": []
+  }
+}
