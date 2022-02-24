@@ -1,38 +1,46 @@
-const Accounts = require('../accounts');
+const spawk = require('spawk');
+const mockConsole = require('jest-mock-console');
 const { createClient } = require('../../clients/archwayd');
-const EventEmitter = require('events');
-const { Writable } = require('stream');
+const Accounts = require('../accounts');
+
+beforeEach(() => {
+  mockConsole(['info', 'warn', 'error']);
+
+  spawk.clean();
+  spawk.preventUnmatched();
+});
+
+afterEach(() => {
+  spawk.done();
+  jest.resetAllMocks();
+});
 
 describe('add', () => {
   test('adds a new key to the keychain', async () => {
     const client = await createTestClient();
-    const mockProcess = createMockProcess();
-    const runMock = jest.spyOn(client, 'runInherited');
-    runMock.mockResolvedValue(mockProcess);
+    const archwayd = spawk.spawn(client.command());
+
     await Accounts(client, { add: 'test-key' });
-    expect(runMock).toHaveBeenCalledWith('keys', 'add', 'test-key');
+
+    expect(archwayd.calledWith).toMatchObject({
+      args: expect.arrayContaining(['keys', 'add', 'test-key'])
+    });
   });
 });
 
 describe('list', () => {
   test('lists existing keys', async () => {
     const client = await createTestClient();
-    const mockProcess = createMockProcess();
-    const runMock = jest.spyOn(client, 'runInherited');
-    runMock.mockResolvedValue(mockProcess);
-    await Accounts(client, {});
-    expect(runMock).toHaveBeenCalledWith('keys', 'list');
+    const archwayd = spawk.spawn(client.command());
+
+    await Accounts(client);
+
+    expect(archwayd.calledWith).toMatchObject({
+      args: expect.arrayContaining(['keys', 'list'])
+    });
   });
 });
 
 async function createTestClient() {
-  return await createClient({ docker: true, extraArgs: ['--keyring-backend', 'test'] });
-}
-
-function createMockProcess() {
-  const mockProcess = new EventEmitter();
-  mockProcess.stdin = new Writable();
-  mockProcess.stdout = new EventEmitter();
-  mockProcess.stderr = new EventEmitter();
-  return mockProcess;
+  return await createClient({ docker: false, extraArgs: ['--keyring-backend', 'test'] });
 }
