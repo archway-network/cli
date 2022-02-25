@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
-const _ = require('lodash');
 const { Command, Option, InvalidArgumentError } = require('commander');
 const Tools = require('./commands');
 const Commands = require('./constants/commands');
-const ConfigTools = require('./constants/config');
+const Config = require('./util/config');
 const { createClient } = require('./clients/archwayd');
 const { Environments, Testnets } = require('./networks');
 const { isArchwayAddress } = require('./util/validators');
@@ -17,17 +16,21 @@ function getVersion() {
   return version;
 }
 
-function getDockerFromConfig() {
+async function getDockerFromConfig() {
   try {
-    let config = ConfigTools.config();
-    return _.get(config, 'developer.archwayd.docker', true);
-  } catch (error) {
+    const { developer: { archwayd: { docker = true } = {} } = {} } = await Config.read();
+    return docker;
+  } catch (e) {
     return true;
   }
 }
 
-const DockerOption = new Option('-k, --docker', 'Use the docker version of archwayd')
-  .default(getDockerFromConfig());
+async function updateWithDockerOption(options) {
+  const { docker = await getDockerFromConfig() } = options;
+  return { ...options, docker };
+}
+
+const DockerOption = new Option('-k, --docker', 'Use the docker version of archwayd');
 
 function parseArchwayAddress(value) {
   if (!isArchwayAddress(value)) {
@@ -51,7 +54,8 @@ Program
   .option('-a, --add <label>', 'Add a new wallet')
   .addOption(DockerOption)
   .action(async (options) => {
-    let client = await createClient({ checkHomePath: true, ...options });
+    options = await updateWithDockerOption(options);
+    const client = await createClient({ checkHomePath: true, ...options });
     await Tools.Accounts(client, options);
   });
 
@@ -86,18 +90,13 @@ Program
   .option('-d, --dryrun', 'Test deployability; builds an unoptimized wasm binary')
   .addOption(DockerOption)
   .action(async (options) => {
+    options = await updateWithDockerOption(options);
+    await createClient({ checkHomePath: true, ...options });
+
     let dryrun = (options.dryrun) ? true : false;
     let args = (options.args) ? options.args : null;
 
-    if (options.docker) {
-      await Commands.checkHomePath();
-    }
-
-    if (!dryrun) {
-      await Tools.Deploy(options.docker, args);
-    } else {
-      await Tools.Deploy(options.docker, args, dryrun);
-    }
+    await Tools.Deploy(options.docker, args, dryrun);
   });
 
 // `archway faucet`
@@ -112,7 +111,8 @@ Program
   )
   .argument('[address]', 'Address to request funds for in the format "archway1..."', parseArchwayAddress)
   .action(async (address, options) => {
-    let client = await createClient({ checkHomePath: true, ...options });
+    options = await updateWithDockerOption(options);
+    const client = await createClient({ checkHomePath: true, ...options });
     await Tools.Faucet(client, { address, ...options });
   });
 
@@ -171,9 +171,8 @@ Program
   .addOption(DockerOption)
   .description('Query for data on Archway network')
   .action(async (module, type, options) => {
-    if (options.docker) {
-      await Commands.checkHomePath();
-    }
+    options = await updateWithDockerOption(options);
+    await createClient({ checkHomePath: true, ...options });
 
     const args = {
       command: module,
@@ -192,9 +191,8 @@ Program
   .requiredOption('-s, --script <key>', 'Name of script to run (example: "archway run -s build"); add scripts by modifying config.json')
   .addOption(DockerOption)
   .action(async (options) => {
-    if (options.docker) {
-      await Commands.checkHomePath();
-    }
+    options = await updateWithDockerOption(options);
+    await createClient({ checkHomePath: true, ...options });
 
     try {
       await Tools.Script(options.docker, options.script);
@@ -220,9 +218,8 @@ Program
   .addOption(DockerOption)
   .description('Execute a transaction on Archway network')
   .action(async (options) => {
-    if (options.docker) {
-      await Commands.checkHomePath();
-    }
+    options = await updateWithDockerOption(options);
+    await createClient({ checkHomePath: true, ...options });
 
     const args = {
       tx: (options.args) ? options.args : null,
@@ -233,5 +230,6 @@ Program
     await Tools.Tx(options.docker, args);
   });
 
-// Do cmd parsing
-Program.parse();
+const main = async () => await Program.parseAsync();
+
+main();

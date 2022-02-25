@@ -1,4 +1,5 @@
-const prompts = require('../util/prompts');
+const chalk = require('chalk');
+const { prompts, PromptCancelledError } = require('../util/prompts');
 const { spawn } = require('promisify-child-process');
 const { pathExists, mv } = require('../util/fs');
 
@@ -75,26 +76,34 @@ class DockerArchwayClient extends DefaultArchwayClient {
       return;
     }
 
-    const { move, overwrite } = await prompts([
+    const questions = [
       {
         type: 'confirm',
         name: 'move',
-        message: `I've found a keystore in ${oldArchwayHome}. Would you like to move it to ${this.archwaydHome}?`,
+        message: chalk`I've found a keystore in {cyan ${oldArchwayHome}}. Would you like to move it to {cyan ${this.archwaydHome}}?`,
         initial: true
       }, {
         type: async prev => prev && await pathExists(this.archwaydHome) ? 'confirm' : null,
         name: 'overwrite',
-        message: `The directory ${this.archwaydHome} is not empty. Would you like to overwrite its contents?`,
+        message: chalk`The directory {cyan ${this.archwaydHome}} is not empty. Would you like to overwrite its contents?`,
         initial: true
       }
-    ]);
+    ];
 
-    if (move) {
-      try {
+    try {
+      const { move, overwrite } = await prompts(questions);
+
+      if (move) {
         await mv(oldArchwayHome, this.archwaydHome, overwrite);
-      } catch (e) {
+      }
+    } catch (e) {
+      if (e instanceof PromptCancelledError) {
+        console.warn(chalk`{yellow Cancelled moving keystore}`);
+      } else {
         console.error(`Failed to move directory: ${e.message || e}\n`);
       }
+    } finally {
+      console.info();
     }
   }
 }
