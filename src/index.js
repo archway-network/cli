@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
+const _ = require('lodash');
+const chalk = require('chalk');
 const { Command, Option, InvalidArgumentError } = require('commander');
 const Tools = require('./commands');
-const Commands = require('./constants/commands');
 const Config = require('./util/config');
 const { createClient } = require('./clients/archwayd');
 const { Environments, Testnets } = require('./networks');
-const { isArchwayAddress } = require('./util/validators');
+const { isJson, isArchwayAddress } = require('./util/validators');
 
 /**
  * Gets the version from package.json
@@ -16,18 +17,23 @@ function getVersion() {
   return version;
 }
 
-async function getDockerFromConfig() {
+async function getDefaultsFromConfig() {
   try {
-    const { developer: { archwayd: { docker = true } = {} } = {} } = await Config.read();
-    return docker;
+    const {
+      network: { name: networkName } = {},
+      developer: { archwayd: { docker = true, version: archwaydVersion = networkName } = {} } = {}
+    } = await Config.read();
+    return { archwaydVersion, docker };
   } catch (e) {
-    return true;
+    return { docker: true };
   }
 }
 
-async function updateWithDockerOption(options) {
-  const { docker = await getDockerFromConfig() } = options;
-  return { ...options, docker };
+async function updateWithDockerOptions(options) {
+  return await _.defaults(
+    options,
+    await getDefaultsFromConfig()
+  );
 }
 
 const DockerOption = new Option('-k, --docker', 'Use the docker version of archwayd');
@@ -39,12 +45,22 @@ function parseArchwayAddress(value) {
   return value;
 }
 
+function parseJson(value) {
+  if (!isJson(value)) {
+    throw new InvalidArgumentError('Please inform a valid JSON string.');
+  }
+  return value;
+}
+
 /**
  * CLI worker
  * @see commander (https://www.npmjs.com/package/commander)
  */
 const Program = new Command();
 Program.version(getVersion(), '-v, --version', 'output the current version');
+Program.configureOutput({
+  outputError: (str, write) => write(chalk.red(str))
+});
 
 // Commands
 // `archway accounts`
@@ -54,7 +70,7 @@ Program
   .option('-a, --add <label>', 'Add a new wallet')
   .addOption(DockerOption)
   .action(async (options) => {
-    options = await updateWithDockerOption(options);
+    options = await updateWithDockerOptions(options);
     const client = await createClient({ checkHomePath: true, ...options });
     await Tools.Accounts(client, options);
   });
@@ -86,17 +102,23 @@ Program
 Program
   .command('deploy')
   .description('Deploy to network, or test deployability')
-  .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment, e.g. --args \'{"key":"value"}\'')
-  .option('-d, --dryrun', 'Test deployability; builds an unoptimized wasm binary')
+  .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment (e.g. --args \'{"key": "value"}\')', parseJson)
+  .option('-f, --from <value>', 'Name or address of account to sign transactions')
+  .option('-l, --label <value>', 'Label to use for instantiating the contract (default: "<project_name> <project_version>")')
+  .option('--reward-address <value>', 'Address for the reward contract(e.g. "archway1...")', parseArchwayAddress)
+  .option('-d, --dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
+  .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
+  .addOption(new Option('--dryrun', '[deprecated]').hideHelp())
   .addOption(DockerOption)
-  .action(async (options) => {
-    options = await updateWithDockerOption(options);
-    await createClient({ checkHomePath: true, ...options });
+  .action(async ({ dryrun, ...options }) => {
+    if (dryrun) {
+      console.warn(chalk`{yellow [deprecated] --dryrun is deprecated. Use --dry-run instead.}`);
+      options = { dryRun: dryrun, ...options };
+    }
 
-    let dryrun = (options.dryrun) ? true : false;
-    let args = (options.args) ? options.args : null;
-
-    await Tools.Deploy(options.docker, args, dryrun);
+    options = await updateWithDockerOptions(options);
+    const client = await createClient({ checkHomePath: true, ...options });
+    await Tools.Deploy(client, options);
   });
 
 // `archway faucet`
@@ -109,9 +131,9 @@ Program
       .choices(Testnets)
       .default([...Testnets].shift())
   )
-  .argument('[address]', 'Address to request funds for in the format "archway1..."', parseArchwayAddress)
+  .argument('[address]', 'Address to request funds for (e.g. "archway1...")', parseArchwayAddress)
   .action(async (address, options) => {
-    options = await updateWithDockerOption(options);
+    options = await updateWithDockerOptions(options);
     const client = await createClient({ checkHomePath: true, ...options });
     await Tools.Faucet(client, { address, ...options });
   });
@@ -173,7 +195,7 @@ Program
   .addOption(DockerOption)
   .description('Query for data on Archway network')
   .action(async (module, type, options) => {
-    options = await updateWithDockerOption(options);
+    options = await updateWithDockerOptions(options);
     await createClient({ checkHomePath: true, ...options });
 
     const args = {
@@ -193,7 +215,7 @@ Program
   .requiredOption('-s, --script <key>', 'Name of script to run (example: "archway run -s build"); add scripts by modifying config.json')
   .addOption(DockerOption)
   .action(async (options) => {
-    options = await updateWithDockerOption(options);
+    options = await updateWithDockerOptions(options);
     await createClient({ checkHomePath: true, ...options });
 
     try {
@@ -220,7 +242,7 @@ Program
   .addOption(DockerOption)
   .description('Execute a transaction on Archway network')
   .action(async (options) => {
-    options = await updateWithDockerOption(options);
+    options = await updateWithDockerOptions(options);
     await createClient({ checkHomePath: true, ...options });
 
     const args = {

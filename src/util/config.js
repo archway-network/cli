@@ -25,9 +25,15 @@ async function readConfig(pathPrefix = null) {
   }
 }
 
+function customizer(objValue, srcValue) {
+  if (_.isArray(objValue)) {
+    return objValue.concat(srcValue);
+  }
+}
+
 async function updateConfig(newSettings = {}) {
   const config = await readConfig();
-  await writeConfig(_.defaultsDeep(config, newSettings));
+  await writeConfig(_.mergeWith(config, newSettings, customizer));
 }
 
 module.exports = {

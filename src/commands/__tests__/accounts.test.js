@@ -18,7 +18,7 @@ afterEach(() => {
 describe('add', () => {
   test('adds a new key to the keychain', async () => {
     const client = await createTestClient();
-    const archwayd = spawk.spawn(client.command());
+    const archwayd = spawk.spawn(client.command);
 
     await Accounts(client, { add: 'test-key' });
 
@@ -31,7 +31,7 @@ describe('add', () => {
 describe('list', () => {
   test('lists existing keys', async () => {
     const client = await createTestClient();
-    const archwayd = spawk.spawn(client.command());
+    const archwayd = spawk.spawn(client.command);
 
     await Accounts(client);
 

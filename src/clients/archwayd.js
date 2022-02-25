@@ -10,32 +10,36 @@ const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
  * Facade for the archwayd client, which supports both Docker and binary implementations.
  */
 class DefaultArchwayClient {
+  #archwaydHome;
   #extraArgs;
 
-  constructor({ archwaydHome = DefaultArchwaydHome, extraArgs = [], ...options }) {
-    this.archwaydHome = archwaydHome;
+  constructor({ archwaydHome = DefaultArchwaydHome, extraArgs = [] }) {
+    this.#archwaydHome = archwaydHome;
     this.#extraArgs = extraArgs;
-    this.options = options;
   }
 
-  command() {
+  get command() {
     return 'archwayd';
   }
 
-  extraArgs() {
+  get archwaydHome() {
+    return this.#archwaydHome;
+  }
+
+  get extraArgs() {
     return this.#extraArgs;
   }
 
-  workingDir() {
+  get workingDir() {
     return '.';
   }
 
   parseArgs(args = []) {
-    return [...this.extraArgs(), ...args];
+    return [...this.extraArgs, ...args];
   }
 
-  async run(subCommand, args = [], options = { stdio: 'inherit' }) {
-    const command = this.command();
+  run(subCommand, args = [], options = { stdio: 'inherit' }) {
+    const command = this.command;
     const parsedArgs = this.parseArgs([subCommand, ...args]);
     return spawn(command, parsedArgs, { ...options, encoding: 'utf8' });
   }
@@ -47,17 +51,17 @@ class DockerArchwayClient extends DefaultArchwayClient {
     this.archwaydVersion = testnet || archwaydVersion;
   }
 
-  command() {
+  get command() {
     return 'docker';
   }
 
-  workingDir() {
+  get workingDir() {
     return this.archwaydHome;
   }
 
-  extraArgs() {
-    const dockerArgs = DockerArchwayClient.#getDockerArgs(this.archwaydHome, this.archwaydVersion);
-    return [...dockerArgs, ...super.extraArgs()];
+  get extraArgs() {
+    const dockerArgs = DockerArchwayClient.#getDockerArgs(this.workingDir, this.archwaydVersion);
+    return [...dockerArgs, ...super.extraArgs];
   }
 
   static #getDockerArgs(archwaydHome, archwaydVersion) {

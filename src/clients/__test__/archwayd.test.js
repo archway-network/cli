@@ -5,7 +5,7 @@ describe('DefaultArchwayClient', () => {
   describe('constructor', () => {
     test('builds a client that runs the archwayd binary', async () => {
       const client = await createClient();
-      const command = client.command();
+      const command = client.command;
       expect(command).toEqual('archwayd');
     });
   });
@@ -14,7 +14,7 @@ describe('DefaultArchwayClient', () => {
     test('saves the extraArgs property', async () => {
       const extraArgs = ['--foo', '--bar'];
       const client = await createClient({ extraArgs });
-      expect(client.extraArgs()).toEqual(extraArgs);
+      expect(client.extraArgs).toEqual(extraArgs);
     });
   });
 
@@ -33,7 +33,7 @@ describe('DefaultArchwayClient', () => {
   describe('getWorkingDir', () => {
     test('returns the current folder', async () => {
       const client = await createClient();
-      expect(client.workingDir()).toEqual('.');
+      expect(client.workingDir).toEqual('.');
     });
   });
 
@@ -50,12 +50,12 @@ describe('DefaultArchwayClient', () => {
 
     test('runs the archwayd binary with valid arguments', async () => {
       const client = await createClient({ extraArgs: ['--keyring-backend', 'test'] });
-      const archwayd = spawk.spawn(client.command());
+      const archwayd = spawk.spawn(client.command);
 
       await client.run('keys', ['list']);
 
       expect(archwayd.calledWith).toMatchObject({
-        command: client.command(),
+        command: client.command,
         args: ['--keyring-backend', 'test', 'keys', 'list'],
         options: { stdio: 'inherit' }
       });
@@ -63,7 +63,7 @@ describe('DefaultArchwayClient', () => {
 
     test('returns the spawned process data', async () => {
       const client = await createClient({ extraArgs: ['--keyring-backend', 'test'] });
-      const archwayd = spawk.spawn(client.command()).exit(1);
+      const archwayd = spawk.spawn(client.command).exit(1);
 
       const process = client.run('keys', ['list']);
 
@@ -77,7 +77,7 @@ describe('DockerArchwayClient', () => {
   describe('constructor', () => {
     test('builds a client that runs using Docker', async () => {
       const client = await createClient({ docker: true });
-      const command = client.command();
+      const command = client.command;
       expect(command).toEqual('docker');
     });
   });
@@ -85,7 +85,7 @@ describe('DockerArchwayClient', () => {
   describe('getExtraArgs', () => {
     test('extends the extraArgs with Docker args', async () => {
       const client = await createClient({ docker: true });
-      expect(client.extraArgs()).toEqual(expect.arrayContaining([
+      expect(client.extraArgs).toEqual(expect.arrayContaining([
         'run',
         '--rm',
         '-it',
@@ -100,7 +100,7 @@ describe('DockerArchwayClient', () => {
 
       const client = await createClient({ docker: true, archwaydHome, archwaydVersion });
 
-      expect(client.extraArgs()).toEqual(expect.arrayContaining([
+      expect(client.extraArgs).toEqual(expect.arrayContaining([
         `--volume=${archwaydHome}:/root/.archway`,
         `archwaynetwork/archwayd:${archwaydVersion}`
       ]));
@@ -112,7 +112,7 @@ describe('DockerArchwayClient', () => {
 
       const client = await createClient({ docker: true, testnet, archwaydVersion });
 
-      expect(client.extraArgs()).toEqual(expect.arrayContaining([
+      expect(client.extraArgs).toEqual(expect.arrayContaining([
         `archwaynetwork/archwayd:${testnet}`
       ]));
     });
@@ -122,7 +122,7 @@ describe('DockerArchwayClient', () => {
     test('returns the current archwayd home', async () => {
       const archwaydHome = '/tmp/.archwayd';
       const client = await createClient({ docker: true, archwaydHome });
-      expect(client.workingDir()).toEqual(archwaydHome);
+      expect(client.workingDir).toEqual(archwaydHome);
     });
   });
 });
