@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 const _ = require('lodash');
-const { Command, Option } = require('commander');
+const { Command, Option, InvalidArgumentError } = require('commander');
 const Tools = require('./commands');
 const Commands = require('./constants/commands');
 const ConfigTools = require('./constants/config');
 const { createClient } = require('./clients/archwayd');
 const { Environments, Testnets } = require('./networks');
+const { isArchwayAddress } = require('./util/validators');
 
 /**
  * Gets the version from package.json
@@ -27,6 +28,13 @@ function getDockerFromConfig() {
 
 const DockerOption = new Option('-k, --docker', 'Use the docker version of archwayd')
   .default(getDockerFromConfig());
+
+function parseArchwayAddress(value) {
+  if (!isArchwayAddress(value)) {
+    throw new InvalidArgumentError('Please inform a valid bech32 address.');
+  }
+  return value;
+}
 
 /**
  * CLI worker
@@ -97,15 +105,15 @@ Program
   .command('faucet')
   .description('Request Testnet funds from faucet')
   .addOption(DockerOption)
-  .option('-t, --testnet <value>', 'Testnet to request from; "constantine" or "titus" (default: "constantine")')
-  .action(async (options) => {
-    let testnet = (options.testnet) ? options.testnet : "constantine";
-
-    if (options.docker) {
-      await Commands.checkHomePath();
-    }
-
-    await Tools.Faucet(options.docker, testnet);
+  .addOption(
+    new Option('-t, --testnet <value>', 'Testnet to request for funds')
+      .choices(Testnets)
+      .default([...Testnets].shift())
+  )
+  .argument('[address]', 'Address to request funds for in the format "archway1..."', parseArchwayAddress)
+  .action(async (address, options) => {
+    let client = await createClient({ checkHomePath: true, ...options });
+    await Tools.Faucet(client, { address, ...options });
   });
 
 // `archway history`
