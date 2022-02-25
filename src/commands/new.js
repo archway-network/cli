@@ -2,6 +2,7 @@
 
 const _ = require('lodash');
 const chalk = require('chalk');
+const path = require('path');
 const { spawn } = require('promisify-child-process');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const Config = require('../util/config');
@@ -82,7 +83,8 @@ async function createProject(defaults = {}) {
   const settings = await parseSettings(defaults);
   const config = buildConfig(settings);
 
-  await cargoGenerate(config, settings.template);
+  await cargoGenerate(config, settings);
+  await cargoBuild(config, settings);
   await writeConfigFile(config);
   await initialCommit(config);
 
@@ -108,11 +110,11 @@ function buildConfig({ name, docker, environment, testnet }) {
     }
   };
 
-  return { ...networkConfig, ...projectConfig };
+  return _.defaultsDeep(projectConfig, networkConfig);
 }
 
-async function cargoGenerate({ name, network: { name: networkName } }, template = DefaultTemplate) {
-  const branch = networkName ? `network/${networkName}` : DefaultTemplateBranch;
+async function cargoGenerate({ name, network: { name: networkName, templatesBranch } }, { template = DefaultTemplate }) {
+  const branch = templatesBranch || (networkName ? `network/${networkName}` : DefaultTemplateBranch);
   await spawn('cargo', [
     'generate',
     '--name', name,
@@ -122,13 +124,27 @@ async function cargoGenerate({ name, network: { name: networkName } }, template 
   ], { stdio: 'inherit' });
 }
 
+async function cargoBuild({ name }, { build = true }) {
+  if (!build) {
+    return;
+  }
+
+  const rootPath = path.join(process.cwd(), name);
+  await spawn(
+    'cargo', [
+    'build'
+  ], { stdio: 'inherit', cwd: rootPath });
+}
+
 async function writeConfigFile(config) {
   const { name } = config;
   await Config.write(config, name);
 }
 
 async function initialCommit({ name }) {
-  const git = async (...args) => spawn('git', ['-C', name, ...args], { stdio: 'inherit' });
+  const rootPath = path.join(process.cwd(), name);
+  const git = async (...args) => spawn('git', ['-C', rootPath, ...args], { stdio: 'inherit' });
+  await git('branch', '-m', 'main');
   await git('add', '-A');
   await git('commit', '-m', 'Initialized with archway-cli');
 }
@@ -138,12 +154,12 @@ async function main(name, options = {}) {
 
   try {
     const { network: { chainId } } = await createProject({ name, ...options });
-    console.info(chalk`{green Successfully created project {cyan ${name}} with network configuration {cyan ${chainId}}}`);
+    console.info(chalk`\n{green Successfully created project {cyan ${name}} with network configuration {cyan ${chainId}}}`);
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
-      console.error(chalk`{red.bold Failed to create project}\n${e.message || e}`);
+      console.error(chalk`{red {bold Failed to create project}\n${e.message || e}}`);
     }
   }
 }

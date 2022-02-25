@@ -116,7 +116,7 @@ describe('project settings', () => {
   });
 });
 
-describe('project structure', () => {
+describe('project setup', () => {
   test('calls cargo generate with proper arguments', async () => {
     const name = 'archonauts';
 
@@ -126,6 +126,7 @@ describe('project structure', () => {
       useTemplate: false,
       docker: false,
       environment: 'local',
+      build: false,
     });
 
     expect(cargo.calledWith).toMatchObject({
@@ -151,6 +152,7 @@ describe('project structure', () => {
       docker: false,
       environment: 'testnet',
       testnet,
+      build: false,
     });
 
     expect(cargo.calledWith).toMatchObject({
@@ -169,30 +171,61 @@ describe('project structure', () => {
       template,
       docker: false,
       environment: 'local',
+      build: false,
     });
 
     expect(cargo.called).toBeTruthy();
+  });
+
+  test('calls cargo build only when flag is set', async () => {
+    const name = 'archonauts';
+
+    spawk.spawn('cargo', _.includes('generate'));
+    const cargoBuild = spawk.spawn('cargo', ['build']);
+
+    await New(name, {
+      useTemplate: false,
+      docker: false,
+      environment: 'local',
+      build: true,
+    });
+
+    expect(cargoBuild.calledWith).toMatchObject({
+      command: 'cargo',
+      args: ['build'],
+      options: expect.objectContaining({
+        cwd: path.join(process.cwd(), name),
+      })
+    });
   });
 
   test('do initial git commit', async () => {
     const name = 'archonauts';
 
     spawk.spawn('cargo');
-    const gitAdd = spawk.spawn('git', args => args.includes('add'));
-    const gitCommit = spawk.spawn('git', args => args.includes('commit'));
+    const gitBranch = spawk.spawn('git', _.includes('branch'));
+    const gitAdd = spawk.spawn('git', _.includes('add'));
+    const gitCommit = spawk.spawn('git', _.includes('commit'));
 
     await New(name, {
       useTemplate: false,
       docker: false,
       environment: 'local',
+      build: false,
+    });
+
+    const rootPathMatcher = expect.stringMatching(`^.*${path.sep}${name}$`);
+
+    expect(gitBranch.calledWith).toMatchObject({
+      args: ['-C', rootPathMatcher, 'branch', '-m', 'main']
     });
 
     expect(gitAdd.calledWith).toMatchObject({
-      args: ['-C', name, 'add', '-A']
+      args: ['-C', rootPathMatcher, 'add', '-A']
     });
 
     expect(gitCommit.calledWith).toMatchObject({
-      args: ['-C', name, 'commit', '-m', 'Initialized with archway-cli']
+      args: ['-C', rootPathMatcher, 'commit', '-m', 'Initialized with archway-cli']
     });
   });
 });
@@ -210,6 +243,7 @@ describe('config file', () => {
       docker: true,
       environment: 'testnet',
       testnet: 'constantine',
+      build: false,
     });
 
     expect(writeFile).toHaveBeenCalledWith(
@@ -219,19 +253,12 @@ describe('config file', () => {
   });
 
   test('contains project data', async () => {
-    expect.hasAssertions();
-
     const name = 'archonauts';
     const docker = true;
 
+    let config = {};
     writeFile.mockImplementationOnce((_path, configFile) => {
-      const config = JSON.parse(configFile);
-      expect(config).toMatchObject({
-        name,
-        developer: {
-          archwayd: { docker }
-        }
-      });
+      config = JSON.parse(configFile);
     });
 
     await New(name, {
@@ -239,27 +266,33 @@ describe('config file', () => {
       docker,
       environment: 'testnet',
       testnet: 'constantine',
+      build: false,
+    });
+
+    expect(config).toMatchObject({
+      name,
+      version: expect.any(String),
+      developer: {
+        archwayd: { docker },
+        scripts: expect.objectContaining({
+          test: expect.any(String),
+          build: expect.any(String),
+        }),
+        dApp: expect.objectContaining({
+          gasRebate: expect.anything(),
+          premiumPercentage: expect.anything(),
+        })
+      }
     });
   });
 
   test('contains network information', async () => {
-    expect.hasAssertions();
-
     const environment = 'testnet';
     const testnet = 'constantine';
 
+    let config = {};
     writeFile.mockImplementationOnce((_path, configFile) => {
-      const config = JSON.parse(configFile);
-      expect(config).toMatchObject({
-        network: {
-          type: environment,
-          name: testnet,
-          chainId: 'constantine-1',
-          fees: {
-            feeDenom: 'uconst'
-          }
-        }
-      });
+      config = JSON.parse(configFile);
     });
 
     await New('archonauts', {
@@ -267,6 +300,18 @@ describe('config file', () => {
       docker: false,
       environment,
       testnet,
+      build: false,
+    });
+
+    expect(config).toMatchObject({
+      network: {
+        type: environment,
+        name: testnet,
+        chainId: 'constantine-1',
+        fees: {
+          feeDenom: 'uconst'
+        }
+      }
     });
   });
 });
