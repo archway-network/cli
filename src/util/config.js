@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const path = require('path');
 const { writeFile } = require('fs/promises');
 const { spawn } = require('promisify-child-process');
@@ -35,9 +36,15 @@ async function readConfig(pathPrefix = null) {
   }
 }
 
+async function updateConfig(newSettings = {}) {
+  const config = await readConfig();
+  await writeConfig(_.defaultsDeep(config, newSettings));
+}
+
 module.exports = {
   ConfigFilename,
   read: readConfig,
   write: writeConfig,
+  update: updateConfig,
   path: getConfigPath
 };
