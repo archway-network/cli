@@ -271,7 +271,6 @@ describe('config file', () => {
 
     expect(config).toMatchObject({
       name,
-      version: expect.any(String),
       developer: {
         archwayd: { docker },
         scripts: expect.objectContaining({

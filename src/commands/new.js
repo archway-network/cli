@@ -4,6 +4,7 @@ const _ = require('lodash');
 const chalk = require('chalk');
 const path = require('path');
 const { spawn } = require('promisify-child-process');
+const Cargo = require('../clients/cargo');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const Config = require('../util/config');
 const { Environments, EnvironmentsDetails, Testnets, TestnetsDetails, loadNetworkConfig } = require('../networks');
@@ -21,7 +22,6 @@ const DefaultTemplateBranch = 'main';
 
 const DefaultEnvironment = 'testnet';
 const DefaultTestnet = 'constantine';
-const DefaultProjectVersion = '0.1.0';
 
 const ProjectSetupQuestions = [
   {
@@ -104,7 +104,6 @@ function buildConfig({ name, docker, environment, testnet }) {
   const networkConfig = loadNetworkConfig(environment, testnet);
   const projectConfig = {
     name: name,
-    version: DefaultProjectVersion,
     developer: {
       archwayd: { docker }
     }
@@ -115,25 +114,16 @@ function buildConfig({ name, docker, environment, testnet }) {
 
 async function cargoGenerate({ name, network: { name: networkName, templatesBranch } }, { template = DefaultTemplate }) {
   const branch = templatesBranch || (networkName ? `network/${networkName}` : DefaultTemplateBranch);
-  await spawn('cargo', [
-    'generate',
-    '--name', name,
-    '--git', TemplatesRepository,
-    '--branch', branch,
-    template
-  ], { stdio: 'inherit' });
+  await new Cargo().generate(name, TemplatesRepository, branch, template);
 }
 
-async function cargoBuild({ name }, { build = true }) {
+async function cargoBuild({ name }, { build = true } = {}) {
   if (!build) {
     return;
   }
 
   const rootPath = path.join(process.cwd(), name);
-  await spawn(
-    'cargo', [
-    'build'
-  ], { stdio: 'inherit', cwd: rootPath });
+  await new Cargo({ cwd: rootPath }).build();
 }
 
 async function writeConfigFile(config) {

@@ -24,7 +24,7 @@ async function doCreateConfigFile(config = null) {
     console.log('Error creating config file', config);
   } else if (typeof config !== 'object') {
     console.log('Error creating config file', config);
-  } else if (!(config.title || config.name) || !config.version || !config.network || !config.path || !config.type) {
+  } else if (!(config.title || config.name) || !config.network || !config.path || !config.type) {
     console.log('Error creating config file', config);
   }
 
