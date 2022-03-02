@@ -1,6 +1,7 @@
 {
   "network": {
     "name": "titus",
+    "templatesBranch": "feature/cosmwasm-sdt-1.0.0-beta5",
     "chainId": "titus-1",
     "type": "testnet",
     "fees": {
