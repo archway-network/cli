@@ -7,7 +7,7 @@ const Tools = require('./commands');
 const Config = require('./util/config');
 const { createClient } = require('./clients/archwayd');
 const { Environments, Testnets } = require('./networks');
-const { isJson, isArchwayAddress } = require('./util/validators');
+const { isJson, isProjectName, isArchwayAddress } = require('./util/validators');
 
 /**
  * Gets the version from package.json
@@ -41,6 +41,13 @@ const DockerOption = new Option('-k, --docker', 'Use the docker version of archw
 function parseArchwayAddress(value) {
   if (!isArchwayAddress(value)) {
     throw new InvalidArgumentError('Please inform a valid bech32 address.');
+  }
+  return value;
+}
+
+function parseProjectName(value) {
+  if (!isProjectName(value)) {
+    throw new InvalidArgumentError('Please inform a valid project name, like <project-name> or <project_name>.');
   }
   return value;
 }
@@ -166,7 +173,7 @@ Program
   .addOption(new Option('--no-template', 'Do not prompt for a project template').preset('default'))
   .option('-b, --build', 'Build the project after setup', true)
   .option('--no-build', 'Do no build the project after setup')
-  .argument('[name]', 'Project name')
+  .argument('[name]', 'Project name', parseProjectName)
   .action(async (name, options) => {
     await Tools.New(name, options);
   });

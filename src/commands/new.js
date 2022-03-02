@@ -7,6 +7,7 @@ const { spawn } = require('promisify-child-process');
 const Cargo = require('../clients/cargo');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const Config = require('../util/config');
+const { isProjectName } = require('../util/validators');
 const { Environments, EnvironmentsDetails, Testnets, TestnetsDetails, loadNetworkConfig } = require('../networks');
 
 
@@ -28,8 +29,8 @@ const ProjectSetupQuestions = [
     type: 'text',
     name: 'name',
     message: 'Choose a name for your project',
-    validate: name => _.isEmpty(_.kebabCase(name)) ? 'Please inform a valid name for the project' : true,
-    format: _.kebabCase,
+    validate: value => isProjectName(value) || 'Please inform a valid project name',
+    format: value => _.trim(value),
   },
   {
     type: 'confirm',
