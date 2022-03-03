@@ -24,7 +24,10 @@ async function storeDeployment(deployment = {}) {
     throw new Error(`Could not save deployment data to config file`);
   }
 
-  await Config.update({ developer: { deployments: [deployment] } });
+  await Config.update(
+    { developer: { deployments: [deployment] } },
+    { arrayMode: 'prepend' }
+  );
 }
 
 async function archwaydTxWasm(client, wasmCommand, wasmArgs, { from, chainId, node, gas, extraTxArgs } = {}) {

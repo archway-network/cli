@@ -25,15 +25,16 @@ async function readConfig(pathPrefix = null) {
   }
 }
 
-function customizer(objValue, srcValue) {
-  if (_.isArray(objValue)) {
-    return objValue.concat(srcValue);
-  }
+function mergeCustomizer({ arrayMode = 'append' } = {}) {
+  return _.cond([
+    [_.overEvery(_.isArray, _.constant(arrayMode === 'append')), _.concat],
+    [_.overEvery(_.isArray, _.constant(arrayMode === 'prepend')), (objValue, srcValue) => [...srcValue, ...objValue]],
+  ]);
 }
 
-async function updateConfig(newSettings = {}) {
+async function updateConfig(newSettings = {}, mergeOptions = {}) {
   const config = await readConfig();
-  await writeConfig(_.mergeWith(config, newSettings, customizer));
+  await writeConfig(_.mergeWith(config, newSettings, mergeCustomizer(mergeOptions)));
 }
 
 module.exports = {
