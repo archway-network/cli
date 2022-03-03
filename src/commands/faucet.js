@@ -64,7 +64,7 @@ async function promptAddress(accounts) {
   return address;
 }
 
-async function main(client, options = {}) {
+async function main(archwayd, options = {}) {
   const { testnet } = options;
 
   try {
@@ -73,7 +73,7 @@ async function main(client, options = {}) {
     }
 
     prompts.override(options);
-    const accounts = new Accounts(client);
+    const accounts = new Accounts(archwayd);
     const address = await promptAddress(accounts);
     await requestFunds(address, testnet);
   } catch (e) {

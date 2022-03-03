@@ -1,22 +1,22 @@
 const chalk = require('chalk');
 
 class Accounts {
-  constructor(client) {
-    this.client = client;
+  constructor(archwayd) {
+    this.archwayd = archwayd;
   }
 
   async add(name) {
-    await this.client.run('keys', ['add', name]);
+    await this.archwayd.run('keys', ['add', name]);
   }
 
   async list() {
     console.info('Printing list of active accounts...');
-    await this.client.run('keys', ['list']);
+    await this.archwayd.run('keys', ['list']);
   }
 }
 
-async function main(client, { add: name } = {}) {
-  const accounts = new Accounts(client);
+async function main(archwayd, { add: name } = {}) {
+  const accounts = new Accounts(archwayd);
   try {
     if (name) {
       await accounts.add(name);

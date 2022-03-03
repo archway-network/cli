@@ -78,8 +78,8 @@ Program
   .addOption(DockerOption)
   .action(async (options) => {
     options = await updateWithDockerOptions(options);
-    const client = await createClient({ checkHomePath: true, ...options });
-    await Tools.Accounts(client, options);
+    const archwayd = await createClient({ checkHomePath: true, ...options });
+    await Tools.Accounts(archwayd, options);
   });
 
 // `archway build`
@@ -124,8 +124,8 @@ Program
     }
 
     options = await updateWithDockerOptions(options);
-    const client = await createClient({ checkHomePath: true, ...options });
-    await Tools.Deploy(client, options);
+    const archwayd = await createClient({ checkHomePath: true, ...options });
+    await Tools.Deploy(archwayd, options);
   });
 
 // `archway faucet`
@@ -141,8 +141,8 @@ Program
   .argument('[address]', 'Address to request funds for (e.g. "archway1...")', parseArchwayAddress)
   .action(async (address, options) => {
     options = await updateWithDockerOptions(options);
-    const client = await createClient({ checkHomePath: true, ...options });
-    await Tools.Faucet(client, { address, ...options });
+    const archwayd = await createClient({ checkHomePath: true, ...options });
+    await Tools.Faucet(archwayd, { address, ...options });
   });
 
 // `archway history`

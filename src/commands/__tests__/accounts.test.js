@@ -17,7 +17,7 @@ afterEach(() => {
 
 describe('add', () => {
   test('adds a new key to the keychain', async () => {
-    const client = await createTestClient();
+    const client = await createTestArchwaydClient();
     const archwayd = spawk.spawn(client.command);
 
     await Accounts(client, { add: 'test-key' });
@@ -30,7 +30,7 @@ describe('add', () => {
 
 describe('list', () => {
   test('lists existing keys', async () => {
-    const client = await createTestClient();
+    const client = await createTestArchwaydClient();
     const archwayd = spawk.spawn(client.command);
 
     await Accounts(client);
@@ -41,6 +41,6 @@ describe('list', () => {
   });
 });
 
-async function createTestClient() {
+async function createTestArchwaydClient() {
   return await createClient({ docker: false, extraArgs: ['--keyring-backend', 'test'] });
 }

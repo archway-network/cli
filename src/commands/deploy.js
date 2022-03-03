@@ -30,8 +30,8 @@ async function storeDeployment(deployment = {}) {
   );
 }
 
-async function archwaydTxWasm(client, wasmCommand, wasmArgs, { from, chainId, node, gas, extraTxArgs } = {}) {
-  const archwayd = client.run('tx', [
+async function archwaydTxWasm(archwayd, wasmCommand, wasmArgs, { from, chainId, node, gas, extraTxArgs } = {}) {
+  const archwayd = archwayd.run('tx', [
     'wasm', wasmCommand, ...wasmArgs,
     '--from', from,
     '--chain-id', chainId,
@@ -49,6 +49,13 @@ async function archwaydTxWasm(client, wasmCommand, wasmArgs, { from, chainId, no
   const lines = stdout.replace('\r', '').split('\n');
   const jsonLines = lines.filter(line => line.startsWith('{'));
   return JSON.parse(jsonLines.pop());
+}
+
+function getEventAttribute(transaction, eventType, attributeKey) {
+  const { logs: [{ events = [] } = {},] = [], txhash } = transaction;
+  const { attributes = [] } = events.find(event => event.type === eventType) || {};
+  const { value } = attributes.find(attribute => attribute.key === attributeKey) || {};
+  return { txhash, value };
 }
 
 async function promptRewardAddress(accounts) {
@@ -70,8 +77,8 @@ async function promptRewardAddress(accounts) {
   return rewardAddress;
 }
 
-async function parseAndUpdateDApp(client, srcDApp) {
-  const accounts = new Accounts(client);
+async function parseAndUpdateDApp(archwayd, srcDApp) {
+  const accounts = new Accounts(archwayd);
   const rewardAddress = await promptRewardAddress(accounts);
   console.info(chalk`Address for dApp rewards: {cyan ${rewardAddress}}`);
 
@@ -100,7 +107,7 @@ function buildInitArgs(args, { rewardAddress, gasRebate, collectPremium, premium
   return JSON.stringify(initArgs);
 }
 
-async function instantiateContract(client, options = {}) {
+async function instantiateContract(archwayd, options = {}) {
   const {
     project: { id: projectId } = {},
     from,
@@ -129,9 +136,9 @@ async function instantiateContract(client, options = {}) {
     },
   ]);
 
-  const contractInitArgs = buildInitArgs(args, await parseAndUpdateDApp(client, dApp));
+  const contractInitArgs = buildInitArgs(args, await parseAndUpdateDApp(archwayd, dApp));
   const instantiateArgs = [codeId, contractInitArgs, '--label', label];
-  const transaction = await archwaydTxWasm(client, 'instantiate', instantiateArgs, options);
+  const transaction = await archwaydTxWasm(archwayd, 'instantiate', instantiateArgs, options);
   const { txhash, value: contractAddress } = getEventAttribute(transaction, 'instantiate', '_contract_address');
   if (!txhash || !contractAddress) {
     throw new Error(`Failed to instantiate contract with code_id=${codeId} and args=${args}`);
@@ -148,12 +155,12 @@ async function instantiateContract(client, options = {}) {
   console.info(chalk`{green Successfully instantiated contract with address {cyan ${contractAddress}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
 }
 
-async function verifyUploadedWasm(client, { chainId, node, wasm: { codeId, localPath, remotePath } = {} } = {}) {
+async function verifyUploadedWasm(archwayd, { chainId, node, wasm: { codeId, localPath, remotePath } = {} } = {}) {
   console.log(chalk`Validating artifact deployed to {cyan ${chainId}}...`);
 
   const downloadWasmName = `${path.basename(localPath, '.wasm')}_download.wasm`;
   const localDownloadPath = path.join(path.dirname(localPath), downloadWasmName);
-  await client.run('query', ['wasm', 'code', codeId, '--node', node, localDownloadPath]);
+  await archwayd.run('query', ['wasm', 'code', codeId, '--node', node, localDownloadPath]);
 
   // We need to update the path to where the docker container volume is mapped to
   const remoteDownloadPath = path.join(path.dirname(remotePath), downloadWasmName);
@@ -170,12 +177,12 @@ async function verifyUploadedWasm(client, { chainId, node, wasm: { codeId, local
   console.info(chalk`{green Integrity check Ok!}\n`);
 }
 
-async function storeWasm(client, { project: { name } = {}, from, chainId, ...options } = {}) {
+async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...options } = {}) {
   console.info(chalk`Uploading optimized executable to {cyan ${chainId}} using wallet {cyan ${from}}...`);
 
   const fileName = `${_.snakeCase(name)}.wasm`;
   const localPath = path.join('artifacts', fileName);
-  const remotePath = path.join(client.workingDir, localPath);
+  const remotePath = path.join(archwayd.workingDir, localPath);
   // If we use docker or for any reason need to copy the file to any other directory before upload
   if (!_.isEmpty(path.relative(localPath, remotePath))) {
     console.info(`Copying file ${localPath} to ${remotePath}`);
@@ -183,7 +190,7 @@ async function storeWasm(client, { project: { name } = {}, from, chainId, ...opt
     await copyFile(localPath, remotePath);
   }
 
-  const transaction = await archwaydTxWasm(client, 'store', [localPath], { from, chainId, ...options });
+  const transaction = await archwaydTxWasm(archwayd, 'store', [localPath], { from, chainId, ...options });
   const { txhash, value: codeIdString } = getEventAttribute(transaction, 'store_code', 'code_id');
   const codeId = _.toNumber(codeIdString);
   if (!txhash || !codeId) {
@@ -200,13 +207,6 @@ async function storeWasm(client, { project: { name } = {}, from, chainId, ...opt
   console.info(chalk`{green Uploaded {cyan ${fileName}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
 
   return { codeId, localPath, remotePath, txhash };
-}
-
-function getEventAttribute(transaction, eventType, attributeKey) {
-  const { logs: [{ events = [] } = {},] = [], txhash } = transaction;
-  const { attributes = [] } = events.find(event => event.type === eventType) || {};
-  const { value } = attributes.find(attribute => attribute.key === attributeKey) || {};
-  return { txhash, value };
 }
 
 function spawnOptimizer(cargo, { network: { optimizers: { docker: { target, image } = {} } = {} } = {} } = {}) {
@@ -287,7 +287,7 @@ async function buildDeploymentConfig(cargo, config = {}, { confirm, ...options }
   }
 }
 
-async function deploy(client, { verify = true, dryRun, ...options } = {}) {
+async function deploy(archwayd, { verify = true, dryRun, ...options } = {}) {
   // TODO: call archwayd operations with the --dry-run flag
   if (dryRun) {
     console.info('Building wasm binary...\n');
@@ -301,15 +301,15 @@ async function deploy(client, { verify = true, dryRun, ...options } = {}) {
   await buildWasm(cargo, config);
 
   const deploymentConfig = await buildDeploymentConfig(cargo, config, options);
-  const wasm = await storeWasm(client, deploymentConfig);
+  const wasm = await storeWasm(archwayd, deploymentConfig);
   const deployedWasmConfig = { ...deploymentConfig, wasm };
-  verify && await verifyUploadedWasm(client, deployedWasmConfig);
-  await instantiateContract(client, deployedWasmConfig);
+  verify && await verifyUploadedWasm(archwayd, deployedWasmConfig);
+  await instantiateContract(archwayd, deployedWasmConfig);
 }
 
-async function main(client, options = {}) {
+async function main(archwayd, options = {}) {
   try {
-    await deploy(client, options);
+    await deploy(archwayd, options);
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
