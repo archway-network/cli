@@ -7,14 +7,14 @@ const DefaultArchwaydVersion = 'latest';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
 class ArchwayTxRunner {
-  #archwaydClient;
+  client;
 
-  constructor(archwaydClient) {
-    this.#archwaydClient = archwaydClient;
+  constructor(client) {
+    this.client = client;
   }
 
-  async wasm(wasmCommand, wasmArgs, { from, chainId, node, gas, extraTxArgs } = {}) {
-    const archwayd = this.#archwaydClient.run('tx', [
+  async wasm(wasmCommand, wasmArgs, { from, chainId, node, gas, extraTxArgs = [] } = {}) {
+    const args = [
       'wasm', wasmCommand, ...wasmArgs,
       '--from', from,
       '--chain-id', chainId,
@@ -23,8 +23,10 @@ class ArchwayTxRunner {
       '--gas-prices', gas.prices,
       '--gas-adjustment', gas.adjustment,
       '--broadcast-mode', 'block',
-      '--output', 'json'
-    ].concat(extraTxArgs), { stdio: ['inherit', 'pipe', 'inherit'] });
+      '--output', 'json',
+      ...extraTxArgs
+    ];
+    const archwayd = this.client.run('tx', args, { stdio: ['inherit', 'pipe', 'inherit'] });
     archwayd.stdout.pipe(process.stdout);
     const { stdout } = await archwayd;
 
