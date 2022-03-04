@@ -6,7 +6,7 @@ class TxCommands {
   }
 
   async wasm(wasmCommand, wasmArgs, { from, chainId, node, gas, flags = [] } = {}) {
-    const args = [
+    return await this.#run([
       'wasm', wasmCommand, ...wasmArgs,
       '--from', from,
       '--chain-id', chainId,
@@ -17,7 +17,10 @@ class TxCommands {
       '--broadcast-mode', 'block',
       '--output', 'json',
       ...flags
-    ];
+    ]);
+  }
+
+  async #run(args) {
     const archwayd = this.#client.run('tx', args, { stdio: ['inherit', 'pipe', 'inherit'] });
     archwayd.stdout.pipe(process.stdout);
     const { stdout } = await archwayd;

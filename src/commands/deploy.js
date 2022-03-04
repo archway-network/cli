@@ -29,6 +29,7 @@ async function storeDeployment(deployment = {}) {
   );
 }
 
+// TODO: move to the archwayd tx wrapper?
 function getEventAttribute(transaction, eventType, attributeKey) {
   const { logs: [{ events = [] } = {},] = [], txhash } = transaction;
   const { attributes = [] } = events.find(event => event.type === eventType) || {};
@@ -113,7 +114,7 @@ async function instantiateContract(archwayd, options = {}) {
     },
   ]);
 
-  const contractInitArgs = (chainId === 'constantine-1') ? buildInitArgs(args, await parseAndUpdateMetadata(archwayd, dApp)) : args;
+  const contractInitArgs = _.isEmpty(dApp) ? args : buildInitArgs(args, await parseAndUpdateMetadata(archwayd, dApp));
   const instantiateArgs = [codeId, contractInitArgs, '--label', label];
   const transaction = await archwayd.tx.wasm('instantiate', instantiateArgs, options);
   const { txhash, value: contractAddress } = getEventAttribute(transaction, 'instantiate', '_contract_address');
@@ -130,6 +131,10 @@ async function instantiateContract(archwayd, options = {}) {
   });
 
   console.info(chalk`{green Successfully instantiated contract with address {cyan ${contractAddress}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
+
+  if (_.isEmpty(dApp)) {
+    console.warn(chalk`{whiteBright It is recommended that you now set the contract metadata using the {green.bold archway metadata} command}`);
+  }
 
   return { contractAddress };
 }
@@ -159,7 +164,7 @@ async function verifyUploadedWasm(archwayd, { chainId, node, wasm: { codeId, loc
 async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...options } = {}) {
   console.info(chalk`Uploading optimized executable to {cyan ${chainId}} using wallet {cyan ${from}}...`);
 
-  const fileName = `${_.snakeCase(name)}.wasm`;
+  const fileName = `${name.replaceAll('-', '_')}.wasm`;
   const localPath = path.join('artifacts', fileName);
   const remotePath = path.join(archwayd.workingDir, localPath);
   // If we use docker or for any reason need to copy the file to any other directory before upload
@@ -185,7 +190,7 @@ async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...o
 
   console.info(chalk`{green Uploaded {cyan ${fileName}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
 
-  return { codeId, localPath, remotePath, txhash };
+  return { codeId, localPath, remotePath };
 }
 
 function spawnOptimizer(cargo, { network: { optimizers: { docker: { target, image } = {} } = {} } = {} } = {}) {
@@ -232,11 +237,15 @@ async function parseDeploymentOptions(cargo, config = {}, { confirm, args, ...op
 
   const {
     network: { chainId, urls: { rpc } = {}, gas } = {},
-    developer: { dApp: { rewardAddress, ...dApp } = {} } = {}
+    developer: { dApp = {} } = {}
   } = config;
   const node = `${rpc.url}:${rpc.port}`;
 
-  prompts.override({ rewardAddress: rewardAddress || undefined, args, ...options });
+  prompts.override({
+    args,
+    rewardAddress: dApp.rewardAddress || undefined,
+    ...options
+  });
   const { from } = await prompts({
     type: 'text',
     name: 'from',
@@ -257,7 +266,7 @@ async function parseDeploymentOptions(cargo, config = {}, { confirm, args, ...op
     chainId,
     node,
     gas,
-    dApp: { rewardAddress, ...dApp },
+    dApp,
     flags
   }
 }
