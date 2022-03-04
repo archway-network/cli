@@ -149,6 +149,27 @@ Program
     await Tools.DeployHistory();
   });
 
+// `archway deploy`
+Program
+  .command('metadata')
+  .description('Set the contract metadata')
+  .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
+  .option('-f, --from <value>', 'Name or address of account to sign transactions')
+  .option('--developer-address <value>', 'Developer address which can change metadata later on (e.g. "archway1...")', parseArchwayAddress)
+  .option('--reward-address <value>', 'Reward address in which rewards will be deposited (e.g. "archway1...")', parseArchwayAddress)
+  .option('--collect-premium|--no-collect-premium', 'Indicates if the contract will use a premium for gas rewards')
+  .option('--premium-percentage <value>', 'Integer percentage of premium in a range between 0 and 200', parseInt)
+  .option('--gas-rebate|--no-gas-rebate', 'Indicates if the contract rewards should be used for gas rebates to the user')
+  .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
+  .option('--dry-run', 'Perform a simulation of a transaction without broadcasting it', false)
+  .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
+  .addOption(DockerOption)
+  .action(async (options) => {
+    options = await updateWithDockerOptions(options);
+    const archwayd = await createClient({ checkHomePath: true, ...options });
+    await Tools.Metadata(archwayd, options);
+  });
+
 // `archway network`
 Program
   .command('network')

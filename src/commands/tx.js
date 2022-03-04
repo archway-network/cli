@@ -13,7 +13,7 @@ async function parseTxOptions(config = {}, { confirm, dryRun, args, flags = [], 
 
   const {
     network: { chainId, urls: { rpc } = {}, gas } = {},
-    developer: { dApp = {}, deployments = [] } = {}
+    developer: { deployments = [] } = {}
   } = config;
   const node = `${rpc.url}:${rpc.port}`;
   const { address: lastDeployedContract } = deployments.find(deployment => deployment.type == 'instantiate');
@@ -48,7 +48,6 @@ async function parseTxOptions(config = {}, { confirm, dryRun, args, flags = [], 
     chainId,
     node,
     gas,
-    dApp,
     flags: [...extraFlags, ...flags],
   }
 }
