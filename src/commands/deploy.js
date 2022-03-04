@@ -107,13 +107,13 @@ async function instantiateContract(archwayd, options = {}) {
     {
       type: 'text',
       name: 'args',
-      message: chalk`JSON encoded arguments for contract initialization {reset.dim (e.g. \{"count": 0\})}`,
+      message: chalk`JSON encoded arguments for contract initialization {reset.dim (e.g. \{ "count": 0 \})}`,
       initial: '{}',
       validate: value => isJson(value) || 'Invalid initialization args - inform a valid JSON string',
     },
   ]);
 
-  const contractInitArgs = (chainId === 'constantine-1') ? buildInitArgs(args, await parseAndUpdateDApp(archwayd, dApp)) : args;
+  const contractInitArgs = (chainId === 'constantine-1') ? buildInitArgs(args, await parseAndUpdateMetadata(archwayd, dApp)) : args;
   const instantiateArgs = [codeId, contractInitArgs, '--label', label];
   const transaction = await archwayd.tx.wasm('instantiate', instantiateArgs, options);
   const { txhash, value: contractAddress } = getEventAttribute(transaction, 'instantiate', '_contract_address');
@@ -130,6 +130,8 @@ async function instantiateContract(archwayd, options = {}) {
   });
 
   console.info(chalk`{green Successfully instantiated contract with address {cyan ${contractAddress}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
+
+  return { contractAddress };
 }
 
 async function verifyUploadedWasm(archwayd, { chainId, node, wasm: { codeId, localPath, remotePath } = {} } = {}) {
@@ -260,7 +262,7 @@ async function parseDeploymentOptions(cargo, config = {}, { confirm, args, ...op
   }
 }
 
-async function deploy(archwayd, { verify = true, dryRun = false, ...options } = {}) {
+async function deploy(archwayd, { build, verify, dryRun, ...options } = {}) {
   // TODO: call archwayd operations with the --dry-run flag
   if (dryRun) {
     console.info('Building wasm binary...\n');
@@ -271,12 +273,14 @@ async function deploy(archwayd, { verify = true, dryRun = false, ...options } = 
   const config = await Config.read();
   const cargo = new Cargo();
 
-  await buildWasm(cargo, config);
+  build && await buildWasm(cargo, config);
 
-  const deploymentConfig = await buildDeploymentConfig(cargo, config, options);
-  const wasm = await storeWasm(archwayd, deploymentConfig);
-  const deployedWasmConfig = { ...deploymentConfig, wasm };
+  const deployOptions = await parseDeploymentOptions(cargo, config, options);
+
+  const wasm = await storeWasm(archwayd, deployOptions);
+  const deployedWasmConfig = { ...deployOptions, wasm };
   verify && await verifyUploadedWasm(archwayd, deployedWasmConfig);
+
   await instantiateContract(archwayd, deployedWasmConfig);
 }
 

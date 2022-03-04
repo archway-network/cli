@@ -112,17 +112,13 @@ Program
   .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment (e.g. --args \'{"key": "value"}\')', parseJson)
   .option('-f, --from <value>', 'Name or address of account to sign transactions')
   .option('-l, --label <value>', 'Label to use for instantiating the contract (default: "<project_name> <project_version>")')
-  .option('--reward-address <value>', 'Address for the reward contract(e.g. "archway1...")', parseArchwayAddress)
-  .option('-d, --dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
+  .option('--reward-address <value>', 'Reward address in which rewards will be deposited (e.g. "archway1...")', parseArchwayAddress)
+  .option('--no-build', 'Do not build the project before deploying; it will fail in case the wasm file is not built', false)
+  .option('--no-verify', 'Do not verify the wasm file uploaded on-chain', false)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .addOption(new Option('--dryrun', '[deprecated]').hideHelp())
+  .option('--dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
   .addOption(DockerOption)
-  .action(async ({ dryrun, ...options }) => {
-    if (dryrun) {
-      console.warn(chalk`{yellow [deprecated] --dryrun is deprecated. Use --dry-run instead.}`);
-      options = { dryRun: dryrun, ...options };
-    }
-
+  .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Deploy(archwayd, options);
@@ -171,8 +167,7 @@ Program
   .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
   .option('--template <value>', 'Project template to use')
   .addOption(new Option('--no-template', 'Do not prompt for a project template').preset('default'))
-  .option('-b, --build', 'Build the project after setup', true)
-  .option('--no-build', 'Do no build the project after setup')
+  .option('--no-build', 'Do not build the project after setup', true)
   .argument('[name]', 'Project name', parseProjectName)
   .action(async (name, options) => {
     await Tools.New(name, options);
@@ -246,9 +241,9 @@ Program
   .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
   .option('-f, --from <value>', 'Name or address of account to sign transactions')
   .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')
-  .option('-d, --dry-run', 'Perform a simulation of a transaction without broadcast it', false)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .option('--flags <flags...>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--amount 1"')
+  .option('--dry-run', 'Perform a simulation of a transaction without broadcasting it', false)
+  .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
   .addOption(DockerOption)
   .description('Execute a smart contract transaction on Archway network')
   .action(async (options) => {
