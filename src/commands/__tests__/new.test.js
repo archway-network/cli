@@ -217,7 +217,7 @@ describe('project setup', () => {
     const rootPathMatcher = expect.stringMatching(`^.*${path.sep}${name}$`);
 
     expect(gitBranch.calledWith).toMatchObject({
-      args: ['-C', rootPathMatcher, 'branch', '-M', 'main']
+      args: ['-C', rootPathMatcher, 'checkout', '-b', 'main']
     });
 
     expect(gitAdd.calledWith).toMatchObject({
