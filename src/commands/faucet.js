@@ -37,10 +37,7 @@ async function requestFunds(address, testnet) {
 
   const request = sendRequest(address, faucet, feeDenom);
 
-  ora.promise(request, {
-    text: chalk`Requesting faucet funds to address {cyan ${address}} on network {cyan ${chainId}}`,
-    spinner: 'dots8',
-  });
+  ora.promise(request, chalk`Requesting faucet funds to address {cyan ${address}} on network {cyan ${chainId}}`);
 
   const { coin } = await request;
 
