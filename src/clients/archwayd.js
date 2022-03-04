@@ -6,16 +6,46 @@ const { pathExists, mv } = require('../util/fs');
 const DefaultArchwaydVersion = 'latest';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
+class ArchwayTxRunner {
+  #archwaydClient;
+
+  constructor(archwaydClient) {
+    this.#archwaydClient = archwaydClient;
+  }
+
+  async wasm(wasmCommand, wasmArgs, { from, chainId, node, gas, extraTxArgs } = {}) {
+    const archwayd = this.#archwaydClient.run('tx', [
+      'wasm', wasmCommand, ...wasmArgs,
+      '--from', from,
+      '--chain-id', chainId,
+      '--node', node,
+      '--gas', gas.mode,
+      '--gas-prices', gas.prices,
+      '--gas-adjustment', gas.adjustment,
+      '--broadcast-mode', 'block',
+      '--output', 'json'
+    ].concat(extraTxArgs), { stdio: ['inherit', 'pipe', 'inherit'] });
+    archwayd.stdout.pipe(process.stdout);
+    const { stdout } = await archwayd;
+
+    const lines = stdout.replace('\r', '').split('\n');
+    const jsonLines = lines.filter(line => line.startsWith('{'));
+    return JSON.parse(jsonLines.pop());
+  }
+}
+
 /**
  * Facade for the archwayd client, which supports both Docker and binary implementations.
  */
 class DefaultArchwayClient {
   #archwaydHome;
   #extraArgs;
+  #txRunner;
 
   constructor({ archwaydHome = DefaultArchwaydHome, extraArgs = [] }) {
     this.#archwaydHome = archwaydHome;
     this.#extraArgs = extraArgs;
+    this.#txRunner = new ArchwayTxRunner(this);
   }
 
   get command() {
@@ -32,6 +62,10 @@ class DefaultArchwayClient {
 
   get workingDir() {
     return '.';
+  }
+
+  get tx() {
+    return this.#txRunner;
   }
 
   parseArgs(args = []) {
