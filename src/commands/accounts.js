@@ -1,32 +1,31 @@
+const chalk = require('chalk');
+
 class Accounts {
-  constructor(client, options) {
-    this.client = client;
-    this.options = options;
+  constructor(archwayd) {
+    this.archwayd = archwayd;
   }
 
-  async add(name = null) {
-    const archwayd = await this.client.runInherited('keys', 'add', name);
-    archwayd.on('error', (err) => {
-      console.error(`Error adding wallet ${name} to keychain`, err);
-    });
+  async add(name) {
+    await this.archwayd.run('keys', ['add', name]);
   }
 
   async list() {
-    console.log('Printing list of active accounts...\n');
-    const archwayd = await this.client.runInherited('keys', 'list');
-    archwayd.on('error', (err) => {
-      console.error('Error listing keys', err);
-    });
+    console.info('Printing list of active accounts...');
+    await this.archwayd.run('keys', ['list']);
   }
 }
 
-async function main(client, { add, ...options }) {
-  const accounts = new Accounts(client, options);
-  if (add !== undefined) {
-    await accounts.add(add);
-  } else {
-    await accounts.list();
+async function main(archwayd, { add: name } = {}) {
+  const accounts = new Accounts(archwayd);
+  try {
+    if (name) {
+      await accounts.add(name);
+    } else {
+      await accounts.list();
+    }
+  } catch (e) {
+    console.error(chalk`\n{red.bold ${e.message || e}}`);
   }
 }
 
-module.exports = main;
+module.exports = Object.assign(main, { Accounts });

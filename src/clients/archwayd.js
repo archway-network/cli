@@ -1,74 +1,67 @@
-const { spawn } = require('child_process');
-const prompts = require('prompts');
+const chalk = require('chalk');
+const { prompts, PromptCancelledError } = require('../util/prompts');
+const { spawn } = require('promisify-child-process');
 const { pathExists, mv } = require('../util/fs');
 
-const DefaultArchwaydVersion = '0.0.1';
+const DefaultArchwaydVersion = 'latest';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
 /**
  * Facade for the archwayd client, which supports both Docker and binary implementations.
  */
 class DefaultArchwayClient {
+  #archwaydHome;
   #extraArgs;
 
-  constructor({ extraArgs = [], ...options }) {
+  constructor({ archwaydHome = DefaultArchwaydHome, extraArgs = [] }) {
+    this.#archwaydHome = archwaydHome;
     this.#extraArgs = extraArgs;
-    this.options = options;
   }
 
-  getCommand() {
+  get command() {
     return 'archwayd';
   }
 
-  getExtraArgs() {
+  get archwaydHome() {
+    return this.#archwaydHome;
+  }
+
+  get extraArgs() {
     return this.#extraArgs;
   }
 
-  getWorkingDir() {
+  get workingDir() {
     return '.';
   }
 
   parseArgs(args = []) {
-    return [...this.getExtraArgs(), ...args];
+    return [...this.extraArgs, ...args];
   }
 
-  async run(subCommand, ...args) {
-    return this.#run(subCommand, args, { stdio: ['inherit', 'pipe', 'pipe'], });
-  }
-
-  async runPiped(subCommand, ...args) {
-    return this.#run(subCommand, args, { stdio: 'pipe', });
-  }
-
-  async runInherited(subCommand, ...args) {
-    return this.#run(subCommand, args, { stdio: 'inherit', });
-  }
-
-  async #run(subCommand, args, options) {
-    const command = this.getCommand();
+  run(subCommand, args = [], options = { stdio: 'inherit' }) {
+    const command = this.command;
     const parsedArgs = this.parseArgs([subCommand, ...args]);
-    return spawn(command, parsedArgs, options);
+    return spawn(command, parsedArgs, { ...options, encoding: 'utf8' });
   }
 }
 
 class DockerArchwayClient extends DefaultArchwayClient {
-  constructor({ archwaydHome = DefaultArchwaydHome, archwaydVersion = DefaultArchwaydVersion, ...options }) {
+  constructor({ archwaydVersion = DefaultArchwaydVersion, testnet, ...options }) {
     super(options);
-    this.archwaydHome = archwaydHome;
-    this.archwaydVersion = archwaydVersion;
+    this.archwaydVersion = testnet || archwaydVersion;
   }
 
-  getCommand() {
+  get command() {
     return 'docker';
   }
 
-  getWorkingDir() {
+  get workingDir() {
     return this.archwaydHome;
   }
 
-  getExtraArgs() {
-    const dockerArgs = DockerArchwayClient.#getDockerArgs(this.archwaydHome, this.archwaydVersion);
-    return [...dockerArgs, ...super.getExtraArgs()];
+  get extraArgs() {
+    const dockerArgs = DockerArchwayClient.#getDockerArgs(this.workingDir, this.archwaydVersion);
+    return [...dockerArgs, ...super.extraArgs];
   }
 
   static #getDockerArgs(archwaydHome, archwaydVersion) {
@@ -87,25 +80,34 @@ class DockerArchwayClient extends DefaultArchwayClient {
       return;
     }
 
-    const newPathExists = await pathExists(this.archwaydHome);
-    const { move, overwrite } = await prompts({
-      type: 'confirm',
-      name: 'move',
-      message: `I've found a keystore in ${oldArchwayHome}. Would you like to move it to ${this.archwaydHome}?`,
-      initial: true
-    }, {
-      type: prev => prev && newPathExists ? 'confirm' : null,
-      name: 'overwrite',
-      message: `The directory ${this.archwaydHome} is not empty. Would you like to overwrite its contents?`,
-      initial: true
-    });
-
-    if (move) {
-      try {
-        await mv(oldArchwayHome, this.archwaydHome, overwrite);
-      } catch (error) {
-        console.error(`Failed to move directory: ${error.message}\n`);
+    const questions = [
+      {
+        type: 'confirm',
+        name: 'move',
+        message: chalk`I've found a keystore in {cyan ${oldArchwayHome}}. Would you like to move it to {cyan ${this.archwaydHome}}?`,
+        initial: true
+      }, {
+        type: async prev => prev && await pathExists(this.archwaydHome) ? 'confirm' : null,
+        name: 'overwrite',
+        message: chalk`The directory {cyan ${this.archwaydHome}} is not empty. Would you like to overwrite its contents?`,
+        initial: true
       }
+    ];
+
+    try {
+      const { move, overwrite } = await prompts(questions);
+
+      if (move) {
+        await mv(oldArchwayHome, this.archwaydHome, overwrite);
+      }
+    } catch (e) {
+      if (e instanceof PromptCancelledError) {
+        console.warn(chalk`{yellow Cancelled moving keystore}`);
+      } else {
+        console.error(`Failed to move directory: ${e.message || e}\n`);
+      }
+    } finally {
+      console.info();
     }
   }
 }

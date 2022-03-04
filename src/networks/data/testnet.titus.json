@@ -1,0 +1,49 @@
+{
+  "network": {
+    "name": "titus",
+    "templatesBranch": "feature/cosmwasm-sdt-1.0.0-beta5",
+    "chainId": "titus-1",
+    "type": "testnet",
+    "fees": {
+      "feeDenom": "utitus"
+    },
+    "gas": {
+      "prices": "0.002utitus",
+      "mode": "auto",
+      "adjustment": "1.3"
+    },
+    "wasm": {
+      "bech32Hrp": "archway",
+      "archwayd": "v0.0.0",
+      "configDir": ".archway",
+      "binary": "archwayd"
+    },
+    "urls": {
+      "rpc": {
+        "url": "https://rpc.titus-1.archway.tech",
+        "port": 443
+      },
+      "faucets": [
+        "https://faucet.titus-1.archway.tech"
+      ]
+    }
+  },
+  "developer": {
+    "dApp": {
+      "gasPoolContract": null,
+      "rewardAddress": null,
+      "gasRebate": false,
+      "collectPremium": false,
+      "premiumPercentage": 0
+    },
+    "scripts": {
+      "test": "cargo unit-test",
+      "build": "cargo build",
+      "optimize": "cargo run-script optimize",
+      "wasm": "cargo wasm",
+      "query": "archwayd query wasm",
+      "tx": "archwayd tx wasm execute"
+    },
+    "deployments": []
+  }
+}

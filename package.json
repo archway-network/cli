@@ -38,14 +38,17 @@
   },
   "dependencies": {
     "axios": "^0.21.4",
-    "chalk": "^5.0.0",
-    "chalk-template": "^0.2.0",
-    "commander": "^8.2.0",
-    "prompts": "^2.4.2"
+    "chalk": "^4.1",
+    "commander": "^9.0",
+    "ora": "^5.4.1",
+    "promisify-child-process": "^4.1.1",
+    "prompts": "^2.4"
   },
   "devDependencies": {
-    "eslint": "^8.3.0",
-    "jest": "^27.4.7"
+    "eslint": "^8.3",
+    "jest": "^27.5",
+    "jest-mock-console": "^1.2.3",
+    "spawk": "^1.7.1"
   },
   "engines": {
     "node": ">=0.14.0"

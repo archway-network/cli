@@ -1,9 +1,8 @@
 {
-  "title": "",
-  "version": "",
   "network": {
+    "name": "constantine",
     "chainId": "constantine-1",
-    "isMainnet": false,
+    "type": "testnet",
     "fees": {
       "feeDenom": "uconst"
     },
@@ -23,34 +22,26 @@
         "url": "https://rpc.constantine-1.archway.tech",
         "port": 443
       },
-      "faucets": ["https://faucet.constantine-1.archway.tech"]
-    },
-    "optimizers": {
-      "docker": {
-        "type": "volume",
-        "source": "registry_cache",
-        "target": "/usr/local/cargo/registry",
-        "image": "cosmwasm/rust-optimizer:0.12.1"
-      }
+      "faucets": [
+        "https://faucet.constantine-1.archway.tech"
+      ]
     }
   },
   "developer": {
     "dApp": {
       "gasPoolContract": null,
       "rewardAddress": null,
-      "gasRebate": false, 
-      "collectPremium": false, 
+      "gasRebate": false,
+      "collectPremium": false,
       "premiumPercentage": 0
     },
     "scripts": {
       "test": "cargo unit-test",
       "build": "cargo build",
+      "optimize": "cargo run-script optimize",
       "wasm": "cargo wasm",
       "query": "archwayd query wasm",
       "tx": "archwayd tx wasm execute"
-    },
-    "archwayd": {
-      "docker": false
     },
     "deployments": []
   }
