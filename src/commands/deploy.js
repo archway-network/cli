@@ -30,26 +30,6 @@ async function storeDeployment(deployment = {}) {
   );
 }
 
-async function archwaydTxWasm(archwaydClient, wasmCommand, wasmArgs, { from, chainId, node, gas, extraTxArgs } = {}) {
-  const archwayd = archwaydClient.run('tx', [
-    'wasm', wasmCommand, ...wasmArgs,
-    '--from', from,
-    '--chain-id', chainId,
-    '--node', node,
-    '--gas', gas.mode,
-    '--gas-prices', gas.prices,
-    '--gas-adjustment', gas.adjustment,
-    '--broadcast-mode', 'block',
-    '--output', 'json'
-  ].concat(extraTxArgs), { stdio: ['inherit', 'pipe', 'inherit'] });
-  archwayd.stdout.pipe(process.stdout);
-  const { stdout } = await archwayd;
-
-  const lines = stdout.replace('\r', '').split('\n');
-  const jsonLines = lines.filter(line => line.startsWith('{'));
-  return JSON.parse(jsonLines.pop());
-}
-
 function getEventAttribute(transaction, eventType, attributeKey) {
   const { logs: [{ events = [] } = {},] = [], txhash } = transaction;
   const { attributes = [] } = events.find(event => event.type === eventType) || {};
@@ -63,7 +43,7 @@ async function promptRewardAddress(accounts) {
   const { rewardAddress } = await prompts({
     type: 'text',
     name: 'rewardAddress',
-    message: chalk`Enter an address to receive developer rewards, or hit <enter> to list all accounts {reset.dim (e.g. "archway1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv")}\n`,
+    message: chalk`Enter an address to receive developer rewards, or hit <enter> to list all accounts {reset.dim (e.g. "archway1...")}`,
     validate: value => _.isEmpty(_.trim(value)) || isArchwayAddress(_.trim(value)) || 'Invalid address',
     format: value => _.trim(value),
   });
@@ -137,7 +117,7 @@ async function instantiateContract(archwayd, options = {}) {
 
   const contractInitArgs = (chainId === 'constantine-1') ? buildInitArgs(args, await parseAndUpdateDApp(archwayd, dApp)) : args;
   const instantiateArgs = [codeId, contractInitArgs, '--label', label];
-  const transaction = await archwaydTxWasm(archwayd, 'instantiate', instantiateArgs, options);
+  const transaction = await archwayd.tx.wasm('instantiate', instantiateArgs, options);
   const { txhash, value: contractAddress } = getEventAttribute(transaction, 'instantiate', '_contract_address');
   if (!txhash || !contractAddress) {
     throw new Error(`Failed to instantiate contract with code_id=${codeId} and args=${args}`);
@@ -189,7 +169,7 @@ async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...o
     await copyFile(localPath, remotePath);
   }
 
-  const transaction = await archwaydTxWasm(archwayd, 'store', [localPath], { from, chainId, ...options });
+  const transaction = await archwayd.tx.wasm('store', [localPath], { from, chainId, ...options });
   const { txhash, value: codeIdString } = getEventAttribute(transaction, 'store_code', 'code_id');
   const codeId = _.toNumber(codeIdString);
   if (!txhash || !codeId) {
@@ -270,7 +250,7 @@ async function buildDeploymentConfig(cargo, config = {}, { confirm, ...options }
   const { from } = await prompts({
     type: 'text',
     name: 'from',
-    message: chalk`Send transactions from which wallet in your keychain? {reset.dim (e.g. "main" or crtl+c to quit)}`,
+    message: chalk`Send tx from which wallet in your keychain? {reset.dim (e.g. "main" or crtl+c to quit)}`,
     validate: value => !_.isEmpty(value.trim()) || 'Invalid wallet label',
     format: value => _.trim(value),
   });
