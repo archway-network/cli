@@ -43,7 +43,7 @@ async function fetchTxParameters(config = {}, { confirm, dryRun, args, flags = [
 
   return {
     contract,
-    args,
+    args: args || '{}',
     from,
     chainId,
     node,
