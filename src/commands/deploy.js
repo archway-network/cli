@@ -30,8 +30,8 @@ async function storeDeployment(deployment = {}) {
   );
 }
 
-async function archwaydTxWasm(archwayd, wasmCommand, wasmArgs, { from, chainId, node, gas, extraTxArgs } = {}) {
-  const archwayd = archwayd.run('tx', [
+async function archwaydTxWasm(archwaydClient, wasmCommand, wasmArgs, { from, chainId, node, gas, extraTxArgs } = {}) {
+  const archwayd = archwaydClient.run('tx', [
     'wasm', wasmCommand, ...wasmArgs,
     '--from', from,
     '--chain-id', chainId,
@@ -39,11 +39,10 @@ async function archwaydTxWasm(archwayd, wasmCommand, wasmArgs, { from, chainId, 
     '--gas', gas.mode,
     '--gas-prices', gas.prices,
     '--gas-adjustment', gas.adjustment,
-    '--output', 'json',
-    '--log_format', 'json',
+    '--broadcast-mode', 'block',
+    '--output', 'json'
   ].concat(extraTxArgs), { stdio: ['inherit', 'pipe', 'inherit'] });
   archwayd.stdout.pipe(process.stdout);
-
   const { stdout } = await archwayd;
 
   const lines = stdout.replace('\r', '').split('\n');
@@ -136,7 +135,7 @@ async function instantiateContract(archwayd, options = {}) {
     },
   ]);
 
-  const contractInitArgs = buildInitArgs(args, await parseAndUpdateDApp(archwayd, dApp));
+  const contractInitArgs = (chainId === 'constantine-1') ? buildInitArgs(args, await parseAndUpdateDApp(archwayd, dApp)) : args;
   const instantiateArgs = [codeId, contractInitArgs, '--label', label];
   const transaction = await archwaydTxWasm(archwayd, 'instantiate', instantiateArgs, options);
   const { txhash, value: contractAddress } = getEventAttribute(transaction, 'instantiate', '_contract_address');
