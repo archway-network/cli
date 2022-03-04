@@ -43,7 +43,7 @@ async function promptRewardAddress(accounts) {
   const { rewardAddress } = await prompts({
     type: 'text',
     name: 'rewardAddress',
-    message: chalk`Enter an address to receive developer rewards, or hit <enter> to list all accounts {reset.dim (e.g. "archway1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv")}\n`,
+    message: chalk`Enter an address to receive developer rewards, or hit <enter> to list all accounts {reset.dim (e.g. "archway1...")}`,
     validate: value => _.isEmpty(_.trim(value)) || isArchwayAddress(_.trim(value)) || 'Invalid address',
     format: value => _.trim(value),
   });
@@ -250,7 +250,7 @@ async function buildDeploymentConfig(cargo, config = {}, { confirm, ...options }
   const { from } = await prompts({
     type: 'text',
     name: 'from',
-    message: chalk`Send transactions from which wallet in your keychain? {reset.dim (e.g. "main" or crtl+c to quit)}`,
+    message: chalk`Send tx from which wallet in your keychain? {reset.dim (e.g. "main" or crtl+c to quit)}`,
     validate: value => !_.isEmpty(value.trim()) || 'Invalid wallet label',
     format: value => _.trim(value),
   });
