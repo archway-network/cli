@@ -48,7 +48,7 @@ async function promptAddress(accounts) {
   const { address } = await prompts({
     type: 'text',
     name: 'address',
-    message: chalk`Enter address to request funds to, or hit <enter> to list all accounts {reset.dim (e.g.: archway1x35egm8883wzg2zwqkvcjp0j4g25p4hed4yjuv)}\n`,
+    message: chalk`Enter address to request funds to, or hit <enter> to list all accounts {reset.dim (e.g.: archway1...)}`,
     validate: value => _.isEmpty(_.trim(value)) || isArchwayAddress(_.trim(value)) || 'Invalid address',
     format: value => _.trim(value),
   });

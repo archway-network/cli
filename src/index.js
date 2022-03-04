@@ -243,24 +243,18 @@ Program
 // `archway tx`
 Program
   .command('tx')
-  .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')
-  .option('-f, --flags <flags>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--dry-run --amount 1"')
   .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
+  .option('-f, --from <value>', 'Name or address of account to sign transactions')
+  .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')
+  .option('-d, --dry-run', 'Perform a simulation of a transaction without broadcast it', false)
+  .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
+  .option('--flags <flags...>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--amount 1"')
   .addOption(DockerOption)
-  .description('Execute a transaction on Archway network')
+  .description('Execute a smart contract transaction on Archway network')
   .action(async (options) => {
     options = await updateWithDockerOptions(options);
-    await createClient({ checkHomePath: true, ...options });
-
-    const args = {
-      tx: (options.args) ? options.args : null,
-      flags: (options.flags) ? options.flags : null,
-      contract: (options.contract) ? options.contract : null
-    };
-
-    await Tools.Tx(options.docker, args);
+    const archwayd = await createClient({ checkHomePath: true, ...options });
+    await Tools.Tx(archwayd, options);
   });
 
-const main = async () => await Program.parseAsync();
-
-main();
+Program.parseAsync();
