@@ -135,7 +135,7 @@ async function writeConfigFile(config) {
 async function initialCommit({ name }) {
   const rootPath = path.join(process.cwd(), name);
   const git = async (...args) => spawn('git', ['-C', rootPath, ...args], { stdio: 'inherit' });
-  await git('branch', '-M', 'main');
+  await git('checkout', '-b', 'main');
   await git('add', '-A');
   await git('commit', '-m', 'Initialized with archway-cli');
 }
