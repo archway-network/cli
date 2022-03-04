@@ -11,7 +11,6 @@ const { isJson, isArchwayAddress } = require('../util/validators');
 const Config = require('../util/config');
 const ScriptRunner = require('../util/scripts');
 const Cargo = require('../clients/cargo');
-const { Accounts } = require('./accounts');
 
 const isValidDeployment = _.conforms({
   type: _.isString,
@@ -37,7 +36,7 @@ function getEventAttribute(transaction, eventType, attributeKey) {
   return { txhash, value };
 }
 
-async function promptRewardAddress(accounts) {
+async function promptRewardAddress(archwayd) {
   // if a rewardAddress is present in the config, this should
   // already be available when prompts.override() was called.
   const { rewardAddress } = await prompts({
@@ -49,16 +48,15 @@ async function promptRewardAddress(accounts) {
   });
 
   if (_.isEmpty(rewardAddress)) {
-    await accounts.list();
-    return await promptRewardAddress(accounts);
+    await archwayd.keys.list();
+    return await promptRewardAddress(archwayd);
   }
 
   return rewardAddress;
 }
 
-async function parseAndUpdateDApp(archwayd, srcDApp) {
-  const accounts = new Accounts(archwayd);
-  const rewardAddress = await promptRewardAddress(accounts);
+async function parseAndUpdateMetadata(archwayd, srcDApp) {
+  const rewardAddress = await promptRewardAddress(archwayd);
   console.info(chalk`Address for dApp rewards: {cyan ${rewardAddress}}`);
 
   const dApp = { ...srcDApp, rewardAddress };
@@ -223,30 +221,20 @@ async function buildWasm(cargo, config) {
   console.info(chalk`{green Optimized wasm binary built successfully}\n`);
 }
 
-async function buildDeploymentConfig(cargo, config = {}, { confirm, ...options } = {}) {
-  const {
-    network: {
-      chainId,
-      urls: { rpc } = {},
-      gas
-    } = {},
-    developer: {
-      dApp: {
-        rewardAddress,
-        ...dApp
-      } = {}
-    } = {}
-  } = config;
-  const node = `${rpc.url}:${rpc.port}`;
+async function parseDeploymentOptions(cargo, config = {}, { confirm, args, ...options } = {}) {
+  if (!_.isEmpty(args) && !isJson(args)) {
+    throw new Error(`Arguments should be a JSON string, received "${args}"`);
+  }
 
   const project = await cargo.projectMetadata();
 
-  const extraTxArgs = [
-    confirm || '--yes',
-    // dryRun && '--dry-run', // FIXME: not working as expected on archwayd
-  ].filter(_.isString);
+  const {
+    network: { chainId, urls: { rpc } = {}, gas } = {},
+    developer: { dApp: { rewardAddress, ...dApp } = {} } = {}
+  } = config;
+  const node = `${rpc.url}:${rpc.port}`;
 
-  prompts.override({ rewardAddress: rewardAddress || undefined, ...options });
+  prompts.override({ rewardAddress: rewardAddress || undefined, args, ...options });
   const { from } = await prompts({
     type: 'text',
     name: 'from',
@@ -255,6 +243,12 @@ async function buildDeploymentConfig(cargo, config = {}, { confirm, ...options }
     format: value => _.trim(value),
   });
 
+  const flags = [
+    confirm || '--yes',
+    // FIXME: --dry-run is not working as expected on archwayd
+    // dryRun && '--dry-run',
+  ].filter(_.isString);
+
   return {
     project,
     from,
@@ -262,11 +256,11 @@ async function buildDeploymentConfig(cargo, config = {}, { confirm, ...options }
     node,
     gas,
     dApp: { rewardAddress, ...dApp },
-    extraTxArgs
+    flags
   }
 }
 
-async function deploy(archwayd, { verify = true, dryRun, ...options } = {}) {
+async function deploy(archwayd, { verify = true, dryRun = false, ...options } = {}) {
   // TODO: call archwayd operations with the --dry-run flag
   if (dryRun) {
     console.info('Building wasm binary...\n');

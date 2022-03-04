@@ -7,17 +7,16 @@ const Config = require('../util/config');
 const { isArchwayAddress, isJson } = require('../util/validators');
 
 async function fetchTxParameters(config = {}, { confirm, dryRun, args, flags = [], ...options } = {}) {
+  if (!_.isEmpty(args) && !isJson(args)) {
+    throw new Error(`Arguments should be a JSON string, received "${args}"`);
+  }
+
   const {
     network: { chainId, urls: { rpc } = {}, gas } = {},
     developer: { dApp = {}, deployments = [] } = {}
   } = config;
   const node = `${rpc.url}:${rpc.port}`;
   const { address: lastDeployedContract } = deployments.find(deployment => deployment.type == 'instantiate');
-
-  const extraFlags = [
-    confirm || '--yes',
-    dryRun && '--dry-run',
-  ].filter(_.isString);
 
   prompts.override({ contract: lastDeployedContract || undefined, ...options });
   const { from, contract } = await prompts([
@@ -37,9 +36,10 @@ async function fetchTxParameters(config = {}, { confirm, dryRun, args, flags = [
     },
   ]);
 
-  if (!_.isEmpty(args) && !isJson(args)) {
-    throw new Error(`Arguments should be a JSON string, received "${args}"`);
-  }
+  const extraFlags = [
+    confirm || '--yes',
+    dryRun && '--dry-run',
+  ].filter(_.isString);
 
   return {
     contract,
@@ -49,7 +49,7 @@ async function fetchTxParameters(config = {}, { confirm, dryRun, args, flags = [
     node,
     gas,
     dApp,
-    extraTxArgs: [...extraFlags, ...flags],
+    flags: [...extraFlags, ...flags],
   }
 }
 
