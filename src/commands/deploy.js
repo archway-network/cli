@@ -124,10 +124,9 @@ async function instantiateContract(archwayd, options = {}) {
 
   await storeDeployment({
     type: 'instantiate',
+    chainId: chainId,
     codeId: codeId,
     address: contractAddress,
-    chainId: chainId,
-    data: transaction
   });
 
   console.info(chalk`{green Successfully instantiated contract with address {cyan ${contractAddress}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
@@ -183,9 +182,8 @@ async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...o
 
   await storeDeployment({
     type: 'create',
-    codeId: codeId,
     chainId: chainId,
-    data: transaction
+    codeId: codeId,
   });
 
   console.info(chalk`{green Uploaded {cyan ${fileName}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
