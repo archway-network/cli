@@ -16,7 +16,7 @@ async function parseTxOptions(config = {}, { confirm, dryRun, args, flags = [], 
     developer: { deployments = [] } = {}
   } = config;
   const node = `${rpc.url}:${rpc.port}`;
-  const { address: lastDeployedContract } = deployments.find(deployment => deployment.type == 'instantiate');
+  const { address: lastDeployedContract } = deployments.find(_.matches({ type: 'instantiate', chainId })) || {};
 
   prompts.override({ contract: lastDeployedContract || undefined, ...options });
   const { from, contract } = await prompts([
