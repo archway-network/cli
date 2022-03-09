@@ -1,13 +1,31 @@
-.DS_Store
-.cache/
-package-lock.json
+# Dependency directories
 node_modules/
-.env
-.env-mainnet
-.env-testnet
-.env-local
-*.zip
-*.bak
-config.json
 
-sandbox/
+# Builds and caches
+.cache/
+build/
+
+# Test framework
+coverage/
+
+# dotenv environment variable files
+.env
+.env.mainnet
+.env.testnet
+.env.local
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Environment specific files
+.DS_Store
+*.bak
+.history
