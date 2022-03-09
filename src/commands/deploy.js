@@ -85,6 +85,15 @@ function buildInitArgs(args, { rewardAddress, gasRebate, collectPremium, premium
   return JSON.stringify(initArgs);
 }
 
+async function parseContractInitArgs(archwayd, chainId, args, dApp) {
+  if (_.isEmpty(dApp) || chainId !== 'constantine-1') {
+    return args;
+  }
+
+  const updatedDappConfig = await parseAndUpdateMetadata(archwayd, dApp);
+  return buildInitArgs(args, updatedDappConfig);
+}
+
 async function parseBech32Address(archwayd, address) {
   if (isArchwayAddress(address)) {
     return address;
@@ -124,7 +133,7 @@ async function instantiateContract(archwayd, options = {}) {
     },
   ]);
 
-  const contractInitArgs = _.isEmpty(dApp) ? args : buildInitArgs(args, await parseAndUpdateMetadata(archwayd, dApp));
+  const contractInitArgs = await parseContractInitArgs(archwayd, args, dApp);
   const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
   const instantiateArgs = [codeId, contractInitArgs, '--label', label, '--admin', bech32AdminAddress];
   const transaction = await archwayd.tx.wasm('instantiate', instantiateArgs, options);
