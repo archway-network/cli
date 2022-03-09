@@ -28,13 +28,6 @@
     }
   },
   "developer": {
-    "dApp": {
-      "gasPoolContract": null,
-      "rewardAddress": null,
-      "gasRebate": false,
-      "collectPremium": false,
-      "premiumPercentage": 0
-    },
     "scripts": {
       "test": "cargo unit-test",
       "build": "cargo build",

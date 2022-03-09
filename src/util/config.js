@@ -21,7 +21,7 @@ async function readConfig(pathPrefix = null) {
     const configPath = await getConfigPath(pathPrefix);
     return require(configPath);
   } catch (e) {
-    throw new Error(`Failed to open the project config file ${ConfigFilename}: ${e.message || e}`);
+    throw new Error(`Failed to open the project config file: make sure you are running the command from an Archway project directory`);
   }
 }
 

@@ -11,7 +11,6 @@ const { isJson, isArchwayAddress } = require('../util/validators');
 const Config = require('../util/config');
 const ScriptRunner = require('../util/scripts');
 const Cargo = require('../clients/cargo');
-const { Accounts } = require('./accounts');
 
 const isValidDeployment = _.conforms({
   type: _.isString,
@@ -30,6 +29,7 @@ async function storeDeployment(deployment = {}) {
   );
 }
 
+// TODO: move to the archwayd tx wrapper?
 function getEventAttribute(transaction, eventType, attributeKey) {
   const { logs: [{ events = [] } = {},] = [], txhash } = transaction;
   const { attributes = [] } = events.find(event => event.type === eventType) || {};
@@ -37,7 +37,7 @@ function getEventAttribute(transaction, eventType, attributeKey) {
   return { txhash, value };
 }
 
-async function promptRewardAddress(accounts) {
+async function promptRewardAddress(archwayd) {
   // if a rewardAddress is present in the config, this should
   // already be available when prompts.override() was called.
   const { rewardAddress } = await prompts({
@@ -49,16 +49,15 @@ async function promptRewardAddress(accounts) {
   });
 
   if (_.isEmpty(rewardAddress)) {
-    await accounts.list();
-    return await promptRewardAddress(accounts);
+    await archwayd.keys.list();
+    return await promptRewardAddress(archwayd);
   }
 
   return rewardAddress;
 }
 
-async function parseAndUpdateDApp(archwayd, srcDApp) {
-  const accounts = new Accounts(archwayd);
-  const rewardAddress = await promptRewardAddress(accounts);
+async function parseAndUpdateMetadata(archwayd, srcDApp) {
+  const rewardAddress = await promptRewardAddress(archwayd);
   console.info(chalk`Address for dApp rewards: {cyan ${rewardAddress}}`);
 
   const dApp = { ...srcDApp, rewardAddress };
@@ -86,10 +85,29 @@ function buildInitArgs(args, { rewardAddress, gasRebate, collectPremium, premium
   return JSON.stringify(initArgs);
 }
 
+async function parseContractInitArgs(archwayd, chainId, args, dApp) {
+  if (_.isEmpty(dApp) || chainId !== 'constantine-1') {
+    return args;
+  }
+
+  const updatedDappConfig = await parseAndUpdateMetadata(archwayd, dApp);
+  return buildInitArgs(args, updatedDappConfig);
+}
+
+async function parseBech32Address(archwayd, address) {
+  if (isArchwayAddress(address)) {
+    return address;
+  }
+
+  console.info(chalk`Fetching address for wallet {cyan ${address}}...`);
+  return await archwayd.keys.getAddress(address);
+}
+
 async function instantiateContract(archwayd, options = {}) {
   const {
     project: { id: projectId } = {},
     from,
+    adminAddress,
     chainId,
     dApp,
     wasm: { codeId } = {}
@@ -101,7 +119,7 @@ async function instantiateContract(archwayd, options = {}) {
     {
       type: 'text',
       name: 'label',
-      message: chalk`Do you want to label this deployment? {reset.dim (type <enter> to use the default)}`,
+      message: chalk`Choose a label for this deployment {reset.dim (type <enter> to use the default)}`,
       initial: projectId,
       validate: value => !_.isEmpty(_.trim(value)) || 'Invalid deployment label',
       format: value => _.trim(value),
@@ -109,14 +127,15 @@ async function instantiateContract(archwayd, options = {}) {
     {
       type: 'text',
       name: 'args',
-      message: chalk`JSON encoded arguments for contract initialization {reset.dim (e.g. \{"count": 0\})}`,
+      message: chalk`JSON encoded arguments for contract initialization {reset.dim (e.g. \{ "count": 0 \})}`,
       initial: '{}',
       validate: value => isJson(value) || 'Invalid initialization args - inform a valid JSON string',
     },
   ]);
 
-  const contractInitArgs = (chainId === 'constantine-1') ? buildInitArgs(args, await parseAndUpdateDApp(archwayd, dApp)) : args;
-  const instantiateArgs = [codeId, contractInitArgs, '--label', label];
+  const contractInitArgs = await parseContractInitArgs(archwayd, chainId, args, dApp);
+  const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
+  const instantiateArgs = [codeId, contractInitArgs, '--label', label, '--admin', bech32AdminAddress];
   const transaction = await archwayd.tx.wasm('instantiate', instantiateArgs, options);
   const { txhash, value: contractAddress } = getEventAttribute(transaction, 'instantiate', '_contract_address');
   if (!txhash || !contractAddress) {
@@ -125,13 +144,19 @@ async function instantiateContract(archwayd, options = {}) {
 
   await storeDeployment({
     type: 'instantiate',
+    chainId: chainId,
     codeId: codeId,
     address: contractAddress,
-    chainId: chainId,
-    data: transaction
+    admin: bech32AdminAddress
   });
 
   console.info(chalk`{green Successfully instantiated contract with address {cyan ${contractAddress}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
+
+  if (_.isEmpty(dApp)) {
+    console.warn(chalk`{whiteBright It is recommended that you now set the contract metadata using the {green.bold archway metadata} command}`);
+  }
+
+  return { contractAddress };
 }
 
 async function verifyUploadedWasm(archwayd, { chainId, node, wasm: { codeId, localPath, remotePath } = {} } = {}) {
@@ -159,7 +184,7 @@ async function verifyUploadedWasm(archwayd, { chainId, node, wasm: { codeId, loc
 async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...options } = {}) {
   console.info(chalk`Uploading optimized executable to {cyan ${chainId}} using wallet {cyan ${from}}...`);
 
-  const fileName = `${_.snakeCase(name)}.wasm`;
+  const fileName = `${name.replace(/-/g, '_')}.wasm`;
   const localPath = path.join('artifacts', fileName);
   const remotePath = path.join(archwayd.workingDir, localPath);
   // If we use docker or for any reason need to copy the file to any other directory before upload
@@ -178,14 +203,13 @@ async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...o
 
   await storeDeployment({
     type: 'create',
-    codeId: codeId,
     chainId: chainId,
-    data: transaction
+    codeId: codeId,
   });
 
   console.info(chalk`{green Uploaded {cyan ${fileName}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
 
-  return { codeId, localPath, remotePath, txhash };
+  return { codeId, localPath, remotePath };
 }
 
 function spawnOptimizer(cargo, { network: { optimizers: { docker: { target, image } = {} } = {} } = {} } = {}) {
@@ -223,50 +247,58 @@ async function buildWasm(cargo, config) {
   console.info(chalk`{green Optimized wasm binary built successfully}\n`);
 }
 
-async function buildDeploymentConfig(cargo, config = {}, { confirm, ...options } = {}) {
+async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, label, defaultLabel, ...options } = {}) {
+  if (!_.isEmpty(args) && !isJson(args)) {
+    throw new Error(`Arguments should be a JSON string, received "${args}"`);
+  }
+
+  const project = await cargo.projectMetadata();
+  if (_.isEmpty(project.name)) {
+    console.debug('Project metadata:', project);
+    throw new Error('Failed to resolve project metadata');
+  }
+
   const {
-    network: {
-      chainId,
-      urls: { rpc } = {},
-      gas
-    } = {},
-    developer: {
-      dApp: {
-        rewardAddress,
-        ...dApp
-      } = {}
-    } = {}
+    network: { chainId, urls: { rpc } = {}, gas } = {},
+    developer: { dApp = {} } = {}
   } = config;
   const node = `${rpc.url}:${rpc.port}`;
 
-  const project = await cargo.projectMetadata();
-
-  const extraTxArgs = [
-    confirm || '--yes',
-    // dryRun && '--dry-run', // FIXME: not working as expected on archwayd
-  ].filter(_.isString);
-
-  prompts.override({ rewardAddress: rewardAddress || undefined, ...options });
-  const { from } = await prompts({
-    type: 'text',
-    name: 'from',
-    message: chalk`Send tx from which wallet in your keychain? {reset.dim (e.g. "main" or crtl+c to quit)}`,
-    validate: value => !_.isEmpty(value.trim()) || 'Invalid wallet label',
-    format: value => _.trim(value),
+  prompts.override({
+    args,
+    rewardAddress: dApp.rewardAddress || undefined,
+    label: label || (defaultLabel && project.id) || undefined,
+    ...options
   });
+  const { from } = await prompts([
+    {
+      type: 'text',
+      name: 'from',
+      message: chalk`Send tx from which wallet in your keychain? {reset.dim (e.g. "main" or crtl+c to quit)}`,
+      validate: value => !_.isEmpty(value.trim()) || 'Invalid wallet label',
+      format: value => _.trim(value),
+    },
+  ]);
+
+  const flags = [
+    confirm || '--yes',
+    // FIXME: --dry-run is not working as expected on archwayd
+    // dryRun && '--dry-run',
+  ].filter(_.isString);
 
   return {
     project,
     from,
+    adminAddress: adminAddress || from,
     chainId,
     node,
     gas,
-    dApp: { rewardAddress, ...dApp },
-    extraTxArgs
+    dApp,
+    flags
   }
 }
 
-async function deploy(archwayd, { verify = true, dryRun, ...options } = {}) {
+async function deploy(archwayd, { build = true, verify = true, dryRun = false, ...options } = {}) {
   // TODO: call archwayd operations with the --dry-run flag
   if (dryRun) {
     console.info('Building wasm binary...\n');
@@ -277,12 +309,14 @@ async function deploy(archwayd, { verify = true, dryRun, ...options } = {}) {
   const config = await Config.read();
   const cargo = new Cargo();
 
-  await buildWasm(cargo, config);
+  build && await buildWasm(cargo, config);
 
-  const deploymentConfig = await buildDeploymentConfig(cargo, config, options);
-  const wasm = await storeWasm(archwayd, deploymentConfig);
-  const deployedWasmConfig = { ...deploymentConfig, wasm };
+  const deployOptions = await parseDeploymentOptions(cargo, config, options);
+
+  const wasm = await storeWasm(archwayd, deployOptions);
+  const deployedWasmConfig = { ...deployOptions, wasm };
   verify && await verifyUploadedWasm(archwayd, deployedWasmConfig);
+
   await instantiateContract(archwayd, deployedWasmConfig);
 }
 

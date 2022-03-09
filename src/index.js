@@ -63,11 +63,11 @@ function parseJson(value) {
  * CLI worker
  * @see commander (https://www.npmjs.com/package/commander)
  */
-const Program = new Command();
-Program.version(getVersion(), '-v, --version', 'output the current version');
-Program.configureOutput({
-  outputError: (str, write) => write(chalk.red(str))
-});
+const Program = new Command()
+  .version(getVersion(), '-v, --version', 'output the current version')
+  .configureOutput({
+    outputError: (str, write) => write(chalk.red(str))
+  });
 
 // Commands
 // `archway accounts`
@@ -109,20 +109,18 @@ Program
 Program
   .command('deploy')
   .description('Deploy to network, or test deployability')
-  .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment (e.g. --args \'{"key": "value"}\')', parseJson)
-  .option('-f, --from <value>', 'Name or address of account to sign transactions')
-  .option('-l, --label <value>', 'Label to use for instantiating the contract (default: "<project_name> <project_version>")')
-  .option('--reward-address <value>', 'Address for the reward contract(e.g. "archway1...")', parseArchwayAddress)
-  .option('-d, --dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
+  .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment (e.g. --args \'{ "count": 0 }\')', parseJson)
+  .option('-l, --label <value>', 'Label used for instantiating the contract')
+  .option('--default-label', 'Use the default label for instantiating the contract: "<project_name> <project_version>"')
+  .option('-f, --from <value>', 'Name or address of account to sign the transactions')
+  .option('--admin-address <value>', 'Address which can perform admin actions on the contract (e.g. "archway1...")', parseArchwayAddress)
+  .option('--reward-address <value>', 'Address in which rewards will be deposited (e.g. "archway1...")', parseArchwayAddress)
+  .option('--no-build', 'Do not build the project before deploying; it will fail in case the wasm file is not built', true)
+  .option('--no-verify', 'Do not verify the wasm file uploaded on-chain', true)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .addOption(new Option('--dryrun', '[deprecated]').hideHelp())
+  .option('--dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
   .addOption(DockerOption)
-  .action(async ({ dryrun, ...options }) => {
-    if (dryrun) {
-      console.warn(chalk`{yellow [deprecated] --dryrun is deprecated. Use --dry-run instead.}`);
-      options = { dryRun: dryrun, ...options };
-    }
-
+  .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Deploy(archwayd, options);
@@ -153,6 +151,27 @@ Program
     await Tools.DeployHistory();
   });
 
+// `archway deploy`
+Program
+  .command('metadata')
+  .description('Set the contract metadata')
+  .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
+  .option('-f, --from <value>', 'Name or address of account to sign transactions')
+  .option('--developer-address <value>', 'Developer address which can change metadata later on (e.g. "archway1...")', parseArchwayAddress)
+  .option('--reward-address <value>', 'Reward address in which rewards will be deposited (e.g. "archway1...")', parseArchwayAddress)
+  .option('--collect-premium', 'Indicates if the contract will use a premium for gas rewards')
+  .option('--premium-percentage <value>', 'Integer percentage of premium in a range between 0 and 200', parseInt)
+  .option('--gas-rebate', 'Indicates if the contract rewards should be used for gas rebates to the user')
+  .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
+  .option('--dry-run', 'Perform a simulation of a transaction without broadcasting it', false)
+  .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
+  .addOption(DockerOption)
+  .action(async (options) => {
+    options = await updateWithDockerOptions(options);
+    const archwayd = await createClient({ checkHomePath: true, ...options });
+    await Tools.Metadata(archwayd, options);
+  });
+
 // `archway network`
 Program
   .command('network')
@@ -171,8 +190,7 @@ Program
   .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
   .option('--template <value>', 'Project template to use')
   .addOption(new Option('--no-template', 'Do not prompt for a project template').preset('default'))
-  .option('-b, --build', 'Build the project after setup', true)
-  .option('--no-build', 'Do no build the project after setup')
+  .option('--no-build', 'Do not build the project after setup', true)
   .argument('[name]', 'Project name', parseProjectName)
   .action(async (name, options) => {
     await Tools.New(name, options);
@@ -246,9 +264,9 @@ Program
   .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
   .option('-f, --from <value>', 'Name or address of account to sign transactions')
   .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')
-  .option('-d, --dry-run', 'Perform a simulation of a transaction without broadcast it', false)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .option('--flags <flags...>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--amount 1"')
+  .option('--dry-run', 'Perform a simulation of a transaction without broadcasting it', false)
+  .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
   .addOption(DockerOption)
   .description('Execute a smart contract transaction on Archway network')
   .action(async (options) => {

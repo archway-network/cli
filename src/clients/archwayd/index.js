@@ -1,40 +1,14 @@
+const debug = require('debug')('archwayd');
 const chalk = require('chalk');
-const { prompts, PromptCancelledError } = require('../util/prompts');
 const { spawn } = require('promisify-child-process');
-const { pathExists, mv } = require('../util/fs');
+const { prompts, PromptCancelledError } = require('../../util/prompts');
+const { pathExists, mv } = require('../../util/fs');
+
+const KeysCommands = require('./keys');
+const TxCommands = require('./tx');
 
 const DefaultArchwaydVersion = 'latest';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
-
-class ArchwayTxRunner {
-  client;
-
-  constructor(client) {
-    this.client = client;
-  }
-
-  async wasm(wasmCommand, wasmArgs, { from, chainId, node, gas, extraTxArgs = [] } = {}) {
-    const args = [
-      'wasm', wasmCommand, ...wasmArgs,
-      '--from', from,
-      '--chain-id', chainId,
-      '--node', node,
-      '--gas', gas.mode,
-      '--gas-prices', gas.prices,
-      '--gas-adjustment', gas.adjustment,
-      '--broadcast-mode', 'block',
-      '--output', 'json',
-      ...extraTxArgs
-    ];
-    const archwayd = this.client.run('tx', args, { stdio: ['inherit', 'pipe', 'inherit'] });
-    archwayd.stdout.pipe(process.stdout);
-    const { stdout } = await archwayd;
-
-    const lines = stdout.replace('\r', '').split('\n');
-    const jsonLines = lines.filter(line => line.startsWith('{'));
-    return JSON.parse(jsonLines.pop());
-  }
-}
 
 /**
  * Facade for the archwayd client, which supports both Docker and binary implementations.
@@ -42,12 +16,14 @@ class ArchwayTxRunner {
 class DefaultArchwayClient {
   #archwaydHome;
   #extraArgs;
-  #txRunner;
+  #keys;
+  #tx;
 
   constructor({ archwaydHome = DefaultArchwaydHome, extraArgs = [] }) {
     this.#archwaydHome = archwaydHome;
     this.#extraArgs = extraArgs;
-    this.#txRunner = new ArchwayTxRunner(this);
+    this.#keys = new KeysCommands(this);
+    this.#tx = new TxCommands(this);
   }
 
   get command() {
@@ -66,8 +42,12 @@ class DefaultArchwayClient {
     return '.';
   }
 
+  get keys() {
+    return this.#keys;
+  }
+
   get tx() {
-    return this.#txRunner;
+    return this.#tx;
   }
 
   parseArgs(args = []) {
@@ -77,6 +57,7 @@ class DefaultArchwayClient {
   run(subCommand, args = [], options = { stdio: 'inherit' }) {
     const command = this.command;
     const parsedArgs = this.parseArgs([subCommand, ...args]);
+    debug(command, ...parsedArgs);
     return spawn(command, parsedArgs, { ...options, encoding: 'utf8' });
   }
 }

@@ -5,7 +5,6 @@ const chalk = require('chalk');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const ora = require('ora');
 const HttpClient = require('axios');
-const { Accounts } = require('./accounts');
 const { Testnets, loadNetworkConfig } = require('../networks');
 const { isArchwayAddress } = require('../util/validators');
 
@@ -44,7 +43,7 @@ async function requestFunds(address, testnet) {
   console.info(chalk`{green Successfully sent {cyan ${coin}} to address}`);
 }
 
-async function promptAddress(accounts) {
+async function promptAddress(archwayd) {
   const { address } = await prompts({
     type: 'text',
     name: 'address',
@@ -54,8 +53,8 @@ async function promptAddress(accounts) {
   });
 
   if (_.isEmpty(address)) {
-    await accounts.list();
-    return await promptAddress(accounts);
+    await archwayd.keys.list();
+    return await promptAddress(archwayd);
   }
 
   return address;
@@ -70,8 +69,7 @@ async function main(archwayd, options = {}) {
     }
 
     prompts.override(options);
-    const accounts = new Accounts(archwayd);
-    const address = await promptAddress(accounts);
+    const address = await promptAddress(archwayd);
     await requestFunds(address, testnet);
   } catch (e) {
     if (e instanceof PromptCancelledError) {
