@@ -1,3 +1,5 @@
+const { isArchwayAddress } = require('../../util/validators');
+
 class KeysCommands {
   #client;
 
@@ -11,6 +13,14 @@ class KeysCommands {
 
   async list() {
     await this.#client.run('keys', ['list']);
+  }
+
+  async getAddress(name) {
+    const archwayd = this.#client.run('keys', ['show', name, '-a'], { stdio: ['inherit', 'pipe', 'inherit'] });
+    archwayd.stdout.pipe(process.stdout);
+    const { stdout } = await archwayd;
+    const lines = stdout.replace('\r', '').split('\n');
+    return lines.find(isArchwayAddress);
   }
 }
 

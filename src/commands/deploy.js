@@ -85,10 +85,20 @@ function buildInitArgs(args, { rewardAddress, gasRebate, collectPremium, premium
   return JSON.stringify(initArgs);
 }
 
+async function parseBech32Address(archwayd, address) {
+  if (isArchwayAddress(address)) {
+    return address;
+  }
+
+  console.info(chalk`Fetching address for wallet {cyan ${address}}...`);
+  return await archwayd.keys.getAddress(address);
+}
+
 async function instantiateContract(archwayd, options = {}) {
   const {
     project: { id: projectId } = {},
     from,
+    adminAddress,
     chainId,
     dApp,
     wasm: { codeId } = {}
@@ -100,7 +110,7 @@ async function instantiateContract(archwayd, options = {}) {
     {
       type: 'text',
       name: 'label',
-      message: chalk`Do you want to label this deployment? {reset.dim (type <enter> to use the default)}`,
+      message: chalk`Choose a label for this deployment {reset.dim (type <enter> to use the default)}`,
       initial: projectId,
       validate: value => !_.isEmpty(_.trim(value)) || 'Invalid deployment label',
       format: value => _.trim(value),
@@ -115,7 +125,8 @@ async function instantiateContract(archwayd, options = {}) {
   ]);
 
   const contractInitArgs = _.isEmpty(dApp) ? args : buildInitArgs(args, await parseAndUpdateMetadata(archwayd, dApp));
-  const instantiateArgs = [codeId, contractInitArgs, '--label', label];
+  const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
+  const instantiateArgs = [codeId, contractInitArgs, '--label', label, '--admin', bech32AdminAddress];
   const transaction = await archwayd.tx.wasm('instantiate', instantiateArgs, options);
   const { txhash, value: contractAddress } = getEventAttribute(transaction, 'instantiate', '_contract_address');
   if (!txhash || !contractAddress) {
@@ -226,7 +237,7 @@ async function buildWasm(cargo, config) {
   console.info(chalk`{green Optimized wasm binary built successfully}\n`);
 }
 
-async function parseDeploymentOptions(cargo, config = {}, { confirm, args, ...options } = {}) {
+async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
@@ -248,13 +259,15 @@ async function parseDeploymentOptions(cargo, config = {}, { confirm, args, ...op
     rewardAddress: dApp.rewardAddress || undefined,
     ...options
   });
-  const { from } = await prompts({
-    type: 'text',
-    name: 'from',
-    message: chalk`Send tx from which wallet in your keychain? {reset.dim (e.g. "main" or crtl+c to quit)}`,
-    validate: value => !_.isEmpty(value.trim()) || 'Invalid wallet label',
-    format: value => _.trim(value),
-  });
+  const { from } = await prompts([
+    {
+      type: 'text',
+      name: 'from',
+      message: chalk`Send tx from which wallet in your keychain? {reset.dim (e.g. "main" or crtl+c to quit)}`,
+      validate: value => !_.isEmpty(value.trim()) || 'Invalid wallet label',
+      format: value => _.trim(value),
+    },
+  ]);
 
   const flags = [
     confirm || '--yes',
@@ -265,6 +278,7 @@ async function parseDeploymentOptions(cargo, config = {}, { confirm, args, ...op
   return {
     project,
     from,
+    adminAddress: adminAddress || from,
     chainId,
     node,
     gas,

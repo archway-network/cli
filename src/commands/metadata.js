@@ -90,8 +90,8 @@ async function setContractMetadata(archwayd, options = {}) {
 
   console.info(chalk`Setting metadata for contract {cyan ${contract}}...`);
   const { txhash, code, raw_log } = await archwayd.tx.setContractMetadata(contract, contractMetadata, txOptions);
-  if (!txhash || code !== 0) {
-    console.error(chalk`{yellow Transaction {cyan ${txhash}} failed}`)
+  if (!txhash || (code && code !== 0)) {
+    console.error(chalk`{yellow Transaction {cyan ${txhash}} failed}`);
     throw new Error(raw_log);
   }
 
