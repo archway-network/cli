@@ -183,7 +183,7 @@ async function verifyUploadedWasm(archwayd, { chainId, node, wasm: { codeId, loc
 async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...options } = {}) {
   console.info(chalk`Uploading optimized executable to {cyan ${chainId}} using wallet {cyan ${from}}...`);
 
-  const fileName = `${name.replaceAll('-', '_')}.wasm`;
+  const fileName = `${name.replace(/-/g, '_')}.wasm`;
   const localPath = path.join('artifacts', fileName);
   const remotePath = path.join(archwayd.workingDir, localPath);
   // If we use docker or for any reason need to copy the file to any other directory before upload
