@@ -133,7 +133,7 @@ async function instantiateContract(archwayd, options = {}) {
     },
   ]);
 
-  const contractInitArgs = await parseContractInitArgs(archwayd, args, dApp);
+  const contractInitArgs = await parseContractInitArgs(archwayd, chainId, args, dApp);
   const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
   const instantiateArgs = [codeId, contractInitArgs, '--label', label, '--admin', bech32AdminAddress];
   const transaction = await archwayd.tx.wasm('instantiate', instantiateArgs, options);
