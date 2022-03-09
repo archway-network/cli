@@ -247,7 +247,7 @@ async function buildWasm(cargo, config) {
   console.info(chalk`{green Optimized wasm binary built successfully}\n`);
 }
 
-async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, ...options } = {}) {
+async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, label, defaultLabel, ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
@@ -267,6 +267,7 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   prompts.override({
     args,
     rewardAddress: dApp.rewardAddress || undefined,
+    label: label || (defaultLabel && project.id) || undefined,
     ...options
   });
   const { from } = await prompts([

@@ -111,6 +111,7 @@ Program
   .description('Deploy to network, or test deployability')
   .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment (e.g. --args \'{ "count": 0 }\')', parseJson)
   .option('-l, --label <value>', 'Label used for instantiating the contract')
+  .option('--default-label', 'Use the default label for instantiating the contract: "<project_name> <project_version>"')
   .option('-f, --from <value>', 'Name or address of account to sign the transactions')
   .option('--admin-address <value>', 'Address which can perform admin actions on the contract (e.g. "archway1...")', parseArchwayAddress)
   .option('--reward-address <value>', 'Address in which rewards will be deposited (e.g. "archway1...")', parseArchwayAddress)
