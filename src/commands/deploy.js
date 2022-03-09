@@ -147,6 +147,7 @@ async function instantiateContract(archwayd, options = {}) {
     chainId: chainId,
     codeId: codeId,
     address: contractAddress,
+    admin: bech32AdminAddress
   });
 
   console.info(chalk`{green Successfully instantiated contract with address {cyan ${contractAddress}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);

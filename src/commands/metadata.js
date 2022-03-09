@@ -4,6 +4,24 @@ const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress } = require('../util/validators');
 const Config = require('../util/config');
 
+const isValidDeployment = _.conforms({
+  type: _.isString,
+  chainId: _.isString,
+  contract: isArchwayAddress,
+  contractMetadata: _.isObject
+});
+async function storeDeployment(deployment = {}) {
+  if (!isValidDeployment(deployment)) {
+    console.error(chalk`{red Invalid deployment config}`, deployment);
+    throw new Error(`Could not save deployment data to config file`);
+  }
+
+  await Config.update(
+    { developer: { deployments: [deployment] } },
+    { arrayMode: 'prepend' }
+  );
+}
+
 async function parseTxOptions(config = {}, { confirm, dryRun, flags = [], ...options } = {}) {
   const {
     network: { chainId, urls: { rpc } = {}, gas } = {},
@@ -86,16 +104,21 @@ async function parseTxOptions(config = {}, { confirm, dryRun, flags = [], ...opt
 
 async function setContractMetadata(archwayd, options = {}) {
   const config = await Config.read();
-  const { contract, contractMetadata, ...txOptions } = await parseTxOptions(config, options);
+  const { chainId, contract, contractMetadata, ...txOptions } = await parseTxOptions(config, options);
 
   console.info(chalk`Setting metadata for contract {cyan ${contract}}...`);
-  const { txhash, code, raw_log } = await archwayd.tx.setContractMetadata(contract, contractMetadata, txOptions);
+  const { txhash, code, raw_log } = await archwayd.tx.setContractMetadata(contract, contractMetadata, { chainId, ...txOptions });
   if (!txhash || (code && code !== 0)) {
     console.error(chalk`{yellow Transaction {cyan ${txhash}} failed}`);
     throw new Error(raw_log);
   }
 
-  await Config.update({ developer: { contractMetadata } });
+  await storeDeployment({
+    type: 'set-metadata',
+    chainId,
+    contract,
+    contractMetadata
+  });
 
   console.info(chalk`{green Successfully set contract metadata on tx hash {cyan ${txhash}}}\n`);
 }
