@@ -63,11 +63,11 @@ function parseJson(value) {
  * CLI worker
  * @see commander (https://www.npmjs.com/package/commander)
  */
-const Program = new Command();
-Program.version(getVersion(), '-v, --version', 'output the current version');
-Program.configureOutput({
-  outputError: (str, write) => write(chalk.red(str))
-});
+const Program = new Command()
+  .version(getVersion(), '-v, --version', 'output the current version')
+  .configureOutput({
+    outputError: (str, write) => write(chalk.red(str))
+  });
 
 // Commands
 // `archway accounts`
@@ -158,9 +158,9 @@ Program
   .option('-f, --from <value>', 'Name or address of account to sign transactions')
   .option('--developer-address <value>', 'Developer address which can change metadata later on (e.g. "archway1...")', parseArchwayAddress)
   .option('--reward-address <value>', 'Reward address in which rewards will be deposited (e.g. "archway1...")', parseArchwayAddress)
-  .option('--collect-premium|--no-collect-premium', 'Indicates if the contract will use a premium for gas rewards')
+  .option('--collect-premium', 'Indicates if the contract will use a premium for gas rewards')
   .option('--premium-percentage <value>', 'Integer percentage of premium in a range between 0 and 200', parseInt)
-  .option('--gas-rebate|--no-gas-rebate', 'Indicates if the contract rewards should be used for gas rebates to the user')
+  .option('--gas-rebate', 'Indicates if the contract rewards should be used for gas rebates to the user')
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
   .option('--dry-run', 'Perform a simulation of a transaction without broadcasting it', false)
   .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
