@@ -232,6 +232,10 @@ async function parseDeploymentOptions(cargo, config = {}, { confirm, args, ...op
   }
 
   const project = await cargo.projectMetadata();
+  if (_.isEmpty(project.name)) {
+    console.debug('Project metadata:', project);
+    throw new Error('Failed to resolve project metadata');
+  }
 
   const {
     network: { chainId, urls: { rpc } = {}, gas } = {},
@@ -269,7 +273,7 @@ async function parseDeploymentOptions(cargo, config = {}, { confirm, args, ...op
   }
 }
 
-async function deploy(archwayd, { build, verify, dryRun, ...options } = {}) {
+async function deploy(archwayd, { build = true, verify = true, dryRun = false, ...options } = {}) {
   // TODO: call archwayd operations with the --dry-run flag
   if (dryRun) {
     console.info('Building wasm binary...\n');
