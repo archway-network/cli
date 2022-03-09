@@ -112,7 +112,7 @@ async function setContractMetadata(archwayd, options = {}) {
   const config = await Config.read();
   const { chainId, contract, contractMetadata, ...txOptions } = await parseTxOptions(config, options);
 
-  console.info(chalk`Setting metadata for contract {cyan ${contract}}...`);
+  console.info(chalk`Setting metadata for contract {cyan ${contract}} on {cyan ${chainId}}...`);
   const { txhash, code, raw_log } = await archwayd.tx.setContractMetadata(contract, contractMetadata, { chainId, ...txOptions });
   if (!txhash || (code && code !== 0)) {
     console.error(chalk`{yellow Transaction {cyan ${txhash}} failed}`);
