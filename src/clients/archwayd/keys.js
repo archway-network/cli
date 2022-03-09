@@ -19,7 +19,7 @@ class KeysCommands {
     const archwayd = this.#client.run('keys', ['show', name, '-a'], { stdio: ['inherit', 'pipe', 'inherit'] });
     archwayd.stdout.pipe(process.stdout);
     const { stdout } = await archwayd;
-    const lines = stdout.replace('\r', '').split('\n');
+    const lines = stdout.replace(/\r/g, '').split('\n');
     return lines.find(isArchwayAddress);
   }
 }

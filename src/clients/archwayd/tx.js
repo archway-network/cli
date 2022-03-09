@@ -35,7 +35,7 @@ class TxCommands {
     archwayd.stdout.pipe(process.stdout);
     const { stdout } = await archwayd;
 
-    const lines = stdout.replace('\r', '').split('\n');
+    const lines = stdout.replace(/\r/g, '').split('\n');
     const jsonLines = lines.filter(line => line.startsWith('{'));
     return JSON.parse(jsonLines.pop());
   }
