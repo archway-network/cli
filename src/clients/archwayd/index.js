@@ -1,3 +1,4 @@
+const debug = require('debug')('archwayd');
 const chalk = require('chalk');
 const { spawn } = require('promisify-child-process');
 const { prompts, PromptCancelledError } = require('../../util/prompts');
@@ -56,6 +57,7 @@ class DefaultArchwayClient {
   run(subCommand, args = [], options = { stdio: 'inherit' }) {
     const command = this.command;
     const parsedArgs = this.parseArgs([subCommand, ...args]);
+    debug(command, ...parsedArgs);
     return spawn(command, parsedArgs, { ...options, encoding: 'utf8' });
   }
 }
