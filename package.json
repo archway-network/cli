@@ -1,6 +1,6 @@
 {
   "name": "@archwayhq/cli",
-  "version": "1.0.6-beta",
+  "version": "1.0.7-beta",
   "description": "Develop WASM smart contracts with the Archway network developer CLI",
   "homepage": "https://github.com/archway-network/archway-cli#readme",
   "repository": "github:archway-network/archway-cli",
@@ -41,6 +41,7 @@
     "chalk": "^4.1",
     "commander": "^9.0",
     "debug": "^4.3.3",
+    "lodash": "^4.17.21",
     "ora": "^5.4.1",
     "promisify-child-process": "^4.1.1",
     "prompts": "^2.4"
