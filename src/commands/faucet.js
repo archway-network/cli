@@ -9,7 +9,7 @@ const { Testnets, loadNetworkConfig } = require('../networks');
 const { isArchwayAddress } = require('../util/validators');
 
 async function sendRequest(address, faucet, feeDenom) {
-  const request = { denom: feeDenom, address };
+  const request = { coins: ['10000000' + feeDenom], address: address };
   const response = await HttpClient.post(faucet, request);
 
   const { status, data } = response;
