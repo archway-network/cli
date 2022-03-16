@@ -175,8 +175,11 @@ Program
 Program
   .command('network')
   .description('Show network settings or migrate between networks')
-  .action(async () => {
-    await Tools.Network();
+  .addOption(new Option('-m, --migrate', 'Migrates the project to another network'))
+  .addOption(new Option('-e, --environment <value>', 'Environment to use for the project').choices(Environments))
+  .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
+  .action(async (options) => {
+    await Tools.Network(options);
   });
 
 // `archway new`
