@@ -37,63 +37,6 @@ function getEventAttribute(transaction, eventType, attributeKey) {
   return { txhash, value };
 }
 
-async function promptRewardAddress(archwayd) {
-  // if a rewardAddress is present in the config, this should
-  // already be available when prompts.override() was called.
-  const { rewardAddress } = await prompts({
-    type: 'text',
-    name: 'rewardAddress',
-    message: chalk`Enter an address to receive developer rewards, or hit <enter> to list all accounts {reset.dim (e.g. "archway1...")}`,
-    validate: value => _.isEmpty(_.trim(value)) || isArchwayAddress(_.trim(value)) || 'Invalid address',
-    format: value => _.trim(value),
-  });
-
-  if (_.isEmpty(rewardAddress)) {
-    await archwayd.keys.list();
-    return await promptRewardAddress(archwayd);
-  }
-
-  return rewardAddress;
-}
-
-async function parseAndUpdateMetadata(archwayd, srcDApp) {
-  const rewardAddress = await promptRewardAddress(archwayd);
-  console.info(chalk`Address for dApp rewards: {cyan ${rewardAddress}}`);
-
-  const dApp = { ...srcDApp, rewardAddress };
-  await Config.update({ developer: { dApp } });
-  return dApp;
-}
-
-function toBase64(value) {
-  try {
-    return Buffer.from(value).toString('base64');
-  } catch (e) {
-    console.error(e);
-    throw new Error(`Could not encode initialization arguments ${value} to base64`);
-  }
-}
-
-function buildInitArgs(args, { rewardAddress, gasRebate, collectPremium, premiumPercentage } = {}) {
-  const initArgs = {
-    reward_address: rewardAddress,
-    gas_rebate_to_user: gasRebate,
-    instantiation_request: toBase64(args),
-    collect_premium: collectPremium,
-    premium_percentage_charged: premiumPercentage
-  };
-  return JSON.stringify(initArgs);
-}
-
-async function parseContractInitArgs(archwayd, chainId, args, dApp) {
-  if (_.isEmpty(dApp) || chainId !== 'constantine-1') {
-    return args;
-  }
-
-  const updatedDappConfig = await parseAndUpdateMetadata(archwayd, dApp);
-  return buildInitArgs(args, updatedDappConfig);
-}
-
 async function parseBech32Address(archwayd, address) {
   if (isArchwayAddress(address)) {
     return address;
@@ -109,7 +52,6 @@ async function instantiateContract(archwayd, options = {}) {
     from,
     adminAddress,
     chainId,
-    dApp,
     wasm: { codeId } = {}
   } = options;
 
@@ -133,9 +75,8 @@ async function instantiateContract(archwayd, options = {}) {
     },
   ]);
 
-  const contractInitArgs = await parseContractInitArgs(archwayd, chainId, args, dApp);
   const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
-  const instantiateArgs = [codeId, contractInitArgs, '--label', label, '--admin', bech32AdminAddress];
+  const instantiateArgs = [codeId, args, '--label', label, '--admin', bech32AdminAddress];
   const transaction = await archwayd.tx.wasm('instantiate', instantiateArgs, options);
   const { txhash, value: contractAddress } = getEventAttribute(transaction, 'instantiate', '_contract_address');
   if (!txhash || !contractAddress) {
@@ -151,10 +92,7 @@ async function instantiateContract(archwayd, options = {}) {
   });
 
   console.info(chalk`{green Successfully instantiated contract with address {cyan ${contractAddress}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
-
-  if (_.isEmpty(dApp)) {
-    console.warn(chalk`{whiteBright It is recommended that you now set the contract metadata using the {green.bold archway metadata} command}`);
-  }
+  console.warn(chalk`{whiteBright It is recommended that you now set the contract metadata using the {green.bold archway metadata} command}`);
 
   return { contractAddress };
 }
@@ -259,14 +197,12 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   }
 
   const {
-    network: { chainId, urls: { rpc } = {}, gas } = {},
-    developer: { dApp = {} } = {}
+    network: { chainId, urls: { rpc } = {}, gas } = {}
   } = config;
   const node = `${rpc.url}:${rpc.port}`;
 
   prompts.override({
     args,
-    rewardAddress: dApp.rewardAddress || undefined,
     label: label || (defaultLabel && project.id) || undefined,
     ...options
   });
@@ -293,7 +229,6 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
     chainId,
     node,
     gas,
-    dApp,
     flags
   }
 }
