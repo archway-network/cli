@@ -81,8 +81,9 @@ async function printNetworkConfig() {
   await migrateNetworks(chainId, currentEnvironment, currentTestnet);
 }
 
-async function main() {
+async function main(options = {}) {
   try {
+    prompts.override(options);
     await printNetworkConfig();
   } catch (e) {
     if (e instanceof PromptCancelledError) {
