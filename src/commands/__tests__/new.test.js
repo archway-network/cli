@@ -277,10 +277,7 @@ describe('config file', () => {
           test: expect.any(String),
           build: expect.any(String),
         }),
-        dApp: expect.objectContaining({
-          gasRebate: expect.anything(),
-          premiumPercentage: expect.anything(),
-        })
+        deployments: []
       }
     });
   });
