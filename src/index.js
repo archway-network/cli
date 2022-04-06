@@ -127,19 +127,20 @@ Program
 
 // `archway faucet`
 Program
-  .command('faucet')
+  .command('faucet', { hidden: true })
   .description('Request Testnet funds from faucet')
-  .addOption(DockerOption)
   .addOption(
     new Option('-t, --testnet <value>', 'Testnet to request for funds')
       .choices(Testnets)
       .default([...Testnets].shift())
   )
   .argument('[address]', 'Address to request funds for (e.g. "archway1...")', parseArchwayAddress)
-  .action(async (address, options) => {
-    options = await updateWithDockerOptions(options);
-    const archwayd = await createClient({ checkHomePath: true, ...options });
-    await Tools.Faucet(archwayd, { address, ...options });
+  .action(async (address) => {
+    console.info('To request funds from the faucet you should use our Discord channel.\n');
+    console.info(chalk`1. Join our Discord server at {blue https://discord.gg/dnYYcKPAX5}`);
+    console.info(chalk`2. Send the following message in the {yellow 🚰｜faucet} channel\n`);
+    console.info(chalk`{bold.white !faucet ${address || '<address>'}}\n`);
+    console.info('The funds will be deposited to your account in a few minutes on all testnets.');
   });
 
 // `archway history`
