@@ -4,6 +4,7 @@ const _ = require('lodash');
 const chalk = require('chalk');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { spawn } = require('promisify-child-process');
+const retry = require('async-retry');
 const path = require('path');
 const { copyFile, mkdir } = require('fs/promises');
 const { pathExists } = require('../util/fs');
@@ -11,6 +12,11 @@ const { isJson, isArchwayAddress } = require('../util/validators');
 const Config = require('../util/config');
 const ScriptRunner = require('../util/scripts');
 const Cargo = require('../clients/cargo');
+
+const DefaultRetryOptions = {
+  retries: 2,
+  randomize: false,
+}
 
 const isValidDeployment = _.conforms({
   type: _.isString,
@@ -77,7 +83,10 @@ async function instantiateContract(archwayd, options = {}) {
 
   const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
   const instantiateArgs = [codeId, args, '--label', label, '--admin', bech32AdminAddress];
-  const transaction = await archwayd.tx.wasm('instantiate', instantiateArgs, options);
+  const transaction = await retry(() => archwayd.tx.wasm('instantiate', instantiateArgs, options), {
+    ...DefaultRetryOptions,
+    onRetry: () => console.warn(chalk`{yellow Contract instantiation failed, retrying...}\n`),
+  });
   const { txhash, value: contractAddress } = getEventAttribute(transaction, 'instantiate', '_contract_address');
   if (!txhash || !contractAddress) {
     throw new Error(`Failed to instantiate contract with code_id=${codeId} and args=${args}`);
@@ -102,7 +111,10 @@ async function verifyUploadedWasm(archwayd, { chainId, node, wasm: { codeId, loc
 
   const downloadWasmName = `${path.basename(localPath, '.wasm')}_download.wasm`;
   const localDownloadPath = path.join(path.dirname(localPath), downloadWasmName);
-  await archwayd.run('query', ['wasm', 'code', codeId, '--node', node, localDownloadPath]);
+  await retry(() => archwayd.run('query', ['wasm', 'code', codeId, '--node', node, localDownloadPath]), {
+    ...DefaultRetryOptions,
+    onRetry: () => console.warn(chalk`{yellow Download of wasm code failed, retrying...}\n`),
+  });
 
   // We need to update the path to where the docker container volume is mapped to
   const remoteDownloadPath = path.join(path.dirname(remotePath), downloadWasmName);
@@ -132,7 +144,10 @@ async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...o
     await copyFile(localPath, remotePath);
   }
 
-  const transaction = await archwayd.tx.wasm('store', [localPath], { from, chainId, ...options });
+  const transaction = await retry(() => archwayd.tx.wasm('store', [localPath], { from, chainId, ...options }), {
+    ...DefaultRetryOptions,
+    onRetry: () => console.warn(chalk`{yellow Call to wasm store failed, retrying...}\n`),
+  });
   const { txhash, value: codeIdString } = getEventAttribute(transaction, 'store_code', 'code_id');
   const codeId = _.toNumber(codeIdString);
   if (!txhash || !codeId) {
@@ -248,6 +263,8 @@ async function deploy(archwayd, { build = true, verify = true, dryRun = false, .
 
   const deployOptions = await parseDeploymentOptions(cargo, config, options);
 
+  // The on-chain operations might fail due to network connectivity issues,
+  // so it's a good idea to retry them a few times before giving up
   const wasm = await storeWasm(archwayd, deployOptions);
   const deployedWasmConfig = { ...deployOptions, wasm };
   verify && await verifyUploadedWasm(archwayd, deployedWasmConfig);
