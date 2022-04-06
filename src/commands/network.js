@@ -65,7 +65,6 @@ async function printNetworkConfig() {
       type: currentEnvironment = 'testnet',
       urls: {
         rpc = {},
-        faucets: [faucet,] = []
       }
     } = {}
   } = await Config.read();
@@ -75,7 +74,6 @@ async function printNetworkConfig() {
   console.info();
   console.info(chalk`{bold Using:}  ${_.capitalize(currentTestnet)}`);
   console.info(chalk`{bold RPC:}    ${rpc.url}:${rpc.port}`);
-  console.info(chalk`{bold Faucet:} ${faucet}`);
   console.info();
 
   await migrateNetworks(chainId, currentEnvironment, currentTestnet);

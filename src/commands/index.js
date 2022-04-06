@@ -19,7 +19,6 @@ module.exports = {
   Configure: Configure,
   Deploy: Deploy,
   DeployHistory: DeployHistory,
-  Faucet: Faucet,
   Metadata: Metadata,
   Network: Network,
   New: New,
