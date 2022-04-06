@@ -5,7 +5,6 @@ const Build = require('./build');
 const Configure = require('./configure');
 const Deploy = require('./deploy');
 const DeployHistory = require('./deployments');
-const Faucet = require('./faucet');
 const Metadata = require('./metadata.js');
 const Network = require('./network');
 const New = require('./new');
