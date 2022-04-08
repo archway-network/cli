@@ -114,7 +114,6 @@ Program
   .option('--default-label', 'Use the default label for instantiating the contract: "<project_name> <project_version>"')
   .option('-f, --from <value>', 'Name or address of account to sign the transactions')
   .option('--admin-address <value>', 'Address which can perform admin actions on the contract (e.g. "archway1...")', parseArchwayAddress)
-  .option('--reward-address <value>', 'Address in which rewards will be deposited (e.g. "archway1...")', parseArchwayAddress)
   .option('--no-build', 'Do not build the project before deploying; it will fail in case the wasm file is not built', true)
   .option('--no-verify', 'Do not verify the wasm file uploaded on-chain', true)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
@@ -128,19 +127,20 @@ Program
 
 // `archway faucet`
 Program
-  .command('faucet')
+  .command('faucet', { hidden: true })
   .description('Request Testnet funds from faucet')
-  .addOption(DockerOption)
   .addOption(
     new Option('-t, --testnet <value>', 'Testnet to request for funds')
       .choices(Testnets)
       .default([...Testnets].shift())
   )
   .argument('[address]', 'Address to request funds for (e.g. "archway1...")', parseArchwayAddress)
-  .action(async (address, options) => {
-    options = await updateWithDockerOptions(options);
-    const archwayd = await createClient({ checkHomePath: true, ...options });
-    await Tools.Faucet(archwayd, { address, ...options });
+  .action(async (address) => {
+    console.info('To request funds from the faucet you should use our Discord channel.\n');
+    console.info(chalk`1. Join our Discord server at {blue https://discord.gg/dnYYcKPAX5}`);
+    console.info(chalk`2. Send the following message in the {yellow 🚰｜faucet} channel\n`);
+    console.info(chalk`{bold.white !faucet ${address || '<address>'}}\n`);
+    console.info('The funds will be deposited to your account in a few minutes on all testnets.');
   });
 
 // `archway history`
@@ -176,8 +176,11 @@ Program
 Program
   .command('network')
   .description('Show network settings or migrate between networks')
-  .action(async () => {
-    await Tools.Network();
+  .addOption(new Option('-m, --migrate', 'Migrates the project to another network'))
+  .addOption(new Option('-e, --environment <value>', 'Environment to use for the project').choices(Environments))
+  .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
+  .action(async (options) => {
+    await Tools.Network(options);
   });
 
 // `archway new`

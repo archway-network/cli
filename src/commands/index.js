@@ -5,7 +5,6 @@ const Build = require('./build');
 const Configure = require('./configure');
 const Deploy = require('./deploy');
 const DeployHistory = require('./deployments');
-const Faucet = require('./faucet');
 const Metadata = require('./metadata.js');
 const Network = require('./network');
 const New = require('./new');
@@ -20,7 +19,6 @@ module.exports = {
   Configure: Configure,
   Deploy: Deploy,
   DeployHistory: DeployHistory,
-  Faucet: Faucet,
   Metadata: Metadata,
   Network: Network,
   New: New,

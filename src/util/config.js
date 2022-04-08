@@ -25,10 +25,11 @@ async function readConfig(pathPrefix = null) {
   }
 }
 
-function mergeCustomizer({ arrayMode = 'append' } = {}) {
+function mergeCustomizer({ arrayMode = 'overwrite' } = {}) {
   return _.cond([
+    [_.overEvery(_.isArray, _.constant(arrayMode === 'overwrite')), _.identity],
     [_.overEvery(_.isArray, _.constant(arrayMode === 'append')), _.concat],
-    [_.overEvery(_.isArray, _.constant(arrayMode === 'prepend')), (objValue, srcValue) => [...srcValue, ...objValue]],
+    [_.overEvery(_.isArray, _.constant(arrayMode === 'prepend')), (objValue = [], srcValue = []) => [...srcValue, ...objValue]],
   ]);
 }
 
