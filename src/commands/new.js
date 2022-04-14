@@ -104,7 +104,7 @@ async function parseSettings(defaults) {
 function buildConfig({ name, docker, environment, testnet }) {
   const networkConfig = loadNetworkConfig(environment, testnet);
   const projectConfig = {
-    name: name.toLowerCase().replace(/_/g, '-'),
+    name: name.toLowerCase().replace(/_/g, '-').replace(/ /g, '-'),
     developer: {
       archwayd: { docker }
     }
