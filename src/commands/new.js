@@ -104,7 +104,7 @@ async function parseSettings(defaults) {
 function buildConfig({ name, docker, environment, testnet }) {
   const networkConfig = loadNetworkConfig(environment, testnet);
   const projectConfig = {
-    name: name,
+    name: name.toLowerCase().replace(/_/g, '-'),
     developer: {
       archwayd: { docker }
     }
@@ -142,10 +142,9 @@ async function initialCommit({ name }) {
 
 async function main(name, options = {}) {
   console.info(`Creating new Archway project...`);
-
   try {
-    const { network: { chainId } } = await createProject({ name, ...options });
-    console.info(chalk`\n{green Successfully created project {cyan ${name}} with network configuration {cyan ${chainId}}}`);
+    const config = await createProject({ name, ...options });
+    console.info(chalk`\n{green Successfully created project {cyan ${config.name}} with network configuration {cyan ${config.network.chainId}}}`);
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
