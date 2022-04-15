@@ -13,7 +13,8 @@ const Environments = _(EnvironmentsDetails)
 const TestnetsDetails = {
   constantine: { description: 'Stable - recommended for dApp development' },
   titus: { description: 'Nightly releases - chain state can be cleared at any time' },
-  augusta: { description: 'Incentivized testnet' },
+  augusta: { description: 'Community testnet' },
+  torii: { description: 'Incentivized testnet' },
 };
 const Testnets = _.keys(TestnetsDetails);
 
