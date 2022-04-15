@@ -141,6 +141,87 @@ describe('project setup', () => {
     });
   });
 
+  test('converts snake case project name to lowercased kebab-case', async () => {
+    const name = {
+      raw:'archonauts_snake_case', 
+      normalized: 'archonauts-snake-case'
+    };
+
+    const cargo = spawk.spawn('cargo');
+
+    await New(name.raw, {
+      useTemplate: false,
+      docker: false,
+      environment: 'local',
+      build: false,
+    });
+
+    expect(cargo.calledWith).toMatchObject({
+      command: 'cargo',
+      args: expect.arrayContaining([
+        'generate',
+        '--name', name.normalized,
+        '--git', 'archway-network/archway-templates',
+        '--branch', 'main',
+        'default'
+      ])
+    });
+  });
+
+  test('converts camel case project name to lowercased kebab-case', async () => {
+    const name = {
+      raw:'archonautsCamelCase', 
+      normalized: 'archonautscamelcase'
+    };
+
+    const cargo = spawk.spawn('cargo');
+
+    await New(name.raw, {
+      useTemplate: false,
+      docker: false,
+      environment: 'local',
+      build: false,
+    });
+
+    expect(cargo.calledWith).toMatchObject({
+      command: 'cargo',
+      args: expect.arrayContaining([
+        'generate',
+        '--name', name.normalized,
+        '--git', 'archway-network/archway-templates',
+        '--branch', 'main',
+        'default'
+      ])
+    });
+  });
+
+  test('converts whitespaced project names to lowercased kebab-case', async () => {
+    const name = {
+      raw:'archonauts string case', 
+      normalized: 'archonauts-string-case'
+    };
+
+    const cargo = spawk.spawn('cargo');
+
+    await New(name.raw, {
+      useTemplate: false,
+      docker: false,
+      environment: 'local',
+      build: false,
+    });
+
+    expect(cargo.calledWith).toMatchObject({
+      command: 'cargo',
+      args: expect.arrayContaining([
+        'generate',
+        '--name', name.normalized,
+        '--git', 'archway-network/archway-templates',
+        '--branch', 'main',
+        'default'
+      ])
+    });
+  });
+
   test('generate project from network branch', async () => {
     const name = 'archonauts';
     const testnet = 'augusta';
