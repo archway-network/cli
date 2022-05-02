@@ -14,7 +14,7 @@ const ScriptRunner = require('../util/scripts');
 const Cargo = require('../clients/cargo');
 
 const DefaultRetryOptions = {
-  retries: 2,
+  retries: 1000,
   randomize: false,
 }
 
