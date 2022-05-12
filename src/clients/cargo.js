@@ -1,7 +1,11 @@
+const debug = require('debug')('cargo');
+const _ = require('lodash');
 const path = require('path');
 const { spawn } = require('promisify-child-process');
 
 class Cargo {
+  static WasmTarget = 'wasm32-unknown-unknown';
+
   #cwd
 
   constructor({ cwd } = {}) {
@@ -23,8 +27,20 @@ class Cargo {
     ]);
   }
 
-  async build() {
-    await this.#run(['build']);
+  async build({ release = false, locked = false, target } = {}, options) {
+    const extraArgs = _.flatten([
+      release ? ['--release'] : [],
+      locked ? ['--locked'] : [],
+      target ? ['--target', target] : [],
+    ]);
+    await this.#run(['build', ...extraArgs], options);
+  }
+
+  async wasm() {
+    await this.build(
+      { release: true, locked: true, target: Cargo.WasmTarget },
+      { env: { ...process.env, RUSTFLAGS: '-C link-arg=-s' } }
+    );
   }
 
   async metadata() {
@@ -38,15 +54,32 @@ class Cargo {
   }
 
   async projectMetadata() {
-    const { packages: [{ name, version, metadata },] = [] } = await this.metadata();
-    return { id: `${name} ${version}`, name, version, metadata };
+    const { packages: [{ name, version },] = [] } = await this.metadata();
+    if (_.isEmpty(name) || _.isEmpty(version)) {
+      throw new Error('Failed to resolve project metadata');
+    }
+
+    const id = `${name} ${version}`;
+
+    const wasmFileName = `${name.replace(/-/g, '_')}.wasm`;
+    const wasm = {
+      fileName: wasmFileName,
+      filePath: path.join('target', Cargo.WasmTarget, 'release', wasmFileName),
+      optimizedFilePath: path.join('artifacts', wasmFileName)
+    };
+
+    return { id, name, version, wasm };
   }
 
+  /**
+   * @deprecated since v1.2.0
+   */
   runScript(name, options = {}) {
     return this.#run(['run-script', name], options);
   }
 
   #run(args, options = { stdio: 'inherit' }) {
+    debug('cargo', ...args);
     return spawn('cargo', args, { ...options, encoding: 'utf8', cwd: this.#cwd });
   }
 }
