@@ -1,5 +1,3 @@
-// archway-cli/util/deploy.js
-
 const _ = require('lodash');
 const chalk = require('chalk');
 const { prompts, PromptCancelledError } = require('../util/prompts');
@@ -10,8 +8,8 @@ const { copyFile, mkdir } = require('fs/promises');
 const { pathExists } = require('../util/fs');
 const { isJson, isArchwayAddress } = require('../util/validators');
 const Config = require('../util/config');
-const ScriptRunner = require('../util/scripts');
 const Cargo = require('../clients/cargo');
+const Build = require('./build');
 
 const DefaultRetryOptions = {
   retries: 2,
@@ -165,41 +163,6 @@ async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...o
   return { codeId, localPath, remotePath };
 }
 
-function spawnOptimizer(cargo, { network: { optimizers: { docker: { target, image } = {} } = {} } = {} } = {}) {
-  const options = { stdio: ['inherit', 'pipe', 'inherit'], encoding: 'utf8' };
-  if (target && image) {
-    // TODO: deprecate
-    const targetSrc = path.basename(process.cwd()) + '_cache';
-    return spawn('docker', [
-      'run',
-      '--rm',
-      '-e', 'CARGO_TERM_COLOR=always',
-      '-v', `${process.cwd()}:/code`,
-      // Local project mount
-      '--mount', `type=volume,source=${targetSrc},target=/code/target`,
-      // Registry mount
-      '--mount', `type=volume,source=registry_cache,target=${target}`,
-      image
-    ], options);
-  } else {
-    return cargo.runScript('optimize', options);
-  }
-}
-
-async function buildWasm(cargo, config) {
-  console.info('Building optimized wasm binary...\n');
-
-  const optimizer = spawnOptimizer(cargo, config);
-  optimizer.stdout.pipe(process.stdout);
-
-  const { stdout } = await optimizer;
-  if (!stdout.includes('done')) {
-    throw new Error('Building optimized wasm binary failed');
-  }
-
-  console.info(chalk`{green Optimized wasm binary built successfully}\n`);
-}
-
 async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, label, defaultLabel, ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
@@ -249,17 +212,15 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
 }
 
 async function deploy(archwayd, { build = true, verify = true, dryRun = false, ...options } = {}) {
+  build && await Build({ optimize: true });
+
   // TODO: call archwayd operations with the --dry-run flag
   if (dryRun) {
-    console.info('Building wasm binary...\n');
-    await new ScriptRunner().run('wasm');
     return;
   }
 
   const config = await Config.read();
   const cargo = new Cargo();
-
-  build && await buildWasm(cargo, config);
 
   const deployOptions = await parseDeploymentOptions(cargo, config, options);
 

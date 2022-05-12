@@ -224,7 +224,7 @@ describe('project setup', () => {
 
   test('generate project from network branch', async () => {
     const name = 'archonauts';
-    const testnet = 'augusta';
+    const testnet = 'titus';
 
     const cargo = spawk.spawn('cargo');
 

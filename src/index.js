@@ -86,16 +86,17 @@ Program
 // `archway build`
 Program
   .command('build')
-  .description('Build current project')
-  .action(async () => {
-    await Tools.Build();
+  .description('Build the project')
+  .option('--optimize', 'Builds an optimized wasm file ready for deployment')
+  .action(async (options) => {
+    await Tools.Build(options);
   });
 
 // `archway configure`
 Program
   .command('configure')
   .description('Print or modify environment settings')
-  .option('-m, --modify <key>', 'Modify a particular setting; command will fail if <key> does not yet exist.')
+  .option('-m, --modify <key>', 'Modify a particular setting; command will fail if <key> does not yet exist')
   .action(async (options) => {
     let modify = (options.modify) ? true : false;
     if (!modify) {
