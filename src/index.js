@@ -22,11 +22,11 @@ async function getDefaultsFromConfig() {
   try {
     const {
       network: { name: networkName } = {},
-      developer: { archwayd: { docker = true, version: archwaydVersion = networkName } = {} } = {}
+      developer: { archwayd: { docker = false, version: archwaydVersion = networkName } = {} } = {}
     } = await Config.read();
     return { archwaydVersion, docker };
   } catch (e) {
-    return { docker: true };
+    return { docker: false };
   }
 }
 
@@ -188,7 +188,7 @@ Program
 Program
   .command('new')
   .description('Create a new project for Archway network')
-  .option('-k, --docker', 'Use the docker version of archwayd', true)
+  .option('-k, --docker', 'Use the docker version of archwayd', false)
   .option('--no-docker', 'Use the binary version of archwayd')
   .addOption(new Option('-e, --environment <value>', 'Environment to use for the project').choices(Environments))
   .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))

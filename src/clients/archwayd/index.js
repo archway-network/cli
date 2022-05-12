@@ -84,6 +84,8 @@ class DockerArchwayClient extends DefaultArchwayClient {
   static #getDockerArgs(archwaydHome, archwaydVersion) {
     return [
       'run',
+      '--pull',
+      'always',
       '--rm',
       '-it',
       `--volume=${archwaydHome}:/root/.archway`,

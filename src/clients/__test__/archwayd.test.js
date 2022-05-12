@@ -87,6 +87,8 @@ describe('DockerArchwayClient', () => {
       const client = await createClient({ docker: true });
       expect(client.extraArgs).toEqual(expect.arrayContaining([
         'run',
+        '--pull',
+        'always',
         '--rm',
         '-it',
         `--volume=${DefaultArchwaydHome}:/root/.archway`,
