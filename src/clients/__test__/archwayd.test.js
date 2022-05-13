@@ -108,7 +108,7 @@ describe('DockerArchwayClient', () => {
 
     test('uses testnet name as the image version when available', async () => {
       const archwaydVersion = '0.0.1';
-      const testnet = 'augusta';
+      const testnet = 'titus';
 
       const client = await createClient({ docker: true, testnet, archwaydVersion });
 
