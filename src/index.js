@@ -278,4 +278,15 @@ Program
     await Tools.Tx(archwayd, options);
   });
 
+
+// init local chain.
+// start local chain.
+Program
+  .command('chain')
+  .argument('<command>', 'Query module to use; available modules:')
+  .description('Start local chain')
+  .action(async (command, options) => {
+    Tools.Chain(command, options);
+  });
+
 Program.parseAsync();

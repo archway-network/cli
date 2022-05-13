@@ -12,6 +12,7 @@ const Query = require('./query');
 const Script = require('./script');
 const Test = require('./test');
 const Tx = require('./tx');
+const Chain = require('./chain');
 
 module.exports = {
   Accounts: Accounts,
@@ -25,5 +26,6 @@ module.exports = {
   Query: Query,
   Script: Script,
   Test: Test,
-  Tx: Tx
+  Tx: Tx,
+  Chain: Chain
 };
