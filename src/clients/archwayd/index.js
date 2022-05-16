@@ -1,8 +1,5 @@
 const debug = require('debug')('archwayd');
-const chalk = require('chalk');
 const { spawn } = require('promisify-child-process');
-const { prompts, PromptCancelledError } = require('../../util/prompts');
-const { pathExists, mv } = require('../../util/fs');
 
 const KeysCommands = require('./keys');
 const TxCommands = require('./tx');
@@ -13,7 +10,7 @@ const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 /**
  * Facade for the archwayd client, which supports both Docker and binary implementations.
  */
-class DefaultArchwayClient {
+class ArchwayClient {
   #archwaydHome;
   #extraArgs;
   #keys;
@@ -51,6 +48,7 @@ class DefaultArchwayClient {
   }
 
   parseArgs(args = []) {
+    // TODO: add support for --home
     return [...this.extraArgs, ...args];
   }
 
@@ -62,7 +60,8 @@ class DefaultArchwayClient {
   }
 }
 
-class DockerArchwayClient extends DefaultArchwayClient {
+// TODO: deprecate Docker support
+class DockerArchwayClient extends ArchwayClient {
   constructor({ archwaydVersion = DefaultArchwaydVersion, testnet, ...options }) {
     super(options);
     this.archwaydVersion = testnet || archwaydVersion;
@@ -92,59 +91,20 @@ class DockerArchwayClient extends DefaultArchwayClient {
       `archwaynetwork/archwayd:${archwaydVersion}`
     ];
   }
-
-  async checkHomePath() {
-    const oldArchwayHome = '/var/tmp/.archwayd';
-    if (this.archwaydHome === oldArchwayHome || !await pathExists(oldArchwayHome)) {
-      return;
-    }
-
-    const questions = [
-      {
-        type: 'confirm',
-        name: 'move',
-        message: chalk`I've found a keystore in {cyan ${oldArchwayHome}}. Would you like to move it to {cyan ${this.archwaydHome}}?`,
-        initial: true
-      }, {
-        type: async prev => prev && await pathExists(this.archwaydHome) ? 'confirm' : null,
-        name: 'overwrite',
-        message: chalk`The directory {cyan ${this.archwaydHome}} is not empty. Would you like to overwrite its contents?`,
-        initial: true
-      }
-    ];
-
-    try {
-      const { move, overwrite } = await prompts(questions);
-
-      if (move) {
-        await mv(oldArchwayHome, this.archwaydHome, overwrite);
-      }
-    } catch (e) {
-      if (e instanceof PromptCancelledError) {
-        console.warn(chalk`{yellow Cancelled moving keystore}`);
-      } else {
-        console.error(`Failed to move directory: ${e.message || e}\n`);
-      }
-    } finally {
-      console.info();
-    }
-  }
 }
 
-async function clientFactory({ docker = false, checkHomePath = false, ...options } = {}) {
+// TODO: remove when Docker support is removed
+async function clientFactory({ docker = false, ...options } = {}) {
   if (docker) {
-    const client = new DockerArchwayClient(options);
-    if (checkHomePath) {
-      await client.checkHomePath();
-    }
-    return client;
+    return new DockerArchwayClient(options);
   } else {
-    return new DefaultArchwayClient(options);
+    return new ArchwayClient(options);
   }
 }
 
-module.exports = {
+// TODO: export only ArchwayClient when Docker support is removed
+module.exports = Object.assign(ArchwayClient, {
   DefaultArchwaydHome,
   DefaultArchwaydVersion,
   createClient: clientFactory
-};
+});

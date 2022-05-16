@@ -1,7 +1,7 @@
 const { DefaultArchwaydVersion, DefaultArchwaydHome, createClient } = require('../archwayd');
 const spawk = require('spawk');
 
-describe('DefaultArchwayClient', () => {
+describe('ArchwayClient', () => {
   describe('constructor', () => {
     test('builds a client that runs the archwayd binary', async () => {
       const client = await createClient();
