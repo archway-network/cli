@@ -2,6 +2,7 @@ const debug = require('debug')('archwayd');
 const { spawn } = require('promisify-child-process');
 
 const KeysCommands = require('./keys');
+const QueryCommands = require('./query');
 const TxCommands = require('./tx');
 
 const DefaultArchwaydVersion = 'latest';
@@ -14,12 +15,14 @@ class ArchwayClient {
   #archwaydHome;
   #extraArgs;
   #keys;
+  #query;
   #tx;
 
-  constructor({ archwaydHome = DefaultArchwaydHome, extraArgs = [] }) {
+  constructor({ archwaydHome = DefaultArchwaydHome, extraArgs = [] } = {}) {
     this.#archwaydHome = archwaydHome;
     this.#extraArgs = extraArgs;
     this.#keys = new KeysCommands(this);
+    this.#query = new QueryCommands(this);
     this.#tx = new TxCommands(this);
   }
 
@@ -43,6 +46,10 @@ class ArchwayClient {
     return this.#keys;
   }
 
+  get query() {
+    return this.#query;
+  }
+
   get tx() {
     return this.#tx;
   }
@@ -58,11 +65,21 @@ class ArchwayClient {
     debug(command, ...parsedArgs);
     return spawn(command, parsedArgs, { ...options, encoding: 'utf8' });
   }
+
+  async runJson(subCommand, args = [], { printStdout = true, ...options } = {}) {
+    const archwayd = this.run(subCommand, args, { stdio: 'pipe', ...options });
+    printStdout && archwayd.stdout.pipe(process.stdout);
+    const { stdout } = await archwayd;
+
+    const lines = stdout.replace(/\r/g, '').split('\n');
+    const jsonLines = lines.filter(line => line.startsWith('{'));
+    return JSON.parse(jsonLines.pop());
+  }
 }
 
 // TODO: deprecate Docker support
 class DockerArchwayClient extends ArchwayClient {
-  constructor({ archwaydVersion = DefaultArchwaydVersion, testnet, ...options }) {
+  constructor({ archwaydVersion = DefaultArchwaydVersion, testnet, ...options } = {}) {
     super(options);
     this.archwaydVersion = testnet || archwaydVersion;
   }

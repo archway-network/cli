@@ -1,4 +1,4 @@
-const { DefaultArchwaydVersion, DefaultArchwaydHome, createClient } = require('../archwayd');
+const { DefaultArchwaydVersion, DefaultArchwaydHome, createClient } = require('..');
 const spawk = require('spawk');
 
 describe('ArchwayClient', () => {

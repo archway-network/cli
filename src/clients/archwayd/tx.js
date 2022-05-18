@@ -21,7 +21,7 @@ class TxCommands {
     ], options);
   }
 
-  async #run(txArgs = [], { from, chainId, node, flags = [] } = {}) {
+  async #run(txArgs = [], { from, chainId, node, flags = [], printStdout } = {}) {
     const args = [
       ...txArgs,
       '--from', from,
@@ -31,13 +31,7 @@ class TxCommands {
       '--output', 'json',
       ...flags
     ];
-    const archwayd = this.#client.run('tx', args, { stdio: ['inherit', 'pipe', 'inherit'] });
-    archwayd.stdout.pipe(process.stdout);
-    const { stdout } = await archwayd;
-
-    const lines = stdout.replace(/\r/g, '').split('\n');
-    const jsonLines = lines.filter(line => line.startsWith('{'));
-    return JSON.parse(jsonLines.pop());
+    return await this.#client.runJson('tx', args, { stdio: ['inherit', 'pipe', 'inherit'], printStdout });
   }
 }
 
