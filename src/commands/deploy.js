@@ -1,45 +1,11 @@
 const _ = require('lodash');
 const chalk = require('chalk');
 const { prompts, PromptCancelledError } = require('../util/prompts');
-const { spawn } = require('promisify-child-process');
-const retry = require('async-retry');
-const path = require('path');
-const { copyFile, mkdir } = require('fs/promises');
-const { pathExists } = require('../util/fs');
 const { isJson, isArchwayAddress } = require('../util/validators');
 const Config = require('../util/config');
 const Cargo = require('../clients/cargo');
 const Build = require('./build');
-
-const DefaultRetryOptions = {
-  retries: 2,
-  randomize: false,
-}
-
-const isValidDeployment = _.conforms({
-  type: _.isString,
-  chainId: _.isString,
-  codeId: _.isNumber,
-});
-async function storeDeployment(deployment = {}) {
-  if (!isValidDeployment(deployment)) {
-    console.error(chalk`{red Invalid deployment config}`, deployment);
-    throw new Error(`Could not save deployment data to config file`);
-  }
-
-  await Config.update(
-    { developer: { deployments: [deployment] } },
-    { arrayMode: 'prepend' }
-  );
-}
-
-// TODO: move to the archwayd tx wrapper?
-function getEventAttribute(transaction, eventType, attributeKey) {
-  const { logs: [{ events = [] } = {},] = [], txhash } = transaction;
-  const { attributes = [] } = events.find(event => event.type === eventType) || {};
-  const { value } = attributes.find(attribute => attribute.key === attributeKey) || {};
-  return { txhash, value };
-}
+const Store = require('./store');
 
 async function parseBech32Address(archwayd, address) {
   if (isArchwayAddress(address)) {
@@ -81,16 +47,13 @@ async function instantiateContract(archwayd, options = {}) {
 
   const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
   const instantiateArgs = [codeId, args, '--label', label, '--admin', bech32AdminAddress];
-  const transaction = await retry(() => archwayd.tx.wasm('instantiate', instantiateArgs, options), {
-    ...DefaultRetryOptions,
-    onRetry: () => console.warn(chalk`{yellow Contract instantiation failed, retrying...}\n`),
-  });
-  const { txhash, value: contractAddress } = getEventAttribute(transaction, 'instantiate', '_contract_address');
+  const { txhash } = archwayd.tx.wasm('instantiate', instantiateArgs, options);
+  const contractAddress = archwayd.query.txEventAttribute(txhash, 'instantiate', '_contract_address');
   if (!txhash || !contractAddress) {
     throw new Error(`Failed to instantiate contract with code_id=${codeId} and args=${args}`);
   }
 
-  await storeDeployment({
+  await Config.deployments.add({
     type: 'instantiate',
     chainId: chainId,
     codeId: codeId,
@@ -104,76 +67,12 @@ async function instantiateContract(archwayd, options = {}) {
   return { contractAddress };
 }
 
-async function verifyUploadedWasm(archwayd, { chainId, node, wasm: { codeId, localPath, remotePath } = {} } = {}) {
-  console.log(chalk`Validating artifact deployed to {cyan ${chainId}}...`);
-
-  const downloadWasmName = `${path.basename(localPath, '.wasm')}_download.wasm`;
-  const localDownloadPath = path.join(path.dirname(localPath), downloadWasmName);
-  await retry(() => archwayd.run('query', ['wasm', 'code', codeId, '--node', node, localDownloadPath]), {
-    ...DefaultRetryOptions,
-    onRetry: () => console.warn(chalk`{yellow Download of wasm code failed, retrying...}\n`),
-  });
-
-  // We need to update the path to where the docker container volume is mapped to
-  const remoteDownloadPath = path.join(path.dirname(remotePath), downloadWasmName);
-  if (!await pathExists(remoteDownloadPath)) {
-    throw new Error(`Failed to locate downloaded wasm file at ${remoteDownloadPath}`);
-  }
-
-  const { stdout } = await spawn('diff', [remotePath, remoteDownloadPath], { encoding: 'utf8' });
-  if (!_.isEmpty(stdout)) {
-    console.error(chalk`{red Wasm file does not match uploaded file}`, stdout);
-    throw new Error('Could not verify wasm artifact');
-  }
-
-  console.info(chalk`{green Integrity check Ok!}\n`);
-}
-
-async function storeWasm(archwayd, { project: { name } = {}, from, chainId, ...options } = {}) {
-  console.info(chalk`Uploading optimized executable to {cyan ${chainId}} using wallet {cyan ${from}}...`);
-
-  const fileName = `${name.replace(/-/g, '_')}.wasm`;
-  const localPath = path.join('artifacts', fileName);
-  const remotePath = path.join(archwayd.workingDir, localPath);
-  // If we use docker or for any reason need to copy the file to any other directory before upload
-  if (!_.isEmpty(path.relative(localPath, remotePath))) {
-    console.info(`Copying file ${localPath} to ${remotePath}`);
-    await mkdir(path.dirname(remotePath), { recursive: true });
-    await copyFile(localPath, remotePath);
-  }
-
-  const transaction = await retry(() => archwayd.tx.wasm('store', [localPath], { from, chainId, ...options }), {
-    ...DefaultRetryOptions,
-    onRetry: () => console.warn(chalk`{yellow Call to wasm store failed, retrying...}\n`),
-  });
-  const { txhash, value: codeIdString } = getEventAttribute(transaction, 'store_code', 'code_id');
-  const codeId = _.toNumber(codeIdString);
-  if (!txhash || !codeId) {
-    throw new Error(`Failed to upload wasm file ${fileName}`);
-  }
-
-  await storeDeployment({
-    type: 'create',
-    chainId: chainId,
-    codeId: codeId,
-  });
-
-  console.info(chalk`{green Uploaded {cyan ${fileName}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
-
-  return { codeId, localPath, remotePath };
-}
-
 async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, label, defaultLabel, ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
 
   const project = await cargo.projectMetadata();
-  if (_.isEmpty(project.name)) {
-    console.debug('Project metadata:', project);
-    throw new Error('Failed to resolve project metadata');
-  }
-
   const {
     network: { chainId, urls: { rpc } = {}, gas } = {}
   } = config;
@@ -211,7 +110,7 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   }
 }
 
-async function deploy(archwayd, { build = true, verify = true, dryRun = false, ...options } = {}) {
+async function deploy(archwayd, { build = true, dryRun = false, ...options } = {}) {
   build && await Build({ optimize: true });
 
   // TODO: call archwayd operations with the --dry-run flag
@@ -223,14 +122,9 @@ async function deploy(archwayd, { build = true, verify = true, dryRun = false, .
   const cargo = new Cargo();
 
   const deployOptions = await parseDeploymentOptions(cargo, config, options);
+  await Store(archwayd, { dryRun, deployOptions });
 
-  // The on-chain operations might fail due to network connectivity issues,
-  // so it's a good idea to retry them a few times before giving up
-  const wasm = await storeWasm(archwayd, deployOptions);
-  const deployedWasmConfig = { ...deployOptions, wasm };
-  verify && await verifyUploadedWasm(archwayd, deployedWasmConfig);
-
-  await instantiateContract(archwayd, deployedWasmConfig);
+  // await instantiateContract(archwayd, deployedWasmConfig);
 }
 
 async function main(archwayd, options = {}) {

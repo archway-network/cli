@@ -10,20 +10,22 @@ const Network = require('./network');
 const New = require('./new');
 const Query = require('./query');
 const Script = require('./script');
+const Store = require('./store');
 const Test = require('./test');
 const Tx = require('./tx');
 
 module.exports = {
-  Accounts: Accounts,
-  Build: Build,
-  Configure: Configure,
-  Deploy: Deploy,
-  DeployHistory: DeployHistory,
-  Metadata: Metadata,
-  Network: Network,
-  New: New,
-  Query: Query,
-  Script: Script,
-  Test: Test,
-  Tx: Tx
+  Accounts,
+  Build,
+  Configure,
+  Deploy,
+  DeployHistory,
+  Metadata,
+  Network,
+  New,
+  Query,
+  Script,
+  Store,
+  Test,
+  Tx
 };

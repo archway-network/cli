@@ -70,8 +70,6 @@ const Program = new Command()
     outputError: (str, write) => write(chalk.red(str))
   });
 
-// Commands
-// `archway accounts`
 Program
   .command('accounts')
   .description('List available wallets or add new wallet')
@@ -83,7 +81,6 @@ Program
     await Tools.Accounts(archwayd, options);
   });
 
-// `archway build`
 Program
   .command('build')
   .description('Build the project')
@@ -92,7 +89,6 @@ Program
     await Tools.Build(options);
   });
 
-// `archway configure`
 Program
   .command('configure')
   .description('Print or modify environment settings')
@@ -107,7 +103,6 @@ Program
     }
   });
 
-// `archway deploy`
 Program
   .command('deploy')
   .description('Deploy to network, or test deployability')
@@ -117,6 +112,7 @@ Program
   .option('-f, --from <value>', 'Name or address of account to sign the transactions')
   .option('--admin-address <value>', 'Address which can perform admin actions on the contract (e.g. "archway1...")', parseArchwayAddress)
   .option('--no-build', 'Do not build the project before deploying; it will fail in case the wasm file is not built', true)
+  .option('--no-store', 'Do not upload the wasm file on-chain (uses the latest version on config.json)', true)
   .option('--no-verify', 'Do not verify the wasm file uploaded on-chain', true)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
   .option('--dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
@@ -127,7 +123,6 @@ Program
     await Tools.Deploy(archwayd, options);
   });
 
-// `archway faucet`
 Program
   .command('faucet', { hidden: true })
   .description('Request Testnet funds from faucet')
@@ -145,7 +140,6 @@ Program
     console.info('The funds will be deposited to your account in a few minutes on all testnets.');
   });
 
-// `archway history`
 Program
   .command('history')
   .description('Print deployments history')
@@ -153,7 +147,6 @@ Program
     await Tools.DeployHistory();
   });
 
-// `archway deploy`
 Program
   .command('metadata')
   .description('Set the contract metadata')
@@ -174,7 +167,6 @@ Program
     await Tools.Metadata(archwayd, options);
   });
 
-// `archway network`
 Program
   .command('network')
   .description('Show network settings or migrate between networks')
@@ -185,7 +177,6 @@ Program
     await Tools.Network(options);
   });
 
-// `archway new`
 Program
   .command('new')
   .description('Create a new project for Archway network')
@@ -201,7 +192,6 @@ Program
     await Tools.New(name, options);
   });
 
-// `archway query`
 let modChoices = [
   'code',
   ' contract',
@@ -238,7 +228,6 @@ Program
     await Tools.Query(options.docker, args);
   });
 
-// `archway script`
 Program
   .command('run')
   .description('Run a custom script of your own creation')
@@ -255,7 +244,21 @@ Program
     }
   });
 
-// `archway test`
+Program
+  .command('store')
+  .description('Stores and verify a contract on-chain')
+  .option('-f, --from <value>', 'Name or address of account to sign the transactions')
+  .option('--no-store', 'Do not upload the wasm file on-chain (uses the latest version on config.json)', true)
+  .option('--no-verify', 'Do not verify the wasm file uploaded on-chain', true)
+  .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
+  .option('--dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
+  .addOption(DockerOption)
+  .action(async ({ ...options }) => {
+    options = await updateWithDockerOptions(options);
+    const archwayd = await createClient({ checkHomePath: true, ...options });
+    await Tools.Store(archwayd, options);
+  });
+
 Program
   .command('test')
   .description('Run unit tests')
@@ -263,7 +266,6 @@ Program
     await Tools.Test();
   });
 
-// `archway tx`
 Program
   .command('tx')
   .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
