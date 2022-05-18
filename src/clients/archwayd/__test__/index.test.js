@@ -45,7 +45,7 @@ describe('ArchwayClient', () => {
 
     afterEach(() => {
       spawk.done();
-      jest.resetAllMocks();
+      jest.clearAllMocks();
     });
 
     test('runs the archwayd binary with valid arguments', async () => {
@@ -57,7 +57,7 @@ describe('ArchwayClient', () => {
       expect(archwayd.calledWith).toMatchObject({
         command: client.command,
         args: ['--keyring-backend', 'test', 'keys', 'list'],
-        options: { stdio: 'inherit' }
+        options: { stdio: 'inherit', encoding: 'utf8' }
       });
     });
 
@@ -69,6 +69,44 @@ describe('ArchwayClient', () => {
 
       await expect(process).rejects.toThrow('Process exited with code 1');
       expect(archwayd.called).toBeTruthy();
+    });
+  });
+
+  describe('runJson', () => {
+    beforeEach(() => {
+      spawk.clean();
+      spawk.preventUnmatched();
+    });
+
+    afterEach(() => {
+      spawk.done();
+      jest.clearAllMocks();
+    });
+
+    test('runs archwayd and parses the output as json', async () => {
+      const client = await createClient({ extraArgs: ['--keyring-backend', 'test'] });
+      const output = { txhash: '123456' };
+      const archwayd = spawk.spawn(client.command)
+        .stdout(JSON.stringify(output));
+
+      const json = await client.runJson('keys', ['list'], { printStdout: false });
+
+      expect(archwayd.calledWith).toMatchObject({
+        command: client.command,
+        args: ['--keyring-backend', 'test', 'keys', 'list', '--output', 'json'],
+        options: { stdio: 'pipe', maxBuffer: 1024 * 1024 }
+      });
+
+      expect(json).toMatchObject(output);
+    });
+
+    test('returns an empty JSON in case the command does not return a JSON line', async () => {
+      const client = await createClient({ extraArgs: ['--keyring-backend', 'test'] });
+      spawk.spawn(client.command);
+
+      const json = client.runJson('keys', ['list'], { printStdout: false });
+
+      expect(json).toMatchObject({});
     });
   });
 });

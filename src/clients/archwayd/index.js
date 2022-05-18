@@ -8,6 +8,18 @@ const TxCommands = require('./tx');
 const DefaultArchwaydVersion = 'latest';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
+class ArchwayRunError extends Error {
+  constructor(stderr) {
+    super('Failed to run archwayd');
+    this.name = 'ArchwayRunError';
+    this.stderr = stderr;
+  }
+
+  toString() {
+    return `${this.message}\n${this.stderr}`;
+  }
+}
+
 /**
  * Facade for the archwayd client, which supports both Docker and binary implementations.
  */
@@ -67,13 +79,23 @@ class ArchwayClient {
   }
 
   async runJson(subCommand, args = [], { printStdout = true, ...options } = {}) {
-    const archwayd = this.run(subCommand, args, { stdio: 'pipe', ...options });
-    printStdout && archwayd.stdout.pipe(process.stdout);
-    const { stdout } = await archwayd;
+    const archwayd = this.run(
+      subCommand,
+      [...args, '--output', 'json'],
+      { stdio: 'pipe', maxBuffer: 1024 * 1024, ...options }
+    );
 
-    const lines = stdout.replace(/\r/g, '').split('\n');
-    const jsonLines = lines.filter(line => line.startsWith('{'));
-    return JSON.parse(jsonLines.pop());
+    printStdout && archwayd.stdout.pipe(process.stdout);
+
+    try {
+      const { stdout } = await archwayd;
+      const lines = stdout.replace(/\r/g, '').split('\n');
+      const jsonLines = lines.filter(line => line.startsWith('{'));
+      const jsonOutput = jsonLines.pop() || '{}';
+      return JSON.parse(jsonOutput);
+    } catch (e) {
+      throw new ArchwayRunError(e.stderr);
+    }
   }
 }
 

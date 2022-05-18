@@ -27,8 +27,7 @@ class TxCommands {
       '--from', from,
       '--chain-id', chainId,
       '--node', node,
-      '--broadcast-mode', 'block',
-      '--output', 'json',
+      '--broadcast-mode', 'sync',
       ...flags
     ];
     return await this.#client.runJson('tx', args, { stdio: ['inherit', 'pipe', 'inherit'], printStdout });

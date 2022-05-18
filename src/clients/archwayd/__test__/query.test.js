@@ -3,9 +3,7 @@ const ArchwayClient = require('..');
 const QueryCommands = require('../query');
 
 const Fixtures = {
-  tx: {
-    wasmStore: require('./fixtures/query-tx-wasm-store.json'),
-  }
+  queryTxWasmStore: require('./fixtures/query-tx-wasm-store.json'),
 };
 
 const defaultOptions = {
@@ -20,7 +18,7 @@ beforeEach(() => {
 
 afterEach(() => {
   spawk.done();
-  jest.resetAllMocks();
+  jest.clearAllMocks();
 });
 
 describe('QueryCommands', () => {
@@ -30,20 +28,19 @@ describe('QueryCommands', () => {
       const query = new QueryCommands(client);
 
       const archwayd = spawk.spawn(client.command)
-        .stdout(JSON.stringify(Fixtures.tx.wasmStore));
+        .stdout(JSON.stringify(Fixtures.queryTxWasmStore));
 
-      const txhash = Fixtures.tx.wasmStore.txhash;
+      const txhash = Fixtures.queryTxWasmStore.txhash;
       const transaction = await query.tx(txhash, defaultOptions);
 
-      expect(transaction).toMatchObject(Fixtures.tx.wasmStore);
+      expect(transaction).toMatchObject(Fixtures.queryTxWasmStore);
 
       expect(archwayd.calledWith).toMatchObject({
         args: [
           'query', 'tx', txhash,
           '--node', defaultOptions.node,
           '--output', 'json',
-        ],
-        options: { maxBuffer: 1024 * 1024 }
+        ]
       });
     });
   });
@@ -54,9 +51,9 @@ describe('QueryCommands', () => {
       const query = new QueryCommands(client);
 
       const archwayd = spawk.spawn(client.command)
-        .stdout(JSON.stringify(Fixtures.tx.wasmStore));
+        .stdout(JSON.stringify(Fixtures.queryTxWasmStore));
 
-      const txhash = Fixtures.tx.wasmStore.txhash;
+      const txhash = Fixtures.queryTxWasmStore.txhash;
       const codeId = await query.txEventAttribute(txhash, 'store_code', 'code_id', defaultOptions);
 
       expect(codeId).toEqual('253');
@@ -66,8 +63,29 @@ describe('QueryCommands', () => {
           'query', 'tx', txhash,
           '--node', defaultOptions.node,
           '--output', 'json',
+        ]
+      });
+    });
+  });
+
+  describe('wasmCode', () => {
+    test('downloads a wasm file by codeId from chain', async () => {
+      const client = new ArchwayClient();
+      const query = new QueryCommands(client);
+
+      const outputFilePath = '/tmp/contract.wasm';
+      const archwayd = spawk.spawn(client.command)
+        .stdout(`Downloading wasm code to ${outputFilePath}`);
+
+      const output = await query.wasmCode(1, outputFilePath, defaultOptions);
+
+      expect(output).toEqual(`Downloading wasm code to ${outputFilePath}`);
+
+      expect(archwayd.calledWith).toMatchObject({
+        args: [
+          'query', 'wasm', 'code', 1, outputFilePath,
+          '--node', defaultOptions.node,
         ],
-        options: { maxBuffer: 1024 * 1024 }
       });
     });
   });

@@ -2,6 +2,10 @@ const spawk = require('spawk');
 const ArchwayClient = require('..');
 const TxCommands = require('../tx');
 
+const Fixtures = {
+  txWasmStore: require('./fixtures/tx-wasm-store.json'),
+};
+
 const defaultOptions = {
   from: 'alice',
   chainId: 'titus-1',
@@ -21,7 +25,7 @@ beforeEach(() => {
 
 afterEach(() => {
   spawk.done();
-  jest.resetAllMocks();
+  jest.clearAllMocks();
 });
 
 describe('TxCommands', () => {
@@ -30,28 +34,12 @@ describe('TxCommands', () => {
       const client = new ArchwayClient();
       const tx = new TxCommands(client);
 
-      const txhash = '8F3643DB9D50D7C97FD11CEB0030C2BE568A669CD072C34366C959C1C9D48C0D';
-      const txOutput = {
-        height: '0',
-        txhash,
-        codespace: '',
-        code: 0,
-        data: '',
-        raw_log: '[]',
-        logs: [],
-        info: '',
-        gas_wanted: '0',
-        gas_used: '0',
-        tx: null,
-        timestamp: '',
-        events: []
-      };
       const archwayd = spawk.spawn(client.command)
-        .stdout(`gas estimate: 1132045\n${JSON.stringify(txOutput)}`);
+        .stdout(`gas estimate: 1132045\n${JSON.stringify(Fixtures.txWasmStore)}`);
 
       const transaction = await tx.wasm('store', ['path/to/contract.wasm'], defaultOptions);
 
-      expect(transaction).toMatchObject(txOutput);
+      expect(transaction).toMatchObject(Fixtures.txWasmStore);
 
       expect(archwayd.calledWith).toMatchObject({
         args: [
