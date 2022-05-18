@@ -21,7 +21,7 @@ beforeEach(() => {
 
 afterEach(() => {
   spawk.done();
-  jest.resetAllMocks();
+  jest.clearAllMocks();
 });
 
 describe('project settings', () => {

@@ -24,7 +24,7 @@ beforeEach(() => {
 
 afterEach(() => {
   spawk.done();
-  Cargo.mockClear();
+  jest.clearAllMocks();
 });
 
 describe('build', () => {
