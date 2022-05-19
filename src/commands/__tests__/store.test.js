@@ -1,4 +1,5 @@
 const spawk = require('spawk');
+const ora = require('ora');
 const mockConsole = require('jest-mock-console');
 const { readFile } = require('fs/promises');
 const { Buffer } = require('buffer');
@@ -13,6 +14,7 @@ const Fixtures = {
   queryTxWasmStore: require('../../clients/archwayd/__test__/fixtures/query-tx-wasm-store.json'),
 };
 
+jest.mock('ora');
 jest.mock('prompts');
 jest.mock('fs/promises');
 

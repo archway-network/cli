@@ -6,6 +6,7 @@ const path = require('path');
 const { readFile, copyFile, mkdir } = require('fs/promises');
 const { pathExists } = require('../util/fs');
 const { Config } = require('../util/config');
+const retry = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
 // TODO: move to a shared lib function
@@ -49,12 +50,13 @@ async function verifyChecksum(filename) {
 }
 
 async function verifyUploadedWasm(archwayd, config, { project: { wasm: { optimizedFilePath } = {} } = {}, chainId, node, ...options } = {}) {
-  console.info(chalk`Validating artifact deployed to {cyan ${chainId}}...`);
-
   const { codeId } = config.deployments.findLast('store', chainId);
   const downloadWasmName = `${path.basename(optimizedFilePath, '.wasm')}_download.wasm`;
   const localDownloadPath = path.join(path.dirname(optimizedFilePath), downloadWasmName);
-  await archwayd.query.wasmCode(codeId, localDownloadPath, { node });
+  await retry(
+    () => archwayd.query.wasmCode(codeId, localDownloadPath, { node }),
+    { text: chalk`Downloading wasm file from {cyan ${chainId}}...` }
+  );
 
   // We need to update the path to where the docker container volume is mapped to
   const remotePath = path.join(archwayd.workingDir, optimizedFilePath);
@@ -85,9 +87,11 @@ async function storeWasm(archwayd, config, { project: { wasm: { optimizedFilePat
   }
 
   const { txhash } = await archwayd.tx.wasm('store', [optimizedFilePath], { from, chainId, node, ...options });
-  console.info(chalk`Fetching code id for tx hash {cyan ${txhash}}...`);
   // FIXME: add retry logic
-  const codeIdString = await archwayd.query.txEventAttribute(txhash, 'store_code', 'code_id', { node });
+  const codeIdString = await retry(
+    () => archwayd.query.txEventAttribute(txhash, 'store_code', 'code_id', { node, printStdout: false }),
+    { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
+  );
   const codeId = _.toNumber(codeIdString);
   if (!txhash || !codeId) {
     throw new Error(`Failed to upload wasm file ${optimizedFilePath}`);
@@ -100,7 +104,7 @@ async function storeWasm(archwayd, config, { project: { wasm: { optimizedFilePat
     txhash
   });
 
-  console.info(chalk`{green Uploaded {cyan ${optimizedFilePath}} on tx hash {cyan ${txhash}} to {cyan ${chainId}}}\n`);
+  console.info(chalk`{green Uploaded {cyan ${optimizedFilePath}} with code id {cyan ${codeId}} on tx hash {cyan ${txhash}} to {cyan ${chainId}}}\n`);
 }
 
 async function storeAndVerify(archwayd, { store = true, verify = true, deployOptions, ...options } = {}) {
