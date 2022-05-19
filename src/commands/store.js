@@ -124,8 +124,9 @@ async function main(archwayd, options = {}) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
-      console.error(chalk`\n{red {bold Failed to store contract}}`);
+      console.error(chalk`\n{red.bold Failed to store contract}`);
       console.error(e);
+      process.exit(1);
     }
   }
 }

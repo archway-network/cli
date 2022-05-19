@@ -33,7 +33,9 @@ async function main({ optimize = false } = {}) {
       await build(cargo);
     }
   } catch (e) {
-    console.error(chalk`{red {bold Build failed}}\n`, e);
+    console.error(chalk`{red.bold Build failed}`);
+    console.error(e);
+    process.exit(1);
   }
 }
 

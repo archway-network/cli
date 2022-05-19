@@ -48,12 +48,16 @@ describe('optimize', () => {
   });
 
   test('builds the wasm in release mode', async () => {
+    spawk.spawn('wasm-opt');
+
     await Build({ optimize: true });
 
     expect(mockCargo.wasm).toHaveBeenCalled();
   });
 
   test('creates the artifacts directory', async () => {
+    spawk.spawn('wasm-opt');
+
     await Build({ optimize: true });
 
     expect(mkdir).toHaveBeenCalledWith('artifacts', { recursive: true });

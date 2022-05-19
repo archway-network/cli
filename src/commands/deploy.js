@@ -134,7 +134,9 @@ async function main(archwayd, options = {}) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
-      console.error(chalk`\n{red {bold Failed to deploy project}\n${e.stack}}`);
+      console.error(chalk`\n{red.bold Failed to deploy project}`);
+      console.error(e);
+      process.exit(1);
     }
   }
 }
