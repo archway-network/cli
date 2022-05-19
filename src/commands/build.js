@@ -2,6 +2,7 @@ const chalk = require('chalk');
 const path = require('path');
 const { mkdir } = require('fs/promises');
 const { spawn } = require('promisify-child-process');
+const ora = require('ora');
 const Cargo = require('../clients/cargo');
 
 async function build(cargo) {
@@ -10,7 +11,7 @@ async function build(cargo) {
 }
 
 async function optimizeWasm(cargo) {
-  console.info('Building optimized wasm binary...');
+  console.info('Building wasm binary...');
 
   await cargo.wasm();
 
@@ -19,7 +20,9 @@ async function optimizeWasm(cargo) {
   await mkdir(path.dirname(optimizedFilePath), { recursive: true });
 
   const wasmOptArgs = ['-Os', filePath, '-o', optimizedFilePath];
-  await spawn('wasm-opt', wasmOptArgs, { encoding: 'utf8' });
+  const wasmOpt = spawn('wasm-opt', wasmOptArgs, { encoding: 'utf8' });
+  ora.promise(wasmOpt, 'Optimizing wasm file...');
+  await wasmOpt;
 
   console.info(chalk`{green Optimized wasm binary saved to {cyan ${optimizedFilePath}}}\n`);
 }

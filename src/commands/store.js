@@ -87,7 +87,6 @@ async function storeWasm(archwayd, config, { project: { wasm: { optimizedFilePat
   }
 
   const { txhash } = await archwayd.tx.wasm('store', [optimizedFilePath], { from, chainId, node, ...options });
-  // FIXME: add retry logic
   const codeIdString = await retry(
     () => archwayd.query.txEventAttribute(txhash, 'store_code', 'code_id', { node, printStdout: false }),
     { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
@@ -104,7 +103,10 @@ async function storeWasm(archwayd, config, { project: { wasm: { optimizedFilePat
     txhash
   });
 
-  console.info(chalk`{green Uploaded {cyan ${optimizedFilePath}} with code id {cyan ${codeId}} on tx hash {cyan ${txhash}} to {cyan ${chainId}}}\n`);
+  console.info(chalk`\n{green File {cyan ${optimizedFilePath}} successfully uploaded}`);
+  console.info(chalk`{white   Chain Id: {cyan ${chainId}}}`);
+  console.info(chalk`{white   Tx Hash:  {cyan ${txhash}}}`);
+  console.info(chalk`{white   Code Id:  {cyan ${codeId}}}`);
 }
 
 async function storeAndVerify(archwayd, { store = true, verify = true, deployOptions, ...options } = {}) {
