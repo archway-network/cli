@@ -68,7 +68,7 @@ async function instantiateContract(archwayd, config, {
 } = {}) {
   const { codeId } = config.deployments.findLast('store', chainId);
 
-  console.info(chalk`Instantiating {cyan ${projectId}} {cyan ${codeId}} on {cyan ${chainId}}...`);
+  console.info(chalk`Instantiating {cyan ${projectId}} from code id {cyan ${codeId}} on {cyan ${chainId}}...`);
 
   const { label, args } = await prompts([
     {
