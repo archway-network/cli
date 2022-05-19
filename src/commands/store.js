@@ -49,7 +49,7 @@ async function verifyChecksum(filename) {
   return hashSum.digest('hex');
 }
 
-async function verifyUploadedWasm(archwayd, config, { project: { wasm: { optimizedFilePath } = {} } = {}, chainId, node, ...options } = {}) {
+async function verifyUploadedWasm(archwayd, config, { project: { wasm: { optimizedFilePath } = {} } = {}, chainId, node } = {}) {
   const { codeId } = config.deployments.findLast('store', chainId);
   const downloadWasmName = `${path.basename(optimizedFilePath, '.wasm')}_download.wasm`;
   const localDownloadPath = path.join(path.dirname(optimizedFilePath), downloadWasmName);
