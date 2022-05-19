@@ -5,6 +5,7 @@ const Build = require('./build');
 const Configure = require('./configure');
 const Deploy = require('./deploy');
 const DeployHistory = require('./deployments');
+const Instantiate = require('./instantiate');
 const Metadata = require('./metadata.js');
 const Network = require('./network');
 const New = require('./new');
@@ -20,6 +21,7 @@ module.exports = {
   Configure,
   Deploy,
   DeployHistory,
+  Instantiate,
   Metadata,
   Network,
   New,

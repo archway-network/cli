@@ -1,81 +1,20 @@
 const _ = require('lodash');
 const chalk = require('chalk');
 const { prompts, PromptCancelledError } = require('../util/prompts');
-const { isJson, isArchwayAddress } = require('../util/validators');
-const Config = require('../util/config');
+const { isJson } = require('../util/validators');
+const { Config } = require('../util/config');
 const Cargo = require('../clients/cargo');
 const Build = require('./build');
+const Instantiate = require('./instantiate');
 const Store = require('./store');
 
-async function parseBech32Address(archwayd, address) {
-  if (isArchwayAddress(address)) {
-    return address;
-  }
-
-  console.info(chalk`Fetching address for wallet {cyan ${address}}...`);
-  return await archwayd.keys.getAddress(address);
-}
-
-async function instantiateContract(archwayd, options = {}) {
-  const {
-    project: { id: projectId } = {},
-    from,
-    adminAddress,
-    chainId,
-    wasm: { codeId } = {}
-  } = options;
-
-  console.info(chalk`Instantiating {cyan ${projectId}} on {cyan ${chainId}} using wallet {cyan ${from}}...`);
-
-  const { label, args } = await prompts([
-    {
-      type: 'text',
-      name: 'label',
-      message: chalk`Choose a label for this deployment {reset.dim (type <enter> to use the default)}`,
-      initial: projectId,
-      validate: value => !_.isEmpty(_.trim(value)) || 'Invalid deployment label',
-      format: value => _.trim(value),
-    },
-    {
-      type: 'text',
-      name: 'args',
-      message: chalk`JSON encoded arguments for contract initialization {reset.dim (e.g. \{ "count": 0 \})}`,
-      initial: '{}',
-      validate: value => isJson(value) || 'Invalid initialization args - inform a valid JSON string',
-    },
-  ]);
-
-  const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
-  const instantiateArgs = [codeId, args, '--label', label, '--admin', bech32AdminAddress];
-  const { txhash } = archwayd.tx.wasm('instantiate', instantiateArgs, options);
-  const contractAddress = archwayd.query.txEventAttribute(txhash, 'instantiate', '_contract_address');
-  if (!txhash || !contractAddress) {
-    throw new Error(`Failed to instantiate contract with code_id=${codeId} and args=${args}`);
-  }
-
-  await Config.deployments.add({
-    type: 'instantiate',
-    chainId: chainId,
-    codeId: codeId,
-    address: contractAddress,
-    admin: bech32AdminAddress
-  });
-
-  console.info(chalk`{green Successfully instantiated contract with address {cyan ${contractAddress}} on tx hash {cyan ${txhash}} at {cyan ${chainId}}}\n`);
-  console.warn(chalk`{whiteBright It is recommended that you now set the contract metadata using the {green.bold archway metadata} command}`);
-
-  return { contractAddress };
-}
-
-async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, label, defaultLabel, ...options } = {}) {
+async function parseDeploymentOptions(cargo, config, { adminAddress, confirm, args, label, defaultLabel, ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
 
   const project = await cargo.projectMetadata();
-  const {
-    network: { chainId, urls: { rpc } = {}, gas } = {}
-  } = config;
+  const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
 
   prompts.override({
@@ -93,11 +32,11 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
     },
   ]);
 
-  const flags = [
-    confirm || '--yes',
+  const flags = _.flatten([
+    confirm ? [] : ['--yes'],
     // FIXME: --dry-run is not working as expected on archwayd
-    // dryRun && '--dry-run',
-  ].filter(_.isString);
+    // dryRun ? ['--dry-run'] : [],
+  ]).filter(_.isString);
 
   return {
     project,
@@ -110,6 +49,12 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   }
 }
 
+/**
+ * @see Build
+ * @see Store
+ * @see Instantiate
+ * @deprecated since v1.2.0
+ */
 async function deploy(archwayd, { build = true, dryRun = false, ...options } = {}) {
   build && await Build({ optimize: true });
 
@@ -118,17 +63,23 @@ async function deploy(archwayd, { build = true, dryRun = false, ...options } = {
     return;
   }
 
-  const config = await Config.read();
+  const config = await Config.open();
   const cargo = new Cargo();
 
   const deployOptions = await parseDeploymentOptions(cargo, config, options);
   await Store(archwayd, { dryRun, deployOptions });
-
-  // await instantiateContract(archwayd, deployedWasmConfig);
+  await Instantiate(archwayd, { dryRun, deployOptions });
 }
 
 async function main(archwayd, options = {}) {
   try {
+    console.warn(chalk`{yellow {bold WARNING:} This command is deprecated and will be removed in future versions}`);
+    console.warn('\nTo build and deploy your contract, use the following commands instead:\n');
+    console.warn(chalk`{magenta archway build --optimized}`);
+    console.warn(chalk`{magenta archway store}`);
+    console.warn(chalk`{magenta archway instantiate}`);
+    console.warn('\n');
+
     await deploy(archwayd, options);
   } catch (e) {
     if (e instanceof PromptCancelledError) {
