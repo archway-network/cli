@@ -3,11 +3,12 @@ const ora = require('ora');
 
 const DefaultSpinnerText = 'Wait...';
 const DefaultRetryOptions = {
-  retries: 3,
+  retries: 5,
   randomize: true,
+  maxTimeout: 6 * 1000,
 };
 
-async function retryWrapper(fn, { text = DefaultSpinnerText, options = {} } = {}) {
+async function retryWrapper(fn, { text = DefaultSpinnerText, ...options } = {}) {
   const retryFn = retry(fn, {
     ...DefaultRetryOptions,
     ...options

@@ -131,7 +131,7 @@ class Deployments {
 
   findLast(type, chainId) {
     return this.config.get('developer.deployments', [])
-      .find(deployment => deployment.type === type && deployment.chainId === chainId);
+      .find(_.matches({ type, chainId }));
   }
 }
 
