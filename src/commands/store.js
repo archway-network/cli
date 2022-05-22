@@ -75,7 +75,7 @@ async function verifyUploadedWasm(archwayd, config, { project: { wasm: { optimiz
 }
 
 async function storeWasm(archwayd, config, { project: { wasm: { optimizedFilePath } = {} } = {}, from, chainId, node, ...options } = {}) {
-  console.info(chalk`Uploading optimized executable to {cyan ${chainId}} using wallet {cyan ${from}}...`);
+  console.info(chalk`Uploading optimized wasm to {cyan ${chainId}} using wallet {cyan ${from}}...`);
 
   // If we use docker or for any reason need to copy the file to any other directory before upload
   // TODO: remove after dropping Docker support
@@ -106,7 +106,7 @@ async function storeWasm(archwayd, config, { project: { wasm: { optimizedFilePat
   console.info(chalk`\n{green File {cyan ${optimizedFilePath}} successfully uploaded}`);
   console.info(chalk`{white   Chain Id: {cyan ${chainId}}}`);
   console.info(chalk`{white   Tx Hash:  {cyan ${txhash}}}`);
-  console.info(chalk`{white   Code Id:  {cyan ${codeId}}}`);
+  console.info(chalk`{white   Code Id:  {cyan ${codeId}}}\n`);
 }
 
 async function storeAndVerify(archwayd, { store = true, verify = true, deployOptions, ...options } = {}) {

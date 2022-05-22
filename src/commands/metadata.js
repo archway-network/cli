@@ -1,9 +1,9 @@
 const _ = require('lodash');
 const chalk = require('chalk');
 const retry = require('../util/retry');
+const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress } = require('../util/validators');
-const { Config } = require('../util/config');
 
 async function parseTxOptions(config, { confirm, dryRun, flags = [], ...options } = {}) {
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
