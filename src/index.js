@@ -8,6 +8,7 @@ const Config = require('./util/config');
 const { createClient } = require('./clients/archwayd');
 const { Environments, Testnets } = require('./networks');
 const { isJson, isProjectName, isArchwayAddress } = require('./util/validators');
+const { checkSemanticVersion } = require('./util/semvar');
 
 /**
  * Gets the version from package.json
@@ -80,6 +81,7 @@ Program
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Accounts(archwayd, options);
+    checkSemanticVersion();
   });
 
 // `archway build`
@@ -88,6 +90,7 @@ Program
   .description('Build current project')
   .action(async () => {
     await Tools.Build();
+    checkSemanticVersion();
   });
 
 // `archway configure`
@@ -103,6 +106,7 @@ Program
       let param = options.modify
       await Tools.Configure(true, param);
     }
+    checkSemanticVersion();
   });
 
 // `archway deploy`
@@ -123,6 +127,7 @@ Program
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Deploy(archwayd, options);
+    checkSemanticVersion();
   });
 
 // `archway faucet`
@@ -141,6 +146,7 @@ Program
     console.info(chalk`2. Send the following message in the {yellow 🚰｜faucet} channel\n`);
     console.info(chalk`{bold.white !faucet ${address || '<address>'}}\n`);
     console.info('The funds will be deposited to your account in a few minutes on all testnets.');
+    checkSemanticVersion();
   });
 
 // `archway history`
@@ -149,6 +155,7 @@ Program
   .description('Print deployments history')
   .action(async () => {
     await Tools.DeployHistory();
+    checkSemanticVersion();
   });
 
 // `archway deploy`
@@ -170,6 +177,7 @@ Program
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Metadata(archwayd, options);
+    checkSemanticVersion();
   });
 
 // `archway network`
@@ -181,6 +189,7 @@ Program
   .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
   .action(async (options) => {
     await Tools.Network(options);
+    checkSemanticVersion();
   });
 
 // `archway new`
@@ -197,6 +206,7 @@ Program
   .argument('[name]', 'Project name', parseProjectName)
   .action(async (name, options) => {
     await Tools.New(name, options);
+    checkSemanticVersion();
   });
 
 // `archway query`
@@ -234,6 +244,7 @@ Program
     };
 
     await Tools.Query(options.docker, args);
+    checkSemanticVersion();
   });
 
 // `archway script`
@@ -251,6 +262,7 @@ Program
     } catch (e) {
       console.error('Error running custom script', [options.script]);
     }
+    checkSemanticVersion();
   });
 
 // `archway test`
@@ -259,6 +271,7 @@ Program
   .description('Run unit tests')
   .action(async () => {
     await Tools.Test();
+    checkSemanticVersion();
   });
 
 // `archway tx`
@@ -276,6 +289,7 @@ Program
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Tx(archwayd, options);
+    checkSemanticVersion();
   });
 
 Program.parseAsync();
