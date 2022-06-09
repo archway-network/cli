@@ -171,7 +171,6 @@ Program
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Metadata(archwayd, options);
-    checkSemanticVersion();
   });
 
 // `archway network`
