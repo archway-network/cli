@@ -8,6 +8,7 @@ const Config = require('./util/config');
 const { createClient } = require('./clients/archwayd');
 const { Environments, Testnets } = require('./networks');
 const { isJson, isProjectName, isArchwayAddress } = require('./util/validators');
+const { checkSemanticVersion } = require('./util/semvar');
 
 /**
  * Gets the version from package.json
@@ -87,7 +88,7 @@ Program
   .command('build')
   .description('Build current project')
   .action(async () => {
-    await Tools.Build();
+    await Tools.Build();  
   });
 
 // `archway configure`
@@ -170,6 +171,7 @@ Program
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Metadata(archwayd, options);
+    checkSemanticVersion();
   });
 
 // `archway network`
@@ -277,5 +279,9 @@ Program
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Tx(archwayd, options);
   });
+
+Program.hook('postAction', () => {
+  checkSemanticVersion();
+});
 
 Program.parseAsync();
