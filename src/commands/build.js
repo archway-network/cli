@@ -1,14 +1,44 @@
-// archway-cli/util/build.js
-
 const chalk = require('chalk');
-const ScriptRunner = require('../util/scripts');
+const path = require('path');
+const { mkdir } = require('fs/promises');
+const { spawn } = require('promisify-child-process');
+const ora = require('ora');
+const Cargo = require('../clients/cargo');
 
-async function main() {
+async function build(cargo) {
+  console.info(`Building the project...`);
+  await cargo.build();
+}
+
+async function optimizeWasm(cargo) {
+  console.info('Building wasm binary...');
+
+  await cargo.wasm();
+
+  const { wasm: { filePath, optimizedFilePath } } = await cargo.projectMetadata();
+
+  await mkdir(path.dirname(optimizedFilePath), { recursive: true });
+
+  const wasmOptArgs = ['-Os', filePath, '-o', optimizedFilePath];
+  const wasmOpt = spawn('wasm-opt', wasmOptArgs, { encoding: 'utf8' });
+  ora.promise(wasmOpt, 'Optimizing wasm file...');
+  await wasmOpt;
+
+  console.info(chalk`{green Optimized wasm binary saved to {cyan ${optimizedFilePath}}}\n`);
+}
+
+async function main({ optimize = false } = {}) {
   try {
-    console.info(`Building project...\n`);
-    await new ScriptRunner().run('build');
+    const cargo = new Cargo();
+    if (optimize) {
+      await optimizeWasm(cargo);
+    } else {
+      await build(cargo);
+    }
   } catch (e) {
-    console.error(chalk`{red {bold Build failed}\n${e.message || e}}`);
+    console.error(chalk`{red.bold Build failed}`);
+    console.error(e);
+    process.exit(1);
   }
 }
 

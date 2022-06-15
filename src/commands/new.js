@@ -149,7 +149,8 @@ async function main(name, options = {}) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
-      console.error(chalk`{red {bold Failed to create project}\n${e.message || e}}`);
+      console.error(chalk`\n{red.bold Failed to create project}`);
+      console.error(e);
     }
   }
 }

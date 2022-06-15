@@ -2,6 +2,9 @@ const path = require('path');
 const { spawn } = require('promisify-child-process');
 const Config = require('./config');
 
+/**
+ * @deprecated since v1.2.0
+ */
 class ScriptRunner {
   constructor({ config, pathPrefix } = {}) {
     this.config = config;

@@ -47,7 +47,6 @@ async function tryQuery(docker, args) {
       }
 
       // Address to query
-      // XXX TODO: Allow override and selecting other deployments
       // For now defaults to most recent deployment
       let deployments = config.developer.deployments;
       for (let i = 0; i < deployments.length; i++) {

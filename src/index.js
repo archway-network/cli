@@ -22,11 +22,11 @@ async function getDefaultsFromConfig() {
   try {
     const {
       network: { name: networkName } = {},
-      developer: { archwayd: { docker = true, version: archwaydVersion = networkName } = {} } = {}
+      developer: { archwayd: { docker = false, version: archwaydVersion = networkName } = {} } = {}
     } = await Config.read();
     return { archwaydVersion, docker };
   } catch (e) {
-    return { docker: true };
+    return { docker: false };
   }
 }
 
@@ -70,8 +70,6 @@ const Program = new Command()
     outputError: (str, write) => write(chalk.red(str))
   });
 
-// Commands
-// `archway accounts`
 Program
   .command('accounts')
   .description('List available wallets or add new wallet')
@@ -83,19 +81,18 @@ Program
     await Tools.Accounts(archwayd, options);
   });
 
-// `archway build`
 Program
   .command('build')
-  .description('Build current project')
-  .action(async () => {
-    await Tools.Build();  
+  .description('Build the project')
+  .option('--optimize', 'Builds an optimized wasm file ready for deployment')
+  .action(async (options) => {
+    await Tools.Build(options);
   });
 
-// `archway configure`
 Program
   .command('configure')
   .description('Print or modify environment settings')
-  .option('-m, --modify <key>', 'Modify a particular setting; command will fail if <key> does not yet exist.')
+  .option('-m, --modify <key>', 'Modify a particular setting; command will fail if <key> does not yet exist')
   .action(async (options) => {
     let modify = (options.modify) ? true : false;
     if (!modify) {
@@ -106,7 +103,23 @@ Program
     }
   });
 
-// `archway deploy`
+Program
+  .command('instantiate')
+  .description('Instantiate a stored contract')
+  .option('-c, --code-id <value>', 'Code ID for the WASM stored on-chain', parseInt)
+  .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment (e.g. --args \'{ "count": 0 }\')', parseJson)
+  .option('-l, --label <value>', 'Label used for instantiating the contract')
+  .option('--default-label', 'Use the default label for instantiating the contract: "<project_name> <project_version>"')
+  .option('-f, --from <value>', 'Name or address of account to sign the transactions')
+  .option('--admin-address <value>', 'Address which can perform admin actions on the contract (e.g. "archway1...")', parseArchwayAddress)
+  .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
+  .addOption(DockerOption)
+  .action(async ({ ...options }) => {
+    options = await updateWithDockerOptions(options);
+    const archwayd = await createClient(options);
+    await Tools.Instantiate(archwayd, options);
+  });
+
 Program
   .command('deploy')
   .description('Deploy to network, or test deployability')
@@ -116,9 +129,9 @@ Program
   .option('-f, --from <value>', 'Name or address of account to sign the transactions')
   .option('--admin-address <value>', 'Address which can perform admin actions on the contract (e.g. "archway1...")', parseArchwayAddress)
   .option('--no-build', 'Do not build the project before deploying; it will fail in case the wasm file is not built', true)
+  .option('--no-store', 'Do not upload the wasm file on-chain (uses the latest version on config.json)', true)
   .option('--no-verify', 'Do not verify the wasm file uploaded on-chain', true)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .option('--dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
   .addOption(DockerOption)
   .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
@@ -126,7 +139,6 @@ Program
     await Tools.Deploy(archwayd, options);
   });
 
-// `archway faucet`
 Program
   .command('faucet', { hidden: true })
   .description('Request Testnet funds from faucet')
@@ -144,7 +156,6 @@ Program
     console.info('The funds will be deposited to your account in a few minutes on all testnets.');
   });
 
-// `archway history`
 Program
   .command('history')
   .description('Print deployments history')
@@ -152,7 +163,6 @@ Program
     await Tools.DeployHistory();
   });
 
-// `archway deploy`
 Program
   .command('metadata')
   .description('Set the contract metadata')
@@ -164,7 +174,6 @@ Program
   .option('--premium-percentage <value>', 'Integer percentage of premium in a range between 0 and 200', parseInt)
   .option('--gas-rebate', 'Indicates if the contract rewards should be used for gas rebates to the user')
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .option('--dry-run', 'Perform a simulation of a transaction without broadcasting it', false)
   .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
   .addOption(DockerOption)
   .action(async (options) => {
@@ -173,7 +182,6 @@ Program
     await Tools.Metadata(archwayd, options);
   });
 
-// `archway network`
 Program
   .command('network')
   .description('Show network settings or migrate between networks')
@@ -184,11 +192,10 @@ Program
     await Tools.Network(options);
   });
 
-// `archway new`
 Program
   .command('new')
   .description('Create a new project for Archway network')
-  .option('-k, --docker', 'Use the docker version of archwayd', true)
+  .option('-k, --docker', 'Use the docker version of archwayd', false)
   .option('--no-docker', 'Use the binary version of archwayd')
   .addOption(new Option('-e, --environment <value>', 'Environment to use for the project').choices(Environments))
   .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
@@ -200,7 +207,6 @@ Program
     await Tools.New(name, options);
   });
 
-// `archway query`
 let modChoices = [
   'code',
   ' contract',
@@ -237,7 +243,6 @@ Program
     await Tools.Query(options.docker, args);
   });
 
-// `archway script`
 Program
   .command('run')
   .description('Run a custom script of your own creation')
@@ -254,7 +259,20 @@ Program
     }
   });
 
-// `archway test`
+Program
+  .command('store')
+  .description('Stores and verify a contract on-chain')
+  .option('-f, --from <value>', 'Name or address of account to sign the transactions')
+  .option('--no-store', 'Do not upload the wasm file on-chain (uses the latest version on config.json)', true)
+  .option('--no-verify', 'Do not verify the wasm file uploaded on-chain', true)
+  .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
+  .addOption(DockerOption)
+  .action(async ({ ...options }) => {
+    options = await updateWithDockerOptions(options);
+    const archwayd = await createClient({ checkHomePath: true, ...options });
+    await Tools.Store(archwayd, options);
+  });
+
 Program
   .command('test')
   .description('Run unit tests')
@@ -262,14 +280,12 @@ Program
     await Tools.Test();
   });
 
-// `archway tx`
 Program
   .command('tx')
   .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
   .option('-f, --from <value>', 'Name or address of account to sign transactions')
   .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .option('--dry-run', 'Perform a simulation of a transaction without broadcasting it', false)
   .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
   .addOption(DockerOption)
   .description('Execute a smart contract transaction on Archway network')

@@ -1,6 +1,6 @@
 const spawk = require('spawk');
 const mockConsole = require('jest-mock-console');
-const { createClient } = require('../../clients/archwayd');
+const ArchwayClient = require('../../clients/archwayd');
 const Accounts = require('../accounts');
 
 beforeEach(() => {
@@ -12,12 +12,12 @@ beforeEach(() => {
 
 afterEach(() => {
   spawk.done();
-  jest.resetAllMocks();
+  jest.clearAllMocks();
 });
 
 describe('add', () => {
   test('adds a new key to the keychain', async () => {
-    const client = await createTestArchwaydClient();
+    const client = createClient();
     const archwayd = spawk.spawn(client.command);
 
     await Accounts(client, { add: 'test-key' });
@@ -30,7 +30,7 @@ describe('add', () => {
 
 describe('list', () => {
   test('lists existing keys', async () => {
-    const client = await createTestArchwaydClient();
+    const client = createClient();
     const archwayd = spawk.spawn(client.command);
 
     await Accounts(client);
@@ -41,6 +41,6 @@ describe('list', () => {
   });
 });
 
-async function createTestArchwaydClient() {
-  return await createClient({ docker: false, extraArgs: ['--keyring-backend', 'test'] });
+function createClient() {
+  return new ArchwayClient({ extraArgs: ['--keyring-backend', 'test'] });
 }

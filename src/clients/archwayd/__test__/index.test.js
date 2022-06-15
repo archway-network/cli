@@ -1,7 +1,7 @@
-const { DefaultArchwaydVersion, DefaultArchwaydHome, createClient } = require('../archwayd');
+const { DefaultArchwaydVersion, DefaultArchwaydHome, createClient } = require('..');
 const spawk = require('spawk');
 
-describe('DefaultArchwayClient', () => {
+describe('ArchwayClient', () => {
   describe('constructor', () => {
     test('builds a client that runs the archwayd binary', async () => {
       const client = await createClient();
@@ -45,7 +45,7 @@ describe('DefaultArchwayClient', () => {
 
     afterEach(() => {
       spawk.done();
-      jest.resetAllMocks();
+      jest.clearAllMocks();
     });
 
     test('runs the archwayd binary with valid arguments', async () => {
@@ -57,7 +57,7 @@ describe('DefaultArchwayClient', () => {
       expect(archwayd.calledWith).toMatchObject({
         command: client.command,
         args: ['--keyring-backend', 'test', 'keys', 'list'],
-        options: { stdio: 'inherit' }
+        options: { stdio: 'inherit', encoding: 'utf8' }
       });
     });
 
@@ -69,6 +69,44 @@ describe('DefaultArchwayClient', () => {
 
       await expect(process).rejects.toThrow('Process exited with code 1');
       expect(archwayd.called).toBeTruthy();
+    });
+  });
+
+  describe('runJson', () => {
+    beforeEach(() => {
+      spawk.clean();
+      spawk.preventUnmatched();
+    });
+
+    afterEach(() => {
+      spawk.done();
+      jest.clearAllMocks();
+    });
+
+    test('runs archwayd and parses the output as json', async () => {
+      const client = await createClient({ extraArgs: ['--keyring-backend', 'test'] });
+      const output = { txhash: '123456' };
+      const archwayd = spawk.spawn(client.command)
+        .stdout(JSON.stringify(output));
+
+      const json = await client.runJson('keys', ['list'], { printStdout: false });
+
+      expect(archwayd.calledWith).toMatchObject({
+        command: client.command,
+        args: ['--keyring-backend', 'test', 'keys', 'list', '--output', 'json'],
+        options: { stdio: 'pipe', maxBuffer: 1024 * 1024 }
+      });
+
+      expect(json).toMatchObject(output);
+    });
+
+    test('returns an empty JSON in case the command does not return a JSON line', async () => {
+      const client = await createClient({ extraArgs: ['--keyring-backend', 'test'] });
+      spawk.spawn(client.command);
+
+      const json = client.runJson('keys', ['list'], { printStdout: false });
+
+      expect(json).toMatchObject({});
     });
   });
 });
@@ -87,6 +125,8 @@ describe('DockerArchwayClient', () => {
       const client = await createClient({ docker: true });
       expect(client.extraArgs).toEqual(expect.arrayContaining([
         'run',
+        '--pull',
+        'always',
         '--rm',
         '-it',
         `--volume=${DefaultArchwaydHome}:/root/.archway`,
@@ -108,7 +148,7 @@ describe('DockerArchwayClient', () => {
 
     test('uses testnet name as the image version when available', async () => {
       const archwaydVersion = '0.0.1';
-      const testnet = 'augusta';
+      const testnet = 'titus';
 
       const client = await createClient({ docker: true, testnet, archwaydVersion });
 

@@ -1,0 +1,65 @@
+{
+  "name": "archway-increment",
+  "developer": {
+    "archwayd": {
+      "docker": false
+    },
+    "deployments": [
+      {
+        "type": "set-metadata",
+        "chainId": "titus-1",
+        "txhash": "8C866C61658FE8B6D76F29FC9D7BCB60D5C75F8907486E9D58BA6AE7A0C10DB5",
+        "codeId": 253,
+        "contract": "archway1yama69ck4d722lltrz64mf8q06u9r37y4kh5948cqpj49g0d5nlqvsuvse",
+        "contractMetadata": {
+          "developerAddress": "archway1u4rmd5z78smu0tmtw45mran0pz4umzvxaf3g56",
+          "rewardAddress": "archway1u4rmd5z78smu0tmtw45mran0pz4umzvxaf3g56",
+          "collectPremium": true,
+          "premiumPercentage": 100
+        }
+      },
+      {
+        "type": "instantiate",
+        "chainId": "titus-1",
+        "txhash": "93F5FD05748DA0B77A979BD65EC3C0EA7FF7CDE99318864E2A765CF27BC3AD44",
+        "codeId": 253,
+        "address": "archway1yama69ck4d722lltrz64mf8q06u9r37y4kh5948cqpj49g0d5nlqvsuvse",
+        "admin": "archway1u4rmd5z78smu0tmtw45mran0pz4umzvxaf3g56"
+      },
+      {
+        "type": "store",
+        "chainId": "titus-1",
+        "txhash": "8F3643DB9D50D7C97FD11CEB0030C2BE568A669CD072C34366C959C1C9D48C0D",
+        "codeId": 253
+      }
+    ]
+  },
+  "network": {
+    "name": "titus",
+    "chainId": "titus-1",
+    "type": "testnet",
+    "fees": {
+      "feeDenom": "utitus"
+    },
+    "gas": {
+      "prices": "0.002utitus",
+      "mode": "auto",
+      "adjustment": "1.3"
+    },
+    "wasm": {
+      "bech32Hrp": "archway",
+      "archwayd": "0.0.3",
+      "configDir": ".archway",
+      "binary": "archwayd"
+    },
+    "urls": {
+      "rpc": {
+        "url": "https://rpc.titus-1.archway.tech",
+        "port": 443
+      },
+      "faucets": [
+        "https://faucet.titus-1.archway.tech"
+      ]
+    }
+  }
+}

@@ -89,6 +89,7 @@ async function main(options = {}) {
     } else {
       console.error(chalk`{red.bold Network configuration failed}`);
       console.error(e);
+      process.exit(1);
     }
   }
 }
