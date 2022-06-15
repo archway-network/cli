@@ -8,7 +8,7 @@
       {
         "type": "set-metadata",
         "chainId": "titus-1",
-        "txhash": null,
+        "txhash": "8C866C61658FE8B6D76F29FC9D7BCB60D5C75F8907486E9D58BA6AE7A0C10DB5",
         "codeId": 253,
         "contract": "archway1yama69ck4d722lltrz64mf8q06u9r37y4kh5948cqpj49g0d5nlqvsuvse",
         "contractMetadata": {
@@ -21,13 +21,13 @@
       {
         "type": "instantiate",
         "chainId": "titus-1",
-        "txhash": null,
+        "txhash": "93F5FD05748DA0B77A979BD65EC3C0EA7FF7CDE99318864E2A765CF27BC3AD44",
         "codeId": 253,
         "address": "archway1yama69ck4d722lltrz64mf8q06u9r37y4kh5948cqpj49g0d5nlqvsuvse",
         "admin": "archway1u4rmd5z78smu0tmtw45mran0pz4umzvxaf3g56"
       },
       {
-        "type": "create",
+        "type": "store",
         "chainId": "titus-1",
         "txhash": "8F3643DB9D50D7C97FD11CEB0030C2BE568A669CD072C34366C959C1C9D48C0D",
         "codeId": 253

@@ -7,7 +7,7 @@ const retry = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
 // TODO: move to a shared lib function
-async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, label, defaultLabel, ...options } = {}) {
+async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, label, defaultLabel, codeId: optCodeId, ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
@@ -15,6 +15,8 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   const project = await cargo.projectMetadata();
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
+
+  const { codeId } = _.defaults({ codeId: optCodeId }, config.deployments.findLast('store', chainId));
 
   prompts.override({
     args,
@@ -41,6 +43,7 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
     project,
     from,
     adminAddress: adminAddress || from,
+    codeId,
     chainId,
     node,
     gas,
@@ -62,10 +65,9 @@ async function instantiateContract(archwayd, config, {
   adminAddress,
   chainId,
   node,
+  codeId,
   ...options
 } = {}) {
-  const { codeId } = config.deployments.findLast('store', chainId);
-
   console.info(chalk`Instantiating {cyan ${projectId}} from code id {cyan ${codeId}} on {cyan ${chainId}}...`);
 
   const { label, args } = await prompts([
@@ -113,8 +115,6 @@ async function instantiateContract(archwayd, config, {
   console.info(chalk`{white   Arguments: {cyan ${args}}}`);
 
   console.warn(chalk`\n{whiteBright It is recommended that you now set the contract metadata using the command {magenta archway metadata}}`);
-
-  return { contractAddress };
 }
 
 async function instantiate(archwayd, { deployOptions, ...options } = {}) {
@@ -123,7 +123,7 @@ async function instantiate(archwayd, { deployOptions, ...options } = {}) {
 
   deployOptions = deployOptions || await parseDeploymentOptions(cargo, config, options);
 
-  instantiateContract(archwayd, config, deployOptions);
+  await instantiateContract(archwayd, config, deployOptions);
 }
 
 async function main(archwayd, options = {}) {

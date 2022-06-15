@@ -106,6 +106,7 @@ Program
 Program
   .command('instantiate')
   .description('Instantiate a stored contract')
+  .option('-c, --code-id <value>', 'Code ID for the WASM stored on-chain', parseInt)
   .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment (e.g. --args \'{ "count": 0 }\')', parseJson)
   .option('-l, --label <value>', 'Label used for instantiating the contract')
   .option('--default-label', 'Use the default label for instantiating the contract: "<project_name> <project_version>"')
