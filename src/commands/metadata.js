@@ -74,7 +74,6 @@ async function parseTxOptions(config, { confirm, dryRun, flags = [], ...options 
 
   const extraFlags = _.flatten([
     confirm ? [] : ['--yes'],
-    dryRun ? ['--dry-run'] : [],
   ]).filter(_.isString);
 
   return {

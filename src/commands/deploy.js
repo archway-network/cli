@@ -55,20 +55,15 @@ async function parseDeploymentOptions(cargo, config, { adminAddress, confirm, ar
  * @see Instantiate
  * @deprecated since v1.2.0
  */
-async function deploy(archwayd, { build = true, dryRun = false, ...options } = {}) {
+async function deploy(archwayd, { build = true, ...options } = {}) {
   build && await Build({ optimize: true });
-
-  // TODO: call archwayd operations with the --dry-run flag
-  if (dryRun) {
-    return;
-  }
 
   const config = await Config.open();
   const cargo = new Cargo();
 
   const deployOptions = await parseDeploymentOptions(cargo, config, options);
-  await Store(archwayd, { dryRun, deployOptions });
-  await Instantiate(archwayd, { dryRun, deployOptions });
+  await Store(archwayd, deployOptions);
+  await Instantiate(archwayd, deployOptions);
 }
 
 async function main(archwayd, options = {}) {
@@ -78,6 +73,7 @@ async function main(archwayd, options = {}) {
     console.warn(chalk`{magenta archway build --optimized}`);
     console.warn(chalk`{magenta archway store}`);
     console.warn(chalk`{magenta archway instantiate}`);
+    console.warn(chalk`{magenta archway metadata}`);
     console.warn('\n');
 
     await deploy(archwayd, options);

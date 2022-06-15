@@ -5,7 +5,7 @@ const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress, isJson } = require('../util/validators');
 
-async function parseTxOptions(config, { confirm, dryRun, args, flags = [], ...options } = {}) {
+async function parseTxOptions(config, { confirm, args, flags = [], ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
@@ -34,7 +34,6 @@ async function parseTxOptions(config, { confirm, dryRun, args, flags = [], ...op
 
   const extraFlags = _.flatten([
     confirm ? [] : ['--yes'],
-    dryRun ? ['--dry-run'] : [],
   ]).filter(_.isString);
 
   return {

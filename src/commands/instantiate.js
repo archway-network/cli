@@ -35,8 +35,6 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
 
   const flags = _.flatten([
     confirm ? [] : ['--yes'],
-    // FIXME: --dry-run is not working as expected on archwayd
-    // dryRun ? ['--dry-run'] : [],
   ]).filter(_.isString);
 
   return {

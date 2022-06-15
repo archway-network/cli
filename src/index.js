@@ -113,7 +113,6 @@ Program
   .option('-f, --from <value>', 'Name or address of account to sign the transactions')
   .option('--admin-address <value>', 'Address which can perform admin actions on the contract (e.g. "archway1...")', parseArchwayAddress)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .option('--dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
   .addOption(DockerOption)
   .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
@@ -133,7 +132,6 @@ Program
   .option('--no-store', 'Do not upload the wasm file on-chain (uses the latest version on config.json)', true)
   .option('--no-verify', 'Do not verify the wasm file uploaded on-chain', true)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .option('--dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
   .addOption(DockerOption)
   .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
@@ -176,7 +174,6 @@ Program
   .option('--premium-percentage <value>', 'Integer percentage of premium in a range between 0 and 200', parseInt)
   .option('--gas-rebate', 'Indicates if the contract rewards should be used for gas rebates to the user')
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .option('--dry-run', 'Perform a simulation of a transaction without broadcasting it', false)
   .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
   .addOption(DockerOption)
   .action(async (options) => {
@@ -269,7 +266,6 @@ Program
   .option('--no-store', 'Do not upload the wasm file on-chain (uses the latest version on config.json)', true)
   .option('--no-verify', 'Do not verify the wasm file uploaded on-chain', true)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .option('--dry-run', 'Tests deployability; builds an unoptimized wasm binary', false)
   .addOption(DockerOption)
   .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
@@ -290,7 +286,6 @@ Program
   .option('-f, --from <value>', 'Name or address of account to sign transactions')
   .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
-  .option('--dry-run', 'Perform a simulation of a transaction without broadcasting it', false)
   .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
   .addOption(DockerOption)
   .description('Execute a smart contract transaction on Archway network')
