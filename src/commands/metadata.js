@@ -5,7 +5,7 @@ const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress } = require('../util/validators');
 
-async function parseTxOptions(config, { confirm, dryRun, flags = [], ...options } = {}) {
+async function parseTxOptions(config, { confirm, flags = [], ...options } = {}) {
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
   const { codeId, address: lastDeployedContract } = config.deployments.findLast('instantiate', chainId) || {};
