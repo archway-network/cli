@@ -89,7 +89,6 @@ class Config {
 
   static async open(rootPath) {
     try {
-      // TODO: use `git rev-parse --show-toplevel` instead of `cargo locate-project`
       rootPath = rootPath || await new Cargo().locateProject();
       const configPath = path.join(rootPath, ConfigFilename);
       const configData = require(configPath);

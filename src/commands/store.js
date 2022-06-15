@@ -9,7 +9,6 @@ const { Config } = require('../util/config');
 const retry = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
-// TODO: move to a shared lib function
 async function parseDeploymentOptions(cargo, config, { confirm, ...options } = {}) {
   const project = await cargo.projectMetadata();
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
@@ -76,7 +75,6 @@ async function storeWasm(archwayd, config, { project: { wasm: { optimizedFilePat
   console.info(chalk`Uploading optimized wasm to {cyan ${chainId}} using wallet {cyan ${from}}...`);
 
   // If we use docker or for any reason need to copy the file to any other directory before upload
-  // TODO: remove after dropping Docker support
   const remotePath = path.join(archwayd.workingDir, optimizedFilePath);
   if (!_.isEmpty(path.relative(optimizedFilePath, remotePath))) {
     console.info(`Copying file ${optimizedFilePath} to ${remotePath}`);

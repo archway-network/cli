@@ -67,7 +67,6 @@ class ArchwayClient {
   }
 
   parseArgs(args = []) {
-    // TODO: add support for --home
     return [...this.extraArgs, ...args];
   }
 
@@ -99,7 +98,6 @@ class ArchwayClient {
   }
 }
 
-// TODO: deprecate Docker support
 class DockerArchwayClient extends ArchwayClient {
   constructor({ archwaydVersion = DefaultArchwaydVersion, testnet, ...options } = {}) {
     super(options);
@@ -132,7 +130,6 @@ class DockerArchwayClient extends ArchwayClient {
   }
 }
 
-// TODO: remove when Docker support is removed
 async function clientFactory({ docker = false, ...options } = {}) {
   if (docker) {
     return new DockerArchwayClient(options);
@@ -141,7 +138,6 @@ async function clientFactory({ docker = false, ...options } = {}) {
   }
 }
 
-// TODO: export only ArchwayClient when Docker support is removed
 module.exports = Object.assign(ArchwayClient, {
   DefaultArchwaydHome,
   DefaultArchwaydVersion,

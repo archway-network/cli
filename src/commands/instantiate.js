@@ -6,7 +6,6 @@ const { isJson, isArchwayAddress } = require('../util/validators');
 const retry = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
-// TODO: move to a shared lib function
 async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, label, defaultLabel, codeId: optCodeId, ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
