@@ -88,7 +88,7 @@ Program
   .command('build')
   .description('Build current project')
   .action(async () => {
-    await Tools.Build();  
+    await Tools.Build();
   });
 
 // `archway configure`
