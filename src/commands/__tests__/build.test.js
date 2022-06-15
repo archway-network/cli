@@ -4,6 +4,7 @@ const mockConsole = require('jest-mock-console');
 const Cargo = require('../../clients/cargo');
 const Build = require('../build');
 
+jest.mock('ora');
 jest.mock('fs/promises');
 
 const mockCargo = {

@@ -1,5 +1,4 @@
 const spawk = require('spawk');
-const ora = require('ora');
 const mockConsole = require('jest-mock-console');
 const { readFile } = require('fs/promises');
 const { Buffer } = require('buffer');
