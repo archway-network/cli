@@ -1,28 +1,40 @@
 const debug = require('debug')('archwayd');
-const chalk = require('chalk');
 const { spawn } = require('promisify-child-process');
-const { prompts, PromptCancelledError } = require('../../util/prompts');
-const { pathExists, mv } = require('../../util/fs');
 
 const KeysCommands = require('./keys');
+const QueryCommands = require('./query');
 const TxCommands = require('./tx');
 
 const DefaultArchwaydVersion = 'latest';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
+class ArchwayRunError extends Error {
+  constructor(stderr) {
+    super('Failed to run archwayd');
+    this.name = 'ArchwayRunError';
+    this.stderr = stderr;
+  }
+
+  toString() {
+    return `${this.message}\n${this.stderr}`;
+  }
+}
+
 /**
  * Facade for the archwayd client, which supports both Docker and binary implementations.
  */
-class DefaultArchwayClient {
+class ArchwayClient {
   #archwaydHome;
   #extraArgs;
   #keys;
+  #query;
   #tx;
 
-  constructor({ archwaydHome = DefaultArchwaydHome, extraArgs = [] }) {
+  constructor({ archwaydHome = DefaultArchwaydHome, extraArgs = [] } = {}) {
     this.#archwaydHome = archwaydHome;
     this.#extraArgs = extraArgs;
     this.#keys = new KeysCommands(this);
+    this.#query = new QueryCommands(this);
     this.#tx = new TxCommands(this);
   }
 
@@ -46,6 +58,10 @@ class DefaultArchwayClient {
     return this.#keys;
   }
 
+  get query() {
+    return this.#query;
+  }
+
   get tx() {
     return this.#tx;
   }
@@ -60,10 +76,30 @@ class DefaultArchwayClient {
     debug(command, ...parsedArgs);
     return spawn(command, parsedArgs, { ...options, encoding: 'utf8' });
   }
+
+  async runJson(subCommand, args = [], { printStdout = true, ...options } = {}) {
+    const archwayd = this.run(
+      subCommand,
+      [...args, '--output', 'json'],
+      { stdio: 'pipe', maxBuffer: 1024 * 1024, ...options }
+    );
+
+    printStdout && archwayd.stdout.pipe(process.stdout);
+
+    try {
+      const { stdout } = await archwayd;
+      const lines = stdout.replace(/\r/g, '').split('\n');
+      const jsonLines = lines.filter(line => line.startsWith('{'));
+      const jsonOutput = jsonLines.pop() || '{}';
+      return JSON.parse(jsonOutput);
+    } catch (e) {
+      throw new ArchwayRunError(e.stderr);
+    }
+  }
 }
 
-class DockerArchwayClient extends DefaultArchwayClient {
-  constructor({ archwaydVersion = DefaultArchwaydVersion, testnet, ...options }) {
+class DockerArchwayClient extends ArchwayClient {
+  constructor({ archwaydVersion = DefaultArchwaydVersion, testnet, ...options } = {}) {
     super(options);
     this.archwaydVersion = testnet || archwaydVersion;
   }
@@ -84,65 +120,26 @@ class DockerArchwayClient extends DefaultArchwayClient {
   static #getDockerArgs(archwaydHome, archwaydVersion) {
     return [
       'run',
+      '--pull',
+      'always',
       '--rm',
       '-it',
       `--volume=${archwaydHome}:/root/.archway`,
       `archwaynetwork/archwayd:${archwaydVersion}`
     ];
   }
-
-  async checkHomePath() {
-    const oldArchwayHome = '/var/tmp/.archwayd';
-    if (this.archwaydHome === oldArchwayHome || !await pathExists(oldArchwayHome)) {
-      return;
-    }
-
-    const questions = [
-      {
-        type: 'confirm',
-        name: 'move',
-        message: chalk`I've found a keystore in {cyan ${oldArchwayHome}}. Would you like to move it to {cyan ${this.archwaydHome}}?`,
-        initial: true
-      }, {
-        type: async prev => prev && await pathExists(this.archwaydHome) ? 'confirm' : null,
-        name: 'overwrite',
-        message: chalk`The directory {cyan ${this.archwaydHome}} is not empty. Would you like to overwrite its contents?`,
-        initial: true
-      }
-    ];
-
-    try {
-      const { move, overwrite } = await prompts(questions);
-
-      if (move) {
-        await mv(oldArchwayHome, this.archwaydHome, overwrite);
-      }
-    } catch (e) {
-      if (e instanceof PromptCancelledError) {
-        console.warn(chalk`{yellow Cancelled moving keystore}`);
-      } else {
-        console.error(`Failed to move directory: ${e.message || e}\n`);
-      }
-    } finally {
-      console.info();
-    }
-  }
 }
 
-async function clientFactory({ docker = false, checkHomePath = false, ...options } = {}) {
+async function clientFactory({ docker = false, ...options } = {}) {
   if (docker) {
-    const client = new DockerArchwayClient(options);
-    if (checkHomePath) {
-      await client.checkHomePath();
-    }
-    return client;
+    return new DockerArchwayClient(options);
   } else {
-    return new DefaultArchwayClient(options);
+    return new ArchwayClient(options);
   }
 }
 
-module.exports = {
+module.exports = Object.assign(ArchwayClient, {
   DefaultArchwaydHome,
   DefaultArchwaydVersion,
   createClient: clientFactory
-};
+});

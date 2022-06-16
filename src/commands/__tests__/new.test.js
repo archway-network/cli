@@ -21,7 +21,7 @@ beforeEach(() => {
 
 afterEach(() => {
   spawk.done();
-  jest.resetAllMocks();
+  jest.clearAllMocks();
 });
 
 describe('project settings', () => {
@@ -143,7 +143,7 @@ describe('project setup', () => {
 
   test('converts snake case project name to lowercased kebab-case', async () => {
     const name = {
-      raw:'archonauts_snake_case', 
+      raw: 'archonauts_snake_case',
       normalized: 'archonauts-snake-case'
     };
 
@@ -170,7 +170,7 @@ describe('project setup', () => {
 
   test('converts camel case project name to lowercased kebab-case', async () => {
     const name = {
-      raw:'archonautsCamelCase', 
+      raw: 'archonautsCamelCase',
       normalized: 'archonautscamelcase'
     };
 
@@ -197,7 +197,7 @@ describe('project setup', () => {
 
   test('converts whitespaced project names to lowercased kebab-case', async () => {
     const name = {
-      raw:'archonauts string case', 
+      raw: 'archonauts string case',
       normalized: 'archonauts-string-case'
     };
 
@@ -224,7 +224,7 @@ describe('project setup', () => {
 
   test('generate project from network branch', async () => {
     const name = 'archonauts';
-    const testnet = 'augusta';
+    const testnet = 'titus';
 
     const cargo = spawk.spawn('cargo');
 

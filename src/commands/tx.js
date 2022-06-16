@@ -1,22 +1,18 @@
-// archway-cli/util/tx.js
-
 const _ = require('lodash');
 const chalk = require('chalk');
+const retry = require('../util/retry');
+const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
-const Config = require('../util/config');
 const { isArchwayAddress, isJson } = require('../util/validators');
 
-async function parseTxOptions(config = {}, { confirm, dryRun, args, flags = [], ...options } = {}) {
+async function parseTxOptions(config, { confirm, args, flags = [], ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
 
-  const {
-    network: { chainId, urls: { rpc } = {}, gas } = {},
-    developer: { deployments = [] } = {}
-  } = config;
+  const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
-  const { address: lastDeployedContract } = deployments.find(_.matches({ type: 'instantiate', chainId })) || {};
+  const { address: lastDeployedContract } = config.deployments.findLast('instantiate', chainId) || {};
 
   prompts.override({ contract: lastDeployedContract || undefined, ...options });
   const { from, contract } = await prompts([
@@ -36,10 +32,9 @@ async function parseTxOptions(config = {}, { confirm, dryRun, args, flags = [], 
     },
   ]);
 
-  const extraFlags = [
-    confirm || '--yes',
-    dryRun && '--dry-run',
-  ].filter(_.isString);
+  const extraFlags = _.flatten([
+    confirm ? [] : ['--yes'],
+  ]).filter(_.isString);
 
   return {
     contract,
@@ -53,11 +48,24 @@ async function parseTxOptions(config = {}, { confirm, dryRun, args, flags = [], 
 }
 
 async function executeTx(archwayd, options) {
-  const config = await Config.read();
-  const { contract, args, ...txOptions } = await parseTxOptions(config, options);
+  const config = await Config.open();
+  const { node, contract, args, ...txOptions } = await parseTxOptions(config, options);
 
   console.info(chalk`Executing tx on contract {cyan ${contract}}...`);
-  await archwayd.tx.wasm('execute', [contract, args], txOptions);
+  const { txhash } = await archwayd.tx.wasm('execute', [contract, args], { node, ...txOptions });
+  await retry(
+    async (bail) => {
+      const { code, raw_log } = await archwayd.query.tx(txhash, { node, printStdout: false })
+      if (code && code !== 0) {
+        const error = new Error(raw_log);
+        bail(error);
+        throw error;
+      }
+    },
+    { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
+  );
+
+  console.info(chalk`{green Executed tx on contract {cyan ${contract}}}\n`);
 }
 
 async function main(archwayd, options) {
@@ -67,7 +75,9 @@ async function main(archwayd, options) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
-      console.error(chalk`\n{red {bold Failed to execute transaction}\n${e.stack}}`);
+      console.error(chalk`\n{red.bold Failed to execute transaction}`);
+      console.error(e);
+      process.exit(1);
     }
   }
 }

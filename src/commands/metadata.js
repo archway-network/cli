@@ -1,35 +1,15 @@
 const _ = require('lodash');
 const chalk = require('chalk');
+const retry = require('../util/retry');
+const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress } = require('../util/validators');
-const Config = require('../util/config');
 
-const isValidDeployment = _.conforms({
-  type: _.isString,
-  chainId: _.isString,
-  contract: isArchwayAddress,
-  contractMetadata: _.isObject
-});
-async function storeDeployment(deployment = {}) {
-  if (!isValidDeployment(deployment)) {
-    console.error(chalk`{red Invalid deployment config}`, deployment);
-    throw new Error(`Could not save deployment data to config file`);
-  }
-
-  await Config.update(
-    { developer: { deployments: [deployment] } },
-    { arrayMode: 'prepend' }
-  );
-}
-
-async function parseTxOptions(config = {}, { confirm, dryRun, flags = [], ...options } = {}) {
-  const {
-    network: { chainId, urls: { rpc } = {}, gas } = {},
-    developer: { deployments = [] } = {}
-  } = config;
+async function parseTxOptions(config, { confirm, flags = [], ...options } = {}) {
+  const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
-  const { address: lastDeployedContract } = deployments.find(_.matches({ type: 'instantiate', chainId })) || {};
-  const { contractMetadata: lastContractMetadata = {} } = deployments.find(_.matches({ type: 'set-metadata', chainId })) || {};
+  const { codeId, address: lastDeployedContract } = config.deployments.findLast('instantiate', chainId) || {};
+  const { contractMetadata: lastContractMetadata = {} } = config.deployments.findLast('set-metadata', chainId) || {};
 
   prompts.override({
     contract: lastDeployedContract || undefined,
@@ -92,14 +72,14 @@ async function parseTxOptions(config = {}, { confirm, dryRun, flags = [], ...opt
     },
   ]);
 
-  const extraFlags = [
-    confirm || '--yes',
-    dryRun && '--dry-run',
-  ].filter(_.isString);
+  const extraFlags = _.flatten([
+    confirm ? [] : ['--yes'],
+  ]).filter(_.isString);
 
   return {
     contract,
     from,
+    codeId,
     chainId,
     node,
     gas,
@@ -109,24 +89,37 @@ async function parseTxOptions(config = {}, { confirm, dryRun, flags = [], ...opt
 }
 
 async function setContractMetadata(archwayd, options = {}) {
-  const config = await Config.read();
-  const { chainId, contract, contractMetadata, ...txOptions } = await parseTxOptions(config, options);
+  const config = await Config.open();
+  const { chainId, codeId, contract, contractMetadata, node, ...txOptions } = await parseTxOptions(config, options);
 
   console.info(chalk`Setting metadata for contract {cyan ${contract}} on {cyan ${chainId}}...`);
-  const { txhash, code, raw_log } = await archwayd.tx.setContractMetadata(contract, contractMetadata, { chainId, ...txOptions });
-  if (!txhash || (code && code !== 0)) {
-    console.error(chalk`{yellow Transaction {cyan ${txhash}} failed}`);
-    throw new Error(raw_log);
-  }
+  const { txhash } = await archwayd.tx.setContractMetadata(contract, contractMetadata, { chainId, node, ...txOptions });
+  await retry(
+    async (bail) => {
+      const { code, raw_log } = await archwayd.query.tx(txhash, { node, printStdout: false })
+      if (code && code !== 0) {
+        const error = new Error(raw_log);
+        bail(error);
+        throw error;
+      }
+    },
+    { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
+  );
 
-  await storeDeployment({
+  await config.deployments.add({
     type: 'set-metadata',
     chainId,
+    codeId,
+    txhash,
     contract,
     contractMetadata
   });
 
-  console.info(chalk`{green Successfully set contract metadata on tx hash {cyan ${txhash}}}\n`);
+  console.info(chalk`\n{green Successfully set contract metadata}`);
+  console.info(chalk`{white   Chain Id: {cyan ${chainId}}}`);
+  console.info(chalk`{white   Tx Hash:  {cyan ${txhash}}}`);
+  console.info(chalk`{white   Address:  {cyan ${contract}}}`);
+  console.info(chalk`{white   Metadata: {cyan ${JSON.stringify(contractMetadata)}}}`);
 }
 
 async function main(archwayd, options = {}) {
@@ -136,7 +129,9 @@ async function main(archwayd, options = {}) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
-      console.error(chalk`\n{red {bold Failed to deploy project}\n${e.stack}}`);
+      console.error(chalk`\n{red.bold Failed to deploy project}`);
+      console.error(e);
+      process.exit(1);
     }
   }
 }
