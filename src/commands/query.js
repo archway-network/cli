@@ -14,17 +14,35 @@ async function tryQuery(docker, args) {
     return;
   }
 
-  let configPath = ConfigTools.path();
-  FileSystem.access(configPath, FileSystem.F_OK, (err) => {
-    if (err) {
-      console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
-      return;
-    } else {
-      console.log('Attempting query...\n');
+  if (args.contract !== null) {
+    let contract = args.contract;
 
-      let config = require(configPath);
-      let scripts = config.developer.scripts;
+  } else {
+    let configPath = ConfigTools.path();
+    FileSystem.access(configPath, FileSystem.F_OK, (err) => {
+      if (err) {
+        console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
+        return;
+      } else {
+        console.log('Attempting query...\n');
+  
+        let config = require(configPath);
+        let scripts = config.developer.scripts;
+
+        let deployments = config.developer.deployments;
+      for (let i = 0; i < deployments.length; i++) {
+        if (deployments[i].address) {
+          let contract = deployments[i].address; 
+          let runScript = {};
+
+        }
+      }
+      }
+    })
+  }
+
       let runScript = {};
+
       let dockerArchwayD, archwaydCmd;
       runScript.raw = scripts.query;
       if (docker) {
@@ -44,18 +62,10 @@ async function tryQuery(docker, args) {
       // Lvl. 2 cmd
       if (args.subcommand) {
         runScript.params.push(args.subcommand);
-      }
+      } 
 
-      // Address to query
-      // For now defaults to most recent deployment
-      let deployments = config.developer.deployments;
-      for (let i = 0; i < deployments.length; i++) {
-        if (deployments[i].address) {
-          let contract = deployments[i].address;
-          runScript.params.push(contract);
-          // Query to make
-          runScript.params.push(args.query);
-
+      runScript.params.push(contract);
+      runScript.params.push(args.query);
           // Additional flags
           let rpc = config.network.urls.rpc;
           let node = rpc.url + ':' + rpc.port;
@@ -74,12 +84,10 @@ async function tryQuery(docker, args) {
           source.on('close', () => {
             console.log('\nOk!');
           })
-          break;
         }
-      }
-    }
-  });
-}
+      
+    
+
 
 const queryRunner = (docker, args) => {
   try {

@@ -227,6 +227,7 @@ Program
   .argument('[type]', 'Subcommands (*if required by query module); available types: ' + String(typeChoices))
   .requiredOption('-a, --args <value>', 'JSON encoded arguments for query (e.g. \'{"get_count": {}}\')')
   .option('-f, --flags <flags>', 'Send additional flags to archwayd by wrapping in a string; e.g. "--height 492520 --limit 10"')
+  .option('-c, --contract <contract_address>', 'Query a specific contract address; e.g "--contract archway1..."')
   .addOption(DockerOption)
   .description('Query for data on Archway network')
   .action(async (module, type, options) => {
@@ -237,7 +238,8 @@ Program
       command: module,
       subcommand: type,
       query: (options.args) ? options.args : null,
-      flags: (options.flags) ? options.flags : null
+      flags: (options.flags) ? options.flags : null,
+      contract: (options.contract) ? options.contract: null
     };
 
     await Tools.Query(options.docker, args);
