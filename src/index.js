@@ -230,19 +230,10 @@ Program
   .option('-c, --contract <contract_address>', 'Query a specific contract address; e.g "--contract archway1..."')
   .addOption(DockerOption)
   .description('Query for data on Archway network')
-  .action(async (module, type, options) => {
+  .action(async (options) => {
     options = await updateWithDockerOptions(options);
-    await createClient({ checkHomePath: true, ...options });
-
-    const args = {
-      command: module,
-      subcommand: type,
-      query: (options.args) ? options.args : null,
-      flags: (options.flags) ? options.flags : null,
-      contract: (options.contract) ? options.contract: null
-    };
-
-    await Tools.Query(options.docker, args);
+    const archwayd = await createClient({ checkHomePath: true, ...options });
+    await Tools.Query(archwayd, options);
   });
 
 Program
