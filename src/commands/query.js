@@ -5,7 +5,8 @@ const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress, isJson } = require('../util/validators');
 
-async function parseQueryOptions(config, { confirm, args, flags = [], ...options } = {}) {
+
+async function parseQueryOptions(config, { args, flags = [], ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
@@ -29,7 +30,6 @@ async function parseQueryOptions(config, { confirm, args, flags = [], ...options
   return {
     contract,
     args: args || '{}',
-    from,
     chainId,
     node,
     gas,
@@ -38,12 +38,13 @@ async function parseQueryOptions(config, { confirm, args, flags = [], ...options
 }
 
 async function querySmart(archwayd, options) {
+
   const config = await Config.open();
   const { node, contract, args, ...txOptions } = await parseQueryOptions(config, options);
-
+  
   console.info(chalk`Querying smart contract {cyan ${contract}}...`);
-  const { response } = await archwayd.query.wasm('contract-state', [contract, args], { node, ...txOptions });
-
+  const { response } = await archwayd.query.querySmart('contract-state', [contract, args], { node, ...txOptions });
+ 
   console.info(chalk`{green Query successful {cyan ${response}}}\n`);
 }
 

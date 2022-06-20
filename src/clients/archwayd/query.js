@@ -23,6 +23,10 @@ class QueryCommands {
     return await this.#run(['wasm', 'code', codeId, outputFilePath], options);
   }
 
+  async querySmart(contract, args, options) {
+    return await this.#run(['wasm', 'contract-state', 'smart', contract, args], options);
+  }
+
   async #run(queryArgs = [], { node, flags = [], printStdout } = {}) {
     const args = [
       ...queryArgs,
