@@ -14,8 +14,8 @@ async function parseQueryOptions(config, { args, flags = [], ...options } = {}) 
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
   const { address: lastDeployedContract } = config.deployments.findLast('instantiate', chainId) || {};
-
   prompts.override({ contract: lastDeployedContract || undefined, ...options });
+
   const {contract } = await prompts([
     {
       type: 'text',
@@ -27,30 +27,31 @@ async function parseQueryOptions(config, { args, flags = [], ...options } = {}) 
   ]);
 
 
+
   return {
     contract,
     args: args || '{}',
     chainId,
     node,
     gas,
-    flags: [...flags],
+    flags: [...flags], 
   }
 }
 
 async function querySmart(archwayd, options) {
-
+  console.info(options);
   const config = await Config.open();
   const { node, contract, args, ...txOptions } = await parseQueryOptions(config, options);
-  
+  console.info(args);
   console.info(chalk`Querying smart contract {cyan ${contract}}...`);
-  const { response } = await archwayd.query.querySmart('contract-state', [contract, args], { node, ...txOptions });
+  const  response= await archwayd.query.smartContract(contract, args, { node, ...txOptions });
  
   console.info(chalk`{green Query successful {cyan ${response}}}\n`);
 }
 
 async function main(archwayd, options) {
   try {
-    await querySmart(archwayd, options);
+   let resp = await querySmart(archwayd, options);
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
