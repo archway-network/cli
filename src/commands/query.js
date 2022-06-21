@@ -39,10 +39,8 @@ async function parseQueryOptions(config, { args, flags = [], ...options } = {}) 
 }
 
 async function querySmart(archwayd, options) {
-  console.info(options);
   const config = await Config.open();
   const { node, contract, args, ...txOptions } = await parseQueryOptions(config, options);
-  console.info(args);
   console.info(chalk`Querying smart contract {cyan ${contract}}...`);
   const  response= await archwayd.query.smartContract(contract, args, { node, ...txOptions });
  
