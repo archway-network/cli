@@ -97,10 +97,9 @@ describe('QueryCommands', () => {
 
       const archwayd = spawk.spawn(client.command)
         .stdout(`Querying smart contract`);
-
-      const output = await query.smartContract("contract-state","smart","archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4", "{'get_count': {}}", defaultOptions);
-      console.log(output)
-      expect(output);
+      const contract = "archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4"
+      const output = await query.smartContract("contract-state","smart",contract, "{'get_count': {}}", defaultOptions);
+      expect(output).toEqual(`Querying smart contract`);
       const args = "{'get_count': {}}"
       expect(archwayd.calledWith).toMatchObject({
         args: [
