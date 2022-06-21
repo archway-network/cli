@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const chalk = require('chalk');
-const retry = require('../util/retry');
 const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress, isJson } = require('../util/validators');
