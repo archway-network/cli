@@ -9,8 +9,8 @@ const Store = require('../store');
 
 const Fixtures = {
   sampleConfig: require('./fixtures/sample-config.json'),
-  txWasmStore: require('../../clients/archwayd/__test__/fixtures/tx-wasm-store.json'),
-  queryTxWasmStore: require('../../clients/archwayd/__test__/fixtures/query-tx-wasm-store.json'),
+  txWasmStore: require('../../clients/archwayd/__tests__/fixtures/tx-wasm-store.json'),
+  queryTxWasmStore: require('../../clients/archwayd/__tests__/fixtures/query-tx-wasm-store.json'),
 };
 
 jest.mock('ora');
