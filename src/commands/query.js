@@ -38,18 +38,17 @@ async function parseQueryOptions(config, { args, flags = [], ...options } = {}) 
   }
 }
 
-async function querySmart(archwayd, options) {
+async function querySmart(archwayd, {module,type, ...options}) {
   const config = await Config.open();
   const { node, contract, args, ...txOptions } = await parseQueryOptions(config, options);
   console.info(chalk`Querying smart contract {cyan ${contract}}...`);
-  const  response= await archwayd.query.smartContract(contract, args, { node, ...txOptions });
- 
+  const  response= await archwayd.query.smartContract(module, type, contract, args, { node, ...txOptions });
   console.info(chalk`{green Query successful {cyan ${response}}}\n`);
 }
 
-async function main(archwayd, options) {
+async function main(archwayd, {module,type, ...options}) {
   try {
-   let resp = await querySmart(archwayd, options);
+   await querySmart(archwayd, {module,type,options});
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
