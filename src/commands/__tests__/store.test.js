@@ -27,9 +27,7 @@ const projectMetadata = {
 const mockCargo = {
   projectMetadata: jest.fn().mockResolvedValue(projectMetadata),
 };
-jest.mock('../../clients/cargo', () => {
-  return jest.fn(() => mockCargo);
-});
+jest.mock('../../clients/cargo', () => jest.fn(() => mockCargo));
 
 const mockConfig = new Config(Fixtures.sampleConfig, '/tmp/config.json');
 
@@ -62,7 +60,7 @@ describe('store', () => {
   });
 
   test('stores the wasm on-chain', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add');
 
     jest.spyOn(client.query, 'wasmCode')
@@ -78,11 +76,12 @@ describe('store', () => {
         chainId: 'titus-1',
         node: expect.anything(),
         flags: ['--yes']
-      }));
+      })
+    );
   });
 
   test('saves the wasm codeId', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add');
 
     jest.spyOn(client.query, 'wasmCode')

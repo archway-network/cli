@@ -16,7 +16,7 @@ async function checkSemanticVersion() {
 
   const source = await spawn(runScript.cmd, runScript.params);
   source.stdout.setEncoding('utf8');
-  source.stdout.on('data', (remote)=> {
+  source.stdout.on('data', remote => {
     remote = remote.trim();
     if (remote !== version) {
       console.warn(chalk`{whiteBright A newer version of Archway CLI is available ({green.bold v${remote}})\nSupport for {green.bold v${version}} has ended. Install the latest version with {yellow.bold npm install -g @archwayhq/cli}}`);

@@ -19,11 +19,11 @@ const MigrateQuestions = (currentEnvironment, currentTestnet) => [
     name: 'environment',
     message: 'Select the project environment',
     initial: _.indexOf(Environments, currentEnvironment),
-    choices: _.map(EnvironmentsDetails, (details, name) => ({
+    choices: _.map(EnvironmentsDetails, (details, name) => { return {
       title: _.capitalize(name),
       value: name,
       ...details
-    })),
+    }; }),
     warn: 'This environment is unavailable for now'
   },
   {
@@ -31,17 +31,17 @@ const MigrateQuestions = (currentEnvironment, currentTestnet) => [
     name: 'testnet',
     message: 'Select a testnet to use',
     initial: _.indexOf(Testnets, currentTestnet),
-    choices: _.map(TestnetsDetails, (details, name) => ({
+    choices: _.map(TestnetsDetails, (details, name) => { return {
       title: _.capitalize(name),
       value: name,
       ...details
-    })),
+    }; }),
     warn: 'This network is unavailable for now'
   }
 ];
 
 async function migrateNetworks(currentChainId, currentEnvironment, currentTestnet) {
-  const { migrate, environment, testnet } = await prompts(MigrateQuestions(currentEnvironment, currentTestnet))
+  const { migrate, environment, testnet } = await prompts(MigrateQuestions(currentEnvironment, currentTestnet));
 
   if (!migrate) {
     return;

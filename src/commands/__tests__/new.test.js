@@ -28,7 +28,7 @@ describe('project settings', () => {
   describe('without cli arguments', () => {
     const originalPrompts = jest.requireActual('prompts');
 
-    async function fetchAnswers() {
+    function fetchAnswers() {
       return new Promise((resolve, reject) => {
         prompts.mockImplementationOnce(async (questions, { onCancel } = {}) => {
           // prompts() will mutate the questions, so we need to clone it to avoid side effects

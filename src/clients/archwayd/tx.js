@@ -41,6 +41,7 @@ function toJsonContractMetadata({
   premiumPercentage = 0,
   gasRebate = false
 } = {}) {
+  /* eslint-disable */
   const metadata = {
     developer_address: developerAddress,
     reward_address: rewardAddress,
@@ -48,7 +49,8 @@ function toJsonContractMetadata({
     premium_percentage_charged: premiumPercentage,
     gas_rebate_to_user: gasRebate,
   };
+  /* eslint-enable */
   return JSON.stringify(metadata);
 }
 
-module.exports = TxCommands
+module.exports = TxCommands;

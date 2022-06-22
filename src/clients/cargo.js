@@ -6,7 +6,7 @@ const { spawn } = require('promisify-child-process');
 class Cargo {
   static WasmTarget = 'wasm32-unknown-unknown';
 
-  #cwd
+  #cwd;
 
   constructor({ cwd } = {}) {
     this.#cwd = cwd || process.cwd();
@@ -54,7 +54,7 @@ class Cargo {
   }
 
   async projectMetadata() {
-    const { packages: [{ name, version },] = [] } = await this.metadata();
+    const { packages: [{ name, version }] = [] } = await this.metadata();
     if (_.isEmpty(name) || _.isEmpty(version)) {
       throw new Error('Failed to resolve project metadata');
     }

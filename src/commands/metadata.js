@@ -85,7 +85,7 @@ async function parseTxOptions(config, { confirm, flags = [], ...options } = {}) 
     gas,
     contractMetadata,
     flags: [...extraFlags, ...flags],
-  }
+  };
 }
 
 async function setContractMetadata(archwayd, options = {}) {
@@ -95,10 +95,10 @@ async function setContractMetadata(archwayd, options = {}) {
   console.info(chalk`Setting metadata for contract {cyan ${contract}} on {cyan ${chainId}}...`);
   const { txhash } = await archwayd.tx.setContractMetadata(contract, contractMetadata, { chainId, node, ...txOptions });
   await retry(
-    async (bail) => {
-      const { code, raw_log } = await archwayd.query.tx(txhash, { node, printStdout: false })
+    async bail => {
+      const { code, raw_log: rawLog } = await archwayd.query.tx(txhash, { node, printStdout: false });
       if (code && code !== 0) {
-        const error = new Error(raw_log);
+        const error = new Error(rawLog);
         bail(error);
         throw error;
       }

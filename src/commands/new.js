@@ -42,10 +42,10 @@ const ProjectSetupQuestions = [
     type: prev => prev ? 'select' : null,
     name: 'template',
     message: 'Choose a template',
-    choices: _.map(Templates, template => ({
+    choices: _.map(Templates, template => { return {
       description: `[https://github.com/${TemplatesRepository}/tree/main/${template.value}]`,
       ...template
-    })),
+    }; }),
   },
   {
     type: 'confirm',
@@ -58,11 +58,11 @@ const ProjectSetupQuestions = [
     name: 'environment',
     message: 'Select the project environment',
     initial: _.indexOf(Environments, DefaultEnvironment),
-    choices: _.map(EnvironmentsDetails, (details, name) => ({
+    choices: _.map(EnvironmentsDetails, (details, name) => { return {
       title: _.capitalize(name),
       value: name,
       ...details
-    })),
+    }; }),
     warn: 'This environment is unavailable for now'
   },
   {
@@ -70,11 +70,11 @@ const ProjectSetupQuestions = [
     name: 'testnet',
     message: 'Select a testnet to use',
     initial: _.indexOf(Testnets, DefaultTestnet),
-    choices: _.map(TestnetsDetails, (details, name) => ({
+    choices: _.map(TestnetsDetails, (details, name) => { return {
       title: _.capitalize(name),
       value: name,
       ...details
-    })),
+    }; }),
     warn: 'This network is unavailable for now'
   }
 ];

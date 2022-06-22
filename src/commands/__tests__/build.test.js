@@ -12,9 +12,7 @@ const mockCargo = {
   wasm: jest.fn(),
   projectMetadata: jest.fn(),
 };
-jest.mock('../../clients/cargo', () => {
-  return jest.fn(() => mockCargo);
-});
+jest.mock('../../clients/cargo', () => jest.fn(() => mockCargo));
 
 beforeEach(() => {
   mockConsole(['info', 'warn', 'error']);

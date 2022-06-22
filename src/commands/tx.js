@@ -44,7 +44,7 @@ async function parseTxOptions(config, { confirm, args, flags = [], ...options } 
     node,
     gas,
     flags: [...extraFlags, ...flags],
-  }
+  };
 }
 
 async function executeTx(archwayd, options) {
@@ -54,10 +54,10 @@ async function executeTx(archwayd, options) {
   console.info(chalk`Executing tx on contract {cyan ${contract}}...`);
   const { txhash } = await archwayd.tx.wasm('execute', [contract, args], { node, ...txOptions });
   await retry(
-    async (bail) => {
-      const { code, raw_log } = await archwayd.query.tx(txhash, { node, printStdout: false })
+    async bail => {
+      const { code, raw_log: rawLog } = await archwayd.query.tx(txhash, { node, printStdout: false });
       if (code && code !== 0) {
-        const error = new Error(raw_log);
+        const error = new Error(rawLog);
         bail(error);
         throw error;
       }

@@ -130,7 +130,7 @@ class DockerArchwayClient extends ArchwayClient {
   }
 }
 
-async function clientFactory({ docker = false, ...options } = {}) {
+function clientFactory({ docker = false, ...options } = {}) {
   if (docker) {
     return new DockerArchwayClient(options);
   } else {

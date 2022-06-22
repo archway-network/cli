@@ -103,7 +103,7 @@ class Deployments {
   #config;
 
   constructor(config) {
-    this.#config = config
+    this.#config = config;
   }
 
   get config() {

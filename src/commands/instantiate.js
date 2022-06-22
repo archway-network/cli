@@ -45,7 +45,7 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
     node,
     gas,
     flags
-  }
+  };
 }
 
 async function parseBech32Address(archwayd, address) {
