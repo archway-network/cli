@@ -41,7 +41,7 @@ const MigrateQuestions = (currentEnvironment, currentTestnet) => [
 ];
 
 async function migrateNetworks(currentChainId, currentEnvironment, currentTestnet) {
-  const { migrate, environment, testnet } = await prompts(MigrateQuestions(currentEnvironment, currentTestnet))
+  const { migrate, environment, testnet } = await prompts(MigrateQuestions(currentEnvironment, currentTestnet));
 
   if (!migrate) {
     return;

@@ -46,7 +46,7 @@ async function parseDeploymentOptions(cargo, config, { adminAddress, confirm, ar
     node,
     gas,
     flags
-  }
+  };
 }
 
 /**

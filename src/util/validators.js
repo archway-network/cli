@@ -19,4 +19,4 @@ module.exports = {
   isJson,
   isProjectName,
   isArchwayAddress
-}
+};

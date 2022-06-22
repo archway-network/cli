@@ -14,10 +14,10 @@ async function mv(oldPath, newPath, overwrite = false) {
     return;
   }
   await rm(newPath, { recursive: true, force: true });
-  return rename(oldPath, newPath);
+  rename(oldPath, newPath);
 }
 
 module.exports = {
   pathExists,
   mv
-}
+};

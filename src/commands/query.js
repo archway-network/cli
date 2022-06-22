@@ -73,7 +73,7 @@ async function tryQuery(docker, args) {
 
           source.on('close', () => {
             console.log('\nOk!');
-          })
+          });
           break;
         }
       }
@@ -83,7 +83,7 @@ async function tryQuery(docker, args) {
 
 const queryRunner = (docker, args) => {
   try {
-    tryQuery(docker, args)
+    tryQuery(docker, args);
   } catch (e) {
     console.error('Error running query', e);
   }

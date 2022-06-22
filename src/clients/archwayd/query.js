@@ -12,7 +12,7 @@ class QueryCommands {
   async txEventAttribute(txhash, eventType, attributeKey, options) {
     const transaction = await this.tx(txhash, options);
 
-    const { logs: [{ events = [] } = {},] = [] } = transaction;
+    const { logs: [{ events = [] } = {}] = [] } = transaction;
     const { attributes = [] } = events.find(event => event.type === eventType) || {};
     const { value } = attributes.find(attribute => attribute.key === attributeKey) || {};
 
@@ -43,4 +43,4 @@ class QueryCommands {
   }
 }
 
-module.exports = QueryCommands
+module.exports = QueryCommands;

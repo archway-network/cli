@@ -16,7 +16,7 @@ async function printDevConfig() {
       let config = require(configPath);
       console.log(StringUtility.inspect(config, false, null, true));
     }
-  })
+  });
 }
 
 async function doCreateConfigFile(config = null) {
@@ -32,8 +32,9 @@ async function doCreateConfigFile(config = null) {
   let json = JSON.stringify(config, null, 2);
 
   FileSystem.writeFile(path, json, (err) => {
-    if (err)
+    if (err) {
       console.log('Error writing config to file system', [config, err]);
+    }
     else {
       console.log('Successfully updated config file: ' + path + '\n');
     }

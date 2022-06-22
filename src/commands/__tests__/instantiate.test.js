@@ -66,7 +66,7 @@ describe('instantiate', () => {
   });
 
   test('instantiates last stored contract', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
 
@@ -96,7 +96,7 @@ describe('instantiate', () => {
   });
 
   test('saves the instantiated contract address', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add');
 
     await Instantiate(client, {
@@ -126,7 +126,7 @@ describe('instantiate', () => {
   });
 
   test('uses the code ID from the arguments', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
 
@@ -157,7 +157,7 @@ describe('instantiate', () => {
   });
 
   test('uses the admin address from the arguments', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
 

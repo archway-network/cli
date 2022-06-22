@@ -21,7 +21,7 @@ async function printDeployments() {
         console.log(StringUtility.inspect(deployments, false, null, true));
       }
     }
-  })
+  });
 }
 
 const handlePrintDeployments = () => {

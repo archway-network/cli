@@ -36,7 +36,7 @@ async function parseDeploymentOptions(cargo, config, { confirm, ...options } = {
     node,
     gas,
     flags
-  }
+  };
 }
 
 async function verifyChecksum(filename) {

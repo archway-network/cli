@@ -98,7 +98,7 @@ Program
     if (!modify) {
       await Tools.Configure();
     } else {
-      let param = options.modify
+      let param = options.modify;
       await Tools.Configure(true, param);
     }
   });

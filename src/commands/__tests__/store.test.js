@@ -62,7 +62,7 @@ describe('store', () => {
   });
 
   test('stores the wasm on-chain', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add');
 
     jest.spyOn(client.query, 'wasmCode')
@@ -78,11 +78,12 @@ describe('store', () => {
         chainId: 'titus-1',
         node: expect.anything(),
         flags: ['--yes']
-      }));
+      })
+    );
   });
 
   test('saves the wasm codeId', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add');
 
     jest.spyOn(client.query, 'wasmCode')

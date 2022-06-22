@@ -35,4 +35,4 @@ class ScriptRunner {
   }
 }
 
-module.exports = ScriptRunner
+module.exports = ScriptRunner;
