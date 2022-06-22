@@ -37,8 +37,7 @@ async function main({ optimize = false } = {}) {
     }
   } catch (e) {
     console.error(chalk`{red.bold Build failed}`);
-    console.error(e);
-    process.exit(1);
+    throw e;
   }
 }
 

@@ -7,8 +7,8 @@ const Instantiate = require('../instantiate');
 
 const Fixtures = {
   sampleConfig: require('./fixtures/sample-config.json'),
-  txWasmInstantiate: require('../../clients/archwayd/__test__/fixtures/tx-wasm-instantiate.json'),
-  queryTxWasmInstantiate: require('../../clients/archwayd/__test__/fixtures/query-tx-wasm-instantiate.json'),
+  txWasmInstantiate: require('../../clients/archwayd/__tests__/fixtures/tx-wasm-instantiate.json'),
+  queryTxWasmInstantiate: require('../../clients/archwayd/__tests__/fixtures/query-tx-wasm-instantiate.json'),
 };
 
 jest.mock('ora');

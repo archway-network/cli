@@ -88,8 +88,7 @@ async function main(options = {}) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`{red.bold Network configuration failed}`);
-      console.error(e);
-      process.exit(1);
+      throw e;
     }
   }
 }
