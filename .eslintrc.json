@@ -27,6 +27,17 @@
       "consistent"
     ],
     "array-bracket-spacing": "error",
+    "arrow-body-style": [
+      "error",
+      "as-needed",
+      {
+        "requireReturnForObjectLiteral": true
+      }
+    ],
+    "arrow-parens": [
+      "error",
+      "as-needed"
+    ],
     "arrow-spacing": "error",
     "block-spacing": "error",
     "block-scoped-var": "error",
@@ -86,8 +97,10 @@
       "always"
     ],
     "operator-linebreak": "error",
+    "prefer-arrow-callback": "error",
     "require-atomic-updates": "error",
     "rest-spread-spacing": "error",
+    "require-await": "warn",
     "semi": "error",
     "semi-style": "error",
     "semi-spacing": "error",
