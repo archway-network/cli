@@ -26,9 +26,7 @@ const projectMetadata = {
 const mockCargo = {
   projectMetadata: jest.fn().mockResolvedValue(projectMetadata),
 };
-jest.mock('../../clients/cargo', () => {
-  return jest.fn(() => mockCargo);
-});
+jest.mock('../../clients/cargo', () => jest.fn(() => mockCargo));
 
 const mockConfig = new Config(Fixtures.sampleConfig, '/tmp/config.json');
 

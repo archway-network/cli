@@ -19,7 +19,7 @@ class KeysCommands {
 
   async getAddress(name) {
     if (!_.isFunction(this.#getAddressCache)) {
-      this.#getAddressCache = _.memoize(async (name) => {
+      this.#getAddressCache = _.memoize(async name => {
         const archwayd = this.#client.run('keys', ['show', name, '-a'], { stdio: ['inherit', 'pipe', 'inherit'] });
         archwayd.stdout.pipe(process.stdout);
         const { stdout } = await archwayd;

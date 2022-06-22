@@ -8,7 +8,7 @@ async function printDevConfig() {
   console.log('Printing environment settings...\n');
 
   let configPath = ConfigTools.path();
-  FileSystem.access(configPath, FileSystem.F_OK, (err) => {
+  FileSystem.access(configPath, FileSystem.F_OK, err => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '.\nPlease run this command from the root folder of valid Archway project.');
       return;
@@ -31,7 +31,7 @@ async function doCreateConfigFile(config = null) {
   let path = ConfigTools.path();
   let json = JSON.stringify(config, null, 2);
 
-  FileSystem.writeFile(path, json, (err) => {
+  FileSystem.writeFile(path, json, err => {
     if (err) {
       console.log('Error writing config to file system', [config, err]);
     }
@@ -47,7 +47,7 @@ async function modifyConfig(key = null) {
     return;
   } else {
     let configPath = ConfigTools.path(), config;
-    FileSystem.access(configPath, FileSystem.F_OK, (err) => {
+    FileSystem.access(configPath, FileSystem.F_OK, err => {
       if (err) {
         console.error('Error locating dApp config at path ' + configPath + '.\nPlease run this command from the root folder of valid Archway project.');
         return;

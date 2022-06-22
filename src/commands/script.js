@@ -10,7 +10,7 @@ let archwaydCmd = null;
 
 async function tryScript(key) {
   let configPath = ConfigTools.path();
-  FileSystem.access(configPath, FileSystem.F_OK, (err) => {
+  FileSystem.access(configPath, FileSystem.F_OK, err => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
       return;
@@ -36,7 +36,7 @@ async function tryScript(key) {
 
       const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
 
-      source.on('error', (err) => {
+      source.on('error', err => {
         console.log('Error executing script', err);
       });
     }

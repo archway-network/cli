@@ -75,7 +75,7 @@ Program
   .description('List available wallets or add new wallet')
   .option('-a, --add <label>', 'Add a new wallet')
   .addOption(DockerOption)
-  .action(async (options) => {
+  .action(async options => {
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Accounts(archwayd, options);
@@ -85,7 +85,7 @@ Program
   .command('build')
   .description('Build the project')
   .option('--optimize', 'Builds an optimized wasm file ready for deployment')
-  .action(async (options) => {
+  .action(async options => {
     await Tools.Build(options);
   });
 
@@ -93,7 +93,7 @@ Program
   .command('configure')
   .description('Print or modify environment settings')
   .option('-m, --modify <key>', 'Modify a particular setting; command will fail if <key> does not yet exist')
-  .action(async (options) => {
+  .action(async options => {
     let modify = (options.modify) ? true : false;
     if (!modify) {
       await Tools.Configure();
@@ -148,7 +148,7 @@ Program
       .default([...Testnets].shift())
   )
   .argument('[address]', 'Address to request funds for (e.g. "archway1...")', parseArchwayAddress)
-  .action(async (address) => {
+  .action(address => {
     console.info('To request funds from the faucet you should use our Discord channel.\n');
     console.info(chalk`1. Join our Discord server at {blue https://discord.gg/dnYYcKPAX5}`);
     console.info(chalk`2. Send the following message in the {yellow 🚰｜faucet} channel\n`);
@@ -176,7 +176,7 @@ Program
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
   .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
   .addOption(DockerOption)
-  .action(async (options) => {
+  .action(async options => {
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Metadata(archwayd, options);
@@ -188,7 +188,7 @@ Program
   .addOption(new Option('-m, --migrate', 'Migrates the project to another network'))
   .addOption(new Option('-e, --environment <value>', 'Environment to use for the project').choices(Environments))
   .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
-  .action(async (options) => {
+  .action(async options => {
     await Tools.Network(options);
   });
 
@@ -248,7 +248,7 @@ Program
   .description('Run a custom script of your own creation')
   .requiredOption('-s, --script <key>', 'Name of script to run (example: "archway run -s build"); add scripts by modifying config.json')
   .addOption(DockerOption)
-  .action(async (options) => {
+  .action(async options => {
     options = await updateWithDockerOptions(options);
     await createClient({ checkHomePath: true, ...options });
 
@@ -289,7 +289,7 @@ Program
   .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
   .addOption(DockerOption)
   .description('Execute a smart contract transaction on Archway network')
-  .action(async (options) => {
+  .action(async options => {
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
     await Tools.Tx(archwayd, options);
