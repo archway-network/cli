@@ -21,8 +21,92 @@
       "error",
       2
     ],
+    "array-callback-return": "error",
+    "array-bracket-newline": [
+      "error",
+      "consistent"
+    ],
+    "array-bracket-spacing": "error",
+    "arrow-spacing": "error",
     "block-spacing": "error",
+    "block-scoped-var": "error",
+    "camelcase": "error",
+    "comma-spacing": "error",
+    "complexity": [
+      "error",
+      {
+        "max": 8
+      }
+    ],
+    "computed-property-spacing": "error",
+    "consistent-return": "error",
+    "curly": "error",
+    "eqeqeq": "error",
+    "func-call-spacing": "error",
+    "function-call-argument-newline": [
+      "error",
+      "consistent"
+    ],
+    "function-paren-newline": [
+      "error",
+      "consistent"
+    ],
+    "func-style": [
+      "error",
+      "declaration",
+      {
+        "allowArrowFunctions": true
+      }
+    ],
+    "implicit-arrow-linebreak": "error",
+    "generator-star-spacing": "error",
+    "linebreak-style": "error",
+    "key-spacing": "error",
+    "keyword-spacing": "error",
+    "no-await-in-loop": "error",
+    "no-constant-binary-expression": "error",
+    "no-constructor-return": "error",
+    "no-duplicate-imports": "error",
+    "no-multi-spaces": "error",
+    "no-promise-executor-return": "error",
+    "no-self-compare": "error",
+    "no-template-curly-in-string": "error",
+    "no-trailing-spaces": "error",
+    "no-unused-private-class-members": "error",
+    "no-use-before-define": [
+      "error",
+      {
+        "functions": false,
+        "classes": false
+      }
+    ],
+    "no-whitespace-before-property": "error",
+    "object-curly-spacing": [
+      "error",
+      "always"
+    ],
+    "operator-linebreak": "error",
+    "require-atomic-updates": "error",
+    "rest-spread-spacing": "error",
+    "semi": "error",
+    "semi-style": "error",
+    "semi-spacing": "error",
     "space-before-blocks": "error",
+    "space-before-function-paren": [
+      "error",
+      {
+        "anonymous": "always",
+        "named": "never",
+        "asyncArrow": "always"
+      }
+    ],
+    "space-in-parens": "error",
+    "space-infix-ops": "error",
+    "space-unary-ops": "error",
+    "switch-colon-spacing": "error",
+    "template-curly-spacing": "error",
+    "template-tag-spacing": "error",
+    "yield-star-spacing": "error",
     "node/exports-style": [
       "error",
       "module.exports"
