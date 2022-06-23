@@ -39,7 +39,7 @@ const contractAddress = 'archway14v952t75xgnufzlrft52ekltt8nsu9gxqh4xz55qfm6wqsl
 
 describe('query', () => {
   const client = createClient();
-
+  
   beforeEach(() => {
     jest.spyOn(client.keys, 'getAddress')
       .mockResolvedValue(aliceAddress);
