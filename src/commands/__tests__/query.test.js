@@ -35,32 +35,26 @@ const mockConfig = new Config(Fixtures.sampleConfig, '/tmp/config.json');
 const aliceAddress = 'archway1u4rmd5z78smu0tmtw45mran0pz4umzvxaf3g56';
 const contractAddress = 'archway14v952t75xgnufzlrft52ekltt8nsu9gxqh4xz55qfm6wqslc0spqspc5lm';
 
-beforeEach(() => {
-  mockConsole(['info', 'warn', 'error']);
 
-  spawk.clean();
-  spawk.preventUnmatched();
-
-  jest.spyOn(Config, 'open')
-    .mockResolvedValue(mockConfig);
-
-  jest.spyOn(prompts, 'override')
-    .mockImplementationOnce(prompts.mockResolvedValue);
-});
-afterEach(() => {
-  spawk.done();
-  jest.clearAllMocks();
-});
 describe('query', () => {
   const client = createClient();
   
   beforeEach(() => {
-    jest.spyOn(client.keys, 'getAddress')
-      .mockResolvedValue(aliceAddress);
-    jest.spyOn(client.tx, 'wasm')
-      .mockResolvedValue(Fixtures.txWasmInstantiate);
-    jest.spyOn(client.query, 'tx')
-      .mockResolvedValue(Fixtures.queryTxWasmInstantiate);
+    mockConsole(['info', 'warn', 'error']);
+  
+    spawk.clean();
+    spawk.preventUnmatched();
+  
+    jest.spyOn(Config, 'open')
+      .mockResolvedValue(mockConfig);
+  
+    jest.spyOn(prompts, 'override')
+      .mockImplementationOnce(prompts.mockResolvedValue);
+  });
+  
+  afterEach(() => {
+    spawk.done();
+    jest.clearAllMocks();
   });
 
   test('queries last stored contract', async () => {
