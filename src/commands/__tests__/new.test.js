@@ -279,36 +279,6 @@ describe('project setup', () => {
       })
     });
   });
-
-  test('do initial git commit', async () => {
-    const name = 'archonauts';
-
-    spawk.spawn('cargo');
-    const gitBranch = spawk.spawn('git', _.includes('branch'));
-    const gitAdd = spawk.spawn('git', _.includes('add'));
-    const gitCommit = spawk.spawn('git', _.includes('commit'));
-
-    await New(name, {
-      useTemplate: false,
-      docker: false,
-      environment: 'local',
-      build: false,
-    });
-
-    const rootPathMatcher = expect.stringMatching(`^.*${path.sep}${name}$`);
-
-    expect(gitBranch.calledWith).toMatchObject({
-      args: ['-C', rootPathMatcher, 'checkout', '-b', 'main']
-    });
-
-    expect(gitAdd.calledWith).toMatchObject({
-      args: ['-C', rootPathMatcher, 'add', '-A']
-    });
-
-    expect(gitCommit.calledWith).toMatchObject({
-      args: ['-C', rootPathMatcher, 'commit', '-m', 'Initialized with archway-cli']
-    });
-  });
 });
 
 describe('config file', () => {
