@@ -9,6 +9,8 @@ const { createClient } = require('./clients/archwayd');
 const { Environments, Testnets } = require('./networks');
 const { isJson, isProjectName, isArchwayAddress } = require('./util/validators');
 const { checkSemanticVersion } = require('./util/semvar');
+const Dotenv = require('dotenv').config();
+const Env = Dotenv.parsed;
 
 /**
  * Gets the version from package.json
@@ -296,6 +298,9 @@ Program
   });
 
 Program.hook('postAction', () => {
+  if (Env.ARCHWAY_NO_VERSION_CHECK.toLowerCase() === 'true' || parseInt(Env.ARCHWAY_NO_VERSION_CHECK) === 1) {
+    return;
+  }
   checkSemanticVersion();
 });
 
