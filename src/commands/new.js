@@ -139,7 +139,7 @@ async function initialCommit({ name }) {
   await git('add', '-A');
   await git('commit', '-m', 'Initialized with archway-cli');
 }
-
+  
 async function main(name, options = {}) {
   console.info(`Creating new Archway project...`);
   try {

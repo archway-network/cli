@@ -33,7 +33,6 @@ jest.mock('../../clients/cargo', () => {
 const mockConfig = new Config(Fixtures.sampleConfig, '/tmp/config.json');
 
 const aliceAddress = 'archway1u4rmd5z78smu0tmtw45mran0pz4umzvxaf3g56';
-const contractAddress = 'archway14v952t75xgnufzlrft52ekltt8nsu9gxqh4xz55qfm6wqslc0spqspc5lm';
 
 
 describe('query', () => {
@@ -61,6 +60,7 @@ describe('query', () => {
     jest.spyOn(client.query, 'txEventAttribute')
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
+    const contractAddress = 'archway14v952t75xgnufzlrft52ekltt8nsu9gxqh4xz55qfm6wqslc0spqspc5lm';
 
     await Query(client, {
       module: 'contract-state',
@@ -91,5 +91,5 @@ describe('query', () => {
 });
 
 function createClient() {
-  return new ArchwayClient({ extraArgs: ['--keyring-backend', 'test'] });
+  return new ArchwayClient({ });
 }
