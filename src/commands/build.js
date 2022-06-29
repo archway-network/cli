@@ -20,7 +20,7 @@ async function optimizeWasm(cargo) {
   await mkdir(path.dirname(optimizedFilePath), { recursive: true });
 
   const wasmOptArgs = ['-Os', filePath, '-o', optimizedFilePath];
-  const wasmOpt = spawn('wasm-opt', wasmOptArgs, { encoding: 'utf8' });
+  const wasmOpt = spawn('wasm-opt', wasmOptArgs, { encoding: 'utf8', maxBuffer: 1024 * 1024 });
   ora.promise(wasmOpt, 'Optimizing wasm file...');
   await wasmOpt;
 

@@ -49,7 +49,7 @@ class Cargo {
       '--quiet',
       '--no-deps',
       '--format-version=1'
-    ], { stdio: 'pipe', maxBuffer: 1024 * 1024 });
+    ], { stdio: 'pipe' });
     return JSON.parse(stdout);
   }
 
@@ -80,7 +80,12 @@ class Cargo {
 
   #run(args, options = { stdio: 'inherit' }) {
     debug('cargo', ...args);
-    return spawn('cargo', args, { ...options, encoding: 'utf8', cwd: this.#cwd });
+    return spawn('cargo', args, {
+      ...options,
+      cwd: this.#cwd,
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024
+    });
   }
 }
 
