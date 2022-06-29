@@ -11,7 +11,7 @@ const { isProjectName } = require('../util/validators');
 const { Environments, EnvironmentsDetails, Testnets, TestnetsDetails, loadNetworkConfig } = require('../networks');
 
 
-const TemplatesRepository = 'archway-network/archway-templates';
+const TemplatesRepository = 'https://github.com/archway-network/archway-templates';
 const Templates = [
   { title: 'Increment', value: 'increment' },
   { title: 'CW20', value: 'cw20/base' },
