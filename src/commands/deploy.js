@@ -10,7 +10,7 @@ const Store = require('./store');
 
 async function parseDeploymentOptions(cargo, config, { adminAddress, confirm, args: optArgs, label: optLabel, defaultLabel, ...options } = {}) {
   if (!_.isEmpty(optArgs) && !isJson(optArgs)) {
-    throw new Error(`Arguments should be a JSON string, received "${args}"`);
+    throw new Error(`Arguments should be a JSON string, received "${optArgs}"`);
   }
 
   const project = await cargo.projectMetadata();
