@@ -14,7 +14,7 @@ async function parseQueryOptions(config, { args, flags = [], ...options } = {}) 
   const { address: lastDeployedContract } = config.deployments.findLast('instantiate', chainId) || {};
   prompts.override({ contract: lastDeployedContract || undefined, ...options });
 
-  const {contract } = await prompts([
+  const { contract } = await prompts([
     {
       type: 'text',
       name: 'contract',
@@ -31,10 +31,10 @@ async function parseQueryOptions(config, { args, flags = [], ...options } = {}) 
     node,
     gas,
     flags: [...flags], 
-  }
+  } 
 }
 
-async function querySmart(archwayd, {module,type, ...options}) {
+async function querySmart(archwayd, { module, type, ...options }) {
   const config = await Config.open();
   const { node, contract, args, ...txOptions } = await parseQueryOptions(config, options);
   console.info(chalk`Querying smart contract {cyan ${contract}}...`);
@@ -42,17 +42,15 @@ async function querySmart(archwayd, {module,type, ...options}) {
   console.info(chalk`{green Query successful {cyan ${response}}}\n`);
 }
 
-async function main(archwayd, {module,type, ...options}) {
+async function main(archwayd, { module, type, ...options }) {
   try {
-   await querySmart(archwayd, {module,type,options});
+    await querySmart(archwayd, { module, type,options });
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
-      process.exit(1);
     } else {
       console.error(chalk`\n{red.bold Failed to query transaction}`);
       console.error(e);
-      process.exit(1);
     }
   }
 }
