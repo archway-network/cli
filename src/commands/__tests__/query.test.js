@@ -48,7 +48,7 @@ describe('query', () => {
   });
 
   test('queries last stored contract', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
     const contractAddress = 'archway14v952t75xgnufzlrft52ekltt8nsu9gxqh4xz55qfm6wqslc0spqspc5lm';

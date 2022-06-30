@@ -134,7 +134,6 @@ async function writeConfigFile(config) {
   await Config.write(config, name);
 }
 
-  
 async function main(name, options = {}) {
   console.info(`Creating new Archway project...`);
   try {

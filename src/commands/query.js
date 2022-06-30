@@ -23,7 +23,6 @@ async function parseQueryOptions(config, { args, flags = [], ...options } = {}) 
       format: value => _.trim(value),
     },
   ]);
-
   return {
     contract,
     args: args || '{}',
@@ -45,8 +44,8 @@ async function querySmart(archwayd, { module, type, ...options }) {
 async function main(archwayd, { module, type, ...options }) {
   try {
     await querySmart(archwayd, { module, type,options });
-  } catch (e) {
-    if (e instanceof PromptCancelledError) {
+  } catch ( e ) {
+    if ( e instanceof PromptCancelledError ) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to query transaction}`);
