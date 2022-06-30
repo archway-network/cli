@@ -48,6 +48,7 @@ async function main(archwayd, {module,type, ...options}) {
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
+      process.exit(1);
     } else {
       console.error(chalk`\n{red.bold Failed to query transaction}`);
       console.error(e);
