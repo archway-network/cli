@@ -1,9 +1,6 @@
-// archway-cli/util/new.js
-
 const _ = require('lodash');
 const chalk = require('chalk');
 const path = require('path');
-const { spawn } = require('promisify-child-process');
 const Cargo = require('../clients/cargo');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const Config = require('../util/config');
@@ -42,10 +39,12 @@ const ProjectSetupQuestions = [
     type: prev => prev ? 'select' : null,
     name: 'template',
     message: 'Choose a template',
-    choices: _.map(Templates, template => ({
-      description: `[https://github.com/${TemplatesRepository}/tree/main/${template.value}]`,
-      ...template
-    })),
+    choices: _.map(Templates, template => {
+      return {
+        description: `[https://github.com/${TemplatesRepository}/tree/main/${template.value}]`,
+        ...template
+      };
+    }),
   },
   {
     type: 'confirm',
@@ -58,11 +57,13 @@ const ProjectSetupQuestions = [
     name: 'environment',
     message: 'Select the project environment',
     initial: _.indexOf(Environments, DefaultEnvironment),
-    choices: _.map(EnvironmentsDetails, (details, name) => ({
-      title: _.capitalize(name),
-      value: name,
-      ...details
-    })),
+    choices: _.map(EnvironmentsDetails, (details, name) => {
+      return {
+        title: _.capitalize(name),
+        value: name,
+        ...details
+      };
+    }),
     warn: 'This environment is unavailable for now'
   },
   {
@@ -70,11 +71,13 @@ const ProjectSetupQuestions = [
     name: 'testnet',
     message: 'Select a testnet to use',
     initial: _.indexOf(Testnets, DefaultTestnet),
-    choices: _.map(TestnetsDetails, (details, name) => ({
-      title: _.capitalize(name),
-      value: name,
-      ...details
-    })),
+    choices: _.map(TestnetsDetails, (details, name) => {
+      return {
+        title: _.capitalize(name),
+        value: name,
+        ...details
+      };
+    }),
     warn: 'This network is unavailable for now'
   }
 ];
@@ -87,7 +90,6 @@ async function createProject(defaults = {}) {
   await cargoGenerate(config, settings);
   await cargoBuild(config, settings);
   await writeConfigFile(config);
-  await initialCommit(config);
 
   return config;
 }
@@ -132,6 +134,7 @@ async function writeConfigFile(config) {
   await Config.write(config, name);
 }
 
+<<<<<<< HEAD
 async function initialCommit({ name }) {
   const rootPath = path.join(process.cwd(), name);
   const git = async (...args) => spawn('git', ['-C', rootPath, ...args], { stdio: 'inherit' });
@@ -140,6 +143,8 @@ async function initialCommit({ name }) {
   await git('commit', '-m', 'Initialized with archway-cli');
 }
   
+=======
+>>>>>>> 2d0b9062f7955a7f8ee39dbac34ed8e31d86fd8c
 async function main(name, options = {}) {
   console.info(`Creating new Archway project...`);
   try {

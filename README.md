@@ -4,35 +4,38 @@ Make sure you've installed and configured a few dependencies. For full installat
 
 ### Dependencies
 
+- [Npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm "Install Node.js and NPM")
+- [Archwayd](https://github.com/archway-network/archway/tree/main/cmd/archwayd "Install Archway Daemon")
 - [Rustc](https://www.rust-lang.org/tools/install "Install Rust")
 - [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html "Install Cargo")
 - [Cargo Generate](https://crates.io/crates/cargo-generate "Install Cargo Generate")
-- [Archwayd](https://github.com/archway-network/archway/tree/main/cmd/archwayd "Install Archway Daemon")
-- [Docker](https://docs.docker.com/get-docker "Install Docker")
-- [Npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm "Install Node.js and NPM")
-- [Archway Developer CLI](https://github.com/archway-network/archway-cli "Install develolper CLI")
-
+- [Binaryen](https://github.com/WebAssembly/binaryen "Install Binaryen toolchain")
+- [Docker](https://docs.docker.com/get-docker "Install Docker") [optional]
 
 ### CLI Installation:
 
 #### Install using `npm`:
+
 ```
 npm install -g @archwayhq/cli
 ```
 
 #### Install from source:
+
 ```
 git clone git@github.com:archway-network/archway-cli.git
-cd archway-cli 
+cd archway-cli
 npm install -g
 ```
 
-### Usage: 
+### Usage:
+
 ```
 archway [command] [options]
 ```
 
 ### Options:
+
 ```
 -v, --version       output the current version
 -h, --help          display help for command

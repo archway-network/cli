@@ -5,7 +5,7 @@ class PromptCancelledError extends Error { }
 
 async function promptWrapper(questions, { onSubmit = _.noop } = {}) {
   const onCancel = () => { throw new PromptCancelledError('Cancelled'); };
-  return await prompt(questions, { onSubmit, onCancel })
+  return await prompt(questions, { onSubmit, onCancel });
 }
 
 module.exports = {

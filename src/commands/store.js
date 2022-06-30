@@ -36,7 +36,7 @@ async function parseDeploymentOptions(cargo, config, { confirm, ...options } = {
     node,
     gas,
     flags
-  }
+  };
 }
 
 async function verifyChecksum(filename) {
@@ -123,8 +123,7 @@ async function main(archwayd, options = {}) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to store contract}`);
-      console.error(e);
-      process.exit(1);
+      throw e;
     }
   }
 }

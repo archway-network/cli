@@ -7,8 +7,8 @@ const Instantiate = require('../instantiate');
 
 const Fixtures = {
   sampleConfig: require('./fixtures/sample-config.json'),
-  txWasmInstantiate: require('../../clients/archwayd/__test__/fixtures/tx-wasm-instantiate.json'),
-  queryTxWasmInstantiate: require('../../clients/archwayd/__test__/fixtures/query-tx-wasm-instantiate.json'),
+  txWasmInstantiate: require('../../clients/archwayd/__tests__/fixtures/tx-wasm-instantiate.json'),
+  queryTxWasmInstantiate: require('../../clients/archwayd/__tests__/fixtures/query-tx-wasm-instantiate.json'),
 };
 
 jest.mock('ora');
@@ -26,9 +26,7 @@ const projectMetadata = {
 const mockCargo = {
   projectMetadata: jest.fn().mockResolvedValue(projectMetadata),
 };
-jest.mock('../../clients/cargo', () => {
-  return jest.fn(() => mockCargo);
-});
+jest.mock('../../clients/cargo', () => jest.fn(() => mockCargo));
 
 const mockConfig = new Config(Fixtures.sampleConfig, '/tmp/config.json');
 
@@ -66,7 +64,7 @@ describe('instantiate', () => {
   });
 
   test('instantiates last stored contract', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
 
@@ -96,7 +94,7 @@ describe('instantiate', () => {
   });
 
   test('saves the instantiated contract address', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add');
 
     await Instantiate(client, {
@@ -126,7 +124,7 @@ describe('instantiate', () => {
   });
 
   test('uses the code ID from the arguments', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
 
@@ -157,7 +155,7 @@ describe('instantiate', () => {
   });
 
   test('uses the admin address from the arguments', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
 

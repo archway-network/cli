@@ -46,7 +46,7 @@ async function parseDeploymentOptions(cargo, config, { adminAddress, confirm, ar
     node,
     gas,
     flags
-  }
+  };
 }
 
 /**
@@ -70,7 +70,7 @@ async function main(archwayd, options = {}) {
   try {
     console.warn(chalk`{yellow {bold WARNING:} This command is deprecated and will be removed in future versions}`);
     console.warn('\nTo build and deploy your contract, use the following commands instead:\n');
-    console.warn(chalk`{magenta archway build --optimized}`);
+    console.warn(chalk`{magenta archway build --optimize}`);
     console.warn(chalk`{magenta archway store}`);
     console.warn(chalk`{magenta archway instantiate}`);
     console.warn(chalk`{magenta archway metadata}`);
@@ -82,8 +82,7 @@ async function main(archwayd, options = {}) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to deploy project}`);
-      console.error(e);
-      process.exit(1);
+      throw e;
     }
   }
 }

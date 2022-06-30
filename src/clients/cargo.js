@@ -6,7 +6,7 @@ const { spawn } = require('promisify-child-process');
 class Cargo {
   static WasmTarget = 'wasm32-unknown-unknown';
 
-  #cwd
+  #cwd;
 
   constructor({ cwd } = {}) {
     this.#cwd = cwd || process.cwd();
@@ -49,12 +49,12 @@ class Cargo {
       '--quiet',
       '--no-deps',
       '--format-version=1'
-    ], { stdio: 'pipe', maxBuffer: 1024 * 1024 });
+    ], { stdio: 'pipe' });
     return JSON.parse(stdout);
   }
 
   async projectMetadata() {
-    const { packages: [{ name, version },] = [] } = await this.metadata();
+    const { packages: [{ name, version }] = [] } = await this.metadata();
     if (_.isEmpty(name) || _.isEmpty(version)) {
       throw new Error('Failed to resolve project metadata');
     }
@@ -80,7 +80,12 @@ class Cargo {
 
   #run(args, options = { stdio: 'inherit' }) {
     debug('cargo', ...args);
-    return spawn('cargo', args, { ...options, encoding: 'utf8', cwd: this.#cwd });
+    return spawn('cargo', args, {
+      ...options,
+      cwd: this.#cwd,
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024
+    });
   }
 }
 
