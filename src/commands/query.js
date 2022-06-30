@@ -29,8 +29,8 @@ async function parseQueryOptions(config, { args, flags = [], ...options } = {}) 
     chainId,
     node,
     gas,
-    flags: [...flags], 
-  }
+    flags: [...flags],
+  };
 }
 
 async function querySmart(archwayd, { module, type, ...options }) {
@@ -43,7 +43,7 @@ async function querySmart(archwayd, { module, type, ...options }) {
 
 async function main(archwayd, { module, type, ...options }) {
   try {
-    await querySmart(archwayd, { module, type,options });
+    await querySmart(archwayd, { module, type, options });
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
