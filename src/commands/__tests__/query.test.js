@@ -33,7 +33,6 @@ const mockConfig = new Config(Fixtures.sampleConfig, '/tmp/config.json');
 
 describe('query', () => {
   const client = createClient();
-  
   beforeEach(() => {
     mockConsole(['info', 'warn', 'error']);
     spawk.clean();
