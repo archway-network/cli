@@ -76,8 +76,8 @@ async function main(archwayd, options) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to execute transaction}`);
-      throw e;
     }
+    throw e;
   }
 }
 

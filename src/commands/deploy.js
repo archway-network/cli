@@ -8,8 +8,8 @@ const Build = require('./build');
 const Instantiate = require('./instantiate');
 const Store = require('./store');
 
-async function parseDeploymentOptions(cargo, config, { adminAddress, confirm, args, label, defaultLabel, ...options } = {}) {
-  if (!_.isEmpty(args) && !isJson(args)) {
+async function parseDeploymentOptions(cargo, config, { adminAddress, confirm, args: optArgs, label: optLabel, defaultLabel, ...options } = {}) {
+  if (!_.isEmpty(optArgs) && !isJson(optArgs)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
 
@@ -18,11 +18,11 @@ async function parseDeploymentOptions(cargo, config, { adminAddress, confirm, ar
   const node = `${rpc.url}:${rpc.port}`;
 
   prompts.override({
-    args,
-    label: label || (defaultLabel && project.id) || undefined,
+    args: optArgs,
+    label: optLabel || (defaultLabel && project.id) || undefined,
     ...options
   });
-  const { from } = await prompts([
+  const { from, args, label } = await prompts([
     {
       type: 'text',
       name: 'from',
@@ -30,18 +30,34 @@ async function parseDeploymentOptions(cargo, config, { adminAddress, confirm, ar
       validate: value => !_.isEmpty(value.trim()) || 'Invalid wallet label',
       format: value => _.trim(value),
     },
+    {
+      type: 'text',
+      name: 'label',
+      message: chalk`Choose a label for this deployment {reset.dim (type <enter> to use the default)}`,
+      initial: project.id,
+      validate: value => !_.isEmpty(_.trim(value)) || 'Invalid deployment label',
+      format: value => _.trim(value),
+    },
+    {
+      type: 'text',
+      name: 'args',
+      message: chalk`JSON encoded arguments for contract initialization {reset.dim (e.g. \{ "count": 0 \})}`,
+      initial: '{}',
+      validate: value => !_.isEmpty(_.trim(value)) && isJson(_.trim(value)) || 'Invalid initialization args - inform a valid JSON string',
+    },
   ]);
 
   const flags = _.flatten([
     confirm ? [] : ['--yes'],
-    // FIXME: --dry-run is not working as expected on archwayd
-    // dryRun ? ['--dry-run'] : [],
   ]).filter(_.isString);
 
   return {
+    ...options,
     project,
     from,
     adminAddress: adminAddress || from,
+    args,
+    label,
     chainId,
     node,
     gas,
