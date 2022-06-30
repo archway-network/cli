@@ -69,7 +69,7 @@ describe('optimize', () => {
 
     expect(wasmOpt.calledWith).toMatchObject({
       args: ['-Os', metadata.wasm.filePath, '-o', `artifacts/${metadata.wasm.fileName}`],
-      options: { encoding: 'utf8' }
+      options: { encoding: 'utf8', maxBuffer: 1024 * 1024 }
     });
   });
 });
