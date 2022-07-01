@@ -134,7 +134,7 @@ describe('project setup', () => {
       args: expect.arrayContaining([
         'generate',
         '--name', name,
-        '--git', 'archway-network/archway-templates',
+        '--git', 'https://github.com/archway-network/archway-templates',
         '--branch', 'main',
         'default'
       ])
@@ -161,7 +161,7 @@ describe('project setup', () => {
       args: expect.arrayContaining([
         'generate',
         '--name', name.normalized,
-        '--git', 'archway-network/archway-templates',
+        '--git', 'https://github.com/archway-network/archway-templates',
         '--branch', 'main',
         'default'
       ])
@@ -188,7 +188,7 @@ describe('project setup', () => {
       args: expect.arrayContaining([
         'generate',
         '--name', name.normalized,
-        '--git', 'archway-network/archway-templates',
+        '--git', 'https://github.com/archway-network/archway-templates',
         '--branch', 'main',
         'default'
       ])
@@ -215,7 +215,7 @@ describe('project setup', () => {
       args: expect.arrayContaining([
         'generate',
         '--name', name.normalized,
-        '--git', 'archway-network/archway-templates',
+        '--git', 'https://github.com/archway-network/archway-templates',
         '--branch', 'main',
         'default'
       ])
