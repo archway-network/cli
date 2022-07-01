@@ -77,6 +77,7 @@ async function parseTxOptions(config, { confirm, flags = [], ...options } = {}) 
   ]).filter(_.isString);
 
   return {
+    ...options,
     contract,
     from,
     codeId,
@@ -130,8 +131,8 @@ async function main(archwayd, options = {}) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to deploy project}`);
-      throw e;
     }
+    throw e;
   }
 }
 
