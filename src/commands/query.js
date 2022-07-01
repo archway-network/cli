@@ -50,6 +50,7 @@ async function main(archwayd, { module, type, ...options }) {
     } else {
       console.error(chalk`\n{red.bold Failed to query transaction}`);
       console.error(e);
+      throw new Error('Failed to query transaction.');
     }
   }
 }
