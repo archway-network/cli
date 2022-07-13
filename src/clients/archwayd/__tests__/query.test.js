@@ -89,24 +89,4 @@ describe('QueryCommands', () => {
       });
     });
   });
-
-  describe('smartContract', () => {
-    test('queries a smart contract for a response', async () => {
-      const client = new ArchwayClient();
-      const query = new QueryCommands(client);
-
-      const archwayd = spawk.spawn(client.command)
-        .stdout(`Querying smart contract`);
-      const contract = "archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4";
-      const output = await query.smartContract("contract-state", "smart", contract, "{'get_count': {}}", defaultOptions);
-      expect(output).toEqual(`Querying smart contract`);
-      const args = "{'get_count': {}}";
-      expect(archwayd.calledWith).toMatchObject({
-        args: [
-          'query', 'wasm', 'contract-state', 'smart', 'archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4', args,
-          '--node', defaultOptions.node
-        ],
-      });
-    });
-  });
 });
