@@ -9,6 +9,11 @@ const Fixtures = {
   sampleConfig: require('./fixtures/sample-config.json'),
 };
 
+const defaultOptions = {
+  node: 'https://rpc.titus-1.archway.tech:443',
+  printStdout: false
+};
+
 jest.mock('ora');
 jest.mock('prompts');
 jest.mock('fs/promises');
@@ -49,29 +54,25 @@ describe('query', () => {
     jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
-    const contractAddress = 'archway14v952t75xgnufzlrft52ekltt8nsu9gxqh4xz55qfm6wqslc0spqspc5lm';
+    const archwayd = spawk.spawn(client.command)
+        .stdout(`Querying smart contract`);
     await Query(client, {
-      module: 'contract-state',
-      type: 'smart',
+      module: "contract-state",
+      type: "smart",
       options: {
-        contract: contractAddress,
         args: '{"get_count":{}}',
-        chainId: 'titus-1'
-      },
-    });
-    const queryArgs = [
-      "{'get_count':{}}"
-    ];
-    expect(client.query.smartContract).toHaveBeenCalledWith(
-      'wasm',
-      queryArgs,
-      expect.objectContaining({
-        from: 'alice',
-        chainId: 'titus-1',
-        node: expect.anything(),
-        flags: ['--yes']
-      })
+      }
+    },
     );
+    const queryArgs =
+      '{"get_count":{}}'
+    ;
+    expect(archwayd.calledWith).toMatchObject({
+      args: [
+        'query', 'wasm', 'contract-state', 'smart', 'archway1yama69ck4d722lltrz64mf8q06u9r37y4kh5948cqpj49g0d5nlqvsuvse', queryArgs,
+        '--node', defaultOptions.node
+      ],
+    });;
   });
 });
 function createClient() {

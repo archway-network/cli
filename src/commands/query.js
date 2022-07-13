@@ -4,11 +4,11 @@ const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress, isJson } = require('../util/validators');
 
-async function parseQueryOptions(config, { args, flags = [], ...options } = {}) {
+async function parseQueryOptions(config, { args, flags = [], options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
-
+  const printStdout = true
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
   const { address: lastDeployedContract } = config.deployments.findLast('instantiate', chainId) || {};
@@ -30,10 +30,11 @@ async function parseQueryOptions(config, { args, flags = [], ...options } = {}) 
     node,
     gas,
     flags: [...flags],
+    printStdout
   };
 }
 
-async function querySmart(archwayd, { module, type, ...options }) {
+async function querySmart(archwayd, { module, type, options }) {
   const config = await Config.open();
   const { node, contract, args, ...txOptions } = await parseQueryOptions(config, options);
   console.info(chalk`Querying smart contract {cyan ${contract}}...`);
@@ -41,7 +42,7 @@ async function querySmart(archwayd, { module, type, ...options }) {
   console.info(chalk`{green Query successful {cyan ${response}}}\n`);
 }
 
-async function main(archwayd, { module, type, ...options }) {
+async function main(archwayd, { module, type, options }) {
   try {
     await querySmart(archwayd, { module, type, options });
   } catch (e) {
@@ -50,7 +51,7 @@ async function main(archwayd, { module, type, ...options }) {
     } else {
       console.error(chalk`\n{red.bold Failed to query transaction}`);
       console.error(e);
-      throw new Error('Failed to query transaction.');
+      throw new Error(e);
     }
   }
 }
