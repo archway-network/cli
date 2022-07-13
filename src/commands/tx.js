@@ -29,14 +29,7 @@ async function parseTxOptions(config, { confirm, args, flags = [], ...options } 
       message: chalk`Enter the smart contract address {reset.dim (e.g. "archway1...")}`,
       validate: value => isArchwayAddress(_.trim(value)) || 'Invalid address',
       format: value => _.trim(value),
-    },
-    {
-      type: 'text',
-      name: 'args',
-      message: chalk`JSON encoded arguments for contract execution {reset.dim (e.g. \{ "increment": \{\} \})}`,
-      initial: '{}',
-      validate: value => isJson(value) || 'Invalid execution args - inform a valid JSON string',
-    },
+    }
   ]);
 
   const extraFlags = _.flatten([
