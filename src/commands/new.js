@@ -12,6 +12,7 @@ const TemplatesRepository = 'archway-network/archway-templates';
 const Templates = [
   { title: 'Increment', value: 'increment' },
   { title: 'CW20', value: 'cw20/base' },
+  // comment
   { title: 'CW721 with off-chain metadata', value: 'cw721/off-chain-metadata' },
   { title: 'CW721 with on-chain metadata', value: 'cw721/on-chain-metadata' },
 ];
