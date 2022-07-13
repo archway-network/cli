@@ -8,7 +8,7 @@ async function parseQueryOptions(config, { args, flags = [], options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
-  const printStdout = true
+  const printStdout = true;
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
   const { address: lastDeployedContract } = config.deployments.findLast('instantiate', chainId) || {};

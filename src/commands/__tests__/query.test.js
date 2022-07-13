@@ -55,24 +55,22 @@ describe('query', () => {
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
     const archwayd = spawk.spawn(client.command)
-        .stdout(`Querying smart contract`);
+      .stdout(`Querying smart contract`);
     await Query(client, {
       module: "contract-state",
       type: "smart",
       options: {
         args: '{"get_count":{}}',
       }
-    },
-    );
+    },);
     const queryArgs =
-      '{"get_count":{}}'
-    ;
+      '{"get_count":{}}';
     expect(archwayd.calledWith).toMatchObject({
       args: [
         'query', 'wasm', 'contract-state', 'smart', 'archway1yama69ck4d722lltrz64mf8q06u9r37y4kh5948cqpj49g0d5nlqvsuvse', queryArgs,
         '--node', defaultOptions.node
       ],
-    });;
+    });
   });
 });
 function createClient() {
