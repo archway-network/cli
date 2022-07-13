@@ -234,7 +234,7 @@ Program
 
     options = await updateWithDockerOptions(options);
     const archwayd = await createClient({ checkHomePath: true, ...options });
-    await Tools.Query(archwayd, { module, type, ...options });
+    await Tools.Query(archwayd, { module, type, options });
   });
 
 Program
