@@ -1,92 +1,59 @@
-// archway-cli/util/query.js
+const _ = require('lodash');
+const chalk = require('chalk');
+const { Config } = require('../util/config');
+const { prompts, PromptCancelledError } = require('../util/prompts');
+const { isArchwayAddress, isJson } = require('../util/validators');
 
-const { spawn } = require("child_process");
-const commands = require('../constants/commands');
-const FileSystem = require('fs');
-const ConfigTools = require('../constants/config');
-
-async function tryQuery(docker, args) {
-  if (typeof args !== 'object') {
-    console.error('Error processing query args', args);
-    return;
-  } else if (!args.command) {
-    console.error('Error processing query args', args);
-    return;
+async function parseQueryOptions(config, { args, flags = [], options } = {}) {
+  if (!_.isEmpty(args) && !isJson(args)) {
+    throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
+  const printStdout = true;
+  const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
+  const node = `${rpc.url}:${rpc.port}`;
+  const { address: lastDeployedContract } = config.deployments.findLast('instantiate', chainId) || {};
+  prompts.override({ contract: lastDeployedContract || undefined, ...options });
 
-  let configPath = ConfigTools.path();
-  FileSystem.access(configPath, FileSystem.F_OK, err => {
-    if (err) {
-      console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
-      return;
-    } else {
-      console.log('Attempting query...\n');
-
-      let config = require(configPath);
-      let scripts = config.developer.scripts;
-      let runScript = {};
-      let dockerArchwayD, archwaydCmd;
-      runScript.raw = scripts.query;
-      if (docker) {
-        dockerArchwayD = commands.ArchwayDocker;
-        archwaydCmd = dockerArchwayD.cmd + ' ' + dockerArchwayD.args.join(" ");
-        runScript.raw = runScript.raw.replace('archwayd', archwaydCmd);
-      }
-      runScript.arr = runScript.raw.split(' ');
-      runScript.cmd = runScript.arr[0];
-      runScript.params = runScript.arr.slice(1);
-
-      // Extend params to include subcommands and args
-
-      // Lvl. 1 cmd
-      runScript.params.push(args.command);
-
-      // Lvl. 2 cmd
-      if (args.subcommand) {
-        runScript.params.push(args.subcommand);
-      }
-
-      // Address to query
-      // For now defaults to most recent deployment
-      let deployments = config.developer.deployments;
-      for (let i = 0; i < deployments.length; i++) {
-        if (deployments[i].address) {
-          let contract = deployments[i].address;
-          runScript.params.push(contract);
-          // Query to make
-          runScript.params.push(args.query);
-
-          // Additional flags
-          let rpc = config.network.urls.rpc;
-          let node = rpc.url + ':' + rpc.port;
-          let flags = (args.flags) ? args.flags.split(' ') : [];
-          flags.push('--node');
-          flags.push(node);
-          flags.push('--output');
-          flags.push('json');
-
-          const source = spawn(runScript.cmd, runScript.params.concat(flags), { stdio: 'inherit' });
-
-          source.on('error', err => {
-            console.log('Error running query', err);
-          });
-
-          source.on('close', () => {
-            console.log('\nOk!');
-          });
-          break;
-        }
-      }
-    }
-  });
+  const { contract } = await prompts([
+    {
+      type: 'text',
+      name: 'contract',
+      message: chalk`Enter the smart contract address you would like to query from {reset.dim (e.g. "archway1...")}`,
+      validate: value => isArchwayAddress(_.trim(value)) || 'Invalid address',
+      format: value => _.trim(value),
+    },
+  ]);
+  return {
+    contract,
+    args: args || '{}',
+    chainId,
+    node,
+    gas,
+    flags: [...flags],
+    printStdout
+  };
 }
 
-const queryRunner = (docker, args) => {
-  try {
-    tryQuery(docker, args);
-  } catch (e) {
-    console.error('Error running query', e);
-  }
-};
+async function querySmart(archwayd, { module, type, options }) {
+  const config = await Config.open();
+  const { node, contract, args, ...txOptions } = await parseQueryOptions(config, options);
+  console.info(chalk`Querying smart contract {cyan ${contract}}...`);
+  const response = await archwayd.query.smartContract(module, type, contract, args, { node, ...txOptions });
+  console.info(chalk`{green Query successful {cyan ${response}}}\n`);
+}
 
-module.exports = queryRunner;
+async function main(archwayd, { module, type, options }) {
+  try {
+    await querySmart(archwayd, { module, type, options });
+  } catch (e) {
+    if (e instanceof PromptCancelledError) {
+      console.warn(chalk`{yellow ${e.message}}`);
+    } else {
+      console.error(chalk`\n{red.bold Failed to query transaction}`);
+      console.error(e);
+      throw new Error(e);
+    }
+  }
+}
+
+module.exports = main;
