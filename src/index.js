@@ -9,7 +9,9 @@ const { createClient } = require('./clients/archwayd');
 const { Environments, Testnets } = require('./networks');
 const { isJson, isProjectName, isArchwayAddress } = require('./util/validators');
 const { checkSemanticVersion } = require('./util/semvar');
-const Dotenv = require('dotenv').config({path:'./.env.production'});
+const Dotenv = require('dotenv').config({
+  path: './.env.production'
+});
 const Env = Dotenv.parsed;
 
 /**
@@ -291,7 +293,8 @@ Program
     await Tools.Tx(archwayd, options);
   });
 
-  Program.hook('postAction', () => {
+Program
+  .hook('postAction', () => {
     if (Env.ARCHWAY_SKIP_VERSION_CHECK.toLowerCase() === 'true' || parseInt(Env.ARCHWAY_SKIP_VERSION_CHECK) === 1) {
       return;
     }
