@@ -43,7 +43,7 @@ class QueryCommands {
       '--node', node,
       ...flags
     ];
-    return await this.#client.runJson('query', args, { printStdout });
+    return await this.#client.runJson('query', args, { stdio: ['inherit', 'pipe', 'inherit'], printStdout });
   }
 }
 
