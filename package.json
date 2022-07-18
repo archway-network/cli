@@ -1,20 +1,26 @@
 {
   "name": "@archwayhq/cli",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Develop WASM smart contracts with the Archway network developer CLI",
-  "homepage": "https://github.com/archway-network/archway-cli#readme",
+  "homepage": "https://docs.archway.io",
   "repository": "github:archway-network/archway-cli",
   "keywords": [
     "cli",
+    "terminal",
     "archway",
     "cosmos",
+    "cosmosjs",
     "cosmwasm",
+    "tendermint",
+    "atom",
     "wasm",
     "smart-contracts",
     "blockchain",
+    "dapp",
     "dapps",
     "nft",
-    "tooling"
+    "tooling",
+    "web3"
   ],
   "author": "Archway Network (https://archway.io)",
   "contributors": [
@@ -33,8 +39,8 @@
   ],
   "scripts": {
     "test": "jest",
-    "lint": "npx eslint src/**/*.js",
-    "lint:fix": "npx eslint --fix src/**/*.js"
+    "lint": "npx eslint ./src",
+    "lint:fix": "npx eslint --fix ./src"
   },
   "dependencies": {
     "async-retry": "^1.3.3",
@@ -48,12 +54,17 @@
     "prompts": "^2.4"
   },
   "devDependencies": {
-    "eslint": "^8.3",
+    "eslint": "^8.18",
+    "eslint-plugin-jest": "^26.5",
+    "eslint-plugin-node": "^11.1.0",
     "jest": "^27.5",
     "jest-mock-console": "^1.2.3",
     "spawk": "^1.7.1"
   },
   "engines": {
-    "node": ">=0.14.0"
-  }
+    "node": ">=14"
+  },
+  "os": [
+    "!win32"
+  ]
 }

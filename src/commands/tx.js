@@ -29,7 +29,7 @@ async function parseTxOptions(config, { confirm, args, flags = [], ...options } 
       message: chalk`Enter the smart contract address {reset.dim (e.g. "archway1...")}`,
       validate: value => isArchwayAddress(_.trim(value)) || 'Invalid address',
       format: value => _.trim(value),
-    },
+    }
   ]);
 
   const extraFlags = _.flatten([
@@ -44,7 +44,7 @@ async function parseTxOptions(config, { confirm, args, flags = [], ...options } 
     node,
     gas,
     flags: [...extraFlags, ...flags],
-  }
+  };
 }
 
 async function executeTx(archwayd, options) {
@@ -54,10 +54,10 @@ async function executeTx(archwayd, options) {
   console.info(chalk`Executing tx on contract {cyan ${contract}}...`);
   const { txhash } = await archwayd.tx.wasm('execute', [contract, args], { node, ...txOptions });
   await retry(
-    async (bail) => {
-      const { code, raw_log } = await archwayd.query.tx(txhash, { node, printStdout: false })
+    async bail => {
+      const { code, raw_log: rawLog } = await archwayd.query.tx(txhash, { node, printStdout: false });
       if (code && code !== 0) {
-        const error = new Error(raw_log);
+        const error = new Error(rawLog);
         bail(error);
         throw error;
       }
@@ -76,9 +76,8 @@ async function main(archwayd, options) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to execute transaction}`);
-      console.error(e);
-      process.exit(1);
     }
+    throw e;
   }
 }
 

@@ -8,7 +8,7 @@ async function printDeployments() {
   console.log('Printing deployments...\n');
 
   let configPath = ConfigTools.path();
-  FileSystem.access(configPath, FileSystem.F_OK, (err) => {
+  FileSystem.access(configPath, FileSystem.F_OK, err => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '.\nPlease run this command from the root folder of valid Archway project.');
       return;
@@ -21,7 +21,7 @@ async function printDeployments() {
         console.log(StringUtility.inspect(deployments, false, null, true));
       }
     }
-  })
+  });
 }
 
 const handlePrintDeployments = () => {

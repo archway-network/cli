@@ -1,7 +1,6 @@
 const spawk = require('spawk');
 const mockConsole = require('jest-mock-console');
 const { readFile } = require('fs/promises');
-const { Buffer } = require('buffer');
 const prompts = require('prompts');
 const ArchwayClient = require('../../clients/archwayd');
 const { Config } = require('../../util/config');
@@ -9,8 +8,8 @@ const Store = require('../store');
 
 const Fixtures = {
   sampleConfig: require('./fixtures/sample-config.json'),
-  txWasmStore: require('../../clients/archwayd/__test__/fixtures/tx-wasm-store.json'),
-  queryTxWasmStore: require('../../clients/archwayd/__test__/fixtures/query-tx-wasm-store.json'),
+  txWasmStore: require('../../clients/archwayd/__tests__/fixtures/tx-wasm-store.json'),
+  queryTxWasmStore: require('../../clients/archwayd/__tests__/fixtures/query-tx-wasm-store.json'),
 };
 
 jest.mock('ora');
@@ -28,9 +27,7 @@ const projectMetadata = {
 const mockCargo = {
   projectMetadata: jest.fn().mockResolvedValue(projectMetadata),
 };
-jest.mock('../../clients/cargo', () => {
-  return jest.fn(() => mockCargo);
-});
+jest.mock('../../clients/cargo', () => jest.fn(() => mockCargo));
 
 const mockConfig = new Config(Fixtures.sampleConfig, '/tmp/config.json');
 
@@ -63,7 +60,7 @@ describe('store', () => {
   });
 
   test('stores the wasm on-chain', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add');
 
     jest.spyOn(client.query, 'wasmCode')
@@ -79,11 +76,12 @@ describe('store', () => {
         chainId: 'titus-1',
         node: expect.anything(),
         flags: ['--yes']
-      }));
+      })
+    );
   });
 
   test('saves the wasm codeId', async () => {
-    jest.spyOn(client.query, 'txEventAttribute')
+    jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add');
 
     jest.spyOn(client.query, 'wasmCode')
@@ -113,6 +111,8 @@ describe('store', () => {
       .mockRejectedValue('should not happen');
 
     await Store(client, { verify: false, from: 'alice' });
+
+    expect(client.query.wasmCode).not.toHaveBeenCalled();
   });
 });
 
@@ -131,6 +131,8 @@ describe('validate', () => {
       .mockRejectedValue('should not happen');
 
     await Store(client, { store: false, from: 'alice' });
+
+    expect(client.tx.wasm).not.toHaveBeenCalled();
   });
 
   test('downloads the wasm stored on-chain', async () => {

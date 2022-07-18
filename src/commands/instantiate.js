@@ -6,9 +6,9 @@ const { isJson, isArchwayAddress } = require('../util/validators');
 const retry = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
-async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args, label, defaultLabel, codeId: optCodeId, ...options } = {}) {
-  if (!_.isEmpty(args) && !isJson(args)) {
-    throw new Error(`Arguments should be a JSON string, received "${args}"`);
+async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args: optArgs, label: optLabel, defaultLabel, codeId: optCodeId, ...options } = {}) {
+  if (!_.isEmpty(optArgs) && !isJson(optArgs)) {
+    throw new Error(`Arguments should be a JSON string, received "${optArgs}"`);
   }
 
   const project = await cargo.projectMetadata();
@@ -18,17 +18,32 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   const { codeId } = _.defaults({ codeId: optCodeId }, config.deployments.findLast('store', chainId));
 
   prompts.override({
-    args,
-    label: label || (defaultLabel && project.id) || undefined,
+    args: optArgs,
+    label: optLabel || (defaultLabel && project.id) || undefined,
     ...options
   });
-  const { from } = await prompts([
+  const { from, args, label } = await prompts([
     {
       type: 'text',
       name: 'from',
       message: chalk`Send tx from which wallet in your keychain? {reset.dim (e.g. "main" or crtl+c to quit)}`,
       validate: value => !_.isEmpty(value.trim()) || 'Invalid wallet label',
       format: value => _.trim(value),
+    },
+    {
+      type: 'text',
+      name: 'label',
+      message: chalk`Choose a label for this deployment {reset.dim (type <enter> to use the default)}`,
+      initial: project.id,
+      validate: value => !_.isEmpty(_.trim(value)) || 'Invalid deployment label',
+      format: value => _.trim(value),
+    },
+    {
+      type: 'text',
+      name: 'args',
+      message: chalk`JSON encoded arguments for contract initialization {reset.dim (e.g. \{ "count": 0 \})}`,
+      initial: '{}',
+      validate: value => !_.isEmpty(_.trim(value)) && isJson(_.trim(value)) || 'Invalid initialization args - inform a valid JSON string',
     },
   ]);
 
@@ -37,15 +52,18 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   ]).filter(_.isString);
 
   return {
+    ...options,
     project,
     from,
     adminAddress: adminAddress || from,
+    args,
+    label,
     codeId,
     chainId,
     node,
     gas,
     flags
-  }
+  };
 }
 
 async function parseBech32Address(archwayd, address) {
@@ -63,27 +81,11 @@ async function instantiateContract(archwayd, config, {
   chainId,
   node,
   codeId,
+  label,
+  args,
   ...options
 } = {}) {
   console.info(chalk`Instantiating {cyan ${projectId}} from code id {cyan ${codeId}} on {cyan ${chainId}}...`);
-
-  const { label, args } = await prompts([
-    {
-      type: 'text',
-      name: 'label',
-      message: chalk`Choose a label for this deployment {reset.dim (type <enter> to use the default)}`,
-      initial: projectId,
-      validate: value => !_.isEmpty(_.trim(value)) || 'Invalid deployment label',
-      format: value => _.trim(value),
-    },
-    {
-      type: 'text',
-      name: 'args',
-      message: chalk`JSON encoded arguments for contract initialization {reset.dim (e.g. \{ "count": 0 \})}`,
-      initial: '{}',
-      validate: value => isJson(value) || 'Invalid initialization args - inform a valid JSON string',
-    },
-  ]);
 
   const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
   const instantiateArgs = [codeId, args, '--label', label, '--admin', bech32AdminAddress];
@@ -131,9 +133,8 @@ async function main(archwayd, options = {}) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to instantiate contract}`);
-      console.error(e);
-      process.exit(1);
     }
+    throw e;
   }
 }
 

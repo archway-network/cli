@@ -12,7 +12,7 @@ class QueryCommands {
   async txEventAttribute(txhash, eventType, attributeKey, options) {
     const transaction = await this.tx(txhash, options);
 
-    const { logs: [{ events = [] } = {},] = [] } = transaction;
+    const { logs: [{ events = [] } = {}] = [] } = transaction;
     const { attributes = [] } = events.find(event => event.type === eventType) || {};
     const { value } = attributes.find(attribute => attribute.key === attributeKey) || {};
 
@@ -23,13 +23,17 @@ class QueryCommands {
     return await this.#run(['wasm', 'code', codeId, outputFilePath], options);
   }
 
+  async smartContract(module, type, contract, args, options) {
+    return await this.#run(['wasm', module, type, contract, args], options);
+  }
+
   async #run(queryArgs = [], { node, flags = [], printStdout } = {}) {
     const args = [
       ...queryArgs,
       '--node', node,
       ...flags
     ];
-    const { stdout } = await this.#client.run('query', args, { printStdout });
+    const { stdout } = await this.#client.run('query', args, { stdio: ['inherit', 'pipe', 'inherit'], printStdout });
     return stdout;
   }
 
@@ -39,8 +43,8 @@ class QueryCommands {
       '--node', node,
       ...flags
     ];
-    return await this.#client.runJson('query', args, { printStdout });
+    return await this.#client.runJson('query', args, { stdio: ['inherit', 'pipe', 'inherit'], printStdout });
   }
 }
 
-module.exports = QueryCommands
+module.exports = QueryCommands;

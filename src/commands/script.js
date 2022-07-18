@@ -10,7 +10,7 @@ let archwaydCmd = null;
 
 async function tryScript(key) {
   let configPath = ConfigTools.path();
-  FileSystem.access(configPath, FileSystem.F_OK, (err) => {
+  FileSystem.access(configPath, FileSystem.F_OK, err => {
     if (err) {
       console.error('Error locating dApp config at path ' + configPath + '. Please run this command from the root folder of an Archway project.');
       return;
@@ -27,7 +27,7 @@ async function tryScript(key) {
 
       // in order to have only one place for the archwayd docker command (i.e. in constants),
       // let's have an exception for the archway daemon here
-      if (runScript.cmd == 'archwayd') {
+      if (runScript.cmd === 'archwayd') {
         runScript.Cmd = archwaydCmd.cmd;
         runScript.params = [...archwaydCmd.args, ...runScript.params];
       }
@@ -36,7 +36,7 @@ async function tryScript(key) {
 
       const source = spawn(runScript.cmd, runScript.params, { stdio: 'inherit' });
 
-      source.on('error', (err) => {
+      source.on('error', err => {
         console.log('Error executing script', err);
       });
     }

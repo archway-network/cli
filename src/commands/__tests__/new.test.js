@@ -28,7 +28,7 @@ describe('project settings', () => {
   describe('without cli arguments', () => {
     const originalPrompts = jest.requireActual('prompts');
 
-    async function fetchAnswers() {
+    function fetchAnswers() {
       return new Promise((resolve, reject) => {
         prompts.mockImplementationOnce(async (questions, { onCancel } = {}) => {
           // prompts() will mutate the questions, so we need to clone it to avoid side effects
@@ -134,7 +134,7 @@ describe('project setup', () => {
       args: expect.arrayContaining([
         'generate',
         '--name', name,
-        '--git', 'archway-network/archway-templates',
+        '--git', 'https://github.com/archway-network/archway-templates',
         '--branch', 'main',
         'default'
       ])
@@ -161,7 +161,7 @@ describe('project setup', () => {
       args: expect.arrayContaining([
         'generate',
         '--name', name.normalized,
-        '--git', 'archway-network/archway-templates',
+        '--git', 'https://github.com/archway-network/archway-templates',
         '--branch', 'main',
         'default'
       ])
@@ -188,7 +188,7 @@ describe('project setup', () => {
       args: expect.arrayContaining([
         'generate',
         '--name', name.normalized,
-        '--git', 'archway-network/archway-templates',
+        '--git', 'https://github.com/archway-network/archway-templates',
         '--branch', 'main',
         'default'
       ])
@@ -215,7 +215,7 @@ describe('project setup', () => {
       args: expect.arrayContaining([
         'generate',
         '--name', name.normalized,
-        '--git', 'archway-network/archway-templates',
+        '--git', 'https://github.com/archway-network/archway-templates',
         '--branch', 'main',
         'default'
       ])
@@ -277,36 +277,6 @@ describe('project setup', () => {
       options: expect.objectContaining({
         cwd: path.join(process.cwd(), name),
       })
-    });
-  });
-
-  test('do initial git commit', async () => {
-    const name = 'archonauts';
-
-    spawk.spawn('cargo');
-    const gitBranch = spawk.spawn('git', _.includes('branch'));
-    const gitAdd = spawk.spawn('git', _.includes('add'));
-    const gitCommit = spawk.spawn('git', _.includes('commit'));
-
-    await New(name, {
-      useTemplate: false,
-      docker: false,
-      environment: 'local',
-      build: false,
-    });
-
-    const rootPathMatcher = expect.stringMatching(`^.*${path.sep}${name}$`);
-
-    expect(gitBranch.calledWith).toMatchObject({
-      args: ['-C', rootPathMatcher, 'checkout', '-b', 'main']
-    });
-
-    expect(gitAdd.calledWith).toMatchObject({
-      args: ['-C', rootPathMatcher, 'add', '-A']
-    });
-
-    expect(gitCommit.calledWith).toMatchObject({
-      args: ['-C', rootPathMatcher, 'commit', '-m', 'Initialized with archway-cli']
     });
   });
 });
