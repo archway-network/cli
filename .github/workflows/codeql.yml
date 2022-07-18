@@ -1,12 +1,21 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> f7e8f6b (v1.2.1 (#102))
 name: "CodeQL"
 
 on:
   push:
     branches: ["main", develop]
   pull_request:
+<<<<<<< HEAD
 
 - cron: "0 12 * * 3"
+=======
+    branches: ["main", develop]
+  schedule:
+    - cron: "0 12 * * 3"
+>>>>>>> f7e8f6b (v1.2.1 (#102))
 
 jobs:
   analyze:
@@ -22,17 +31,26 @@ jobs:
       matrix:
         language: ["javascript"]
 
+<<<<<<< HEAD
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+=======
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+>>>>>>> f7e8f6b (v1.2.1 (#102))
       
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
           languages: ${{ matrix.language }}
+<<<<<<< HEAD
 
+=======
+>>>>>>> f7e8f6b (v1.2.1 (#102))
       
       - name: Autobuild
         uses: github/codeql-action/autobuild@v2
