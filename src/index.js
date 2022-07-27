@@ -294,7 +294,6 @@ Program.hook('postAction', () => {
   if (skipVersionCheck.toString().toLowerCase() === 'true' || parseInt(skipVersionCheck) === 1) {
     return;
   }
-  console.log('Checking for updates...');
   checkSemanticVersion();
 });
 

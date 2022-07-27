@@ -7,6 +7,7 @@ function getVersion() {
 }
 
 async function checkSemanticVersion() {
+  console.info('Checking for updates...');
   const version = getVersion();
 
   let runScript = {
@@ -20,6 +21,7 @@ async function checkSemanticVersion() {
     remote = remote.trim();
     if (remote !== version) {
       console.warn(chalk`{whiteBright A newer version of Archway CLI is available ({green.bold v${remote}})\nSupport for {green.bold v${version}} has ended. Install the latest version with {yellow.bold npm install -g @archwayhq/cli}}`);
+      console.info('If you want skip this check, add ARCHWAY_SKIP_VERSION_CHECK=true to your environment file (.bashrc, .zshrc, ...)');
     }
   });
 }
