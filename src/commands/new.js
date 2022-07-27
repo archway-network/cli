@@ -116,9 +116,8 @@ function buildConfig({ name, docker, environment, testnet }) {
   return _.defaultsDeep(projectConfig, networkConfig);
 }
 
-async function cargoGenerate({ name, network: { name: networkName, templatesBranch } }, { template = DefaultTemplate }) {
-  const branch = templatesBranch || (networkName ? `network/${networkName}` : DefaultTemplateBranch);
-  await new Cargo().generate(name, TemplatesRepository, branch, template);
+async function cargoGenerate({ name }, { template = DefaultTemplate }) {
+  await new Cargo().generate(name, TemplatesRepository, DefaultTemplateBranch, template);
 }
 
 async function cargoBuild({ name }, { build = true } = {}) {
