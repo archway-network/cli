@@ -290,6 +290,10 @@ Program
   });
 
 Program.hook('postAction', () => {
+  const skipVersionCheck = process.env.ARCHWAY_SKIP_VERSION_CHECK || 0;
+  if (skipVersionCheck.toString().toLowerCase() === 'true' || parseInt(skipVersionCheck) === 1) {
+    return;
+  }
   checkSemanticVersion();
 });
 
