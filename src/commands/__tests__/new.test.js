@@ -222,27 +222,6 @@ describe('project setup', () => {
     });
   });
 
-  test('generate project from network branch', async () => {
-    const name = 'archonauts';
-    const testnet = 'titus';
-
-    const cargo = spawk.spawn('cargo');
-
-    await New(name, {
-      useTemplate: false,
-      docker: false,
-      environment: 'testnet',
-      testnet,
-      build: false,
-    });
-
-    expect(cargo.calledWith).toMatchObject({
-      args: expect.arrayContaining([
-        '--branch', `network/${testnet}`
-      ])
-    });
-  });
-
   test('generate project from selected template subfolder', async () => {
     const name = 'archonauts';
     const template = 'increment';
