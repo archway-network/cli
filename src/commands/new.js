@@ -11,7 +11,7 @@ const { Environments, EnvironmentsDetails, Testnets, TestnetsDetails, loadNetwor
 const TemplatesRepository = 'https://github.com/archway-network/archway-templates';
 const Templates = [
   { title: 'Increment', value: 'increment' },
-  { title: 'CW20', value: 'cw20/base' },
+  { title: 'CW20 Base', value: 'cw20/base' },
   { title: 'CW20 escrow', value: 'cw20/escrow'},
   { title: 'CW721 with on-chain metadata', value: 'cw721/on-chain-metadata' },
 ];
@@ -115,9 +115,8 @@ function buildConfig({ name, docker, environment, testnet }) {
   return _.defaultsDeep(projectConfig, networkConfig);
 }
 
-async function cargoGenerate({ name, network: { name: networkName, templatesBranch } }, { template = DefaultTemplate }) {
-  const branch = templatesBranch || (networkName ? `network/${networkName}` : DefaultTemplateBranch);
-  await new Cargo().generate(name, TemplatesRepository, branch, template);
+async function cargoGenerate({ name }, { template = DefaultTemplate }) {
+  await new Cargo().generate(name, TemplatesRepository, DefaultTemplateBranch, template);
 }
 
 async function cargoBuild({ name }, { build = true } = {}) {

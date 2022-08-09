@@ -84,7 +84,7 @@ class Cargo {
       ...options,
       cwd: this.#cwd,
       encoding: 'utf8',
-      maxBuffer: 1024 * 1024
+      maxBuffer: 1024 * 1024 // (Large enough for verbose error debugging)
     });
   }
 }
