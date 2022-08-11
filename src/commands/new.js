@@ -13,7 +13,6 @@ const Templates = [
   { title: 'Increment', value: 'increment' },
   { title: 'CW20', value: 'cw20/base' },
   { title: 'CW20 escrow', value: 'cw20/escrow' },
-  { title: 'CW721 with off-chain metadata', value: 'cw721/off-chain-metadata' },
   { title: 'CW721 with on-chain metadata', value: 'cw721/on-chain-metadata' },
 ];
 const DefaultTemplate = 'default';
