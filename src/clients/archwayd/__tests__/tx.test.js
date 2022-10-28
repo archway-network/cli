@@ -34,6 +34,9 @@ describe('TxCommands', () => {
       const client = new ArchwayClient();
       const tx = new TxCommands(client);
 
+      jest.spyOn(client.query, 'rewardsEstimateFees')
+        .mockResolvedValue('128utitus');
+
       const archwayd = spawk.spawn(client.command)
         .stdout(`gas estimate: 1132045\n${JSON.stringify(Fixtures.txWasmStore)}`);
 
@@ -44,13 +47,13 @@ describe('TxCommands', () => {
       expect(archwayd.calledWith).toMatchObject({
         args: [
           'tx', 'wasm', 'store', 'path/to/contract.wasm',
-          '--gas', defaultOptions.gas.mode,
-          '--gas-prices', defaultOptions.gas.prices,
-          '--gas-adjustment', defaultOptions.gas.adjustment,
           '--from', defaultOptions.from,
           '--chain-id', defaultOptions.chainId,
           '--node', defaultOptions.node,
           '--broadcast-mode', 'sync',
+          '--gas', defaultOptions.gas.mode,
+          '--gas-prices', '128utitus',
+          '--gas-adjustment', defaultOptions.gas.adjustment,
           '--output', 'json',
         ],
         options: { stdio: ['inherit', 'pipe', 'inherit'] }
