@@ -165,14 +165,11 @@ Program
 
 Program
   .command('metadata')
-  .description('Set the contract metadata')
-  .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
+  .description('Sets the contract metadata with rewards parameters')
+  .option('-c, --contract <address>', 'Optional contract address; defaults to the last deployed contract')
   .option('-f, --from <value>', 'Name or address of account to sign transactions')
-  .option('--developer-address <value>', 'Developer address which can change metadata later on (e.g. "archway1...")', parseArchwayAddress)
-  .option('--reward-address <value>', 'Reward address in which rewards will be deposited (e.g. "archway1...")', parseArchwayAddress)
-  .option('--collect-premium', 'Indicates if the contract will use a premium for gas rewards')
-  .option('--premium-percentage <value>', 'Integer percentage of premium in a range between 0 and 200', parseInt)
-  .option('--gas-rebate', 'Indicates if the contract rewards should be used for gas rebates to the user')
+  .option('--owner-address <value>', 'Contract owner address which can change the metadata later on (e.g. "archway1...")', parseArchwayAddress)
+  .option('--reward-address <value>', 'Address that will receive the rewards (e.g. "archway1...")', parseArchwayAddress)
   .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
   .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
   .addOption(DockerOption)
