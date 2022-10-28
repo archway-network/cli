@@ -11,10 +11,11 @@ class TxCommands {
     ], options);
   }
 
-  async setContractMetadata(contract, metadata, options) {
-    const jsonMetadata = toJsonContractMetadata(metadata);
+  async setContractMetadata(contract, { ownerAddress, rewardsAddress }, options) {
     return await this.#run([
-      'gastracker', 'set-contract-metadata', contract, jsonMetadata,
+      'rewards', 'set-contract-metadata', contract,
+      ...(ownerAddress ? ['--owner-address', ownerAddress] : []),
+      ...(rewardsAddress ? ['--rewards-address', rewardsAddress] : []),
     ], options);
   }
 
@@ -48,25 +49,6 @@ class TxCommands {
       return null;
     }
   }
-}
-
-function toJsonContractMetadata({
-  developerAddress,
-  rewardAddress,
-  collectPremium = false,
-  premiumPercentage = 0,
-  gasRebate = false
-} = {}) {
-  /* eslint-disable */
-  const metadata = {
-    developer_address: developerAddress,
-    reward_address: rewardAddress,
-    collect_premium: collectPremium,
-    premium_percentage_charged: premiumPercentage,
-    gas_rebate_to_user: gasRebate,
-  };
-  /* eslint-enable */
-  return JSON.stringify(metadata);
 }
 
 module.exports = TxCommands;
