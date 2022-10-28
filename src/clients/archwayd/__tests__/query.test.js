@@ -3,6 +3,7 @@ const ArchwayClient = require('..');
 const QueryCommands = require('../query');
 
 const Fixtures = {
+  queryRewardsEstimateFees: require('./fixtures/query-rewards-estimate-fees.json'),
   queryTxWasmStore: require('./fixtures/query-tx-wasm-store.json'),
 };
 
@@ -105,6 +106,27 @@ describe('QueryCommands', () => {
         args: [
           'query', 'wasm', 'contract-state', 'smart', 'archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4', args,
           '--node', defaultOptions.node
+        ],
+      });
+    });
+  });
+
+  describe('rewardsEstimateFees', () => {
+    test('queries the current minimum gas fee for the chain', async () => {
+      const client = new ArchwayClient();
+      const query = new QueryCommands(client);
+
+      const archwayd = spawk.spawn(client.command)
+        .stdout(JSON.stringify(Fixtures.queryRewardsEstimateFees));
+
+      const output = await query.rewardsEstimateFees(13, defaultOptions);
+      expect(output).toEqual('128.06592utitus');
+
+      expect(archwayd.calledWith).toMatchObject({
+        args: [
+          'query', 'rewards', 'estimate-fees', 13,
+          '--node', defaultOptions.node,
+          '--output', 'json',
         ],
       });
     });

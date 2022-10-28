@@ -27,6 +27,12 @@ class QueryCommands {
     return await this.#run(['wasm', module, type, contract, args], options);
   }
 
+  async rewardsEstimateFees(gasLimit = 1, options) {
+    /* eslint-disable-next-line camelcase */
+    const { gas_unit_price: gasUnitPrice } = await this.#runJson(['rewards', 'estimate-fees', gasLimit], options);
+    return `${gasUnitPrice.amount}${gasUnitPrice.denom}`;
+  }
+
   async #run(queryArgs = [], { node, flags = [], printStdout } = {}) {
     const args = [
       ...queryArgs,

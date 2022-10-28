@@ -1,0 +1,10 @@
+{
+  "gas_unit_price": {
+    "denom": "utitus",
+    "amount": "128.06592"
+  },
+  "estimated_fee": {
+    "denom": "utitus",
+    "amount": "128"
+  }
+}
