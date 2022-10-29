@@ -89,7 +89,10 @@ async function instantiateContract(archwayd, config, {
 
   const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
   const instantiateArgs = [codeId, args, '--label', label, '--admin', bech32AdminAddress];
-  const { txhash } = await archwayd.tx.wasm('instantiate', instantiateArgs, { chainId, node, ...options });
+  const { code, raw_log: rawLog, txhash } = await archwayd.tx.wasm('instantiate', instantiateArgs, { chainId, node, ...options });
+  if (code && code !== 0) {
+    throw new Error(`Transaction failed: code=${code}, ${rawLog}`);
+  }
   const contractAddress = await retry(
     () => archwayd.query.txEventAttribute(txhash, 'instantiate', '_contract_address', { node, printStdout: false }),
     { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }

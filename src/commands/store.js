@@ -83,7 +83,11 @@ async function storeWasm(archwayd, config, { project: { wasm: { optimizedFilePat
     await copyFile(optimizedFilePath, remotePath);
   }
 
-  const { txhash } = await archwayd.tx.wasm('store', [optimizedFilePath], { from, chainId, node, ...options });
+  // eslint-disable-next-line camelcase
+  const { code, raw_log: rawLog, txhash } = await archwayd.tx.wasm('store', [optimizedFilePath], { from, chainId, node, ...options });
+  if (code && code !== 0) {
+    throw new Error(`Transaction failed: code=${code}, ${rawLog}`);
+  }
   const codeIdString = await retry(
     () => archwayd.query.txEventAttribute(txhash, 'store_code', 'code_id', { node, printStdout: false }),
     { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
