@@ -19,7 +19,7 @@ class TxCommands {
   }
 
   async #run(txArgs = [], { gas = {}, from, chainId, node, flags = [], printStdout } = {}) {
-    const gasFlags = await this.#getGasFlags(gas, { node, flags, printStdout });
+    const gasFlags = await this.#getGasFlags(gas, { node });
     const args = [
       ...txArgs,
       '--from', from,
@@ -43,7 +43,7 @@ class TxCommands {
 
   async #getMinimumConsensusFee(options) {
     try {
-      return await this.#client.query.rewardsEstimateFees(1, options);
+      return await this.#client.query.rewardsEstimateFees(1, { printStdout: false, ...options });
     } catch (e) {
       return null;
     }
