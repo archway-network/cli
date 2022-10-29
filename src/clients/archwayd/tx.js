@@ -32,8 +32,8 @@ class TxCommands {
     return await this.#client.runJson('tx', args, { stdio: ['inherit', 'pipe', 'inherit'], printStdout });
   }
 
-  async #getGasFlags({ mode = 'auto', adjustment = 1.2 }, options) {
-    const gasPrices = await this.#getMinimumConsensusFee(options);
+  async #getGasFlags({ mode = 'auto', prices: defaultGasPrices, adjustment = 1.2 }, options) {
+    const gasPrices = await this.#getMinimumConsensusFee(options) || defaultGasPrices;
     return [
       '--gas', mode,
       '--gas-prices', gasPrices,
