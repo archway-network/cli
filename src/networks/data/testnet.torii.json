@@ -9,7 +9,7 @@
     "gas": {
       "prices": "0.002utorii",
       "mode": "auto",
-      "adjustment": "1.3"
+      "adjustment": "1.2"
     },
     "wasm": {
       "bech32Hrp": "archway",
