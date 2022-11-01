@@ -32,43 +32,19 @@ async function parseTxOptions(config, { confirm, flags = [], ...options } = {}) 
     },
     {
       type: 'text',
-      name: 'developerAddress',
-      message: chalk`Developer address which can change the metadata later on {reset.dim (e.g. "archway1...")}`,
+      name: 'ownerAddress',
+      message: chalk`Contract owner address which can change the metadata later on {reset.dim (e.g. "archway1...")}`,
       initial: lastContractMetadata.developerAddress || undefined,
       validate: value => _.isEmpty(_.trim(value)) || isArchwayAddress(_.trim(value)) || 'Invalid address',
       format: value => _.trim(value),
     },
     {
       type: 'text',
-      name: 'rewardAddress',
-      message: chalk`Enter an address to receive developer rewards {reset.dim (e.g. "archway1...")}`,
+      name: 'rewardsAddress',
+      message: chalk`Address that will receive the rewards {reset.dim (e.g. "archway1...")}`,
       initial: lastContractMetadata.rewardAddress || undefined,
       validate: value => _.isEmpty(_.trim(value)) || isArchwayAddress(_.trim(value)) || 'Invalid address',
       format: value => _.trim(value),
-    },
-    {
-      type: () => options.gasRebate ? null : 'toggle',
-      name: 'collectPremium',
-      message: chalk`Enable a premium on rewards? {reset.yellow (enabling this feature will automatically disable gas rebate)}`,
-      active: 'yes',
-      inactive: 'no',
-      initial: lastContractMetadata.collectPremium,
-    },
-    {
-      type: (_prev, { collectPremium }) => collectPremium && !options.gasRebate ? 'number' : null,
-      name: 'premiumPercentage',
-      message: chalk`What should be the percentage of premium rewards? {reset.dim (integer between 0 and 200)}`,
-      initial: lastContractMetadata.premiumPercentage || 0,
-      min: 0,
-      max: 200
-    },
-    {
-      type: (_prev, { collectPremium }) => collectPremium ? null : 'toggle',
-      name: 'gasRebate',
-      message: `Use the contract rewards for gas rebates to the user?`,
-      active: 'yes',
-      inactive: 'no',
-      initial: lastContractMetadata.gasRebate,
     },
   ]);
 
