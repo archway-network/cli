@@ -94,7 +94,11 @@ async function setContractMetadata(archwayd, options = {}) {
   const { chainId, codeId, contract, contractMetadata, node, ...txOptions } = await parseTxOptions(config, options);
 
   console.info(chalk`Setting metadata for contract {cyan ${contract}} on {cyan ${chainId}}...`);
-  const { txhash } = await archwayd.tx.setContractMetadata(contract, contractMetadata, { chainId, node, ...txOptions });
+  const { code, raw_log: rawLog, txhash } = await archwayd.tx.setContractMetadata(contract, contractMetadata, { chainId, node, ...txOptions });
+  if (code && code !== 0) {
+    throw new Error(`Transaction failed: code=${code}, ${rawLog}`);
+  }
+
   await retry(
     async bail => {
       const { code, raw_log: rawLog } = await archwayd.query.tx(txhash, { node, printStdout: false });
