@@ -9,11 +9,11 @@
     "gas": {
       "prices": "0.002utitus",
       "mode": "auto",
-      "adjustment": "1.3"
+      "adjustment": "1.2"
     },
     "wasm": {
       "bech32Hrp": "archway",
-      "archwayd": "0.0.4",
+      "archwayd": "0.1.0",
       "configDir": ".archway",
       "binary": "archwayd"
     },
