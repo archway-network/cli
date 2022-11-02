@@ -12,10 +12,8 @@
         "codeId": 253,
         "contract": "archway1yama69ck4d722lltrz64mf8q06u9r37y4kh5948cqpj49g0d5nlqvsuvse",
         "contractMetadata": {
-          "developerAddress": "archway1u4rmd5z78smu0tmtw45mran0pz4umzvxaf3g56",
-          "rewardAddress": "archway1u4rmd5z78smu0tmtw45mran0pz4umzvxaf3g56",
-          "collectPremium": true,
-          "premiumPercentage": 100
+          "ownerAddress": "archway1u4rmd5z78smu0tmtw45mran0pz4umzvxaf3g56",
+          "rewardsAddress": "archway1u4rmd5z78smu0tmtw45mran0pz4umzvxaf3g56"
         }
       },
       {
