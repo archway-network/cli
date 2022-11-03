@@ -42,7 +42,7 @@ async function parseTxOptions(config, { confirm, flags = [], ...options } = {}) 
       type: 'text',
       name: 'rewardsAddress',
       message: chalk`Address that will receive the rewards {reset.dim (e.g. "archway1...")}`,
-      initial: lastContractMetadata.rewardAddress || undefined,
+      initial: lastContractMetadata.rewardsAddress || undefined,
       validate: value => _.isEmpty(_.trim(value)) || isArchwayAddress(_.trim(value)) || 'Invalid address',
       format: value => _.trim(value),
     },
