@@ -1,6 +1,5 @@
 const debug = require('debug')('cargo');
 const _ = require('lodash');
-const { dirname } = require('path');
 const path = require('path');
 const { spawn } = require('promisify-child-process');
 
