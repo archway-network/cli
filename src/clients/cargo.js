@@ -54,7 +54,9 @@ class Cargo {
   }
 
   async projectMetadata() {
-    const { packages: [{ name, version }] = [] } = await this.metadata();
+    const { packages = [], target_directory: targetDirectory } = await this.metadata();
+    const currentManifestPath = await this.locateProject();
+    const { name, version } = packages.find(({ manifest_path: manifestPath }) => path.dirname(manifestPath) === currentManifestPath) || {};
     if (_.isEmpty(name) || _.isEmpty(version)) {
       throw new Error('Failed to resolve project metadata');
     }
@@ -64,7 +66,7 @@ class Cargo {
     const wasmFileName = `${name.replace(/-/g, '_')}.wasm`;
     const wasm = {
       fileName: wasmFileName,
-      filePath: path.join('target', Cargo.WasmTarget, 'release', wasmFileName),
+      filePath: path.join(targetDirectory, Cargo.WasmTarget, 'release', wasmFileName),
       optimizedFilePath: path.join('artifacts', wasmFileName)
     };
 

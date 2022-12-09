@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 const spawk = require('spawk');
 const Cargo = require('../cargo');
 
@@ -17,11 +18,11 @@ const cargo = new Cargo({ cwd });
 describe('locateProject', () => {
   test('returns the project folder based on Cargo.toml', async () => {
     const mockCargo = spawk.spawn('cargo')
-      .stdout(`${cwd}/path/to/project/Cargo.toml`);
+      .stdout(`${cwd}/Cargo.toml`);
 
     const projectPath = await cargo.locateProject();
 
-    expect(projectPath).toEqual(`${cwd}/path/to/project`);
+    expect(projectPath).toEqual(cwd);
     expect(mockCargo.calledWith).toMatchObject({
       args: ['locate-project', '--message-format', 'plain'],
       options: { stdio: 'pipe', encoding: 'utf8', cwd: cwd }
@@ -103,27 +104,58 @@ describe('metadata', () => {
 });
 
 describe('projectMetadata', () => {
-  test('returns the parsed project metadata', async () => {
+  test('returns the parsed project metadata for the project in current dir', async () => {
+    const cargoMetadataOutput = {
+      packages: [
+        {
+          name: 'foo',
+          version: '0.1.0',
+          manifest_path: `${cwd}/contracts/foo/Cargo.toml`,
+        },
+        {
+          name: 'bar',
+          version: '0.1.1',
+          manifest_path: `${cwd}/contracts/bar/Cargo.toml`,
+        },
+      ],
+      target_directory: `${cwd}/target`,
+    };
     spawk.spawn('cargo')
-      .stdout('{ "packages": [{ "name": "archway-project", "version": "0.1.0" }] }');
+      .stdout(JSON.stringify(cargoMetadataOutput));
+
+    spawk.spawn('cargo')
+      .stdout(`${cwd}/contracts/bar/Cargo.toml`);
 
     const metadata = await cargo.projectMetadata();
 
     expect(metadata).toMatchObject({
-      id: 'archway-project 0.1.0',
-      name: 'archway-project',
-      version: '0.1.0',
+      id: 'bar 0.1.1',
+      name: 'bar',
+      version: '0.1.1',
       wasm: {
-        fileName: 'archway_project.wasm',
-        filePath: `target/${Cargo.WasmTarget}/release/archway_project.wasm`,
-        optimizedFilePath: 'artifacts/archway_project.wasm'
+        fileName: 'bar.wasm',
+        filePath: `${cwd}/target/${Cargo.WasmTarget}/release/bar.wasm`,
+        optimizedFilePath: 'artifacts/bar.wasm'
       }
     });
   });
 
   test('fails if failed to resolve project metadata', async () => {
+    const cargoMetadataOutput = {
+      packages: [
+        {
+          name: 'foo',
+          version: '0.1.0',
+          manifest_path: `${cwd}/contracts/foo/Cargo.toml`,
+        },
+      ],
+      target_directory: `${cwd}/target`,
+    };
     spawk.spawn('cargo')
-      .stdout('{ "packages": [{}] }');
+      .stdout(JSON.stringify(cargoMetadataOutput));
+
+    spawk.spawn('cargo')
+      .stdout(`${cwd}/contracts/bar/Cargo.toml`);
 
     await expect(async () => {
       await cargo.projectMetadata();
