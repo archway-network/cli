@@ -235,22 +235,6 @@ Program
   });
 
 Program
-  .command('run')
-  .description('Run a custom script of your own creation')
-  .requiredOption('-s, --script <key>', 'Name of script to run (example: "archway run -s build"); add scripts by modifying config.json')
-  .addOption(DockerOption)
-  .action(async options => {
-    options = await updateWithDockerOptions(options);
-    await createClient({ checkHomePath: true, ...options });
-
-    try {
-      await Tools.Script(options.docker, options.script);
-    } catch (e) {
-      console.error('Error running custom script', [options.script]);
-    }
-  });
-
-Program
   .command('store')
   .description('Stores and verify a contract on-chain')
   .option('-f, --from <value>', 'Name or address of account to sign the transactions')
