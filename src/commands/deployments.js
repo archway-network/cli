@@ -1,31 +1,36 @@
 // archway-cli/util/deployments.js
 
-const FileSystem = require('fs');
-const StringUtility = require('util');
-const ConfigTools = require('../constants/config');
+const _ = require('lodash');
+const chalk = require('chalk');
+const { Config } = require('../util/config');
+const { Table } = require('console-table-printer');
 
-async function printDeployments() {
-  console.log('Printing deployments...\n');
-
-  let configPath = ConfigTools.path();
-  FileSystem.access(configPath, FileSystem.F_OK, err => {
-    if (err) {
-      console.error('Error locating dApp config at path ' + configPath + '.\nPlease run this command from the root folder of valid Archway project.');
-      return;
-    } else {
-      let config = require(configPath);
-      let deployments = config.developer.deployments;
-      if (!deployments.length) {
-        console.log("No deployments in config history.\nDeployments: ", deployments);
-      } else {
-        console.log(StringUtility.inspect(deployments, false, null, true));
-      }
-    }
+function printDeployments(deployments) {
+  const p = new Table({
+    enabledColumns: ['type', 'chainId', 'codeId', 'txhash', 'extra'],
+    computedColumns: [
+      {
+        name: 'extra',
+        function: row => _.truncate(
+          JSON.stringify(_.omit(row, ['type', 'chainId', 'codeId', 'txhash'])),
+          { length: 20 }
+        ),
+      },
+    ]
   });
+  p.addRows(deployments);
+  p.printTable();
 }
 
-const handlePrintDeployments = () => {
-  printDeployments();
-};
+async function main({ all = false }) {
+  try {
+    const config = await Config.open();
+    const deployments = all ? config.deployments.list() : config.deployments.listByChainId();
+    printDeployments(deployments);
+  } catch (e) {
+    console.error(chalk`{red.bold Failed to list deployments}`);
+    throw e;
+  }
+}
 
-module.exports = handlePrintDeployments;
+module.exports = main;

@@ -158,9 +158,10 @@ Program
 
 Program
   .command('history')
-  .description('Print deployments history')
-  .action(async () => {
-    await Tools.DeployHistory();
+  .description('Print deployments history for the currently selected network')
+  .option('-a, --all', 'Print all deployments history')
+  .action(async options => {
+    await Tools.DeployHistory(options);
   });
 
 Program

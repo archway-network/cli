@@ -89,7 +89,7 @@ class Config {
 
   static async open(rootPath) {
     try {
-      rootPath = rootPath || await new Cargo().locateProject();
+      rootPath ||= await new Cargo().locateProject();
       const configPath = path.join(rootPath, ConfigFilename);
       const configData = require(configPath);
       return new Config(configData, configPath);
@@ -128,8 +128,19 @@ class Deployments {
     );
   }
 
-  findLast(type, chainId) {
-    return this.config.get('developer.deployments', [])
+  list() {
+    return this.config.get('developer.deployments', []);
+  }
+
+  listByChainId(chainId) {
+    chainId ||= this.config.get('network.chainId');
+    console.debug(chainId);
+    return this.list()
+      .filter(_.matches({ chainId }));
+  }
+
+  findLastByTypeAndChainId(type, chainId) {
+    return this.list()
       .find(_.matches({ type, chainId }));
   }
 }
