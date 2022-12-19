@@ -10,7 +10,6 @@ const Metadata = require('./metadata.js');
 const Network = require('./network');
 const New = require('./new');
 const Query = require('./query');
-const Script = require('./script');
 const Store = require('./store');
 const Test = require('./test');
 const Tx = require('./tx');
@@ -26,7 +25,6 @@ module.exports = {
   Network,
   New,
   Query,
-  Script,
   Store,
   Test,
   Tx
