@@ -1,0 +1,217 @@
+{
+  "packages": [
+    {
+      "name": "archway-project",
+      "version": "0.1.0",
+      "id": "archway-project 0.1.0 (path+file:///tmp/test/archway-project)",
+      "license": null,
+      "license_file": null,
+      "description": null,
+      "source": null,
+      "dependencies": [
+        {
+          "name": "cosmwasm-std",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "req": "^1.0.0",
+          "kind": null,
+          "rename": null,
+          "optional": false,
+          "uses_default_features": true,
+          "features": [],
+          "target": null,
+          "registry": null
+        },
+        {
+          "name": "cosmwasm-storage",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "req": "^1.0.0",
+          "kind": null,
+          "rename": null,
+          "optional": false,
+          "uses_default_features": true,
+          "features": [],
+          "target": null,
+          "registry": null
+        },
+        {
+          "name": "cw-storage-plus",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "req": "^0.16",
+          "kind": null,
+          "rename": null,
+          "optional": false,
+          "uses_default_features": true,
+          "features": [],
+          "target": null,
+          "registry": null
+        },
+        {
+          "name": "cw2",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "req": "^0.16",
+          "kind": null,
+          "rename": null,
+          "optional": false,
+          "uses_default_features": true,
+          "features": [],
+          "target": null,
+          "registry": null
+        },
+        {
+          "name": "schemars",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "req": "^0.8",
+          "kind": null,
+          "rename": null,
+          "optional": false,
+          "uses_default_features": true,
+          "features": [],
+          "target": null,
+          "registry": null
+        },
+        {
+          "name": "serde",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "req": "^1.0",
+          "kind": null,
+          "rename": null,
+          "optional": false,
+          "uses_default_features": false,
+          "features": [
+            "derive"
+          ],
+          "target": null,
+          "registry": null
+        },
+        {
+          "name": "thiserror",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "req": "^1.0",
+          "kind": null,
+          "rename": null,
+          "optional": false,
+          "uses_default_features": true,
+          "features": [],
+          "target": null,
+          "registry": null
+        },
+        {
+          "name": "cosmwasm-schema",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "req": "^1.0.0",
+          "kind": "dev",
+          "rename": null,
+          "optional": false,
+          "uses_default_features": true,
+          "features": [],
+          "target": null,
+          "registry": null
+        },
+        {
+          "name": "criterion",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "req": "^0.4",
+          "kind": "dev",
+          "rename": null,
+          "optional": false,
+          "uses_default_features": true,
+          "features": [],
+          "target": null,
+          "registry": null
+        },
+        {
+          "name": "plotters",
+          "source": "registry+https://github.com/rust-lang/crates.io-index",
+          "req": "^0.3",
+          "kind": "dev",
+          "rename": null,
+          "optional": false,
+          "uses_default_features": true,
+          "features": [],
+          "target": null,
+          "registry": null
+        }
+      ],
+      "targets": [
+        {
+          "kind": [
+            "cdylib",
+            "rlib"
+          ],
+          "crate_types": [
+            "cdylib",
+            "rlib"
+          ],
+          "name": "archway-project",
+          "src_path": "/tmp/test/archway-project/src/lib.rs",
+          "edition": "2018",
+          "doc": true,
+          "doctest": true,
+          "test": true
+        },
+        {
+          "kind": [
+            "example"
+          ],
+          "crate_types": [
+            "bin"
+          ],
+          "name": "schema",
+          "src_path": "/tmp/test/archway-project/examples/schema.rs",
+          "edition": "2018",
+          "doc": false,
+          "doctest": false,
+          "test": false
+        },
+        {
+          "kind": [
+            "bench"
+          ],
+          "crate_types": [
+            "bin"
+          ],
+          "name": "increment_benchmark",
+          "src_path": "/tmp/test/archway-project/benches/increment_benchmark.rs",
+          "edition": "2018",
+          "doc": false,
+          "doctest": false,
+          "test": false
+        }
+      ],
+      "features": {
+        "backtraces": [
+          "cosmwasm-std/backtraces"
+        ],
+        "library": []
+      },
+      "manifest_path": "/tmp/test/archway-project/Cargo.toml",
+      "metadata": {
+        "scripts": {
+          "optimize": "docker run --rm -v \"$(pwd)\":/code -e CARGO_TERM_COLOR=always --mount type=volume,source=\"$(basename \"$(pwd)\")_cache\",target=/code/target --mount type=volume,source=registry_cache,target=/usr/local/cargo/registry cosmwasm/rust-optimizer:0.12.10\n"
+        }
+      },
+      "publish": null,
+      "authors": [
+        "Augusto Elesbão <aelesbao@users.noreply.github.com>"
+      ],
+      "categories": [],
+      "keywords": [],
+      "readme": "README.md",
+      "repository": null,
+      "homepage": null,
+      "documentation": null,
+      "edition": "2018",
+      "links": null,
+      "default_run": null,
+      "rust_version": null
+    }
+  ],
+  "workspace_members": [
+    "archway-project 0.1.0 (path+file:///tmp/test/archway-project)"
+  ],
+  "resolve": null,
+  "target_directory": "/tmp/test/archway-project/target",
+  "version": 1,
+  "workspace_root": "/tmp/test/archway-project",
+  "metadata": null
+}

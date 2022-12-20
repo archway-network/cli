@@ -1,6 +1,12 @@
 /* eslint-disable camelcase */
+const _ = require('lodash');
 const spawk = require('spawk');
 const Cargo = require('../cargo');
+
+const Fixtures = {
+  singleProject: require('./fixtures/cargo-metadata-single.json'),
+  workspaceProject: require('./fixtures/cargo-metadata-workspace.json'),
+};
 
 beforeEach(() => {
   spawk.clean();
@@ -12,8 +18,10 @@ afterEach(() => {
   jest.clearAllMocks();
 });
 
-const cwd = '/tmp/archway-cli-test';
+const cwd = '/tmp/test/archway-project';
 const cargo = new Cargo({ cwd });
+
+const isCmd = cmd => _.chain(_).head().eq(cmd).value();
 
 describe('locateProject', () => {
   test('returns the project folder based on Cargo.toml', async () => {
@@ -82,8 +90,8 @@ describe('wasm', () => {
 
 describe('metadata', () => {
   test('returns the project JSON metadata', async () => {
-    const mockCargo = spawk.spawn('cargo')
-      .stdout('{ "packages": [{ "name": "archway-project", "version": "0.1.0" }], "version": 1 }');
+    const mockCargo = spawk.spawn('cargo', isCmd('metadata'))
+      .stdout(JSON.stringify(Fixtures.singleProject));
 
     const metadata = await cargo.metadata();
 
@@ -104,34 +112,19 @@ describe('metadata', () => {
 });
 
 describe('projectMetadata', () => {
-  test('returns the parsed project metadata for the project in current dir', async () => {
-    const cargoMetadataOutput = {
-      packages: [
-        {
-          name: 'foo',
-          version: '0.1.0',
-          manifest_path: `${cwd}/contracts/foo/Cargo.toml`,
-        },
-        {
-          name: 'bar',
-          version: '0.1.1',
-          manifest_path: `${cwd}/contracts/bar/Cargo.toml`,
-        },
-      ],
-      target_directory: `${cwd}/target`,
-    };
-    spawk.spawn('cargo')
-      .stdout(JSON.stringify(cargoMetadataOutput));
+  test('returns the parsed metadata for the project in current dir', async () => {
+    spawk.spawn('cargo', isCmd('metadata'))
+      .stdout(JSON.stringify(Fixtures.workspaceProject));
 
-    spawk.spawn('cargo')
+    spawk.spawn('cargo', isCmd('locate-project'))
       .stdout(`${cwd}/contracts/bar/Cargo.toml`);
 
     const metadata = await cargo.projectMetadata();
 
     expect(metadata).toMatchObject({
-      id: 'bar 0.1.1',
+      id: 'bar 0.1.0',
       name: 'bar',
-      version: '0.1.1',
+      version: '0.1.0',
       wasm: {
         fileName: 'bar.wasm',
         filePath: `${cwd}/target/${Cargo.WasmTarget}/release/bar.wasm`,
@@ -151,11 +144,11 @@ describe('projectMetadata', () => {
       ],
       target_directory: `${cwd}/target`,
     };
-    spawk.spawn('cargo')
+    spawk.spawn('cargo', isCmd('metadata'))
       .stdout(JSON.stringify(cargoMetadataOutput));
 
-    spawk.spawn('cargo')
-      .stdout(`${cwd}/contracts/bar/Cargo.toml`);
+    spawk.spawn('cargo', isCmd('locate-project'))
+      .stdout(`${cwd}/contracts/baz/Cargo.toml`);
 
     await expect(async () => {
       await cargo.projectMetadata();
