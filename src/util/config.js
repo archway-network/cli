@@ -89,7 +89,7 @@ class Config {
 
   static async open(rootPath) {
     try {
-      rootPath = rootPath || await Config.#getWorkspaceRoot();
+      rootPath ||= await Config.#getWorkspaceRoot();
       const configPath = path.join(rootPath, ConfigFilename);
       const configData = require(configPath);
       return new Config(configData, configPath);
@@ -139,7 +139,7 @@ class Deployments {
   }
 
   listByChainId(chainId) {
-    chainId = chainId || this.config.get('network.chainId');
+    chainId ||= this.config.get('network.chainId');
     return this.list()
       .filter(_.matches({ chainId }));
   }

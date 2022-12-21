@@ -123,7 +123,7 @@ async function instantiate(archwayd, { deployOptions, ...options } = {}) {
   const config = await Config.open();
   const cargo = new Cargo();
 
-  deployOptions = deployOptions || await parseDeploymentOptions(cargo, config, options);
+  deployOptions ||= await parseDeploymentOptions(cargo, config, options);
 
   await instantiateContract(archwayd, config, deployOptions);
 }
