@@ -1,30 +1,39 @@
-const chalk = require('chalk');
 const path = require('path');
-const { mkdir } = require('fs/promises');
-const { spawn } = require('promisify-child-process');
-const ora = require('ora');
+const chalk = require('chalk');
 const Cargo = require('../clients/cargo');
+const WasmOptimizer = require('../clients/wasm_optimizer');
 
+/**
+ * Builds the project wasm file in release mode.
+ *
+ * @param {Cargo} cargo
+ */
 async function build(cargo) {
-  console.info(`Building the project...`);
+  console.info('Building the project...');
   await cargo.build();
+
+  const { wasm: { filePath } } = await cargo.projectMetadata();
+  const relativePath = path.relative(process.cwd(), filePath);
+  console.info(chalk`\n{green Wasm binary saved to {cyan ${relativePath}}}\n`);
 }
 
+/**
+ * Builds the project wasm file in release mode and optimizes it.
+ *
+ * @param {Cargo} cargo
+ */
 async function optimizeWasm(cargo) {
-  console.info('Building wasm binary...');
+  console.info('Building optimized wasm file...');
 
-  await cargo.wasm();
+  const { wasm: { optimizedFilePath }, workspaceRoot, isWorkspace } = await cargo.projectMetadata();
+  const optimizer = new WasmOptimizer();
+  const { error, statusCode } = await optimizer.run(workspaceRoot, isWorkspace);
+  if (statusCode !== 0) {
+    throw new Error(error);
+  }
 
-  const { wasm: { filePath, optimizedFilePath } } = await cargo.projectMetadata();
-
-  await mkdir(path.dirname(optimizedFilePath), { recursive: true });
-
-  const wasmOptArgs = ['-Os', filePath, '-o', optimizedFilePath];
-  const wasmOpt = spawn('wasm-opt', wasmOptArgs, { encoding: 'utf8', maxBuffer: 1024 * 1024 });
-  ora.promise(wasmOpt, 'Optimizing wasm file...');
-  await wasmOpt;
-
-  console.info(chalk`{green Optimized wasm binary saved to {cyan ${optimizedFilePath}}}\n`);
+  const relativePath = path.relative(process.cwd(), optimizedFilePath);
+  console.info(chalk`\n{green Optimized wasm binary saved to {cyan ${relativePath}}}\n`);
 }
 
 async function main({ optimize = false } = {}) {
@@ -37,6 +46,7 @@ async function main({ optimize = false } = {}) {
     }
   } catch (e) {
     console.error(chalk`{red.bold Build failed}`);
+    console.error(chalk`{red ${e.message}}`);
     throw e;
   }
 }
