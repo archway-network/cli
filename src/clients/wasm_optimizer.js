@@ -64,26 +64,28 @@ class WasmOptimizer {
     };
     debug('run', image, [], createOptions);
 
-    const stdout = new WritableStream({
-      write(chunk) {
-        process.stdout.write(chunk);
-      },
-    });
-    const stderr = new WritableStream({
-      write(chunk) {
-        process.stderr.write(chunk);
-      },
-    });
+    const stdout = createPipe(process.stdout);
+    const stderr = createPipe(process.stderr);
 
     const [{ Error: error, StatusCode: statusCode }] = await this.#docker.run(
       image,
       [],
-      [stdout.getWriter(), stderr.getWriter()],
+      [stdout, stderr],
       createOptions
     );
 
     return { error, statusCode };
   }
+}
+
+function createPipe(stream) {
+  const writable = new WritableStream({
+    write(chunk) {
+      stream.write(chunk);
+    },
+  });
+
+  return writable.getWriter();
 }
 
 module.exports = WasmOptimizer;
