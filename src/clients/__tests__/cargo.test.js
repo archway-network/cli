@@ -95,9 +95,7 @@ describe('metadata', () => {
 
     const metadata = await cargo.metadata();
 
-    expect(metadata).toMatchObject({
-      packages: [{ name: 'archway-project', version: '0.1.0' }],
-    });
+    expect(metadata).toMatchObject(Fixtures.singleProject);
 
     expect(mockCargo.calledWith).toMatchObject({
       args: [
@@ -112,7 +110,53 @@ describe('metadata', () => {
 });
 
 describe('projectMetadata', () => {
-  test('returns the parsed metadata for the project in current dir', async () => {
+  test('parses the medata for single project definition', async () => {
+    spawk.spawn('cargo', isCmd('metadata'))
+      .stdout(JSON.stringify(Fixtures.singleProject));
+
+    spawk.spawn('cargo', isCmd('locate-project'))
+      .stdout(`${cwd}/Cargo.toml`);
+
+    const metadata = await cargo.projectMetadata();
+
+    expect(metadata).toMatchObject({
+      id: 'archway-project 0.1.0',
+      name: 'archway-project',
+      version: '0.1.0',
+      wasm: {
+        fileName: 'archway_project.wasm',
+        filePath: `${cwd}/target/${Cargo.WasmTarget}/release/archway_project.wasm`,
+        optimizedFilePath: `${cwd}/artifacts/archway_project.wasm`
+      },
+      workspaceRoot: cwd,
+      isWorkspace: false
+    });
+  });
+
+  test('parses the metadata of the first project in workspace project definitions', async () => {
+    spawk.spawn('cargo', isCmd('metadata'))
+      .stdout(JSON.stringify(Fixtures.workspaceProject));
+
+    spawk.spawn('cargo', isCmd('locate-project'))
+      .stdout(`${cwd}/Cargo.toml`);
+
+    const metadata = await cargo.projectMetadata();
+
+    expect(metadata).toMatchObject({
+      id: 'foo 0.1.0',
+      name: 'foo',
+      version: '0.1.0',
+      wasm: {
+        fileName: 'foo.wasm',
+        filePath: `${cwd}/target/${Cargo.WasmTarget}/release/foo.wasm`,
+        optimizedFilePath: `${cwd}/artifacts/foo.wasm`
+      },
+      workspaceRoot: cwd,
+      isWorkspace: true
+    });
+  });
+
+  test('parses the metadata for the project in current dir', async () => {
     spawk.spawn('cargo', isCmd('metadata'))
       .stdout(JSON.stringify(Fixtures.workspaceProject));
 
@@ -128,24 +172,16 @@ describe('projectMetadata', () => {
       wasm: {
         fileName: 'bar.wasm',
         filePath: `${cwd}/target/${Cargo.WasmTarget}/release/bar.wasm`,
-        optimizedFilePath: 'artifacts/bar.wasm'
-      }
+        optimizedFilePath: `${cwd}/artifacts/bar.wasm`
+      },
+      workspaceRoot: cwd,
+      isWorkspace: true
     });
   });
 
-  test('fails if failed to resolve project metadata', async () => {
-    const cargoMetadataOutput = {
-      packages: [
-        {
-          name: 'foo',
-          version: '0.1.0',
-          manifest_path: `${cwd}/contracts/foo/Cargo.toml`,
-        },
-      ],
-      target_directory: `${cwd}/target`,
-    };
+  test('fails if could not resolve project metadata', async () => {
     spawk.spawn('cargo', isCmd('metadata'))
-      .stdout(JSON.stringify(cargoMetadataOutput));
+      .stdout(JSON.stringify(Fixtures.workspaceProject));
 
     spawk.spawn('cargo', isCmd('locate-project'))
       .stdout(`${cwd}/contracts/baz/Cargo.toml`);
