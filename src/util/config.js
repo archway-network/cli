@@ -89,13 +89,19 @@ class Config {
 
   static async open(rootPath) {
     try {
-      rootPath = rootPath || await new Cargo().locateProject();
+      rootPath = rootPath || Config.#getWorkspaceRoot();
       const configPath = path.join(rootPath, ConfigFilename);
       const configData = require(configPath);
       return new Config(configData, configPath);
     } catch (e) {
       throw new Error(`Failed to open the project config file: make sure you are running the command from an Archway project directory`);
     }
+  }
+
+  static async #getWorkspaceRoot() {
+    const cargo = new Cargo();
+    const { workspaceRoot } = await cargo.projectMetadata();
+    return workspaceRoot;
   }
 }
 

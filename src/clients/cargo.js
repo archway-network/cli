@@ -12,6 +12,9 @@ class Cargo {
     this.#cwd = cwd || process.cwd();
   }
 
+  /**
+   * @private
+   */
   async locateProject() {
     const { stdout } = await this.#run(['locate-project', '--message-format', 'plain'], { stdio: 'pipe' });
     return path.dirname(stdout || '');
@@ -43,6 +46,9 @@ class Cargo {
     );
   }
 
+  /**
+   * @private
+   */
   async metadata() {
     const { stdout } = await this.#run([
       'metadata',
@@ -53,24 +59,39 @@ class Cargo {
     return JSON.parse(stdout);
   }
 
+  /**
+   * Parses the project metadata.
+   * If ran from a workspace, it will return the first package in the workspace.
+   * If ran from a package folder, it will return the current package metadata.
+   *
+   * @returns {Promise<{ name: string, version: string, wasm: { fileName: string, filePath: string, optimizedFilePath: string }, workspaceRoot: string, isWorkspace: boolean }>}
+   */
   async projectMetadata() {
-    const { packages = [], target_directory: targetDirectory } = await this.metadata();
+    const { packages = [], target_directory: targetDirectory, workspace_root: workspaceRoot } = await this.metadata();
     const currentManifestPath = await this.locateProject();
-    const { name, version } = packages.find(({ manifest_path: manifestPath }) => path.dirname(manifestPath) === currentManifestPath) || {};
+
+    const findPackageInPath = searchPath => packages
+      .find(({ manifest_path: manifestPath }) => path.dirname(manifestPath) === searchPath);
+
+    const firstPackageInWorkspace = searchPath => workspaceRoot === searchPath ? _.head(packages) : null;
+
+    const { name, version, manifest_path: manifestPath } =
+      findPackageInPath(currentManifestPath) || firstPackageInWorkspace(currentManifestPath) || {};
+
     if (_.isEmpty(name) || _.isEmpty(version)) {
       throw new Error('Failed to resolve project metadata');
     }
 
     const id = `${name} ${version}`;
-
+    const isWorkspace = path.dirname(manifestPath) !== workspaceRoot;
     const wasmFileName = `${name.replace(/-/g, '_')}.wasm`;
     const wasm = {
       fileName: wasmFileName,
       filePath: path.join(targetDirectory, Cargo.WasmTarget, 'release', wasmFileName),
-      optimizedFilePath: path.join('artifacts', wasmFileName)
+      optimizedFilePath: path.join(workspaceRoot, 'artifacts', wasmFileName)
     };
 
-    return { id, name, version, wasm };
+    return { id, name, version, wasm, workspaceRoot, isWorkspace };
   }
 
   /**
