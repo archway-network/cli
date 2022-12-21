@@ -128,8 +128,18 @@ class Deployments {
     );
   }
 
-  findLast(type, chainId) {
-    return this.config.get('developer.deployments', [])
+  list() {
+    return this.config.get('developer.deployments', []);
+  }
+
+  listByChainId(chainId) {
+    chainId = chainId || this.config.get('network.chainId');
+    return this.list()
+      .filter(_.matches({ chainId }));
+  }
+
+  findLastByTypeAndChainId(type, chainId) {
+    return this.list()
       .find(_.matches({ type, chainId }));
   }
 }

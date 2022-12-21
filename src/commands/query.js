@@ -11,7 +11,7 @@ async function parseQueryOptions(config, { args, flags = [], options } = {}) {
   const printStdout = true;
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
-  const { address: lastDeployedContract } = config.deployments.findLast('instantiate', chainId) || {};
+  const { address: lastDeployedContract } = config.deployments.findLastByTypeAndChainId('instantiate', chainId) || {};
   prompts.override({ contract: lastDeployedContract || undefined, ...options });
 
   const { contract } = await prompts([

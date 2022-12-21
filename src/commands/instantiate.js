@@ -15,7 +15,7 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
 
-  const { codeId } = _.defaults({ codeId: optCodeId }, config.deployments.findLast('store', chainId));
+  const { codeId } = _.defaults({ codeId: optCodeId }, config.deployments.findLastByTypeAndChainId('store', chainId));
 
   prompts.override({
     args: optArgs,

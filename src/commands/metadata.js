@@ -8,8 +8,8 @@ const { isArchwayAddress } = require('../util/validators');
 async function parseTxOptions(config, { confirm, flags = [], ...options } = {}) {
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
-  const { codeId, address: lastDeployedContract } = config.deployments.findLast('instantiate', chainId) || {};
-  const { contractMetadata: lastContractMetadata = {} } = config.deployments.findLast('set-metadata', chainId) || {};
+  const { codeId, address: lastDeployedContract } = config.deployments.findLastByTypeAndChainId('instantiate', chainId) || {};
+  const { contractMetadata: lastContractMetadata = {} } = config.deployments.findLastByTypeAndChainId('set-metadata', chainId) || {};
 
   prompts.override({
     contract: lastDeployedContract || undefined,
