@@ -89,7 +89,7 @@ class Config {
 
   static async open(rootPath) {
     try {
-      rootPath = rootPath || Config.#getWorkspaceRoot();
+      rootPath = rootPath || await Config.#getWorkspaceRoot();
       const configPath = path.join(rootPath, ConfigFilename);
       const configData = require(configPath);
       return new Config(configData, configPath);
