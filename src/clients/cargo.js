@@ -12,6 +12,9 @@ class Cargo {
     this.#cwd = cwd || process.cwd();
   }
 
+  /**
+   * @private
+   */
   async locateProject() {
     const { stdout } = await this.#run(['locate-project', '--message-format', 'plain'], { stdio: 'pipe' });
     return path.dirname(stdout || '');
@@ -43,6 +46,9 @@ class Cargo {
     );
   }
 
+  /**
+   * @private
+   */
   async metadata() {
     const { stdout } = await this.#run([
       'metadata',
@@ -53,6 +59,13 @@ class Cargo {
     return JSON.parse(stdout);
   }
 
+  /**
+   * Parses the project metadata.
+   * If ran from a workspace, it will return the first package in the workspace.
+   * If ran from a package folder, it will return the current package metadata.
+   *
+   * @returns {Promise<{ name: string, version: string, wasm: { fileName: string, filePath: string, optimizedFilePath: string }, workspaceRoot: string, isWorkspace: boolean }>}
+   */
   async projectMetadata() {
     const { packages = [], target_directory: targetDirectory, workspace_root: workspaceRoot } = await this.metadata();
     const currentManifestPath = await this.locateProject();
