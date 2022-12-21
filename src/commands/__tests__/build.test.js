@@ -25,7 +25,14 @@ afterEach(() => {
 
 describe('build', () => {
   test('builds the project in debug mode', async () => {
+    mockCargo.projectMetadata.mockReturnValue({
+      wasm: {
+        filePath: `${cwd}/target/wasm32-unknown-unknown/release/archway_project.wasm`
+      },
+    });
+
     await Build();
+
     expect(mockCargo.build).toHaveBeenCalled();
   });
 });
@@ -34,7 +41,7 @@ describe('optimize', () => {
   test('runs the wasm optimizer', async () => {
     mockCargo.projectMetadata.mockReturnValue({
       wasm: {
-        optimizedFilePath: `${cwd}/target/wasm32-unknown-unknown/release/archway_project.wasm`
+        optimizedFilePath: `${cwd}/artifacts/archway_project.wasm`
       },
       workspaceRoot: cwd,
       isWorkspace: true
