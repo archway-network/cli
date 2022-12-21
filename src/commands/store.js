@@ -114,7 +114,7 @@ async function storeAndVerify(archwayd, { store = true, verify = true, deployOpt
   const config = await Config.open();
   const cargo = new Cargo();
 
-  deployOptions = deployOptions || await parseDeploymentOptions(cargo, config, options);
+  deployOptions ||= await parseDeploymentOptions(cargo, config, options);
 
   store && await storeWasm(archwayd, config, deployOptions);
   verify && await verifyUploadedWasm(archwayd, config, deployOptions);
