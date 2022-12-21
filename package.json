@@ -49,6 +49,7 @@
     "commander": "^9.0",
     "console-table-printer": "^2.11.1",
     "debug": "^4.3.3",
+    "dockerode": "^3.3.4",
     "lodash": "^4.17.21",
     "ora": "^5.4.1",
     "promisify-child-process": "^4.1.1",
