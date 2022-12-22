@@ -3,9 +3,9 @@ const chalk = require('chalk');
 const path = require('path');
 const Cargo = require('../clients/cargo');
 const { prompts, PromptCancelledError } = require('../util/prompts');
-const Config = require('../util/config');
+const { Config } = require('../util/config');
 const { isProjectName } = require('../util/validators');
-const { Environments, EnvironmentsDetails, Testnets, TestnetsDetails, loadNetworkConfig } = require('../networks');
+const { Prompts } = require('../networks');
 
 
 const TemplatesRepository = 'https://github.com/archway-network/archway-templates';
@@ -17,9 +17,6 @@ const Templates = [
 ];
 const DefaultTemplate = 'default';
 const DefaultTemplateBranch = 'main';
-
-const DefaultEnvironment = 'testnet';
-const DefaultTestnet = 'constantine';
 
 const ProjectSetupQuestions = [
   {
@@ -50,46 +47,20 @@ const ProjectSetupQuestions = [
     type: 'confirm',
     name: 'docker',
     message: 'Use Docker to run the archwayd daemon?',
-    initial: true
+    initial: false
   },
-  {
-    type: 'select',
-    name: 'environment',
-    message: 'Select the project environment',
-    initial: _.indexOf(Environments, DefaultEnvironment),
-    choices: _.map(EnvironmentsDetails, (details, name) => {
-      return {
-        title: _.capitalize(name),
-        value: name,
-        ...details
-      };
-    }),
-    warn: 'This environment is unavailable for now'
-  },
-  {
-    type: prev => (prev === 'testnet') ? 'select' : null,
-    name: 'testnet',
-    message: 'Select a testnet to use',
-    initial: _.indexOf(Testnets, DefaultTestnet),
-    choices: _.map(TestnetsDetails, (details, name) => {
-      return {
-        title: _.capitalize(name),
-        value: name,
-        ...details
-      };
-    }),
-    warn: 'This network is unavailable for now'
-  }
+  Prompts.environment,
+  Prompts.testnet,
 ];
 
 
-async function createProject(defaults = {}) {
+async function createProject({ cwd, build, ...defaults } = {}) {
   const settings = await parseSettings(defaults);
-  const config = buildConfig(settings);
+  const config = await buildConfig({ cwd, ...settings });
 
   await cargoGenerate(config, settings);
-  await cargoBuild(config, settings);
-  await writeConfigFile(config);
+  await cargoBuild(config, { build, settings });
+  config.write();
 
   return config;
 }
@@ -103,41 +74,41 @@ async function parseSettings(defaults) {
   return await prompts(ProjectSetupQuestions);
 }
 
-function buildConfig({ name, docker, environment, testnet }) {
-  const networkConfig = loadNetworkConfig(environment, testnet);
-  const projectConfig = {
-    name: name.toLowerCase().replace(/_/g, '-').replace(/ /g, '-'),
-    developer: {
-      archwayd: { docker }
-    }
-  };
-
-  return _.defaultsDeep(projectConfig, networkConfig);
+async function buildConfig({ cwd, name, ...settings }) {
+  const sanitizedName = name.toLowerCase().replace(/_/g, '-').replace(/ /g, '-');
+  const projectRootPath = path.join(cwd, sanitizedName);
+  return await Config.init(sanitizedName, settings, projectRootPath);
 }
 
-async function cargoGenerate({ name }, { template = DefaultTemplate }) {
-  await new Cargo().generate(name, TemplatesRepository, DefaultTemplateBranch, template);
+/**
+ * @param {Config} config
+ * @param {{ template: string }} options
+ * @returns {Promise<void>}
+ * @private
+ */
+async function cargoGenerate(config, { template = DefaultTemplate }) {
+  await new Cargo().generate(config.data.name, TemplatesRepository, DefaultTemplateBranch, template);
 }
 
-async function cargoBuild({ name }, { build = true } = {}) {
+/**
+ * @param {Config} config
+ * @param {{ build: boolean }} options
+ * @private
+ */
+async function cargoBuild(config, { build = false } = {}) {
   if (!build) {
     return;
   }
 
-  const rootPath = path.join(process.cwd(), name);
-  await new Cargo({ cwd: rootPath }).build();
+  await new Cargo({ cwd: config.projectRootDir }).build();
 }
 
-async function writeConfigFile(config) {
-  const { name } = config;
-  await Config.write(config, name);
-}
-
-async function main(name, options = {}) {
+async function main(name, { cwd, ...options }) {
   console.info(`Creating new Archway project...`);
   try {
-    const config = await createProject({ name, ...options });
-    console.info(chalk`\n{green Successfully created project {cyan ${config.name}} with network configuration {cyan ${config.network.chainId}}}`);
+    const workingDir = cwd || process.cwd();
+    const config = await createProject({ name, cwd: workingDir, ...options });
+    console.info(chalk`\n{green Successfully created project {cyan ${config.data.name}} with network configuration {cyan ${config.data.network.chainId}}}`);
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);

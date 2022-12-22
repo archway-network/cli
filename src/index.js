@@ -90,17 +90,11 @@ Program
   });
 
 Program
-  .command('configure')
-  .description('Print or modify environment settings')
-  .option('-m, --modify <key>', 'Modify a particular setting; command will fail if <key> does not yet exist')
+  .command('config')
+  .description('Print or create a config file')
+  .option('-i, --init', 'Initializes a config file for the current project')
   .action(async options => {
-    let modify = (options.modify) ? true : false;
-    if (!modify) {
-      await Tools.Configure();
-    } else {
-      let param = options.modify;
-      await Tools.Configure(true, param);
-    }
+    await Tools.Config(options);
   });
 
 Program
@@ -199,7 +193,7 @@ Program
   .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
   .option('--template <value>', 'Project template to use')
   .addOption(new Option('--no-template', 'Do not prompt for a project template').preset('default'))
-  .option('--no-build', 'Do not build the project after setup', true)
+  .option('--build', 'Build the project after setup')
   .argument('[name]', 'Project name', parseProjectName)
   .action(async (name, options) => {
     await Tools.New(name, options);
