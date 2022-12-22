@@ -1,9 +1,9 @@
 const _ = require('lodash');
 
 const EnvironmentsDetails = {
+  local: { description: 'Used for local development' },
   testnet: { description: 'Testing networks for validators and dApp developers' },
   mainnet: { description: 'Production network', disabled: true },
-  local: { description: 'Used for local development', disabled: true },
 };
 const Environments = _(EnvironmentsDetails)
   .omitBy(_.property('disabled'))
