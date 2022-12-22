@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const path = require('path');
 const { writeFile } = require('fs/promises');
+const { loadNetworkConfig } = require('../networks');
 const Cargo = require('../clients/cargo');
 
 const ConfigFilename = 'config.json';
@@ -69,6 +70,10 @@ class Config {
     return this.#path;
   }
 
+  get projectRootDir() {
+    return path.dirname(this.path);
+  }
+
   get deployments() {
     return this.#deployments;
   }
@@ -87,15 +92,38 @@ class Config {
     await this.write();
   }
 
-  static async open(rootPath) {
+  static async init({ name, docker = false, environment, testnet, ...extraData } = {}, projectRootDir) {
     try {
-      rootPath ||= await Config.#getWorkspaceRoot();
-      const configPath = path.join(rootPath, ConfigFilename);
+      const projectConfig = {
+        name: name.toLowerCase().replace(/_/g, '-').replace(/ /g, '-'),
+        developer: {
+          archwayd: { docker }
+        }
+      };
+      const networkConfig = loadNetworkConfig(environment, testnet);
+      const configData = _.defaultsDeep(extraData, projectConfig, networkConfig);
+      const configPath = await Config.#findConfigPath(projectRootDir);
+
+      return new Config(configData, configPath);
+    } catch (e) {
+      throw new Error(`Failed to initialize the project config file: make sure you are running the command from a CosmWasm project directory`);
+    }
+  }
+
+  static async open(projectRootDir) {
+    try {
+      const configPath = await Config.#findConfigPath(projectRootDir);
       const configData = require(configPath);
+
       return new Config(configData, configPath);
     } catch (e) {
       throw new Error(`Failed to open the project config file: make sure you are running the command from an Archway project directory`);
     }
+  }
+
+  static async #findConfigPath(projectRootDir) {
+    projectRootDir ||= await Config.#getWorkspaceRoot();
+    return path.join(projectRootDir, ConfigFilename);
   }
 
   static async #getWorkspaceRoot() {
