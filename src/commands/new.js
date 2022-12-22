@@ -5,7 +5,7 @@ const Cargo = require('../clients/cargo');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { Config } = require('../util/config');
 const { isProjectName } = require('../util/validators');
-const { Environments, EnvironmentsDetails, Testnets, TestnetsDetails, loadNetworkConfig } = require('../networks');
+const { Prompts } = require('../networks');
 
 
 const TemplatesRepository = 'https://github.com/archway-network/archway-templates';
@@ -17,9 +17,6 @@ const Templates = [
 ];
 const DefaultTemplate = 'default';
 const DefaultTemplateBranch = 'main';
-
-const DefaultEnvironment = 'testnet';
-const DefaultTestnet = 'constantine';
 
 const ProjectSetupQuestions = [
   {
@@ -50,36 +47,10 @@ const ProjectSetupQuestions = [
     type: 'confirm',
     name: 'docker',
     message: 'Use Docker to run the archwayd daemon?',
-    initial: true
+    initial: false
   },
-  {
-    type: 'select',
-    name: 'environment',
-    message: 'Select the project environment',
-    initial: _.indexOf(Environments, DefaultEnvironment),
-    choices: _.map(EnvironmentsDetails, (details, name) => {
-      return {
-        title: _.capitalize(name),
-        value: name,
-        ...details
-      };
-    }),
-    warn: 'This environment is unavailable for now'
-  },
-  {
-    type: prev => (prev === 'testnet') ? 'select' : null,
-    name: 'testnet',
-    message: 'Select a testnet to use',
-    initial: _.indexOf(Testnets, DefaultTestnet),
-    choices: _.map(TestnetsDetails, (details, name) => {
-      return {
-        title: _.capitalize(name),
-        value: name,
-        ...details
-      };
-    }),
-    warn: 'This network is unavailable for now'
-  }
+  Prompts.environment,
+  Prompts.testnet,
 ];
 
 

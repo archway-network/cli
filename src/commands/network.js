@@ -2,62 +2,42 @@
 
 const _ = require('lodash');
 const chalk = require('chalk');
-const Config = require('../util/config');
+const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
-const { Environments, EnvironmentsDetails, Testnets, TestnetsDetails, loadNetworkConfig } = require('../networks');
+const { Environments, Testnets, Prompts, loadNetworkConfig } = require('../networks');
 
 
 const MigrateQuestions = (currentEnvironment, currentTestnet) => [
   {
-    type: 'confirm',
-    name: 'migrate',
-    message: 'Do you want to migrate to another network?',
-    initial: false
+    ...Prompts.environment,
+    initial: currentEnvironment ? _.indexOf(Environments, currentEnvironment) : Prompts.environment.initial,
   },
   {
-    type: (_prev, answers) => answers.migrate ? 'select' : null,
-    name: 'environment',
-    message: 'Select the project environment',
-    initial: _.indexOf(Environments, currentEnvironment),
-    choices: _.map(EnvironmentsDetails, (details, name) => { return {
-      title: _.capitalize(name),
-      value: name,
-      ...details
-    }; }),
-    warn: 'This environment is unavailable for now'
-  },
-  {
-    type: (prev, answers) => (answers.migrate && prev === 'testnet') ? 'select' : null,
-    name: 'testnet',
-    message: 'Select a testnet to use',
-    initial: _.indexOf(Testnets, currentTestnet),
-    choices: _.map(TestnetsDetails, (details, name) => { return {
-      title: _.capitalize(name),
-      value: name,
-      ...details
-    }; }),
-    warn: 'This network is unavailable for now'
+    ...Prompts.testnet,
+    initial: currentTestnet ? _.indexOf(Testnets, currentTestnet) : Prompts.testnet.initial,
   }
 ];
 
-async function migrateNetworks(currentChainId, currentEnvironment, currentTestnet) {
-  const { migrate, environment, testnet } = await prompts(MigrateQuestions(currentEnvironment, currentTestnet));
-
-  if (!migrate) {
-    return;
-  }
-
-  console.info(chalk`Migrating to {cyan ${testnet}}...`);
-
+async function migrateNetworks(config, { chainId: currentChainId, currentEnvironment, currentTestnet }) {
+  const questions = MigrateQuestions(currentEnvironment, currentTestnet);
+  const { environment, testnet } = await prompts(questions);
   const { network: newNetworkConfig } = loadNetworkConfig(environment, testnet);
-  await Config.update({ network: newNetworkConfig });
+  await config.update({ network: newNetworkConfig });
 
   console.info(chalk`{green Migrated from {cyan ${currentChainId}} to {cyan ${newNetworkConfig.chainId}}}`);
 }
 
-async function printNetworkConfig() {
-  console.info('Printing network settings...');
+function printNetworkConfig({ chainId, currentEnvironment, currentTestnet, rpc }) {
+  console.info('Current network settings...');
+  console.info();
+  console.info(chalk`{bold Chain ID:}    ${chainId}`);
+  console.info(chalk`{bold Environment:} ${_.capitalize(currentEnvironment)}`);
+  console.info(chalk`{bold Testnet:}     ${_.capitalize(currentTestnet)}`);
+  console.info(chalk`{bold RPC:}         ${rpc.url}:${rpc.port}`);
+  console.info();
+}
 
+function parseNetworkConfig(config) {
   const {
     network: {
       name: networkName,
@@ -67,29 +47,37 @@ async function printNetworkConfig() {
         rpc = {},
       }
     } = {}
-  } = await Config.read();
+  } = config.data;
+  const currentTestnet = currentEnvironment === 'testnet' ? (networkName || chainId.replace(/-1$/, '')) : undefined;
 
-  const currentTestnet = (networkName || chainId.replace(/-1$/, ''));
-
-  console.info();
-  console.info(chalk`{bold Using:}  ${_.capitalize(currentTestnet)}`);
-  console.info(chalk`{bold RPC:}    ${rpc.url}:${rpc.port}`);
-  console.info();
-
-  await migrateNetworks(chainId, currentEnvironment, currentTestnet);
+  return {
+    chainId,
+    currentEnvironment,
+    currentTestnet,
+    rpc
+  };
 }
 
-async function main(options = {}) {
+async function main({ migrate, ...options }) {
   try {
     prompts.override(options);
-    await printNetworkConfig();
+
+    const config = await Config.open();
+    const networkConfig = parseNetworkConfig(config);
+
+    if (migrate) {
+      await migrateNetworks(config, networkConfig);
+    } else {
+      printNetworkConfig(networkConfig);
+    }
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`{red.bold Network configuration failed}`);
-      throw e;
+      console.error(chalk`{red ${e.message}}`);
     }
+    throw e;
   }
 }
 
