@@ -199,7 +199,7 @@ Program
   .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
   .option('--template <value>', 'Project template to use')
   .addOption(new Option('--no-template', 'Do not prompt for a project template').preset('default'))
-  .option('--no-build', 'Do not build the project after setup', true)
+  .option('--build', 'Build the project after setup')
   .argument('[name]', 'Project name', parseProjectName)
   .action(async (name, options) => {
     await Tools.New(name, options);

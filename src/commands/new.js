@@ -83,12 +83,12 @@ const ProjectSetupQuestions = [
 ];
 
 
-async function createProject({ cwd, ...defaults } = {}) {
+async function createProject({ cwd, build, ...defaults } = {}) {
   const settings = await parseSettings(defaults);
   const config = await buildConfig({ cwd, ...settings });
 
   await cargoGenerate(config, settings);
-  await cargoBuild(config, settings);
+  await cargoBuild(config, { build, settings });
   config.write();
 
   return config;
@@ -124,7 +124,7 @@ async function cargoGenerate(config, { template = DefaultTemplate }) {
  * @param {{ build: boolean }} options
  * @private
  */
-async function cargoBuild(config, { build = true } = {}) {
+async function cargoBuild(config, { build = false } = {}) {
   if (!build) {
     return;
   }
