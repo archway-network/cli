@@ -2,7 +2,7 @@
 
 const Accounts = require('./accounts');
 const Build = require('./build');
-const Configure = require('./configure');
+const Config = require('./config');
 const Deploy = require('./deploy');
 const DeployHistory = require('./deployments');
 const Instantiate = require('./instantiate');
@@ -17,7 +17,7 @@ const Tx = require('./tx');
 module.exports = {
   Accounts,
   Build,
-  Configure,
+  Config,
   Deploy,
   DeployHistory,
   Instantiate,

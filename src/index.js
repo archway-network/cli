@@ -90,17 +90,11 @@ Program
   });
 
 Program
-  .command('configure')
-  .description('Print or modify environment settings')
-  .option('-m, --modify <key>', 'Modify a particular setting; command will fail if <key> does not yet exist')
+  .command('config')
+  .description('Print or create a config file')
+  .option('-i, --init', 'Initializes a config file for the current project')
   .action(async options => {
-    let modify = (options.modify) ? true : false;
-    if (!modify) {
-      await Tools.Configure();
-    } else {
-      let param = options.modify;
-      await Tools.Configure(true, param);
-    }
+    await Tools.Config(options);
   });
 
 Program
