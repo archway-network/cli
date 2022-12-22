@@ -92,10 +92,10 @@ class Config {
     await this.write();
   }
 
-  static async init({ name, docker = false, environment, testnet, ...extraData } = {}, projectRootDir) {
+  static async init(name, { docker = false, environment, testnet, ...extraData } = {}, projectRootDir) {
     try {
       const projectConfig = {
-        name: name.toLowerCase().replace(/_/g, '-').replace(/ /g, '-'),
+        name: name,
         developer: {
           archwayd: { docker }
         }

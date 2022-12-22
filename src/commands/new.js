@@ -77,7 +77,7 @@ async function parseSettings(defaults) {
 async function buildConfig({ cwd, name, ...settings }) {
   const sanitizedName = name.toLowerCase().replace(/_/g, '-').replace(/ /g, '-');
   const projectRootPath = path.join(cwd, sanitizedName);
-  return await Config.init({ name: sanitizedName, ...settings }, projectRootPath);
+  return await Config.init(sanitizedName, settings, projectRootPath);
 }
 
 /**
