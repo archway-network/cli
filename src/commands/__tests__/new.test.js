@@ -9,6 +9,8 @@ const New = require('../new');
 jest.mock('prompts');
 jest.mock('fs/promises');
 
+const cwd = '/tmp';
+
 beforeEach(() => {
   jest.spyOn(prompts, 'override')
     .mockImplementationOnce(prompts.mockResolvedValue);
@@ -41,7 +43,7 @@ describe('project settings', () => {
           }
         });
 
-        New();
+        New(null, { cwd });
       });
     }
 
@@ -105,7 +107,7 @@ describe('project settings', () => {
         testnet: 'titus',
       };
 
-      await New(name, options);
+      await New(name, { cwd, ...options });
 
       expect(prompts.override).toHaveBeenCalledWith({
         name,
@@ -127,6 +129,7 @@ describe('project setup', () => {
       docker: false,
       environment: 'local',
       build: false,
+      cwd,
     });
 
     expect(cargo.calledWith).toMatchObject({
@@ -154,6 +157,7 @@ describe('project setup', () => {
       docker: false,
       environment: 'local',
       build: false,
+      cwd,
     });
 
     expect(cargo.calledWith).toMatchObject({
@@ -181,6 +185,7 @@ describe('project setup', () => {
       docker: false,
       environment: 'local',
       build: false,
+      cwd,
     });
 
     expect(cargo.calledWith).toMatchObject({
@@ -208,6 +213,7 @@ describe('project setup', () => {
       docker: false,
       environment: 'local',
       build: false,
+      cwd,
     });
 
     expect(cargo.calledWith).toMatchObject({
@@ -232,6 +238,7 @@ describe('project setup', () => {
       docker: false,
       environment: 'local',
       build: false,
+      cwd,
     });
 
     expect(cargo.called).toBeTruthy();
@@ -248,13 +255,14 @@ describe('project setup', () => {
       docker: false,
       environment: 'local',
       build: true,
+      cwd,
     });
 
     expect(cargoBuild.calledWith).toMatchObject({
       command: 'cargo',
       args: ['build'],
       options: expect.objectContaining({
-        cwd: path.join(process.cwd(), name),
+        cwd: path.join(cwd, name),
       })
     });
   });
@@ -274,10 +282,11 @@ describe('config file', () => {
       environment: 'testnet',
       testnet: 'constantine',
       build: false,
+      cwd,
     });
 
     expect(writeFile).toHaveBeenCalledWith(
-      path.join(name, 'config.json'),
+      path.join(cwd, name, 'config.json'),
       expect.any(String)
     );
   });
@@ -297,6 +306,7 @@ describe('config file', () => {
       environment: 'testnet',
       testnet: 'constantine',
       build: false,
+      cwd,
     });
 
     expect(config).toMatchObject({
@@ -327,6 +337,7 @@ describe('config file', () => {
       environment,
       testnet,
       build: false,
+      cwd,
     });
 
     expect(config).toMatchObject({
