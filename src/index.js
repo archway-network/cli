@@ -84,7 +84,7 @@ Program
 Program
   .command('build')
   .description('Build the project')
-  .option('--optimize', 'Builds an optimized wasm file ready for deployment')
+  .option('-o, --optimize', 'Builds an optimized wasm file ready for deployment')
   .action(async options => {
     await Tools.Build(options);
   });

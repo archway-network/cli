@@ -110,7 +110,8 @@ async function main(archwayd, options = {}) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
-      console.error(chalk`\n{red.bold Failed to deploy project}`);
+      console.error(chalk`\n{red.bold Failed to set contract metadata}`);
+      console.error(chalk`{red ${e.message}}`);
     }
     throw e;
   }

@@ -1,11 +1,5 @@
-const { mkdir } = require('fs/promises');
-const spawk = require('spawk');
 const mockConsole = require('jest-mock-console');
-const Cargo = require('../../clients/cargo');
 const Build = require('../build');
-
-jest.mock('ora');
-jest.mock('fs/promises');
 
 const mockCargo = {
   build: jest.fn(),
@@ -14,62 +8,67 @@ const mockCargo = {
 };
 jest.mock('../../clients/cargo', () => jest.fn(() => mockCargo));
 
+const mockWasmOptimizer = {
+  run: jest.fn(),
+};
+jest.mock('../../clients/wasm_optimizer', () => jest.fn(() => mockWasmOptimizer));
+
+const cwd = '/tmp/test/archway-project';
+
 beforeEach(() => {
   mockConsole(['info', 'warn', 'error']);
-
-  spawk.clean();
-  spawk.preventUnmatched();
 });
 
 afterEach(() => {
-  spawk.done();
   jest.clearAllMocks();
 });
 
 describe('build', () => {
   test('builds the project in debug mode', async () => {
+    mockCargo.projectMetadata.mockReturnValue({
+      wasm: {
+        filePath: `${cwd}/target/wasm32-unknown-unknown/release/archway_project.wasm`
+      },
+    });
+
     await Build();
+
     expect(mockCargo.build).toHaveBeenCalled();
   });
 });
 
 describe('optimize', () => {
-  const metadata = {
-    wasm: {
-      fileName: 'project_name.wasm',
-      filePath: `target/${Cargo.WasmTarget}/release/project_name.wasm`,
-      optimizedFilePath: 'artifacts/project_name.wasm'
-    }
-  };
-
-  beforeEach(() => {
-    mockCargo.projectMetadata.mockReturnValue(metadata);
-  });
-
-  test('builds the wasm in release mode', async () => {
-    spawk.spawn('wasm-opt');
-
-    await Build({ optimize: true });
-
-    expect(mockCargo.wasm).toHaveBeenCalled();
-  });
-
-  test('creates the artifacts directory', async () => {
-    spawk.spawn('wasm-opt');
-
-    await Build({ optimize: true });
-
-    expect(mkdir).toHaveBeenCalledWith('artifacts', { recursive: true });
-  });
-
-  test('generates an optimized wasm in artifacts', async () => {
-    const wasmOpt = spawk.spawn('wasm-opt');
-
-    await Build({ optimize: true });
-
-    expect(wasmOpt.calledWith).toMatchObject({
-      args: ['-Os', metadata.wasm.filePath, '-o', `artifacts/${metadata.wasm.fileName}`],
-      options: { encoding: 'utf8', maxBuffer: 1024 * 1024 }
+  test('runs the wasm optimizer', async () => {
+    mockCargo.projectMetadata.mockReturnValue({
+      wasm: {
+        optimizedFilePath: `${cwd}/artifacts/archway_project.wasm`
+      },
+      workspaceRoot: cwd,
+      isWorkspace: true
     });
+
+    mockWasmOptimizer.run.mockReturnValue({ error: null, statusCode: 0 });
+
+    await Build({ optimize: true });
+
+    expect(mockWasmOptimizer.run).toHaveBeenCalledWith(cwd, true);
+  });
+
+  test('fails if the wasm optimizer exited with an error code', async () => {
+    mockCargo.projectMetadata.mockReturnValue({
+      wasm: {
+        optimizedFilePath: `${cwd}/target/wasm32-unknown-unknown/release/archway_project.wasm`
+      },
+      workspaceRoot: cwd,
+      isWorkspace: false
+    });
+
+    mockWasmOptimizer.run.mockReturnValue({ error: 'Docker run failed', statusCode: 1 });
+
+    await expect(async () => {
+      await Build({ optimize: true });
+    }).rejects.toThrow('Docker run failed');
+
+    expect(mockWasmOptimizer.run).toHaveBeenCalledWith(cwd, false);
   });
 });
