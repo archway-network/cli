@@ -244,13 +244,6 @@ Program
   });
 
 Program
-  .command('test')
-  .description('Run unit tests')
-  .action(async () => {
-    await Tools.Test();
-  });
-
-Program
   .command('tx')
   .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
   .option('-f, --from <value>', 'Name or address of account to sign transactions')

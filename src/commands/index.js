@@ -11,7 +11,6 @@ const Network = require('./network');
 const New = require('./new');
 const Query = require('./query');
 const Store = require('./store');
-const Test = require('./test');
 const Tx = require('./tx');
 
 module.exports = {
@@ -26,6 +25,5 @@ module.exports = {
   New,
   Query,
   Store,
-  Test,
   Tx
 };
