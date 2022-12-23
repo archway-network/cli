@@ -13,4 +13,4 @@ async function main(archwayd, { add: name } = {}) {
   }
 }
 
-module.exports = Object.assign(main);
+module.exports = main;
