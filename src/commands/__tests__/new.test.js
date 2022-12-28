@@ -1,19 +1,21 @@
 const _ = require('lodash');
-const path = require('path');
+const path = require('node:path');
+const fs = require('node:fs/promises');
 const prompts = require('prompts');
-const { writeFile } = require('fs/promises');
 const spawk = require('spawk');
 const mockConsole = require('jest-mock-console');
 const New = require('../new');
 
 jest.mock('prompts');
-jest.mock('fs/promises');
+jest.mock('node:fs/promises');
 
 const cwd = '/tmp';
 
 beforeEach(() => {
   jest.spyOn(prompts, 'override')
     .mockImplementationOnce(prompts.mockResolvedValue);
+
+  fs.access.mockResolvedValue(null);
 
   mockConsole(['info', 'warn', 'error']);
 
@@ -285,7 +287,7 @@ describe('config file', () => {
       cwd,
     });
 
-    expect(writeFile).toHaveBeenCalledWith(
+    expect(fs.writeFile).toHaveBeenCalledWith(
       path.join(cwd, name, 'config.json'),
       expect.any(String)
     );
@@ -296,7 +298,7 @@ describe('config file', () => {
     const docker = true;
 
     let config = {};
-    writeFile.mockImplementationOnce((_path, configFile) => {
+    fs.writeFile.mockImplementationOnce((_path, configFile) => {
       config = JSON.parse(configFile);
     });
 
@@ -327,7 +329,7 @@ describe('config file', () => {
     const testnet = 'constantine';
 
     let config = {};
-    writeFile.mockImplementationOnce((_path, configFile) => {
+    fs.writeFile.mockImplementationOnce((_path, configFile) => {
       config = JSON.parse(configFile);
     });
 

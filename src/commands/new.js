@@ -74,6 +74,11 @@ async function parseSettings(defaults) {
   return await prompts(ProjectSetupQuestions);
 }
 
+/**
+ * @param {{ cwd: string, name: string, ...settings: Map }} settings
+ * @returns {Promise<Config>}
+ * @private
+ */
 async function buildConfig({ cwd, name, ...settings }) {
   const sanitizedName = name.toLowerCase().replace(/_/g, '-').replace(/ /g, '-');
   const projectRootPath = path.join(cwd, sanitizedName);
@@ -93,6 +98,7 @@ async function cargoGenerate(config, { template = DefaultTemplate }) {
 /**
  * @param {Config} config
  * @param {{ build: boolean }} options
+ * @returns {Promise<void>}
  * @private
  */
 async function cargoBuild(config, { build = false } = {}) {

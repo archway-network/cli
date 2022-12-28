@@ -1,67 +1,56 @@
 const _ = require('lodash');
-const path = require('path');
-const { writeFile } = require('fs/promises');
+const path = require('node:path');
+const fs = require('node:fs/promises');
 const { loadNetworkConfig } = require('../networks');
 const Cargo = require('../clients/cargo');
 
 const ConfigFilename = 'config.json';
 
-/**
- * @deprecated since v1.2.0
- */
-async function getConfigPath(pathPrefix) {
-  const rootPath = pathPrefix || await new Cargo().locateProject();
-  return path.join(rootPath, ConfigFilename);
-}
+class ConfigError extends Error { }
+class ConfigFileNotFoundError extends ConfigError { }
+class ConfigOpenError extends ConfigError { }
+class ConfigInitError extends ConfigError { }
+class InvalidConfigError extends ConfigError { }
+class InvalidDeploymentConfigError extends InvalidConfigError { }
 
 /**
- * @deprecated since v1.2.0
+ * Manages the Archway project configuration file.
+ *
+ * @typedef {{
+ * name: string,
+ * developer: { docker: boolean },
+ * network: {
+ *  name: string,
+ *  chainId: string,
+ *  type: string,
+ *  fees: { feeDenom: string },
+ *  gas: { prices: string, mode: string, adjustment: string } }
+ *  urls: {
+ *    rpc: { url: string, port: number }
+ *  },
+ * }} ConfigData
  */
-async function writeConfig(config, pathPrefix) {
-  const configPath = await getConfigPath(pathPrefix);
-  const json = JSON.stringify(config, null, 2);
-  await writeFile(configPath, json);
-}
-
-/**
- * @deprecated since v1.2.0
- */
-async function readConfig(pathPrefix) {
-  try {
-    const configPath = await getConfigPath(pathPrefix);
-    return require(configPath);
-  } catch (e) {
-    throw new Error(`Failed to open the project config file: make sure you are running the command from an Archway project directory`);
-  }
-}
-
-function mergeCustomizer({ arrayMode = 'overwrite' } = {}) {
-  return _.cond([
-    [_.overEvery(_.isArray, _.constant(arrayMode === 'overwrite')), _.identity],
-    [_.overEvery(_.isArray, _.constant(arrayMode === 'append')), _.concat],
-    [_.overEvery(_.isArray, _.constant(arrayMode === 'prepend')), (objValue = [], srcValue = []) => [...srcValue, ...objValue]],
-  ]);
-}
-
-/**
- * @deprecated since v1.2.0
- */
-async function updateConfig(newSettings = {}, mergeOptions = {}, pathPrefix) {
-  const config = await readConfig(pathPrefix);
-  await writeConfig(_.mergeWith(config, newSettings, mergeCustomizer(mergeOptions)), pathPrefix);
-}
-
 class Config {
   #data;
   #path;
   #deployments;
 
+  /**
+   *
+   * @param {ConfigData} data
+   * @param {fs.PathLike} path
+   */
   constructor(data = {}, path) {
+    Config.validate(data);
+
     this.#data = data;
     this.#path = path;
     this.#deployments = new Deployments(this);
   }
 
+  /**
+   * @type {ConfigData}
+   */
   get data() {
     return this.#data;
   }
@@ -74,6 +63,9 @@ class Config {
     return path.dirname(this.path);
   }
 
+  /**
+   * @type {Deployments}
+   */
   get deployments() {
     return this.#deployments;
   }
@@ -82,9 +74,37 @@ class Config {
     return _.get(this.data, path, defaultValue);
   }
 
+  static #isValidConfig = _.conforms({
+    name: _.isString,
+    developer: _.conforms({
+      archwayd: _.conforms({ docker: _.isBoolean })
+    }),
+    network: _.conforms({
+      name: _.isString,
+      chainId: _.isString,
+      type: _.isString,
+      fees: _.conforms({ feeDenom: _.isString }),
+      gas: _.conforms({
+        prices: _.isString,
+        mode: _.isString,
+        adjustment: _.isString
+      }),
+      urls: _.conforms({
+        rpc: _.conforms({ url: _.isString, port: _.isNumber })
+      }),
+    }),
+  });
+
+  static validate(data) {
+    if (!Config.#isValidConfig(data)) {
+      throw new InvalidConfigError(`The config data seems invalid and could not be saved to file: ${this.path}`);
+    }
+  }
+
   async write() {
+    Config.validate(this.data);
     const json = JSON.stringify(this.data, null, 2);
-    await writeFile(this.path, json);
+    await fs.writeFile(this.path, json);
   }
 
   async update(newSettings = {}, mergeOptions = {}) {
@@ -92,54 +112,73 @@ class Config {
     await this.write();
   }
 
+  /**
+   * @param {fs.PathLike} projectRootDir
+   * @returns {Promise<Config>}
+   * @throws {ConfigInitError}
+   */
   static async init(name, { docker = false, environment, testnet, ...extraData } = {}, projectRootDir) {
     try {
       const projectConfig = {
         name: name,
         developer: {
-          archwayd: { docker }
+          archwayd: { docker },
+          deployments: []
         }
       };
       const networkConfig = loadNetworkConfig(environment, testnet);
       const configData = _.defaultsDeep(extraData, projectConfig, networkConfig);
-      const configPath = await Config.#findConfigPath(projectRootDir);
+      const configPath = await Config.#findConfigFilePath(projectRootDir);
 
       return new Config(configData, configPath);
     } catch (e) {
-      throw new Error(`Failed to initialize the project config file: make sure you are running the command from a CosmWasm project directory`);
+      throw new ConfigInitError(`Failed to initialize the project config file: make sure you are running the command from a CosmWasm project directory`, e);
     }
   }
 
+  /**
+   * @param {fs.PathLike} projectRootDir
+   * @returns {Promise<Config>}
+   * @throws {ConfigOpenError}
+   */
   static async open(projectRootDir) {
     try {
-      const configPath = await Config.#findConfigPath(projectRootDir);
+      const configPath = await Config.#findConfigFilePath(projectRootDir);
       const configData = require(configPath);
 
       return new Config(configData, configPath);
     } catch (e) {
-      throw new Error(`Failed to open the project config file: make sure you are running the command from an Archway project directory`);
+      throw new ConfigOpenError(`Failed to open the project config file: make sure you are running the command from an Archway project directory`, e);
     }
   }
 
-  static async #findConfigPath(projectRootDir) {
-    projectRootDir ||= await Config.#getWorkspaceRoot();
-    return path.join(projectRootDir, ConfigFilename);
+  static async read(projectRootDir) {
+    const config = await Config.open(projectRootDir);
+    return config.data;
   }
 
-  static async #getWorkspaceRoot() {
-    const cargo = new Cargo();
-    const { workspaceRoot } = await cargo.projectMetadata();
-    return workspaceRoot;
+  static async #findConfigFilePath(projectRootDir) {
+    projectRootDir ||= await getWorkspaceRoot();
+    const configFilePath = path.join(projectRootDir, ConfigFilename);
+    await fs.access(configFilePath)
+      .catch(new ConfigFileNotFoundError);
+    return configFilePath;
   }
 }
 
 class Deployments {
   #config;
 
+  /**
+   * @param {Config} config
+   */
   constructor(config) {
     this.#config = config;
   }
 
+  /**
+   * @type {Config}
+   */
   get config() {
     return this.#config;
   }
@@ -153,7 +192,7 @@ class Deployments {
 
   async add(deployment = {}) {
     if (!Deployments.#isValidDeployment(deployment)) {
-      throw new Error(`Could not save deployment data to config file`);
+      throw new InvalidDeploymentConfigError(`Could not save deployment data to config file`);
     }
 
     await this.config.update(
@@ -178,11 +217,26 @@ class Deployments {
   }
 }
 
+function mergeCustomizer({ arrayMode = 'overwrite' } = {}) {
+  return _.cond([
+    [_.overEvery(_.isArray, _.constant(arrayMode === 'overwrite')), _.identity],
+    [_.overEvery(_.isArray, _.constant(arrayMode === 'append')), _.concat],
+    [_.overEvery(_.isArray, _.constant(arrayMode === 'prepend')), (objValue = [], srcValue = []) => [...srcValue, ...objValue]],
+  ]);
+}
+
+async function getWorkspaceRoot() {
+  const cargo = new Cargo();
+  const { workspaceRoot } = await cargo.projectMetadata();
+  return workspaceRoot;
+}
+
 module.exports = {
-  ConfigFilename,
   Config,
-  read: readConfig,
-  write: writeConfig,
-  update: updateConfig,
-  path: getConfigPath,
+  ConfigError,
+  ConfigFileNotFoundError,
+  ConfigOpenError,
+  ConfigInitError,
+  InvalidConfigError,
+  InvalidDeploymentConfigError,
 };
