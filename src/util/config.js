@@ -6,7 +6,17 @@ const Cargo = require('../clients/cargo');
 
 const ConfigFilename = 'config.json';
 
-class ConfigError extends Error { }
+class ConfigError extends Error {
+  constructor(message, cause) {
+    super(message);
+    this.cause = cause;
+  }
+
+  get message() {
+    return `${super.message}: ${this.cause?.message}`;
+  }
+}
+
 class ConfigFileNotFoundError extends ConfigError { }
 class ConfigOpenError extends ConfigError { }
 class ConfigInitError extends ConfigError { }
@@ -144,6 +154,7 @@ class Config {
   static async open(projectRootDir) {
     try {
       const configPath = await Config.#findConfigFilePath(projectRootDir);
+      await fs.access(configPath).catch(e => new ConfigFileNotFoundError(configPath, e));
       const configData = require(configPath);
 
       return new Config(configData, configPath);
@@ -159,10 +170,7 @@ class Config {
 
   static async #findConfigFilePath(projectRootDir) {
     projectRootDir ||= await getWorkspaceRoot();
-    const configFilePath = path.join(projectRootDir, ConfigFilename);
-    await fs.access(configFilePath)
-      .catch(new ConfigFileNotFoundError);
-    return configFilePath;
+    return path.join(projectRootDir, ConfigFilename);
   }
 }
 
