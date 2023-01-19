@@ -1,18 +1,19 @@
 const _ = require('lodash');
 const chalk = require('chalk');
+const Cargo = require('../clients/cargo');
 const retry = require('../util/retry');
 const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress, isJson } = require('../util/validators');
 
-async function parseTxOptions(config, { confirm, args, flags = [], ...options } = {}) {
+async function parseTxOptions(config, { name: projectName }, { confirm, args, flags = [], ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
 
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
-  const { address: lastDeployedContract } = config.deployments.findLastByTypeAndChainId('instantiate', chainId) || {};
+  const { address: lastDeployedContract } = config.deployments.findLastByTypeAndProjectAndChainId('instantiate', projectName, chainId) || {};
 
   prompts.override({ contract: lastDeployedContract || undefined, ...options });
   const { from, contract } = await prompts([
@@ -47,9 +48,10 @@ async function parseTxOptions(config, { confirm, args, flags = [], ...options } 
   };
 }
 
-async function executeTx(archwayd, options) {
+async function executeTx(archwayd, cargo, options) {
   const config = await Config.open();
-  const { node, contract, args, ...txOptions } = await parseTxOptions(config, options);
+  const project = await cargo.projectMetadata();
+  const { node, contract, args, ...txOptions } = await parseTxOptions(config, project, options);
 
   console.info(chalk`Executing tx on contract {cyan ${contract}}...`);
   const { txhash } = await archwayd.tx.wasm('execute', [contract, args], { node, ...txOptions });
@@ -70,7 +72,8 @@ async function executeTx(archwayd, options) {
 
 async function main(archwayd, options) {
   try {
-    await executeTx(archwayd, options);
+    const cargo = new Cargo();
+    await executeTx(archwayd, cargo, options);
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);

@@ -47,8 +47,16 @@ async function verifyChecksum(filename) {
   return hashSum.digest('hex');
 }
 
-async function verifyUploadedWasm(archwayd, config, { project: { wasm: { optimizedFilePath } = {} } = {}, chainId, node } = {}) {
-  const { codeId } = config.deployments.findLastByTypeAndChainId('store', chainId);
+async function verifyUploadedWasm(
+  archwayd,
+  config,
+  {
+    project: { name: projectName, wasm: { optimizedFilePath } = {} } = {},
+    chainId,
+    node
+  } = {}
+) {
+  const { codeId } = config.deployments.findLastByTypeAndProjectAndChainId('store', projectName, chainId);
   const downloadWasmName = `${path.basename(optimizedFilePath, '.wasm')}_download.wasm`;
   const localDownloadPath = path.join(path.dirname(optimizedFilePath), downloadWasmName);
   await retry(
@@ -72,7 +80,7 @@ async function verifyUploadedWasm(archwayd, config, { project: { wasm: { optimiz
   console.info(chalk`{green Integrity check Ok!}\n`);
 }
 
-async function storeWasm(archwayd, config, { project: { wasm: { optimizedFilePath } = {} } = {}, from, chainId, node, ...options } = {}) {
+async function storeWasm(archwayd, config, { project: { name: projectName, wasm: { optimizedFilePath } = {} } = {}, from, chainId, node, ...options } = {}) {
   console.info(chalk`Uploading optimized wasm to {cyan ${chainId}} using wallet {cyan ${from}}...`);
 
   // If we use docker or for any reason need to copy the file to any other directory before upload
@@ -98,6 +106,7 @@ async function storeWasm(archwayd, config, { project: { wasm: { optimizedFilePat
   }
 
   await config.deployments.add({
+    project: projectName,
     type: 'store',
     chainId,
     codeId,

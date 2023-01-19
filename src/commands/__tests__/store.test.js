@@ -99,6 +99,7 @@ describe('store', () => {
     );
 
     expect(mockConfig.deployments.add).toHaveBeenCalledWith({
+      project: 'archway-increment',
       type: 'store',
       chainId: 'titus-1',
       codeId: 253,

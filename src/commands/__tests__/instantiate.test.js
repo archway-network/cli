@@ -114,6 +114,7 @@ describe('instantiate', () => {
     );
 
     expect(mockConfig.deployments.add).toHaveBeenCalledWith({
+      project: 'archway-increment',
       type: 'instantiate',
       chainId: 'titus-1',
       codeId: 253,
