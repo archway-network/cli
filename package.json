@@ -56,9 +56,12 @@
     "prompts": "^2.4"
   },
   "devDependencies": {
+    "@commitlint/cli": "^17.4.2",
+    "@commitlint/config-conventional": "^17.4.2",
     "eslint": "^8.18",
     "eslint-plugin-jest": "^26.5",
     "eslint-plugin-node": "^11.1.0",
+    "husky": "^8.0.3",
     "jest": "^27.5",
     "jest-mock-console": "^1.2.3",
     "spawk": "^1.8.0"
