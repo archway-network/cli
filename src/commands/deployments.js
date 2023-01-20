@@ -3,23 +3,26 @@
 const _ = require('lodash');
 const chalk = require('chalk');
 const { Config } = require('../util/config');
-const { Table } = require('console-table-printer');
 
 function printDeployments(deployments) {
-  const p = new Table({
-    enabledColumns: ['type', 'chainId', 'codeId', 'txhash', 'extra'],
-    computedColumns: [
-      {
-        name: 'extra',
-        function: row => _.truncate(
-          JSON.stringify(_.omit(row, ['type', 'chainId', 'codeId', 'txhash'])),
-          { length: 20 }
-        ),
-      },
-    ]
-  });
-  p.addRows(deployments);
-  p.printTable();
+  _.chain(deployments)
+    .groupBy('project')
+    .forEach((deployments, project) => {
+      console.info(chalk`{cyan.bold ${project}}\n`);
+
+      deployments.forEach(deployment => {
+        _.chain(deployment)
+          .omit(['project'])
+          .forEach((value, key) => {
+            const parsedValue = _.isObject(value) ? JSON.stringify(value) : value;
+            console.info(chalk`{bold ${key}:} ${parsedValue}`);
+          })
+          .value();
+
+        console.info('');
+      });
+    })
+    .value();
 }
 
 async function main({ all = false }) {
