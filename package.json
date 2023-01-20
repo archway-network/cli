@@ -40,7 +40,8 @@
   "scripts": {
     "test": "jest",
     "lint": "npx eslint ./src",
-    "lint:fix": "npx eslint --fix ./src"
+    "lint:fix": "npx eslint --fix ./src",
+    "version": "conventional-changelog -p conventionalcommits -i CHANGELOG.md -s && git add CHANGELOG.md"
   },
   "dependencies": {
     "async-retry": "^1.3.3",
@@ -58,6 +59,7 @@
   "devDependencies": {
     "@commitlint/cli": "^17.4.2",
     "@commitlint/config-conventional": "^17.4.2",
+    "conventional-changelog-cli": "^2.2.2",
     "eslint": "^8.18",
     "eslint-plugin-jest": "^26.5",
     "eslint-plugin-node": "^11.1.0",
