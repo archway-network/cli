@@ -192,6 +192,7 @@ class Deployments {
   }
 
   static #isValidDeployment = _.conforms({
+    project: _.isString,
     type: _.isString,
     chainId: _.isString,
     txhash: _.isString,
@@ -210,18 +211,29 @@ class Deployments {
   }
 
   list() {
-    return this.config.get('developer.deployments', []);
+    return this.config.get('developer.deployments', [])
+      .map(deployment => _.defaults(deployment, { project: this.config.get('name') }));
+  }
+
+  listBy(fields) {
+    return this.list()
+      .filter(_.matches(fields));
   }
 
   listByChainId(chainId) {
     chainId ||= this.config.get('network.chainId');
-    return this.list()
-      .filter(_.matches({ chainId }));
+    return this.listBy({ chainId });
   }
 
-  findLastByTypeAndChainId(type, chainId) {
+  findLastBy(fields) {
     return this.list()
-      .find(_.matches({ type, chainId }));
+      .find(_.matches(fields));
+  }
+
+  findLastByTypeAndProjectAndChainId(type, project, chainId) {
+    project ||= this.config.get('name');
+    chainId ||= this.config.get('network.chainId');
+    return this.findLastBy({ type, project, chainId });
   }
 }
 

@@ -15,7 +15,7 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
 
-  const { codeId } = _.defaults({ codeId: optCodeId }, config.deployments.findLastByTypeAndChainId('store', chainId));
+  const { codeId } = _.defaults({ codeId: optCodeId }, config.deployments.findLastByTypeAndProjectAndChainId('store', project.name, chainId));
 
   prompts.override({
     args: optArgs,
@@ -76,7 +76,7 @@ async function parseBech32Address(archwayd, address) {
 }
 
 async function instantiateContract(archwayd, config, {
-  project: { id: projectId } = {},
+  project: { name: projectName, id: projectId } = {},
   adminAddress,
   chainId,
   node,
@@ -102,6 +102,7 @@ async function instantiateContract(archwayd, config, {
   }
 
   await config.deployments.add({
+    project: projectName,
     type: 'instantiate',
     chainId,
     codeId,

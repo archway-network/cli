@@ -1,17 +1,18 @@
 const _ = require('lodash');
 const chalk = require('chalk');
+const Cargo = require('../clients/cargo');
 const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress, isJson } = require('../util/validators');
 
-async function parseQueryOptions(config, { args, flags = [], options } = {}) {
+async function parseQueryOptions(config, { name: projectName }, { args, flags = [], options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
   const printStdout = true;
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
-  const { address: lastDeployedContract } = config.deployments.findLastByTypeAndChainId('instantiate', chainId) || {};
+  const { address: lastDeployedContract } = config.deployments.findLastByTypeAndProjectAndChainId('instantiate', projectName, chainId) || {};
   prompts.override({ contract: lastDeployedContract || undefined, ...options });
 
   const { contract } = await prompts([
@@ -34,9 +35,10 @@ async function parseQueryOptions(config, { args, flags = [], options } = {}) {
   };
 }
 
-async function querySmart(archwayd, { module, type, options }) {
+async function querySmart(archwayd, cargo, { module, type, options }) {
   const config = await Config.open();
-  const { node, contract, args, ...txOptions } = await parseQueryOptions(config, options);
+  const project = cargo.projectMetadata();
+  const { node, contract, args, ...txOptions } = await parseQueryOptions(config, project, options);
   console.info(chalk`Querying smart contract {cyan ${contract}}...`);
   const response = await archwayd.query.smartContract(module, type, contract, args, { node, ...txOptions });
   console.info(chalk`{green Query successful {cyan ${response}}}\n`);
@@ -44,7 +46,8 @@ async function querySmart(archwayd, { module, type, options }) {
 
 async function main(archwayd, { module, type, options }) {
   try {
-    await querySmart(archwayd, { module, type, options });
+    const cargo = new Cargo();
+    await querySmart(archwayd, cargo, { module, type, options });
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);
