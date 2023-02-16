@@ -130,6 +130,12 @@ class DockerArchwayClient extends ArchwayClient {
   }
 }
 
+/**
+ * Factory for creating an ArchwayClient.
+ *
+ * @param {{ docker: bool, archwaydVersion: string, testnet: string, archwaydHome: string, extraArgs: array }} options
+ * @returns {ArchwayClient}
+ */
 function clientFactory({ docker = false, ...options } = {}) {
   if (docker) {
     return new DockerArchwayClient(options);
