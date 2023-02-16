@@ -4,7 +4,7 @@
     "chainId": "local-1",
     "type": "local",
     "fees": {
-      "feeDenom": "larch"
+      "feeDenom": "uarch"
     },
     "gas": {
       "prices": "0.002larch",
