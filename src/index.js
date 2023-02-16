@@ -77,7 +77,7 @@ Program
   .addOption(DockerOption)
   .action(async options => {
     options = await updateWithDockerOptions(options);
-    const archwayd = await createClient({ checkHomePath: true, ...options });
+    const archwayd = createClient(options);
     await Tools.Accounts(archwayd, options);
   });
 
@@ -110,7 +110,7 @@ Program
   .addOption(DockerOption)
   .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
-    const archwayd = await createClient(options);
+    const archwayd = createClient(options);
     await Tools.Instantiate(archwayd, options);
   });
 
@@ -129,7 +129,7 @@ Program
   .addOption(DockerOption)
   .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
-    const archwayd = await createClient({ checkHomePath: true, ...options });
+    const archwayd = createClient(options);
     await Tools.Deploy(archwayd, options);
   });
 
@@ -170,7 +170,7 @@ Program
   .addOption(DockerOption)
   .action(async options => {
     options = await updateWithDockerOptions(options);
-    const archwayd = await createClient({ checkHomePath: true, ...options });
+    const archwayd = createClient(options);
     await Tools.Metadata(archwayd, options);
   });
 
@@ -225,7 +225,7 @@ Program
   .action(async (module, type, options) => {
 
     options = await updateWithDockerOptions(options);
-    const archwayd = await createClient({ checkHomePath: true, ...options });
+    const archwayd = createClient(options);
     await Tools.Query(archwayd, { module, type, options });
   });
 
@@ -239,7 +239,7 @@ Program
   .addOption(DockerOption)
   .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
-    const archwayd = await createClient({ checkHomePath: true, ...options });
+    const archwayd = createClient(options);
     await Tools.Store(archwayd, options);
   });
 
@@ -254,7 +254,7 @@ Program
   .description('Execute a smart contract transaction on Archway network')
   .action(async options => {
     options = await updateWithDockerOptions(options);
-    const archwayd = await createClient({ checkHomePath: true, ...options });
+    const archwayd = createClient(options);
     await Tools.Tx(archwayd, options);
   });
 
