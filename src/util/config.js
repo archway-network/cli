@@ -1,3 +1,5 @@
+const debug = require('debug')('config');
+
 const _ = require('lodash');
 const path = require('node:path');
 const fs = require('node:fs/promises');
@@ -112,6 +114,7 @@ class Config {
   }
 
   async write() {
+    debug('writing config file to %s', this.path);
     Config.validate(this.data);
     const json = JSON.stringify(this.data, null, 2);
     await fs.writeFile(this.path, json);
@@ -139,6 +142,7 @@ class Config {
       const networkConfig = loadNetworkConfig(environment, testnet);
       const configData = _.defaultsDeep(extraData, projectConfig, networkConfig);
       const configPath = await Config.#findConfigFilePath(projectRootDir);
+      debug('initializing config file at %s', configPath);
 
       return new Config(configData, configPath);
     } catch (e) {
@@ -154,6 +158,7 @@ class Config {
   static async open(projectRootDir) {
     try {
       const configPath = await Config.#findConfigFilePath(projectRootDir);
+      debug('opening config file at %s', configPath);
       await fs.access(configPath).catch(e => new ConfigFileNotFoundError(configPath, e));
       const configData = require(configPath);
 
@@ -239,7 +244,7 @@ class Deployments {
 
 function mergeCustomizer({ arrayMode = 'overwrite' } = {}) {
   return _.cond([
-    [_.overEvery(_.isArray, _.constant(arrayMode === 'overwrite')), _.identity],
+    [_.overEvery(_.isArray, _.constant(arrayMode === 'overwrite')), _.nthArg(1)],
     [_.overEvery(_.isArray, _.constant(arrayMode === 'append')), _.concat],
     [_.overEvery(_.isArray, _.constant(arrayMode === 'prepend')), (objValue = [], srcValue = []) => [...srcValue, ...objValue]],
   ]);
