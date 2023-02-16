@@ -1,5 +1,15 @@
 # Changelog
 
+## Next version
+
+### Changes
+
+* **networks**: change the default gas adjustment parameter to `1.5` instead of `1.2` ([#153](https://github.com/archway-network/archway-cli/pull/153))
+
+### Breaking Changes
+
+* **networks**: removed `torii` from the networks list ([#153](https://github.com/archway-network/archway-cli/pull/153))
+
 ## [1.3.0](https://github.com/archway-network/archway-cli/compare/1.2.3...1.3.0) (2023-01-20)
 
 ### Features

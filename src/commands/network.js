@@ -18,13 +18,17 @@ const MigrateQuestions = (currentEnvironment, currentTestnet) => [
   }
 ];
 
+/**
+ * @param {Config} config
+ * @param {*} options
+ */
 async function migrateNetworks(config, { chainId: currentChainId, currentEnvironment, currentTestnet }) {
   const questions = MigrateQuestions(currentEnvironment, currentTestnet);
   const { environment, testnet } = await prompts(questions);
-  const { network: newNetworkConfig } = loadNetworkConfig(environment, testnet);
-  await config.update({ network: newNetworkConfig });
+  const { network } = loadNetworkConfig(environment, testnet);
+  await config.update({ network });
 
-  console.info(chalk`{green Migrated from {cyan ${currentChainId}} to {cyan ${newNetworkConfig.chainId}}}`);
+  console.info(chalk`{green Migrated from {cyan ${currentChainId}} to {cyan ${network.chainId}}}`);
 }
 
 function printNetworkConfig({ chainId, currentEnvironment, currentTestnet, rpc }) {
@@ -37,6 +41,9 @@ function printNetworkConfig({ chainId, currentEnvironment, currentTestnet, rpc }
   console.info();
 }
 
+/**
+ * @param {Config} config
+ */
 function parseNetworkConfig(config) {
   const {
     network: {

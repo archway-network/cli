@@ -14,7 +14,6 @@ const DefaultEnvironment = 'testnet';
 const TestnetsDetails = {
   constantine: { description: 'Stable - recommended for dApp development' },
   titus: { description: 'Nightly releases - chain state can be cleared at any time' },
-  torii: { description: 'Incentivized testnet' },
 };
 const Testnets = _.keys(TestnetsDetails);
 const DefaultTestnet = 'constantine';
