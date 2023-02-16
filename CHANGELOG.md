@@ -38,3 +38,5 @@
 * **cli**: deprecate support for nodejs 14 ([#130](https://github.com/archway-network/archway-cli/pull/130))
 * **cli**: deprecate the `run` command ([#125](https://github.com/archway-network/archway-cli/pull/125))
 * **cli**: deprecate the `test` command ([#132](https://github.com/archway-network/archway-cli/pull/132))
+* **cli:** renamed the `configure` command to `config` ([#131](https://github.com/archway-network/archway-cli/pull/131))
+* **build:**: Docker is now a hard requirement ([#128](https://github.com/archway-network/archway-cli/pull/128))
