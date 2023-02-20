@@ -6,6 +6,7 @@
 
 * **networks**: change the default gas adjustment parameter to `1.5` instead of `1.2` ([#153](https://github.com/archway-network/archway-cli/pull/153))
 * **build**: updated the CosmWasm Optimizer image to `0.12.11` ([#155](https://github.com/archway-network/archway-cli/pull/155))
+* **build**: enable rust backtrace in optimizer ([#156](https://github.com/archway-network/archway-cli/pull/156))
 
 ### Bug Fixes
 
