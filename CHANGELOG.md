@@ -7,6 +7,8 @@
 * **networks**: change the default gas adjustment parameter to `1.5` instead of `1.2` ([#153](https://github.com/archway-network/archway-cli/pull/153))
 * **build**: updated the CosmWasm Optimizer image to `0.12.11` ([#155](https://github.com/archway-network/archway-cli/pull/155))
 * **build**: enable rust backtrace in optimizer ([#156](https://github.com/archway-network/archway-cli/pull/156))
+* **archwayd**: use the `archwaynetwork/archwayd:v0.2.0` tag by default ([#159](https://github.com/archway-network/archway-cli/pull/159))
+* **archwayd**: connect the container to the host network to allow interaction with a node running on the host machine ([#159](https://github.com/archway-network/archway-cli/pull/159))
 
 ### Bug Fixes
 
