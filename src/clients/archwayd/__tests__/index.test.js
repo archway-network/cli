@@ -125,10 +125,9 @@ describe('DockerArchwayClient', () => {
       const client = await createClient({ docker: true });
       expect(client.extraArgs).toEqual(expect.arrayContaining([
         'run',
-        '--pull',
-        'always',
         '--rm',
         '-it',
+        '--network=host',
         `--volume=${DefaultArchwaydHome}:/root/.archway`,
         `archwaynetwork/archwayd:${DefaultArchwaydVersion}`
       ]));
@@ -143,17 +142,6 @@ describe('DockerArchwayClient', () => {
       expect(client.extraArgs).toEqual(expect.arrayContaining([
         `--volume=${archwaydHome}:/root/.archway`,
         `archwaynetwork/archwayd:${archwaydVersion}`
-      ]));
-    });
-
-    test('uses testnet name as the image version when available', async () => {
-      const archwaydVersion = '0.0.1';
-      const testnet = 'titus';
-
-      const client = await createClient({ docker: true, testnet, archwaydVersion });
-
-      expect(client.extraArgs).toEqual(expect.arrayContaining([
-        `archwaynetwork/archwayd:${testnet}`
       ]));
     });
   });

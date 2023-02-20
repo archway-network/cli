@@ -21,8 +21,7 @@ function getVersion() {
 async function getDefaultsFromConfig() {
   try {
     const {
-      network: { name: networkName } = {},
-      developer: { archwayd: { docker = false, version: archwaydVersion = networkName } = {} } = {}
+      developer: { archwayd: { docker = false, version: archwaydVersion } = {} } = {}
     } = await Config.read();
     return { archwaydVersion, docker };
   } catch (e) {
