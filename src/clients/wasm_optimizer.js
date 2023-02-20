@@ -41,8 +41,11 @@ class WasmOptimizer {
 
     const image = await this.#fetchImage(isWorkspace);
     const projectName = path.basename(workspaceRoot);
+    const containerName = `${projectName}-optimizer`;
+    await this.#killIfRunning(containerName);
+
     const createOptions = {
-      name: `${projectName}-optimizer`,
+      name: containerName,
       AttachStdin: true,
       AttachStdout: true,
       AttachStderr: true,
@@ -83,6 +86,26 @@ class WasmOptimizer {
   }
 
   /**
+   * Kills a container if it is running.
+   *
+   * @param {string} containerName Name of the container to kill.
+   */
+  async #killIfRunning(containerName) {
+    debug('killIfRunning', 'checking if container is running', containerName);
+    const container = this.#docker.getContainer(containerName);
+    try {
+      const info = await container.inspect();
+      if (info.State.Running) {
+        const kill = container.kill();
+        ora.promise(kill, { text: chalk`{dim Killing running container {cyan ${containerName}}...}` });
+        await kill;
+      }
+    } catch (e) {
+      debug('killIfRunning', 'container not found', containerName);
+    }
+  }
+
+  /**
    * Resolves the correct image to use and pulls it if it is not available locally.
    *
    * @param {boolean} isWorkspace
@@ -101,6 +124,12 @@ class WasmOptimizer {
     return image;
   }
 
+  /**
+   * Pulls a docker image.
+   *
+   * @param {string} image Image name and tag in the format `name:tag`.
+   * @returns the pull stream output.
+   */
   async #pullImage(image) {
     debug('pullImage', 'downloading image', image);
     return await new Promise((resolve, reject) => {
