@@ -5,6 +5,11 @@
 ### Changes
 
 * **networks**: change the default gas adjustment parameter to `1.5` instead of `1.2` ([#153](https://github.com/archway-network/archway-cli/pull/153))
+* **build**: updated the CosmWasm Optimizer image to `0.12.11` ([#155](https://github.com/archway-network/archway-cli/pull/155))
+
+### Bug Fixes
+
+* **build**: fixed error when the CosmWasm Optimizer image didn't exist in the local environment ([#155](https://github.com/archway-network/archway-cli/pull/155))
 
 ### Breaking Changes
 
