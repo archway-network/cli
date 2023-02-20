@@ -123,6 +123,7 @@ class DockerArchwayClient extends ArchwayClient {
       '--rm',
       '-it',
       `--volume=${archwaydHome}:/root/.archway`,
+      '--network=host',
       `archwaynetwork/archwayd:${archwaydVersion}`
     ];
   }
