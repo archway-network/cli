@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const chalk = require('chalk');
 const { prompts, PromptCancelledError } = require('../util/prompts');
-const crypto = require('crypto');
-const path = require('path');
+const crypto = require('node:crypto');
+const path = require('node:path');
 const { readFile, copyFile, mkdir } = require('fs/promises');
 const { pathExists } = require('../util/fs');
 const { Config } = require('../util/config');
@@ -47,26 +47,33 @@ async function verifyChecksum(filename) {
   return hashSum.digest('hex');
 }
 
+/**
+ * Verifies that the wasm file uploaded to the chain matches the local file.
+ *
+ * @param {ArchwayClient} archwayd
+ * @param {Config} config
+ */
 async function verifyUploadedWasm(
   archwayd,
   config,
   {
-    project: { name: projectName, wasm: { optimizedFilePath } = {} } = {},
+    project: { name: projectName, wasm: { optimizedFilePath } = {}, workspaceRoot } = {},
     chainId,
     node
   } = {}
 ) {
   const { codeId } = config.deployments.findLastByTypeAndProjectAndChainId('store', projectName, chainId);
-  const downloadWasmName = `${path.basename(optimizedFilePath, '.wasm')}_download.wasm`;
-  const localDownloadPath = path.join(path.dirname(optimizedFilePath), downloadWasmName);
+  const relativeWasmPath = path.relative(workspaceRoot, optimizedFilePath);
+  const downloadWasmName = `${path.basename(relativeWasmPath, '.wasm')}_download.wasm`;
+  const localDownloadPath = path.join(relativeWasmPath, '..', downloadWasmName);
   await retry(
     () => archwayd.query.wasmCode(codeId, localDownloadPath, { node }),
     { text: chalk`Downloading wasm file from {cyan ${chainId}}...` }
   );
 
   // We need to update the path to where the docker container volume is mapped to
-  const remotePath = path.join(archwayd.workingDir, optimizedFilePath);
-  const remoteDownloadPath = path.join(path.dirname(remotePath), downloadWasmName);
+  const remotePath = path.join(archwayd.workingDir, relativeWasmPath);
+  const remoteDownloadPath = path.join(remotePath, '..', downloadWasmName);
   if (!await pathExists(remoteDownloadPath)) {
     throw new Error(`Failed to locate downloaded wasm file at ${remoteDownloadPath}`);
   }
@@ -80,19 +87,28 @@ async function verifyUploadedWasm(
   console.info(chalk`{green Integrity check Ok!}\n`);
 }
 
-async function storeWasm(archwayd, config, { project: { name: projectName, wasm: { optimizedFilePath } = {} } = {}, from, chainId, node, ...options } = {}) {
+/**
+ * Uploads the optimized wasm file to the chain.
+ *
+ * If the file is in a directory not accessible by the DockerArchwayClient,
+ * it will be copied to its working directory before uploading.
+ *
+ * @param {ArchwayClient} archwayd
+ * @param {Config} config
+ */
+async function storeWasm(archwayd, config, { project: { name: projectName, wasm: { optimizedFilePath } = {}, workspaceRoot } = {}, from, chainId, node, ...options } = {}) {
   console.info(chalk`Uploading optimized wasm to {cyan ${chainId}} using wallet {cyan ${from}}...`);
 
-  // If we use docker or for any reason need to copy the file to any other directory before upload
-  const remotePath = path.join(archwayd.workingDir, optimizedFilePath);
-  if (!_.isEmpty(path.relative(optimizedFilePath, remotePath))) {
-    console.info(`Copying file ${optimizedFilePath} to ${remotePath}`);
-    await mkdir(path.dirname(remotePath), { recursive: true });
-    await copyFile(optimizedFilePath, remotePath);
+  const relativeWasmPath = path.relative(workspaceRoot, optimizedFilePath);
+  const resolvedWasmPath = path.join(archwayd.workingDir, relativeWasmPath);
+  if (!_.isEmpty(path.relative(optimizedFilePath, resolvedWasmPath))) {
+    console.info(chalk`{dim Copying file {cyan ${optimizedFilePath}} to {cyan ${resolvedWasmPath}}}`);
+    await mkdir(path.dirname(resolvedWasmPath), { recursive: true });
+    await copyFile(optimizedFilePath, resolvedWasmPath);
   }
 
   // eslint-disable-next-line camelcase
-  const { code, raw_log: rawLog, txhash } = await archwayd.tx.wasm('store', [optimizedFilePath], { from, chainId, node, ...options });
+  const { code, raw_log: rawLog, txhash } = await archwayd.tx.wasm('store', [relativeWasmPath], { from, chainId, node, ...options });
   if (code && code !== 0) {
     throw new Error(`Transaction failed: code=${code}, ${rawLog}`);
   }
