@@ -11,6 +11,7 @@
 ### Bug Fixes
 
 * **build**: fixed error when the CosmWasm Optimizer image didn't exist in the local environment ([#155](https://github.com/archway-network/archway-cli/pull/155))
+* **build**: fixed error when a build container is already running in the background ([#157](https://github.com/archway-network/archway-cli/pull/157))
 
 ### Breaking Changes
 
