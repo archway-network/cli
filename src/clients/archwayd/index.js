@@ -5,7 +5,7 @@ const KeysCommands = require('./keys');
 const QueryCommands = require('./query');
 const TxCommands = require('./tx');
 
-const DefaultArchwaydVersion = 'latest';
+const DefaultArchwaydVersion = 'v0.2.0';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
 class ArchwayRunError extends Error {
@@ -99,9 +99,9 @@ class ArchwayClient {
 }
 
 class DockerArchwayClient extends ArchwayClient {
-  constructor({ archwaydVersion = DefaultArchwaydVersion, testnet, ...options } = {}) {
+  constructor({ archwaydVersion = DefaultArchwaydVersion, ...options } = {}) {
     super(options);
-    this.archwaydVersion = testnet || archwaydVersion;
+    this.archwaydVersion = archwaydVersion;
   }
 
   get command() {
@@ -120,8 +120,6 @@ class DockerArchwayClient extends ArchwayClient {
   static #getDockerArgs(archwaydHome, archwaydVersion) {
     return [
       'run',
-      '--pull',
-      'always',
       '--rm',
       '-it',
       `--volume=${archwaydHome}:/root/.archway`,
