@@ -1,3 +1,5 @@
+const _ = require('lodash');
+const path = require('node:path');
 const spawk = require('spawk');
 const mockConsole = require('jest-mock-console');
 const { readFile } = require('fs/promises');
@@ -8,6 +10,7 @@ const Store = require('../store');
 
 const Fixtures = {
   sampleConfig: require('./fixtures/sample-config.json'),
+  singleProjectMetadata: require('../../clients/__tests__/fixtures/cargo-metadata-single.json'),
   txWasmStore: require('../../clients/archwayd/__tests__/fixtures/tx-wasm-store.json'),
   queryTxWasmStore: require('../../clients/archwayd/__tests__/fixtures/query-tx-wasm-store.json'),
 };
@@ -16,26 +19,26 @@ jest.mock('ora');
 jest.mock('prompts');
 jest.mock('fs/promises');
 
-const projectMetadata = {
-  id: `${Fixtures.sampleConfig.name} 0.1.0`,
-  name: Fixtures.sampleConfig.name,
-  version: '0.1.0',
-  wasm: {
-    optimizedFilePath: `artifacts/${Fixtures.sampleConfig.name.replace(/-/g, '_')}.wasm`
-  }
-};
-const mockCargo = {
-  projectMetadata: jest.fn().mockResolvedValue(projectMetadata),
-};
-jest.mock('../../clients/cargo', () => jest.fn(() => mockCargo));
-
 const mockConfig = new Config(Fixtures.sampleConfig, '/tmp/config.json');
+
+const cwd = '/tmp/test/archway-project';
+const isCmd = cmd => _.chain(_).head().eq(cmd).value();
+
+const workspaceRoot = '/tmp/test/archway-project';
+const optimizedFilePath = `${workspaceRoot}/artifacts/archway_project.wasm`;
+const relativeOptimizedFilePath = path.relative(workspaceRoot, optimizedFilePath);
 
 beforeEach(() => {
   mockConsole(['info', 'warn', 'error']);
 
   spawk.clean();
   spawk.preventUnmatched();
+
+  spawk.spawn('cargo', isCmd('metadata'))
+    .stdout(JSON.stringify(Fixtures.singleProjectMetadata));
+
+  spawk.spawn('cargo', isCmd('locate-project'))
+    .stdout(`${cwd}/Cargo.toml`);
 
   jest.spyOn(Config, 'open')
     .mockResolvedValue(mockConfig);
@@ -70,7 +73,7 @@ describe('store', () => {
 
     expect(client.tx.wasm).toHaveBeenCalledWith(
       'store',
-      [projectMetadata.wasm.optimizedFilePath],
+      [relativeOptimizedFilePath],
       expect.objectContaining({
         from: 'alice',
         chainId: 'titus-1',
@@ -99,7 +102,7 @@ describe('store', () => {
     );
 
     expect(mockConfig.deployments.add).toHaveBeenCalledWith({
-      project: 'archway-increment',
+      project: 'archway-project',
       type: 'store',
       chainId: 'titus-1',
       codeId: 253,
@@ -141,7 +144,7 @@ describe('validate', () => {
 
     expect(client.query.wasmCode).toHaveBeenCalledWith(
       253,
-      `${projectMetadata.wasm.optimizedFilePath.replace('.wasm', '_download.wasm')}`,
+      `${relativeOptimizedFilePath.replace('.wasm', '_download.wasm')}`,
       expect.objectContaining({
         node: expect.anything()
       })
@@ -152,11 +155,11 @@ describe('validate', () => {
     await Store(client, { store: false, from: 'bob' });
 
     expect(readFile).toHaveBeenCalledWith(
-      projectMetadata.wasm.optimizedFilePath
+      relativeOptimizedFilePath
     );
 
     expect(readFile).toHaveBeenCalledWith(
-      `${projectMetadata.wasm.optimizedFilePath.replace('.wasm', '_download.wasm')}`
+      `${relativeOptimizedFilePath.replace('.wasm', '_download.wasm')}`
     );
   });
 });
