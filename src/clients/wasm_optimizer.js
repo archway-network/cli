@@ -1,3 +1,5 @@
+const chalk = require('chalk');
+const ora = require('ora');
 const debug = require('debug')('wasm-optimizer');
 const { WritableStream } = require('node:stream/web');
 const path = require('node:path');
@@ -9,7 +11,7 @@ const Docker = require('dockerode');
 class WasmOptimizer {
   static RustOptimizerImage = 'cosmwasm/rust-optimizer';
   static WorkspaceOptimizerImage = 'cosmwasm/workspace-optimizer';
-  static Version = '0.12.10';
+  static Version = '0.12.11';
 
   /**
    * @type {Docker}
@@ -28,7 +30,7 @@ class WasmOptimizer {
    *
    * @param {string} workspaceRoot
    * @param {boolean} isWorkspace
-   * @returns {Promise<{ error, statusCode }>}
+   * @returns {Promise<{ error: Error, statusCode: number }>}
    */
   async run(workspaceRoot, isWorkspace = false) {
     try {
@@ -37,7 +39,7 @@ class WasmOptimizer {
       throw new Error('Docker is not running. Please start Docker and try again.');
     }
 
-    const image = `${isWorkspace ? WasmOptimizer.WorkspaceOptimizerImage : WasmOptimizer.RustOptimizerImage}:${WasmOptimizer.Version}`;
+    const image = await this.#fetchImage(isWorkspace);
     const projectName = path.basename(workspaceRoot);
     const createOptions = {
       name: `${projectName}-optimizer`,
@@ -75,6 +77,43 @@ class WasmOptimizer {
     );
 
     return { error, statusCode };
+  }
+
+  /**
+   * Resolves the correct image to use and pulls it if it is not available locally.
+   *
+   * @param {boolean} isWorkspace
+   * @returns {Promise<string>}
+   */
+  async #fetchImage(isWorkspace) {
+    const image = `${isWorkspace ? WasmOptimizer.WorkspaceOptimizerImage : WasmOptimizer.RustOptimizerImage}:${WasmOptimizer.Version}`;
+    debug('fetchImage', 'searching for image locally', image);
+    const images = await this.#docker.listImages({ filters: { reference: [image] } });
+    if (images.length === 0) {
+      const pull = this.#pullImage(image);
+      ora.promise(pull, { text: chalk`{dim Pulling docker image {cyan ${image}}...}` });
+      await pull;
+    }
+
+    return image;
+  }
+
+  async #pullImage(image) {
+    debug('pullImage', 'downloading image', image);
+    return await new Promise((resolve, reject) => {
+      this.#docker.pull(image, (err, stream) => {
+        if (err) {
+          reject(err);
+        }
+
+        this.#docker.modem.followProgress(stream, (err, output) => {
+          if (err) {
+            reject(err);
+          }
+          resolve(output);
+        });
+      });
+    });
   }
 }
 
