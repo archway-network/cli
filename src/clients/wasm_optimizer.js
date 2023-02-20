@@ -47,7 +47,10 @@ class WasmOptimizer {
       AttachStdout: true,
       AttachStderr: true,
       Tty: false,
-      Env: ['CARGO_TERM_COLOR=always'],
+      Env: [
+        'CARGO_TERM_COLOR=always',
+        'RUST_BACKTRACE=1',
+      ],
       Volumes: {
         '/code': {},
         '/code/target': {},
