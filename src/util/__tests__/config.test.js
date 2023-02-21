@@ -3,8 +3,6 @@ const fs = require('node:fs/promises');
 const spawk = require('spawk');
 const { Config, ConfigFilename, ConfigFileNotFoundError } = require('../config');
 
-jest.mock('node:fs/promises');
-
 const Fixtures = {
   sampleConfig: require('./fixtures/sample-config.json'),
   singleProjectMetadata: require('../../clients/__tests__/fixtures/cargo-metadata-single.json'),
@@ -15,11 +13,11 @@ const configPath = `${workspaceRoot}/${ConfigFilename}`;
 
 const isCmd = cmd => _.chain(_).head().eq(cmd).value();
 
+jest.mock('node:fs/promises');
+
 beforeEach(() => {
   spawk.clean();
   spawk.preventUnmatched();
-
-  jest.mock(configPath, () => Fixtures.sampleConfig, { virtual: true });
 });
 
 afterEach(() => {
@@ -31,6 +29,7 @@ describe('Config', () => {
   describe('open', () => {
     it('opens a config file present in the workspace root', async () => {
       fs.access.mockResolvedValue(undefined);
+      jest.doMock(configPath, () => Fixtures.sampleConfig, { virtual: true });
 
       const config = await Config.open(workspaceRoot);
 
@@ -46,6 +45,8 @@ describe('Config', () => {
         .stdout(`${workspaceRoot}/Cargo.toml`);
 
       fs.access.mockResolvedValue(undefined);
+
+      jest.doMock(configPath, () => Fixtures.sampleConfig, { virtual: true });
 
       const config = await Config.open();
 
@@ -72,6 +73,7 @@ describe('Config', () => {
   describe('read', () => {
     it('reads a config file and returns the JSON data', async () => {
       fs.access.mockResolvedValue(undefined);
+      jest.doMock(configPath, () => Fixtures.sampleConfig, { virtual: true });
 
       const data = await Config.read(workspaceRoot);
 
