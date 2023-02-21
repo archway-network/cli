@@ -107,12 +107,20 @@ class Config {
     }),
   });
 
+  /**
+   * Validates the current config data and throws an error if it is invalid.
+   *
+   * @throws {InvalidConfigError}
+   */
   static validate(data) {
     if (!Config.#isValidConfig(data)) {
-      throw new InvalidConfigError(`The config data seems invalid and could not be saved to file: ${this.path}`);
+      throw new InvalidConfigError(`The config data seems invalid`);
     }
   }
 
+  /**
+   * Writes the current config data to the config file.
+   */
   async write() {
     debug('writing config file to %s', this.path);
     Config.validate(this.data);
@@ -120,17 +128,26 @@ class Config {
     await fs.writeFile(this.path, json);
   }
 
-  async update(newSettings = {}, mergeOptions = {}) {
-    _.mergeWith(this.data, newSettings, mergeCustomizer(mergeOptions));
+  /**
+   * Updates the config file with the given data and writes it to disk.
+   *
+   * @param {ConfigData} newData
+   * @param {*} mergeOptions
+   */
+  async update(newData = {}, mergeOptions = {}) {
+    debug('updating config with %s', JSON.stringify(newData));
+    _.mergeWith(this.data, newData, mergeCustomizer(mergeOptions));
     await this.write();
   }
 
   /**
-   * @param {fs.PathLike} projectRootDir
+   * Initializes a new config file and returns a Config instance.
+   *
+   * @param {fs.PathLike} workspaceRoot
    * @returns {Promise<Config>}
    * @throws {ConfigInitError}
    */
-  static async init(name, { docker = false, environment, testnet, ...extraData } = {}, projectRootDir) {
+  static async init(name, { docker = false, environment, testnet, ...extraData } = {}, workspaceRoot) {
     try {
       const projectConfig = {
         name: name,
@@ -141,7 +158,7 @@ class Config {
       };
       const networkConfig = loadNetworkConfig(environment, testnet);
       const configData = _.defaultsDeep(extraData, projectConfig, networkConfig);
-      const configPath = await Config.#findConfigFilePath(projectRootDir);
+      const configPath = await Config.#getConfigFilePath(workspaceRoot);
       debug('initializing config file at %s', configPath);
 
       return new Config(configData, configPath);
@@ -151,15 +168,17 @@ class Config {
   }
 
   /**
-   * @param {fs.PathLike} projectRootDir
+   * Opens the config file and returns a Config instance.
+   *
+   * @param {fs.PathLike} workspaceRoot
    * @returns {Promise<Config>}
    * @throws {ConfigOpenError}
    */
-  static async open(projectRootDir) {
+  static async open(workspaceRoot) {
     try {
-      const configPath = await Config.#findConfigFilePath(projectRootDir);
+      const configPath = await Config.#getConfigFilePath(workspaceRoot);
       debug('opening config file at %s', configPath);
-      await fs.access(configPath).catch(e => new ConfigFileNotFoundError(configPath, e));
+      await fs.access(configPath).catch(e => { throw new ConfigFileNotFoundError(configPath, e); });
       const configData = require(configPath);
 
       return new Config(configData, configPath);
@@ -168,14 +187,21 @@ class Config {
     }
   }
 
-  static async read(projectRootDir) {
-    const config = await Config.open(projectRootDir);
+  /**
+   * Reads the config file and returns the JSON data.
+   *
+   * @param {fs.PathLike} workspaceRoot
+   * @returns {Promise<ConfigData>}
+   * @throws {ConfigOpenError}
+   */
+  static async read(workspaceRoot) {
+    const config = await Config.open(workspaceRoot);
     return config.data;
   }
 
-  static async #findConfigFilePath(projectRootDir) {
-    projectRootDir ||= await getWorkspaceRoot();
-    return path.join(projectRootDir, ConfigFilename);
+  static async #getConfigFilePath(workspaceRoot) {
+    workspaceRoot ||= await getWorkspaceRoot();
+    return path.join(workspaceRoot, ConfigFilename);
   }
 }
 
@@ -258,6 +284,7 @@ async function getWorkspaceRoot() {
 
 module.exports = {
   Config,
+  ConfigFilename,
   ConfigError,
   ConfigFileNotFoundError,
   ConfigOpenError,
