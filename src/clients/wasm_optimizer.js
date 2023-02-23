@@ -112,7 +112,9 @@ class WasmOptimizer {
    * @returns {Promise<string>}
    */
   async #fetchImage(isWorkspace) {
-    const image = `${isWorkspace ? WasmOptimizer.WorkspaceOptimizerImage : WasmOptimizer.RustOptimizerImage}:${WasmOptimizer.Version}`;
+    const name = (isWorkspace ? WasmOptimizer.WorkspaceOptimizerImage : WasmOptimizer.RustOptimizerImage) +
+      (process.arch === 'arm64' ? '-arm64' : '');
+    const image = `${name}:${WasmOptimizer.Version}`;
     debug('fetchImage', 'searching for image locally', image);
     const images = await this.#docker.listImages({ filters: { reference: [image] } });
     if (images.length === 0) {

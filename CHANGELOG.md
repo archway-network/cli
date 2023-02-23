@@ -2,6 +2,10 @@
 
 ## [1.4.1](https://github.com/archway-network/archway-cli/tree/main) ()
 
+### Bug Fixes
+
+* **build**: fixed error when running the CosmWasm Optimizer image on M1 Macbooks ([#161](https://github.com/archway-network/archway-cli/pull/161))
+
 ## [1.4.0](https://github.com/archway-network/archway-cli/compare/1.3.0...1.4.0) (2023-02-21)
 
 ### Changes
