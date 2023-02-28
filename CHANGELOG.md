@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.4.1](https://github.com/archway-network/archway-cli/tree/main) ()
+## [1.4.1](https://github.com/archway-network/archway-cli/compare/1.4.0...1.4.1) (2023-02-28)
 
 ### Bug Fixes
 
