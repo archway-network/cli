@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "importHelpers": true,
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "rootDir": "src",
+    "strict": true,
+    "target": "es2019",
+    "baseUrl": "./",
+    "paths": {
+      "@commands/*": ["src/commands/*"]
+    }
+  },
+  "include": ["src/**/*.ts", "src/**/*.js"]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "archway-cli",
+  "version": "0.0.0",
+  "description": "Archway CLI",
+  "author": "PhiLabs",
+  "bin": {
+    "archway": "./bin/run"
+  },
+  "homepage": "https://github.com/archway-network/archway-cli-v2",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "repository": "archway-network/archway-cli-v2",
+  "files": [
+    "/bin",
+    "/dist",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "dependencies": {
+    "@oclif/core": "^2.5.2",
+    "@oclif/plugin-help": "^5",
+    "@oclif/plugin-plugins": "^2.3.2",
+    "chalk": "^4.1.2"
+  },
+  "devDependencies": {
+    "@oclif/test": "^2.3.8",
+    "@types/chai": "^4",
+    "@types/mocha": "^9.0.0",
+    "@types/node": "^16.18.14",
+    "chai": "^4",
+    "eslint": "^7.32.0",
+    "eslint-config-oclif": "^4",
+    "eslint-config-oclif-typescript": "^1.0.3",
+    "mocha": "^9",
+    "oclif": "^3",
+    "shx": "^0.3.3",
+    "ts-alias": "^0.0.7",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.5"
+  },
+  "oclif": {
+    "bin": "archway",
+    "dirname": "archway",
+    "commands": "./dist/commands",
+    "helpClass": "./src/plugins/help-plugin/help.ts",
+    "plugins": [],
+    "topicSeparator": ":"
+  },
+  "scripts": {
+    "build": "shx rm -rf dist && tsc -b",
+    "lint": "eslint . --ext .ts --config .eslintrc",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "posttest": "yarn lint",
+    "prepack": "yarn build && oclif manifest && oclif readme",
+    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif readme && git add README.md"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "bugs": "https://github.com/archway-network/archway-cli-v2/issues",
+  "keywords": [
+    "archway-cli"
+  ],
+  "types": "dist/index.d.ts"
+}
