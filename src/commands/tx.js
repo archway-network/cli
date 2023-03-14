@@ -6,16 +6,19 @@ const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress, isJson } = require('../util/validators');
 
-async function parseTxOptions(config, { name: projectName }, { confirm, args, flags = [], ...options } = {}) {
+async function parseTxOptions(config, { name: projectName }, { confirm, args, flags = [], contract: optContract, ...options } = {}) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
 
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
-  const { address: lastDeployedContract } = config.deployments.findLastByTypeAndProjectAndChainId('instantiate', projectName, chainId) || {};
+  const { address: lastDeployedContract } = _.defaults(
+    { address: optContract },
+    config.deployments.findLastByTypeAndProjectAndChainId('instantiate', projectName, chainId)
+  );
 
-  prompts.override({ contract: lastDeployedContract || undefined, ...options });
+  prompts.override({ contract: lastDeployedContract, ...options });
   const { from, contract } = await prompts([
     {
       type: 'text',
