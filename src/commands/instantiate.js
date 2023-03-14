@@ -94,7 +94,7 @@ async function instantiateContract(archwayd, config, {
     throw new Error(`Transaction failed: code=${code}, ${rawLog}`);
   }
   const contractAddress = await retry(
-    () => archwayd.query.txEventAttribute(txhash, 'instantiate', '_contract_address', { node, printStdout: false }),
+    () => archwayd.query.txEventAttribute(txhash, 'instantiate', '_contract_address', { node }),
     { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
   );
   if (!txhash || !contractAddress) {
@@ -137,7 +137,6 @@ async function main(archwayd, options = {}) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to instantiate contract}`);
-      console.error(chalk`\n{red ${e.message}}`);
     }
     throw e;
   }

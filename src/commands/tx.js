@@ -57,7 +57,7 @@ async function executeTx(archwayd, cargo, options) {
   const { txhash } = await archwayd.tx.wasm('execute', [contract, args], { node, ...txOptions });
   await retry(
     async bail => {
-      const { code, raw_log: rawLog } = await archwayd.query.tx(txhash, { node, printStdout: false });
+      const { code, raw_log: rawLog } = await archwayd.query.tx(txhash, { node });
       if (code && code !== 0) {
         const error = new Error(rawLog);
         bail(error);

@@ -113,7 +113,7 @@ async function storeWasm(archwayd, config, { project: { name: projectName, wasm:
     throw new Error(`Transaction failed: code=${code}, ${rawLog}`);
   }
   const codeIdString = await retry(
-    () => archwayd.query.txEventAttribute(txhash, 'store_code', 'code_id', { node, printStdout: false }),
+    () => archwayd.query.txEventAttribute(txhash, 'store_code', 'code_id', { node }),
     { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
   );
   const codeId = _.toNumber(codeIdString);
@@ -153,7 +153,6 @@ async function main(archwayd, options = {}) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to store contract}`);
-      console.error(chalk`\n{red ${e.message}}`);
     }
     throw e;
   }

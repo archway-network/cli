@@ -59,7 +59,7 @@ describe('TxCommands', () => {
           '--gas-adjustment', defaultOptions.gas.adjustment,
           '--output', 'json',
         ],
-        options: { stdio: ['inherit', 'pipe', 'inherit'] }
+        options: { stdio: ['inherit', 'pipe', 'pipe'] }
       });
     });
 
@@ -92,7 +92,7 @@ describe('TxCommands', () => {
           '--gas-adjustment', defaultOptions.gas.adjustment,
           '--output', 'json',
         ],
-        options: { stdio: ['inherit', 'pipe', 'inherit'] }
+        options: { stdio: ['inherit', 'pipe', 'pipe'] }
       });
     });
   });
@@ -124,7 +124,7 @@ describe('TxCommands', () => {
           '--gas-adjustment', defaultOptions.gas.adjustment,
           '--output', 'json',
         ],
-        options: { stdio: ['inherit', 'pipe', 'inherit'] }
+        options: { stdio: ['inherit', 'pipe', 'pipe'] }
       });
     });
   });

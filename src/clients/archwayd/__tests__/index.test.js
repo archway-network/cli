@@ -94,7 +94,7 @@ describe('ArchwayClient', () => {
       expect(archwayd.calledWith).toMatchObject({
         command: client.command,
         args: ['--keyring-backend', 'test', 'keys', 'list', '--output', 'json'],
-        options: { stdio: 'pipe', maxBuffer: 1024 * 1024 }
+        options: { stdio: ['inherit', 'pipe', 'pipe'], maxBuffer: 1024 * 1024 }
       });
 
       expect(json).toMatchObject(output);

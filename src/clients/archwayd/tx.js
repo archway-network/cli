@@ -6,20 +6,20 @@ class TxCommands {
   }
 
   async wasm(wasmCommand, wasmArgs, options) {
-    return await this.#run([
+    return await this.#runJson([
       'wasm', wasmCommand, ...wasmArgs,
     ], options);
   }
 
   async setContractMetadata(contract, { ownerAddress, rewardsAddress }, options) {
-    return await this.#run([
+    return await this.#runJson([
       'rewards', 'set-contract-metadata', contract,
       ...(ownerAddress ? ['--owner-address', ownerAddress] : []),
       ...(rewardsAddress ? ['--rewards-address', rewardsAddress] : []),
     ], options);
   }
 
-  async #run(txArgs = [], { gas = {}, from, chainId, node, flags = [], printStdout } = {}) {
+  async #runJson(txArgs = [], { gas = {}, from, chainId, node, flags = [], ...options } = {}) {
     const gasFlags = await this.#getGasFlags(gas, { node });
     const args = [
       ...txArgs,
@@ -30,7 +30,7 @@ class TxCommands {
       ...gasFlags,
       ...flags
     ];
-    return await this.#client.runJson('tx', args, { stdio: ['inherit', 'pipe', 'inherit'], printStdout });
+    return await this.#client.runJson('tx', args, { printStdout: false, ...options });
   }
 
   async #getGasFlags({ mode = 'auto', prices: defaultGasPrices, adjustment = 1.2 }, options) {
@@ -44,9 +44,9 @@ class TxCommands {
 
   async #getMinimumConsensusFee(options) {
     try {
-      return await this.#client.query.rewardsEstimateFees(1, { printStdout: false, ...options });
+      return await this.#client.query.rewardsEstimateFees(1, options);
     } catch (e) {
-      return null;
+      return undefined;
     }
   }
 }

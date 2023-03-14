@@ -2,10 +2,11 @@
 
 const _ = require('lodash');
 const chalk = require('chalk');
-const { Command, Option, InvalidArgumentError } = require('commander');
+const { Command, Option, CommanderError, InvalidArgumentError } = require('commander');
 const Tools = require('./commands');
 const { Config } = require('./util/config');
-const { createClient } = require('./clients/archwayd');
+const { PromptCancelledError } = require('./util/prompts');
+const { createClient, ArchwayClientError } = require('./clients/archwayd');
 const { Environments, Testnets } = require('./networks');
 const { isJson, isProjectName, isArchwayAddress } = require('./util/validators');
 const { checkSemanticVersion } = require('./util/semvar');
@@ -63,13 +64,14 @@ function parseJson(value) {
  * CLI worker
  * @see commander (https://www.npmjs.com/package/commander)
  */
-const Program = new Command()
+const program = new Command()
   .version(getVersion(), '-v, --version', 'output the current version')
   .configureOutput({
     outputError: (str, write) => write(chalk.red(str))
-  });
+  })
+  .exitOverride();
 
-Program
+program
   .command('accounts')
   .description('List available wallets or add new wallet')
   .option('-a, --add <label>', 'Add a new wallet')
@@ -80,7 +82,7 @@ Program
     await Tools.Accounts(archwayd, options);
   });
 
-Program
+program
   .command('build')
   .description('Build the project')
   .option('-o, --optimize', 'Builds an optimized wasm file ready for deployment')
@@ -88,7 +90,7 @@ Program
     await Tools.Build(options);
   });
 
-Program
+program
   .command('config')
   .description('Print or create a config file')
   .option('-i, --init', 'Initializes a config file for the current project')
@@ -96,7 +98,7 @@ Program
     await Tools.Config(options);
   });
 
-Program
+program
   .command('instantiate')
   .description('Instantiate a stored contract')
   .option('-c, --code-id <value>', 'Code ID for the WASM stored on-chain', parseInt)
@@ -113,7 +115,7 @@ Program
     await Tools.Instantiate(archwayd, options);
   });
 
-Program
+program
   .command('deploy')
   .description('Deploy to network, or test deployability')
   .option('-a, --args <value>', 'JSON encoded constructor arguments for contract deployment (e.g. --args \'{ "count": 0 }\')', parseJson)
@@ -132,7 +134,7 @@ Program
     await Tools.Deploy(archwayd, options);
   });
 
-Program
+program
   .command('faucet', { hidden: true })
   .description('Request Testnet funds from faucet')
   .addOption(
@@ -149,7 +151,7 @@ Program
     console.info('The funds will be deposited to your account in a few minutes on all testnets.');
   });
 
-Program
+program
   .command('history')
   .description('Print deployments history for the currently selected network')
   .option('-a, --all', 'Print all deployments history')
@@ -157,7 +159,7 @@ Program
     await Tools.DeployHistory(options);
   });
 
-Program
+program
   .command('metadata')
   .description('Sets the contract metadata with rewards parameters')
   .option('-c, --contract <address>', 'Optional contract address; defaults to the last deployed contract')
@@ -173,7 +175,7 @@ Program
     await Tools.Metadata(archwayd, options);
   });
 
-Program
+program
   .command('network')
   .description('Show network settings or migrate between networks')
   .addOption(new Option('-m, --migrate', 'Migrates the project to another network'))
@@ -183,7 +185,7 @@ Program
     await Tools.Network(options);
   });
 
-Program
+program
   .command('new')
   .description('Create a new project for Archway network')
   .option('-k, --docker', 'Use the docker version of archwayd', false)
@@ -212,7 +214,7 @@ let typeChoices = [
   ' all',
   ' raw'
 ];
-Program
+program
   .command('query')
   .argument('<module>', 'Query module to use; available modules: ' + String(modChoices))
   .argument('[type]', 'Subcommands (*if required by query module); available types: ' + String(typeChoices))
@@ -222,13 +224,12 @@ Program
   .addOption(DockerOption)
   .description('Query for data on Archway network')
   .action(async (module, type, options) => {
-
     options = await updateWithDockerOptions(options);
     const archwayd = createClient(options);
     await Tools.Query(archwayd, { module, type, options });
   });
 
-Program
+program
   .command('store')
   .description('Stores and verify a contract on-chain')
   .option('-f, --from <value>', 'Name or address of account to sign the transactions')
@@ -242,7 +243,7 @@ Program
     await Tools.Store(archwayd, options);
   });
 
-Program
+program
   .command('tx')
   .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
   .option('-f, --from <value>', 'Name or address of account to sign transactions')
@@ -257,7 +258,7 @@ Program
     await Tools.Tx(archwayd, options);
   });
 
-Program.hook('postAction', () => {
+program.hook('postAction', () => {
   const skipVersionCheck = process.env.ARCHWAY_SKIP_VERSION_CHECK || 0;
   if (skipVersionCheck.toString().toLowerCase() === 'true' || parseInt(skipVersionCheck) === 1) {
     return;
@@ -265,4 +266,20 @@ Program.hook('postAction', () => {
   checkSemanticVersion();
 });
 
-Program.parseAsync();
+async function run() {
+  try {
+    await program.parseAsync();
+  } catch (e) {
+    if (e instanceof CommanderError || e instanceof PromptCancelledError) {
+      return;
+    } else if (e instanceof ArchwayClientError) {
+      console.error(e.stderr.split('\n', 1)[0]);
+    } else {
+      console.error(e.message);
+    }
+
+    process.exitCode = 1;
+  }
+}
+
+run();

@@ -33,23 +33,31 @@ class QueryCommands {
     return `${gasUnitPrice.amount}${gasUnitPrice.denom}`;
   }
 
-  async #run(queryArgs = [], { node, flags = [], printStdout } = {}) {
+  async #run(queryArgs = [], { node, flags = [], ...options } = {}) {
     const args = [
       ...queryArgs,
       '--node', node,
       ...flags
     ];
-    const { stdout } = await this.#client.run('query', args, { stdio: ['inherit', 'pipe', 'inherit'], printStdout });
+    const { stdout } = await this.#client.run(
+      'query',
+      args,
+      { printStdout: false, ...options, stdio: ['inherit', 'pipe', 'inherit'] }
+    );
     return stdout;
   }
 
-  async #runJson(queryArgs = [], { node, flags = [], printStdout } = {}) {
+  async #runJson(queryArgs = [], { node, flags = [], ...options } = {}) {
     const args = [
       ...queryArgs,
       '--node', node,
       ...flags
     ];
-    return await this.#client.runJson('query', args, { stdio: ['inherit', 'pipe', 'inherit'], printStdout });
+    return await this.#client.runJson(
+      'query',
+      args,
+      { printStdout: false, ...options, stdio: ['inherit', 'pipe', 'pipe'] }
+    );
   }
 }
 

@@ -1,5 +1,3 @@
-// archway-cli/util/index.js
-
 const Accounts = require('./accounts');
 const Build = require('./build');
 const Config = require('./config');
