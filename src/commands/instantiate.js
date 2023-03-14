@@ -15,20 +15,28 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
 
-  const { codeId } = _.defaults({ codeId: optCodeId }, config.deployments.findLastByTypeAndProjectAndChainId('store', project.name, chainId));
+  const { codeId: lastCodeId } = _.defaults({ codeId: optCodeId }, config.deployments.findLastByTypeAndProjectAndChainId('store', project.name, chainId));
 
   prompts.override({
     args: optArgs,
     label: optLabel || (defaultLabel && project.id) || undefined,
+    codeId: lastCodeId,
     ...options
   });
-  const { from, args, label } = await prompts([
+  const { from, codeId, args, label } = await prompts([
     {
       type: 'text',
       name: 'from',
       message: chalk`Send tx from which wallet in your keychain? {reset.dim (e.g. "main" or crtl+c to quit)}`,
       validate: value => !_.isEmpty(value.trim()) || 'Invalid wallet label',
       format: value => _.trim(value),
+    },
+    {
+      type: 'number',
+      name: 'codeId',
+      message: chalk`What is the code ID of the contract to instantiate? {reset.dim (e.g. 1)}`,
+      validate: value => !_.isInteger(value) || value > 0 || 'Invalid code',
+      format: value => _.parseInt(value),
     },
     {
       type: 'text',
