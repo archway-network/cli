@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [1.5.0](https://github.com/archway-network/archway-cli/compare/1.4.1...1.5.0) (2023-03-15)
 
 ### Changes
 
