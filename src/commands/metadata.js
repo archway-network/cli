@@ -79,7 +79,7 @@ async function setContractMetadata(archwayd, cargo, options = {}) {
 
   await retry(
     async bail => {
-      const { code, raw_log: rawLog } = await archwayd.query.tx(txhash, { node, printStdout: false });
+      const { code, raw_log: rawLog } = await archwayd.query.tx(txhash, { node });
       if (code && code !== 0) {
         const error = new Error(rawLog);
         bail(error);
@@ -115,7 +115,6 @@ async function main(archwayd, options = {}) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to set contract metadata}`);
-      console.error(chalk`{red ${e.message}}`);
     }
     throw e;
   }

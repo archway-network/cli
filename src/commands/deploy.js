@@ -82,6 +82,9 @@ async function deploy(archwayd, { build = true, ...options } = {}) {
   await Instantiate(archwayd, deployOptions);
 }
 
+/**
+ * @deprecated since v1.2.0
+ */
 async function main(archwayd, options = {}) {
   try {
     console.warn(chalk`{yellow {bold WARNING:} This command is deprecated and will be removed in future versions}`);
@@ -98,9 +101,8 @@ async function main(archwayd, options = {}) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to deploy project}`);
-      console.error(chalk`\n{red ${e.message}}`);
-      throw e;
     }
+    throw e;
   }
 }
 

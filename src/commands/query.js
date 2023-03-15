@@ -9,7 +9,6 @@ async function parseQueryOptions(config, { name: projectName }, { args, flags = 
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
-  const printStdout = true;
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
   const { address: lastDeployedContract } = config.deployments.findLastByTypeAndProjectAndChainId('instantiate', projectName, chainId) || {};
@@ -31,7 +30,6 @@ async function parseQueryOptions(config, { name: projectName }, { args, flags = 
     node,
     gas,
     flags: [...flags],
-    printStdout
   };
 }
 
@@ -53,9 +51,8 @@ async function main(archwayd, { module, type, options }) {
       console.warn(chalk`{yellow ${e.message}}`);
     } else {
       console.error(chalk`\n{red.bold Failed to query transaction}`);
-      console.error(e);
-      throw new Error(e);
     }
+    throw e;
   }
 }
 
