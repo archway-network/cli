@@ -10,11 +10,11 @@ class KeysCommands {
   }
 
   async add(name) {
-    await this.#client.run('keys', ['add', name]);
+    await this.#client.run('keys', ['add', name, '--output', 'text']);
   }
 
   async list() {
-    await this.#client.run('keys', ['list']);
+    await this.#client.run('keys', ['list', '--output', 'text']);
   }
 
   async getAddress(name) {
