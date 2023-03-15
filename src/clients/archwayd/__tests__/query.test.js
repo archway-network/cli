@@ -96,16 +96,22 @@ describe('QueryCommands', () => {
       const client = new ArchwayClient();
       const query = new QueryCommands(client);
 
+      let queryResult = { count: 0 };
+
       const archwayd = spawk.spawn(client.command)
-        .stdout(`Querying smart contract`);
-      const contract = "archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4";
-      const output = await query.smartContract("contract-state", "smart", contract, "{'get_count': {}}", defaultOptions);
-      expect(output).toEqual(`Querying smart contract`);
-      const args = "{'get_count': {}}";
+        .stdout(JSON.stringify(queryResult));
+
+      const contract = 'archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4';
+
+      const args = '{ "get_count": {} }';
+      const output = await query.smartContract("contract-state", "smart", contract, args, defaultOptions);
+      expect(output).toEqual(queryResult);
+
       expect(archwayd.calledWith).toMatchObject({
         args: [
-          'query', 'wasm', 'contract-state', 'smart', 'archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4', args,
-          '--node', defaultOptions.node
+          'query', 'wasm', 'contract-state', 'smart', contract, args,
+          '--node', defaultOptions.node,
+          '--output', 'json',
         ],
       });
     });

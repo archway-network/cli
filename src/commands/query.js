@@ -36,13 +36,18 @@ async function parseQueryOptions(config, { name: projectName }, { args, flags = 
   };
 }
 
-async function querySmart(archwayd, cargo, { module, type, options }) {
+async function querySmart(archwayd, cargo, { module, type, options: { raw, ...options } }) {
   const config = await Config.open();
-  const project = cargo.projectMetadata();
-  const { node, contract, args, ...txOptions } = await parseQueryOptions(config, project, options);
-  console.info(chalk`Querying smart contract {cyan ${contract}}...`);
-  const response = await archwayd.query.smartContract(module, type, contract, args, { node, ...txOptions });
-  console.info(chalk`{green Query successful {cyan ${response}}}\n`);
+  const project = await cargo.projectMetadata();
+  const { node, contract, args, ...queryOptions } = await parseQueryOptions(config, project, options);
+
+  raw || console.info(chalk`Querying smart contract {cyan ${contract}}...`);
+
+  const response = await archwayd.query.smartContract(module, type, contract, args, { node, ...queryOptions });
+
+  raw || console.info(chalk`{green Query successful!}`);
+
+  console.info(JSON.stringify(response, null, 2));
 }
 
 async function main(archwayd, { module, type, options }) {

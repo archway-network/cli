@@ -24,7 +24,7 @@ class QueryCommands {
   }
 
   async smartContract(module, type, contract, args, options) {
-    return await this.#run(['wasm', module, type, contract, args], options);
+    return await this.#runJson(['wasm', module, type, contract, args], options);
   }
 
   async rewardsEstimateFees(gasLimit = 1, options) {
