@@ -11,7 +11,7 @@ const Docker = require('dockerode');
 class WasmOptimizer {
   static RustOptimizerImage = 'cosmwasm/rust-optimizer';
   static WorkspaceOptimizerImage = 'cosmwasm/workspace-optimizer';
-  static Version = '0.12.11';
+  static Version = '0.12.12';
 
   /**
    * @type {Docker}
