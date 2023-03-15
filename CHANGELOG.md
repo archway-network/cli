@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+
+* **query**: added flag to print raw json to stdout ([#164](https://github.com/archway-network/archway-cli/pull/164))
+* **accounts**: the command output will default to text mode for better readability ([#167](https://github.com/archway-network/archway-cli/pull/167)])
+* **build**: bump rust-optimizer to 0.12.12 ([#162](https://github.com/archway-network/archway-cli/pull/162)])
+
+## Bug Fixes
+
+**cli**: fixed an output error when running commands that require waiting for a tx result ([#163](https://github.com/archway-network/archway-cli/pull/163))
+**cli**: fixed issue when fetching the last contract address deployed ([#165](https://github.com/archway-network/archway-cli/pull/165))
+**instantiate**: fixed error when the codeId is not found in the deployments state ([#166](https://github.com/archway-network/archway-cli/pull/166))
+
 ## [1.4.1](https://github.com/archway-network/archway-cli/compare/1.4.0...1.4.1) (2023-02-28)
 
 ### Bug Fixes
