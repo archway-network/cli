@@ -4,6 +4,15 @@
     "object-curly-spacing": "off",
     "semi": "off",
     "node/no-missing-import": "off",
-    "comma-dangle": "off"
+    "comma-dangle": "off",
+    "unicorn/filename-case": [
+      "error",
+      {
+        "cases": {
+          "camelCase": true,
+          "pascalCase": true
+        }
+      }
+    ]
   }
 }

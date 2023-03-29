@@ -20,13 +20,17 @@
     "@oclif/core": "^2.5.2",
     "@oclif/plugin-help": "^5",
     "@oclif/plugin-plugins": "^2.3.2",
-    "chalk": "^4.1.2"
+    "chalk": "^4.1.2",
+    "lodash": "^4.17.21",
+    "prompts": "^2.4.2"
   },
   "devDependencies": {
     "@oclif/test": "^2.3.8",
     "@types/chai": "^4",
+    "@types/lodash": "^4.14.192",
     "@types/mocha": "^9.0.0",
     "@types/node": "^16.18.14",
+    "@types/prompts": "^2.4.3",
     "chai": "^4",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^4",
@@ -45,7 +49,7 @@
     "commands": "./dist/commands",
     "helpClass": "./src/plugins/help-plugin/help.ts",
     "plugins": [],
-    "topicSeparator": ":"
+    "topicSeparator": " "
   },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b",
