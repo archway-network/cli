@@ -3,6 +3,7 @@ import { Chain } from '../../services/Chain';
 import { BaseCommand } from '../../lib/base';
 import { showPrompt } from '../../actions/Prompt';
 import { ChainPrompt } from '../../domain/Chain';
+import { ConfigFile } from '../../domain/ConfigFile';
 
 export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
   static summary = 'Initializes a config file for the current project.';
@@ -19,9 +20,20 @@ export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
     if (!chain) {
       const response = await showPrompt(ChainPrompt);
 
-      chain = response.chain;
+      chain = response?.chain;
     }
 
-    this.log('commands/config/init.ts', chain);
+    const configFile = ConfigFile.init({
+      name: 'test',
+      chainId: chain || '',
+    });
+
+    if (await ConfigFile.exists()) {
+      throw new Error('the file modulor.json already exists in this repository');
+    }
+
+    await configFile.write();
+
+    this.log('Config file created: modulor.json');
   }
 }

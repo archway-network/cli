@@ -1,5 +1,5 @@
 import { Choice, PromptObject } from 'prompts';
-import { Chain } from '../../services/Chain';
+import { Chain } from '../services/Chain';
 
 const ChainDetails: Record<string, Partial<Choice>> = {
   'constantine-1': { description: 'Stable testnet - recommended for dApp development' },

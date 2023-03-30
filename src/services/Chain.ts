@@ -1,4 +1,4 @@
-import { CosmosChain } from '../types/Chain/cosmosSchema';
+import { CosmosChain } from '../types/Chain/CosmosSchema';
 import ConstantineSchema from '../repositories/ChainSchemas/constantine.json';
 import TitusSchema from '../repositories/ChainSchemas/titus.json';
 import LocalSchema from '../repositories/ChainSchemas/local.json';
@@ -10,11 +10,11 @@ export class Chain {
     'local-1': LocalSchema as CosmosChain,
   };
 
-  static getChainById = (chainId: string): CosmosChain | undefined => {
+  static getChainById(chainId: string): CosmosChain | undefined {
     return this.chainMap[chainId];
-  };
+  }
 
-  static getChainIds = (): string[] => {
+  static getChainIds(): string[] {
     return Object.keys(this.chainMap);
-  };
+  }
 }
