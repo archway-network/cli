@@ -1,10 +1,13 @@
-import { ConfigData } from '../types/Config/ConfigData';
+import { ConfigData, ConfigDataWithContracts } from '../types/ConfigData';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import _ from 'lodash';
-
-export const DefaultConfigFileName = 'modulor.json';
-export const DefaultContractsPath = './contracts';
+import { getWokspaceRoot } from '../utils/paths';
+import { MergeMode } from '../types/utils';
+import { mergeCustomizer } from '../utils';
+import { DefaultConfigFileName, DefaultContractsRelativePath } from '../config';
+import { bold } from '../utils/style';
+import { Contracts } from './Contracts';
 
 export class ConfigFile {
   private _data: ConfigData;
@@ -19,19 +22,18 @@ export class ConfigFile {
     return this._data;
   }
 
-  static init(data: ConfigData, workspaceRoot = './'): ConfigFile {
-    const configData = _.defaultsDeep(data, { contractPaths: DefaultContractsPath });
-    const configPath = this.getFilePath(workspaceRoot);
+  get path(): string {
+    return this._path;
+  }
+
+  static async init(data: ConfigData, workspaceRoot?: string): Promise<ConfigFile> {
+    const configData = _.defaultsDeep(data, { contractsPath: DefaultContractsRelativePath });
+    const configPath = await this.getFilePath(workspaceRoot);
     return new ConfigFile(configData, configPath);
   }
 
-  async write(): Promise<void> {
-    const json = JSON.stringify(this._data, null, 2);
-    await fs.writeFile(this._path, json);
-  }
-
-  static async exists(workspaceRoot = './'): Promise<boolean> {
-    const configPath = this.getFilePath(workspaceRoot);
+  static async exists(workspaceRoot?: string): Promise<boolean> {
+    const configPath = await this.getFilePath(workspaceRoot);
     try {
       await fs.access(configPath);
       return true;
@@ -40,15 +42,52 @@ export class ConfigFile {
     }
   }
 
-  static async open(workspaceRoot = './'): Promise<ConfigFile> {
-    const configPath = this.getFilePath(workspaceRoot);
+  static async open(workspaceRoot?: string): Promise<ConfigFile> {
+    const configPath = await this.getFilePath(workspaceRoot);
     await fs.access(configPath);
-    const data: ConfigData = await import(configPath);
+    const data: ConfigData = JSON.parse(await fs.readFile(configPath, 'utf8'));
 
     return new ConfigFile(data, configPath);
   }
 
-  static getFilePath(workspaceRoot = './'): string {
+  static async getFilePath(workspaceRoot?: string): Promise<string> {
+    if (!workspaceRoot) {
+      workspaceRoot = await getWokspaceRoot();
+    }
+
     return path.join(workspaceRoot, DefaultConfigFileName);
+  }
+
+  async write(): Promise<void> {
+    const json = JSON.stringify(this._data, null, 2);
+    await fs.writeFile(this._path, json);
+  }
+
+  async update(newData: Partial<ConfigData>, writeAfterUpdate = false, arrayMergeMode = MergeMode.OVERWRITE): Promise<void> {
+    _.mergeWith(this.data, newData, mergeCustomizer(arrayMergeMode));
+
+    if (writeAfterUpdate) {
+      await this.write();
+    }
+  }
+
+  async formattedStatus(withContracts = true): Promise<string> {
+    let contractsStatus = '';
+
+    if (withContracts) {
+      const contracts = await Contracts.open(this._data.contractsPath);
+      contractsStatus = `\n\n${await contracts.formattedStatus()}`;
+    }
+
+    return `${bold('Project: ')}${this._data.name}\n${bold('Selected chain: ')}${this._data.chainId}` + contractsStatus;
+  }
+
+  async dataWithContracts(): Promise<ConfigDataWithContracts> {
+    const contracts = await Contracts.open(this._data.contractsPath);
+
+    return {
+      ...this._data,
+      contracts: contracts.data,
+    };
   }
 }

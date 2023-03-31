@@ -1,10 +1,11 @@
-import { CosmosChain } from '../types/Chain/CosmosSchema';
+import { CosmosChain } from '../types/CosmosSchema';
 import ConstantineSchema from '../repositories/ChainSchemas/constantine.json';
 import TitusSchema from '../repositories/ChainSchemas/titus.json';
 import LocalSchema from '../repositories/ChainSchemas/local.json';
 
-export class Chain {
-  private static chainMap: Record<string, CosmosChain> = {
+// eslint-disable-next-line unicorn/no-static-only-class
+export class BuiltInChains {
+  static chainMap: Record<string, CosmosChain> = {
     'constantine-1': ConstantineSchema as CosmosChain,
     'titus-1': TitusSchema as CosmosChain,
     'local-1': LocalSchema as CosmosChain,
@@ -16,5 +17,9 @@ export class Chain {
 
   static getChainIds(): string[] {
     return Object.keys(this.chainMap);
+  }
+
+  static getChainList(): CosmosChain[] {
+    return Object.values(this.chainMap);
   }
 }

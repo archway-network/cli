@@ -47,7 +47,7 @@
     "bin": "archway",
     "dirname": "archway",
     "commands": "./dist/commands",
-    "helpClass": "./src/plugins/help-plugin/help.ts",
+    "helpClass": "./src/plugins/help-plugin/help",
     "plugins": [],
     "topicSeparator": " "
   },
