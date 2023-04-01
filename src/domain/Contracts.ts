@@ -15,10 +15,6 @@ export class Contracts {
     return this._data;
   }
 
-  static init(data: Contract[]): Contracts {
-    return new Contracts(data);
-  }
-
   // to do: Add logic to read data from real files
   static async open(contractsRelativePath?: string): Promise<Contracts> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
