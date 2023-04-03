@@ -1,7 +1,7 @@
 import { Flags } from '@oclif/core';
 import { BaseCommand } from '../../lib/base';
 import { DeploymentAction } from '../../types/Deployment';
-import { Deployments } from '../../domain/Deployments';
+import { AllDeployments } from '../../domain/AllDeployments';
 
 export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployments> {
   static summary = 'Lists deployments for the currently selected network or others, depending on the criteria';
@@ -12,8 +12,8 @@ export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployme
   };
 
   public async run(): Promise<void> {
-    const deployments = await Deployments.open();
+    const deployments = await AllDeployments.open();
 
-    this.log(deployments.data.toString())
+    this.log(JSON.stringify(deployments.data))
   }
 }

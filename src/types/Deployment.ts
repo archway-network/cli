@@ -1,35 +1,38 @@
+import { TokenAmount } from './Token';
+
 export interface DeploymentFile {
-  deployments: Deployment[]
+  deployments: Deployment[];
 }
 
 export interface Deployment {
-  action: DeploymentAction
-  txhash: string
-  wasm: Wasm
-  contract: Contract
-  metadata?: Metadata
-  msg?: Msg
+  action: DeploymentAction;
+  txhash: string;
+  wasm: Wasm;
+  contract: Contract;
+  metadata?: Metadata;
+  msg?: Msg;
+  flatFee?: TokenAmount;
 }
 
 export interface Wasm {
-  codeId: number
-  checksum?: string
+  codeId: number;
+  checksum?: string;
 }
 
 export interface Contract {
-  name: string
-  version: string
-  address?: string
-  admin?: string
+  name: string;
+  version: string;
+  address?: string;
+  admin?: string;
 }
 
 export interface Metadata {
-  ownerAddress: string
-  rewardsAddress: string
+  ownerAddress: string;
+  rewardsAddress: string;
 }
 
 export interface Msg {
-  count: number
+  count: number;
 }
 
 export enum DeploymentAction {

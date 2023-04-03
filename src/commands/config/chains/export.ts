@@ -5,7 +5,7 @@ import { bold, green } from '../../../utils/style';
 import { Args } from '@oclif/core';
 import { BuiltInChains } from '../../../services/BuiltInChains';
 import { ChainRegistry } from '../../../domain/ChainRegistry';
-import { CosmosChain } from 'src/types/CosmosSchema';
+import { CosmosChain } from '../../../types/CosmosSchema';
 
 export default class ConfigChainsExport extends BaseCommand<typeof ConfigChainsExport> {
   static summary = `Exports a built-in chain registry file to ${bold(

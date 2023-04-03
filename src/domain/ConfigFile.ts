@@ -26,14 +26,14 @@ export class ConfigFile {
     return this._path;
   }
 
-  static async init(data: ConfigData, workspaceRoot?: string): Promise<ConfigFile> {
+  static async init(data: ConfigData): Promise<ConfigFile> {
     const configData = _.defaultsDeep(data, { contractsPath: DefaultContractsRelativePath });
-    const configPath = await this.getFilePath(workspaceRoot);
+    const configPath = await this.getFilePath();
     return new ConfigFile(configData, configPath);
   }
 
-  static async exists(workspaceRoot?: string): Promise<boolean> {
-    const configPath = await this.getFilePath(workspaceRoot);
+  static async exists(): Promise<boolean> {
+    const configPath = await this.getFilePath();
     try {
       await fs.access(configPath);
       return true;
@@ -42,18 +42,15 @@ export class ConfigFile {
     }
   }
 
-  static async open(workspaceRoot?: string): Promise<ConfigFile> {
-    const configPath = await this.getFilePath(workspaceRoot);
-    await fs.access(configPath);
+  static async open(): Promise<ConfigFile> {
+    const configPath = await this.getFilePath();
     const data: ConfigData = JSON.parse(await fs.readFile(configPath, 'utf8'));
 
     return new ConfigFile(data, configPath);
   }
 
-  static async getFilePath(workspaceRoot?: string): Promise<string> {
-    if (!workspaceRoot) {
-      workspaceRoot = await getWokspaceRoot();
-    }
+  static async getFilePath(): Promise<string> {
+    const workspaceRoot = await getWokspaceRoot();
 
     return path.join(workspaceRoot, DefaultConfigFileName);
   }
