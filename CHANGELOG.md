@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+
+* **networks**: update chain id and RPC endpoint for constantine-2 ([#171](https://github.com/archway-network/archway-cli/pull/171))
+
 ## [1.5.0](https://github.com/archway-network/archway-cli/compare/1.4.1...1.5.0) (2023-03-15)
 
 ### Changes
