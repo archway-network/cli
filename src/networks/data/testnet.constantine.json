@@ -21,10 +21,7 @@
       "rpc": {
         "url": "https://rpc.constantine-1.archway.tech",
         "port": 443
-      },
-      "faucets": [
-        "https://faucet.constantine-1.archway.tech"
-      ]
+      }
     }
   },
   "developer": {
