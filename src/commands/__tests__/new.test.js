@@ -346,7 +346,7 @@ describe('config file', () => {
       network: {
         type: environment,
         name: testnet,
-        chainId: 'constantine-1',
+        chainId: 'constantine-2',
         fees: {
           feeDenom: 'uconst'
         }
