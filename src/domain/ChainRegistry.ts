@@ -1,9 +1,10 @@
 import { getWokspaceRoot } from '../utils/paths';
 import path from 'node:path';
-import { DefaultChainsRelativePath } from '../config';
+import { DEFAULT } from '../config';
 import { CosmosChain } from '../types/CosmosSchema';
 import fs from 'node:fs/promises';
 import { BuiltInChains } from '../services/BuiltInChains';
+import { readFilesFromDirectory } from '../utils/filesystem';
 
 export class ChainRegistry {
   private _data: CosmosChain[];
@@ -23,19 +24,16 @@ export class ChainRegistry {
   }
 
   static async init(chainsDirectory?: string): Promise<ChainRegistry> {
-    const directoryPath = chainsDirectory || path.join(await getWokspaceRoot(), DefaultChainsRelativePath);
+    const directoryPath = chainsDirectory || path.join(await getWokspaceRoot(), DEFAULT.ChainsRelativePath);
 
-    let filesList = await fs.readdir(directoryPath);
-    filesList = filesList.filter(item => path.extname(item) === '.json');
-
-    const filesRead = await Promise.all<string>(filesList.map(item => fs.readFile(path.join(directoryPath, item), 'utf8')));
+    const filesRead = await readFilesFromDirectory(directoryPath, DEFAULT.ChainFileExtension);
 
     // List of built-in chains that could be added to final result
     const builtInToAdd = { ...BuiltInChains.chainMap };
 
     // Parse file contents, and check if they override built-in chain info
     const parsedList: CosmosChain[] = [];
-    for (const file of filesRead) {
+    for (const file of Object.values(filesRead)) {
       const parsed: CosmosChain = JSON.parse(file);
       if (BuiltInChains.getChainIds().includes(parsed.chain_id)) {
         delete builtInToAdd[parsed.chain_id];

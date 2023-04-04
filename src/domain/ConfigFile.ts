@@ -5,7 +5,7 @@ import _ from 'lodash';
 import { getWokspaceRoot } from '../utils/paths';
 import { MergeMode } from '../types/utils';
 import { mergeCustomizer } from '../utils';
-import { DefaultConfigFileName, DefaultContractsRelativePath } from '../config';
+import { DEFAULT } from '../config';
 import { bold } from '../utils/style';
 import { Contracts } from './Contracts';
 
@@ -27,7 +27,7 @@ export class ConfigFile {
   }
 
   static async init(data: ConfigData): Promise<ConfigFile> {
-    const configData = _.defaultsDeep(data, { contractsPath: DefaultContractsRelativePath });
+    const configData = _.defaultsDeep(data, { contractsPath: DEFAULT.ContractsRelativePath });
     const configPath = await this.getFilePath();
     return new ConfigFile(configData, configPath);
   }
@@ -52,7 +52,7 @@ export class ConfigFile {
   static async getFilePath(): Promise<string> {
     const workspaceRoot = await getWokspaceRoot();
 
-    return path.join(workspaceRoot, DefaultConfigFileName);
+    return path.join(workspaceRoot, DEFAULT.ConfigFileName);
   }
 
   async write(): Promise<void> {
@@ -68,12 +68,12 @@ export class ConfigFile {
     }
   }
 
-  async formattedStatus(withContracts = true): Promise<string> {
+  async prettyPrint(withContracts = true): Promise<string> {
     let contractsStatus = '';
 
     if (withContracts) {
       const contracts = await Contracts.open(this._data.contractsPath);
-      contractsStatus = `\n\n${await contracts.formattedStatus()}`;
+      contractsStatus = `\n\n${await contracts.prettyPrint()}`;
     }
 
     return `${bold('Project: ')}${this._data.name}\n${bold('Selected chain: ')}${this._data.chainId}` + contractsStatus;

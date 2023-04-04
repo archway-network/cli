@@ -1,5 +1,9 @@
-export const DefaultChainId = 'constantine-1';
-export const DefaultConfigFileName = 'modulor.json';
-export const DefaultContractsRelativePath = './contracts';
-export const DefaultChainsRelativePath = './.modulor/chains';
-export const DefaultDeploymentsRelativePath = './.modulor/deployments';
+export const DEFAULT = {
+  ChainId: 'constantine-1',
+  ConfigFileName: 'modulor.json',
+  ContractsRelativePath: './contracts',
+  ChainsRelativePath: './.modulor/chains',
+  DeploymentsRelativePath: './.modulor/deployments',
+  ChainFileExtension: '.json',
+  DeploymentFileExtension: '.json',
+};

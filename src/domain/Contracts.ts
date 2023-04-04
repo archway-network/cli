@@ -2,7 +2,7 @@ import { bold, green } from '../utils/style';
 import { Contract } from '../types/Contract';
 import { getWokspaceRoot } from '../utils/paths';
 import path from 'node:path';
-import { DefaultContractsRelativePath } from '../config';
+import { DEFAULT } from '../config';
 
 export class Contracts {
   private _data: Contract[];
@@ -35,10 +35,10 @@ export class Contracts {
   static async getFilePath(contractsRelativePath?: string): Promise<string> {
     const workspaceRoot = await getWokspaceRoot();
 
-    return path.join(workspaceRoot, contractsRelativePath || DefaultContractsRelativePath);
+    return path.join(workspaceRoot, contractsRelativePath || DEFAULT.ContractsRelativePath);
   }
 
-  async formattedStatus(): Promise<string> {
+  async prettyPrint(): Promise<string> {
     let contractsList = '';
     for (const item of this._data) {
       contractsList += `\n  ${green(item.name)} (${item.version})`;

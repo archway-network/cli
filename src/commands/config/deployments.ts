@@ -14,6 +14,10 @@ export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployme
   public async run(): Promise<void> {
     const deployments = await AllDeployments.open();
 
-    this.log(JSON.stringify(deployments.data))
+    this.log(await deployments.prettyPrint(this.flags.chain, this.flags.action as DeploymentAction, this.flags.contract));
+
+    if (this.jsonEnabled()) {
+      this.logJson(await deployments.toSingleDeploymentFile(this.flags.chain, this.flags.action as DeploymentAction, this.flags.contract));
+    }
   }
 }

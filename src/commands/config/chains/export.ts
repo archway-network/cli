@@ -1,5 +1,5 @@
 import { BaseCommand } from '../../../lib/base';
-import { DefaultChainsRelativePath } from '../../../config';
+import { DEFAULT } from '../../../config';
 import path from 'node:path';
 import { bold, green } from '../../../utils/style';
 import { Args } from '@oclif/core';
@@ -9,7 +9,7 @@ import { CosmosChain } from '../../../types/CosmosSchema';
 
 export default class ConfigChainsExport extends BaseCommand<typeof ConfigChainsExport> {
   static summary = `Exports a built-in chain registry file to ${bold(
-    path.join('{project-root}', DefaultChainsRelativePath, './{chain-id}.json')
+    path.join('{project-root}', DEFAULT.ChainsRelativePath, './{chain-id}.json')
   )}.`;
 
   static args = {

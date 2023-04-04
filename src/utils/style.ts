@@ -5,6 +5,7 @@ export const brand = _chalk.hex('#ff4d00');
 export const yellow = _chalk.yellowBright;
 export const green = _chalk.greenBright;
 export const red = _chalk.redBright;
+export const blue = _chalk.blueBright;
 
 // Styles
 export const bold = _chalk.bold;

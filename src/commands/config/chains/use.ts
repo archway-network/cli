@@ -1,12 +1,12 @@
 import { BaseCommand } from '../../../lib/base';
-import { DefaultConfigFileName } from '../../../config';
+import { DEFAULT } from '../../../config';
 import { bold, green, red } from '../../../utils/style';
 import { ChainRegistry } from '../../../domain/ChainRegistry';
 import { ConfigFile } from '../../../domain/ConfigFile';
 import { Flags } from '@oclif/core';
 
 export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse> {
-  static summary = `Switches the current chain in use and updates the ${bold(DefaultConfigFileName)} config file with his information.`;
+  static summary = `Switches the current chain in use and updates the ${bold(DEFAULT.ConfigFileName)} config file with his information.`;
   static flags = {
     chain: Flags.string({ required: true }),
   };

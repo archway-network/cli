@@ -1,5 +1,5 @@
 import { Choice, PromptObject } from 'prompts';
-import { DefaultChainId } from '../config';
+import { DEFAULT } from '../config';
 import { BuiltInChains } from './BuiltInChains';
 
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
@@ -22,7 +22,7 @@ export const ChainPrompt: PromptObject = {
   type: 'select',
   name: 'chain',
   message: 'Select a chain to use',
-  initial: ChainListForPrompt.findIndex(item => item.value === DefaultChainId),
+  initial: ChainListForPrompt.findIndex(item => item.value === DEFAULT.ChainId),
   choices: ChainListForPrompt,
   warn: 'This network is unavailable for now',
 };

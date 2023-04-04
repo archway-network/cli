@@ -1,7 +1,7 @@
 import { BaseCommand } from '../../../lib/base';
-import { DefaultChainsRelativePath } from '../../../config';
+import { DEFAULT } from '../../../config';
 import path from 'node:path';
-import { bold, green, red } from '../../../utils/style';
+import { bold, green } from '../../../utils/style';
 import { Args } from '@oclif/core';
 import fs from 'node:fs/promises';
 import { CosmosChain } from '../../../types/CosmosSchema';
@@ -9,7 +9,7 @@ import { ChainRegistry } from '../../../domain/ChainRegistry';
 
 export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsImport> {
   static summary = `Import a chain registry file and save it to ${bold(
-    path.join('{project-root}', DefaultChainsRelativePath, './{chain-id}.json')
+    path.join('{project-root}', DEFAULT.ChainsRelativePath, './{chain-id}.json')
   )}.`;
 
   static args = {
