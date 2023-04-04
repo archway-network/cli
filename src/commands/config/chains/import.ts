@@ -17,13 +17,6 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
   };
 
   public async run(): Promise<void> {
-    // to do add pipe support
-    // if (this.args.file && this.argv.length === 1) {
-    //   this.error(`❌ ${red('Please specify only one file to import')}`);
-    // } else if (!this.args.file) {
-    //   this.error(`❌ ${red('Please specify the file to import as an argument, or pass the chain info in a pipe')}`);
-    // }
-
     const chainInfo: CosmosChain = JSON.parse(await fs.readFile(this.args.file as string, 'utf-8'));
 
     const chainRegistry = await ChainRegistry.init();
