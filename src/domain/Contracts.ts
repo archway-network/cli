@@ -22,6 +22,18 @@ export class Contracts {
 
     return new Contracts([
       {
+        name: 'my-contract',
+        version: '0.1.0',
+      },
+      {
+        name: 'my-contract-2',
+        version: '0.1.0',
+      },
+      {
+        name: 'my-contract-3',
+        version: '0.1.0',
+      },
+      {
         name: 'increment',
         version: '0.1.0',
       },
@@ -30,6 +42,10 @@ export class Contracts {
         version: '0.1.3',
       },
     ]);
+  }
+
+  getContractByName(contractName: string): Contract | undefined {
+    return this._data.find(item => item.name === contractName);
   }
 
   static async getFilePath(contractsRelativePath?: string): Promise<string> {

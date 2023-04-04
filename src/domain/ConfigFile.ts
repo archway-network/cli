@@ -8,6 +8,8 @@ import { mergeCustomizer } from '../utils';
 import { DEFAULT } from '../config';
 import { bold } from '../utils/style';
 import { Contracts } from './Contracts';
+import { FileAlreadyExistsError } from '../exceptions';
+import { writeFileWithDir } from '../utils/filesystem';
 
 export class ConfigFile {
   private _data: ConfigData;
@@ -49,6 +51,26 @@ export class ConfigFile {
     return new ConfigFile(data, configPath);
   }
 
+  static async create(chainId: string): Promise<ConfigFile> {
+    if (await ConfigFile.exists()) {
+      throw new Error((new FileAlreadyExistsError(DEFAULT.ConfigFileName)).toConsoleString());
+    }
+
+    // Get Workspace root
+    const workingDir = await getWokspaceRoot();
+    // Get name of Workspace root directory
+    const name = path.basename(workingDir).replace(' ', '-');
+
+    // Create config file
+    const configFile = await ConfigFile.init({
+      name,
+      chainId,
+    });
+    await configFile.write();
+
+    return configFile;
+  }
+
   static async getFilePath(): Promise<string> {
     const workspaceRoot = await getWokspaceRoot();
 
@@ -57,7 +79,7 @@ export class ConfigFile {
 
   async write(): Promise<void> {
     const json = JSON.stringify(this._data, null, 2);
-    await fs.writeFile(this._path, json);
+    await writeFileWithDir(this._path, json);
   }
 
   async update(newData: Partial<ConfigData>, writeAfterUpdate = false, arrayMergeMode = MergeMode.OVERWRITE): Promise<void> {

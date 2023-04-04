@@ -1,10 +1,9 @@
 import _ from 'lodash';
 import promptsMain, { prompts, inject, override, PromptObject, Answers, Options } from 'prompts';
-
-export class PromptCancelledError extends Error {}
+import { PromptCancelledError } from '../exceptions';
 
 const onCancel = () => {
-  throw new PromptCancelledError('Cancelled');
+  throw new Error(new PromptCancelledError().toConsoleString());
 };
 
 export const showPrompt = async (questions: PromptObject | PromptObject[], options?: Options): Promise<Answers<any>> => {

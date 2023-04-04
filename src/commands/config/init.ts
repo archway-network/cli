@@ -1,14 +1,11 @@
 import { Flags } from '@oclif/core';
 import { BuiltInChains } from '../../services/BuiltInChains';
 import { BaseCommand } from '../../lib/base';
-import { showPrompt } from '../../actions/Prompt';
+import { showPrompt } from '../../ui/Prompt';
 import { ChainPrompt } from '../../services/Prompts';
 import { ConfigFile } from '../../domain/ConfigFile';
 import { bold, green } from '../../utils/style';
 import { DEFAULT } from '../../config';
-import path from 'node:path';
-import { getWokspaceRoot } from '../../utils/paths';
-import { FileAlreadyExistsError } from '../../errors/FileAlreadyExistsError';
 
 export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
   static summary = 'Initializes a config file for the current project.';
@@ -17,31 +14,15 @@ export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
   };
 
   public async run(): Promise<void> {
-    // Get flags
-    const { flags } = await this.parse(ConfigInit);
-    let chain = flags.chain;
-
-    if (await ConfigFile.exists()) {
-      this.error((new FileAlreadyExistsError(DEFAULT.ConfigFileName)).toConsoleString());
-    }
+    let chainId = this.flags?.chain;
 
     // If chain flag is not set, prompt user
-    if (!chain) {
+    if (!chainId) {
       const response = await showPrompt(ChainPrompt);
-      chain = response.chain as string;
+      chainId = response.chain as string;
     }
 
-    // Get Workspace root
-    const workingDir = await getWokspaceRoot();
-    // Get name of Workspace root directory
-    const name = path.basename(workingDir);
-
-    // Create config file
-    const configFile = await ConfigFile.init({
-      name,
-      chainId: chain,
-    });
-    await configFile.write();
+    await ConfigFile.create(chainId);
 
     this.log(`✅ ${green('Config file')} ${bold(DEFAULT.ConfigFileName)} ${green('created')}`);
   }

@@ -15,3 +15,22 @@ export const readFilesFromDirectory = async (directoryPath: string, extension?: 
 
   return result;
 };
+
+// Creates directories if they don't exist
+export const writeFileWithDir = async (filePath: string, data: string): Promise<void> => {
+  const dirPath = path.dirname(filePath);
+
+  let dirExists = true;
+
+  try {
+    await fs.access(dirPath);
+  } catch {
+    dirExists = false;
+  }
+
+  if (!dirExists) {
+    await fs.mkdir(dirPath, { recursive: true });
+  }
+
+  return fs.writeFile(filePath, data);
+};

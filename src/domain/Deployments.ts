@@ -7,7 +7,7 @@ import { DEFAULT } from '../config';
 import path from 'node:path';
 import { readFilesFromDirectory } from '../utils/filesystem';
 
-export class AllDeployments {
+export class Deployments {
   private _data: DeploymentsByChain[];
 
   constructor(data: DeploymentsByChain[]) {
@@ -18,7 +18,7 @@ export class AllDeployments {
     return this._data;
   }
 
-  static async open(): Promise<AllDeployments> {
+  static async open(): Promise<Deployments> {
     // Get all deployments of all chains
     const deploymentsPath = await this.getDeploymentsPath();
     const filesRead = await readFilesFromDirectory(deploymentsPath, DEFAULT.DeploymentFileExtension);
@@ -30,7 +30,7 @@ export class AllDeployments {
       allDeployments.push(new DeploymentsByChain(path.basename(fileName, DEFAULT.DeploymentFileExtension), deployment));
     }
 
-    return new AllDeployments(allDeployments);
+    return new Deployments(allDeployments);
   }
 
   static async getDeploymentsPath(): Promise<string> {
