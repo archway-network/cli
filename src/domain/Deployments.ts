@@ -7,6 +7,8 @@ import { DEFAULT } from '../config';
 import path from 'node:path';
 import { readFilesFromDirectory } from '../utils/filesystem';
 
+export const noDeploymentsMessage = 'No deployments found';
+
 export class Deployments {
   private _data: DeploymentsByChain[];
 
@@ -62,7 +64,7 @@ export class Deployments {
     const filtered = this.filter(chainId, action, contractName);
 
     if (!filtered?.length) {
-      return `${bold('No deployments found')}`;
+      return `${bold(noDeploymentsMessage)}`;
     }
 
     // Create chain registry instance to get explorer url

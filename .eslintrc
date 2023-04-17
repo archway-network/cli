@@ -13,6 +13,7 @@
           "pascalCase": true
         }
       }
-    ]
+    ],
+    "indent": ["error", 2, { "MemberExpression": 1 }]
   }
 }

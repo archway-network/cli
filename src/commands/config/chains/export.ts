@@ -21,6 +21,6 @@ export default class ConfigChainsExport extends BaseCommand<typeof ConfigChainsE
 
     await chainRegistry.writeChainFile(BuiltInChains.getChainById(this.args.chain) as CosmosChain);
 
-    this.log(`✅ ${green('Exported chain to')} ${bold(path.join(chainRegistry.path, `./${this.args.chain}.json`))}`);
+    this.success(`${green('Exported chain to')} ${bold(path.join(chainRegistry.path, `./${this.args.chain}.json`))}`);
   }
 }

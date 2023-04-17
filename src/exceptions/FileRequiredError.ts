@@ -1,12 +1,13 @@
 import { ConsoleError } from '../types/ConsoleError';
 import { red } from '../utils/style';
+import { ErrorCodes } from './ErrorCodes';
 
 export class FileRequiredError extends ConsoleError {
   constructor() {
-    super(6);
+    super(ErrorCodes.FILE_REQUIRED);
   }
 
   toConsoleString(): string {
-    return `❌ ${red('Please specify the file')}`;
+    return `${red('Please specify the file')}`;
   }
 }

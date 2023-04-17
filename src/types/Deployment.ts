@@ -1,4 +1,4 @@
-import { TokenAmount } from './Token';
+import { Coin } from './Coin';
 
 export interface DeploymentFile {
   deployments: Deployment[];
@@ -11,7 +11,7 @@ export interface Deployment {
   contract: Contract;
   metadata?: Metadata;
   msg?: Msg;
-  flatFee?: TokenAmount;
+  flatFee?: Coin;
 }
 
 export interface Wasm {

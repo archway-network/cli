@@ -1,17 +1,83 @@
-import {expect, test} from '@oclif/test'
+import { expect, test } from '@oclif/test';
+import sinon, { SinonStub, SinonSpy } from 'sinon';
+import fs from 'node:fs/promises';
+import ConfigChains from '../../../src/commands/config/chains';
 
-describe('config:chains', () => {
-  test
-  .stdout()
-  .command(['config:chains'])
-  .it('runs hello', ctx => {
-    expect(ctx.stdout).to.contain('hello world')
-  })
+const expectHelp = (ctx: any) => {
+  expect(ctx.stdout).to.contain('Description:');
+  expect(ctx.stdout).to.contain('USAGE');
+  expect(ctx.stdout).to.contain('Available commands:');
+  expect(ctx.stdout).to.contain(ConfigChains.summary);
+};
 
-  test
-  .stdout()
-  .command(['config:chains', '--name', 'jeff'])
-  .it('runs hello --name jeff', ctx => {
-    expect(ctx.stdout).to.contain('hello jeff')
-  })
-})
+describe('config chains', () => {
+  let accessStub: SinonStub;
+  let writeStub: SinonStub;
+  let readStub: SinonStub;
+  let mkdirStub: SinonSpy;
+  let readdirStub: SinonSpy;
+
+  before(() => {
+    accessStub = sinon.stub(fs, 'access').rejects();
+    writeStub = sinon.stub(fs, 'writeFile');
+    readStub = sinon.stub(fs, 'readFile').callsFake(async () => '{}');
+    mkdirStub = sinon.stub(fs, 'mkdir');
+    readdirStub = sinon.stub(fs, 'readdir');
+  });
+
+  after(() => {
+    accessStub.restore();
+    writeStub.restore();
+    readStub.restore();
+    mkdirStub.restore();
+    readdirStub.restore();
+  });
+
+  describe('import', () => {
+    test
+      .stdout()
+      .command(['config chains import', 'constantine-1'])
+      .it('imports chain and writes file', ctx => {
+        expect(ctx.stdout).to.contain('Imported chain');
+        expect(writeStub.called).to.be.true;
+      });
+
+    test
+      .stderr()
+      .command(['config chains import'])
+      .catch(/(Please specify the file)/)
+      .it('fails on missing filename');
+
+    test
+      .stderr()
+      .command(['config chains import', 'constantine-1', '"{}"'])
+      .catch(/(Please specify only one file to import)/)
+      .it('fails on double input');
+  });
+
+  describe('export', () => {
+    test
+      .stdout()
+      .command(['config chains export', 'constantine-1'])
+      .it('exports chain to file', ctx => {
+        expect(ctx.stdout).to.contain('Exported chain to');
+        expect(writeStub.called).to.be.true;
+      });
+  });
+
+  describe('use', () => {
+    test
+      .stdout()
+      .command(['config chains use', '--chain=constantine-1'])
+      .it('updates config file to use chain', ctx => {
+        expect(ctx.stdout).to.contain('Switched chain to');
+        expect(writeStub.called).to.be.true;
+      });
+  });
+
+  describe('help', () => {
+    test.stdout().command(['config chains']).it('shows the config help when no other arguments', expectHelp);
+
+    test.stdout().command(['config chains', '--help']).it('shows the config help when the flag is set', expectHelp);
+  });
+});

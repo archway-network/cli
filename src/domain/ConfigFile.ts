@@ -53,7 +53,7 @@ export class ConfigFile {
 
   static async create(chainId: string): Promise<ConfigFile> {
     if (await ConfigFile.exists()) {
-      throw new Error((new FileAlreadyExistsError(DEFAULT.ConfigFileName)).toConsoleString());
+      throw new FileAlreadyExistsError(DEFAULT.ConfigFileName);
     }
 
     // Get Workspace root

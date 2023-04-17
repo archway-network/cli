@@ -1,12 +1,14 @@
 import { BaseCommand } from '../../../lib/base';
 import { DEFAULT } from '../../../config';
 import path from 'node:path';
-import { bold, green } from '../../../utils/style';
+import { bold, green, red } from '../../../utils/style';
 import { Args } from '@oclif/core';
 import fs from 'node:fs/promises';
 import { CosmosChain } from '../../../types/CosmosSchema';
 import { ChainRegistry } from '../../../domain/ChainRegistry';
-import { FileRequiredError, OnlyOneImportError } from '../../../exceptions';
+import { FileRequiredError } from '../../../exceptions';
+import { ConsoleError } from '../../../types/ConsoleError';
+import { ErrorCodes } from '../../../exceptions/ErrorCodes';
 
 export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsImport> {
   static summary = `Import a chain registry file and save it to ${bold(
@@ -20,9 +22,9 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
 
   public async run(): Promise<void> {
     if (this.args.file && this.args.piped) {
-      this.error(new OnlyOneImportError().toConsoleString());
+      throw new OnlyOneImportError();
     } else if (!this.args.file && !this.args.piped) {
-      this.error(new FileRequiredError().toConsoleString());
+      throw new FileRequiredError();
     }
 
     // If it is piped, parse the received content, otherwise try to open file
@@ -34,6 +36,16 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
 
     await chainRegistry.writeChainFile(chainInfo);
 
-    this.log(`✅ ${green('Imported chain')} ${bold(chainInfo.chain_id)}`);
+    this.success(`${green('Imported chain')} ${bold(chainInfo.chain_id)}`);
+  }
+}
+
+export class OnlyOneImportError extends ConsoleError {
+  constructor() {
+    super(ErrorCodes.ONLY_ONE_IMPORT);
+  }
+
+  toConsoleString(): string {
+    return `${red('Please specify only one file to import')}`;
   }
 }

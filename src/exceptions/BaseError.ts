@@ -1,12 +1,13 @@
 import { ConsoleError } from '../types/ConsoleError';
 import { red } from '../utils/style';
+import { ErrorCodes } from './ErrorCodes';
 
 export class BaseError extends ConsoleError {
   constructor() {
-    super(0);
+    super(ErrorCodes.BASE);
   }
 
   toConsoleString(): string {
-    return `❌ ${red('Unexpected error happened')}`;
+    return red('An unexpected error happened');
   }
 }

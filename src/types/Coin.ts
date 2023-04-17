@@ -1,4 +1,4 @@
-export interface TokenAmount {
+export interface Coin {
   denom: string;
   amount: string;
 }

@@ -2,7 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 export const readFilesFromDirectory = async (directoryPath: string, extension?: string): Promise<Record<string, string>> => {
-  let filesList = await fs.readdir(directoryPath);
+  let filesList = (await fs.readdir(directoryPath)) || [];
 
   if (extension) filesList = filesList.filter(item => path.extname(item) === extension);
 

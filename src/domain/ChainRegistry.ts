@@ -6,7 +6,9 @@ import fs from 'node:fs/promises';
 import { BuiltInChains } from '../services/BuiltInChains';
 import { readFilesFromDirectory, writeFileWithDir } from '../utils/filesystem';
 import { FileAlreadyExistsError } from '../exceptions';
-import { bold, yellow } from '../utils/style';
+import { bold, red, yellow } from '../utils/style';
+import { ConsoleError } from '../types/ConsoleError';
+import { ErrorCodes } from '../exceptions/ErrorCodes';
 
 export class ChainRegistry {
   private _data: CosmosChain[];
@@ -58,14 +60,14 @@ export class ChainRegistry {
       }
 
       if (BuiltInChains.getChainIds().includes(fileNameChainId)) {
-        delete builtInToAdd[parsed.chain_id];
+        delete builtInToAdd[fileNameChainId];
       }
 
       parsedList.push(parsed);
     }
 
     // Create chain registry with the parsed chains and the built-in chains pending to add
-    return new ChainRegistry([...parsedList, ...Object.values(builtInToAdd)], directoryPath, warnings);
+    return new ChainRegistry([...Object.values(builtInToAdd), ...parsedList], directoryPath, warnings);
   }
 
   static async getDirectoryPath(): Promise<string> {
@@ -86,6 +88,10 @@ export class ChainRegistry {
     }
   }
 
+  assertGetChainById(chainId: string): void {
+    if (!this.getChainById(chainId)) throw new ChainIdNotFoundError(chainId);
+  }
+
   getChainById(chainId: string): CosmosChain | undefined {
     return this._data.find(item => item.chain_id === chainId);
   }
@@ -94,7 +100,7 @@ export class ChainRegistry {
     const newChainId = chain.chain_id;
 
     if (!canOverride && (await ChainRegistry.exists(newChainId))) {
-      throw new Error(new FileAlreadyExistsError(`${newChainId}${DEFAULT.ChainFileExtension}`).toConsoleString());
+      throw new FileAlreadyExistsError(`${newChainId}${DEFAULT.ChainFileExtension}`);
     }
 
     const json = JSON.stringify(chain, null, 2);
@@ -107,19 +113,30 @@ export class ChainRegistry {
     this._data = this._data.map(item => (item.chain_id === newChainId ? chain : item));
   }
 
-  prettyPrintWarnings(chainId?: string): string {
-    let result = '';
-    let isFirst = true;
+  prettyPrintWarnings(chainId?: string): string[] {
+    const result: string[] = [];
 
     for (const item of this._warnings || []) {
       if (!chainId || chainId === item) {
-        result += `${isFirst ? '' : '\n'}${yellow('⚠️ Attention:')} the${
-          chainId ? '' : ` ${bold(item)}`
-        } chain spec file name does not match the chain_id property`;
-        isFirst = false;
+        result.push(
+          `${yellow('Attention:')} the${chainId ? '' : ` ${bold(item)}`} chain spec file name does not match the chain_id property`
+        );
       }
     }
 
     return result;
+  }
+}
+
+export class ChainIdNotFoundError extends ConsoleError {
+  chainId: string;
+
+  constructor(chainId: string) {
+    super(ErrorCodes.CHAIN_ID_NOT_FOUND);
+    this.chainId = chainId;
+  }
+
+  toConsoleString(): string {
+    return `${red('Chain id')} ${bold(this.chainId)} ${red('not found')}`;
   }
 }

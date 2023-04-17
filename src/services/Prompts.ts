@@ -1,28 +1,37 @@
 import { Choice, PromptObject } from 'prompts';
 import { DEFAULT } from '../config';
-import { BuiltInChains } from './BuiltInChains';
+import { ChainRegistry } from '../domain/ChainRegistry';
+import { CosmosChain } from '../types/CosmosSchema';
 
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
   'constantine-1': { description: 'Stable testnet - recommended for dApp development' },
   'titus-1': { description: 'Nightly releases - chain state can be cleared at any time' },
 };
 
-const ChainListForPrompt: Choice[] = BuiltInChains.getChainIds().map((id: string) => {
-  const chainInfo = BuiltInChains.getChainById(id);
-
-  return {
-    title: chainInfo?.pretty_name || '',
-    description: ChainPromptDetails[id]?.description,
-    value: chainInfo?.chain_id,
-    disabled: ChainPromptDetails[id]?.disabled,
-  };
-});
-
-export const ChainPrompt: PromptObject = {
+const BaseChainPrompt: PromptObject = {
   type: 'select',
   name: 'chain',
   message: 'Select a chain to use',
-  initial: ChainListForPrompt.findIndex(item => item.value === DEFAULT.ChainId),
-  choices: ChainListForPrompt,
   warn: 'This network is unavailable for now',
+};
+
+export const getChainPrompt = async (): Promise<PromptObject> => {
+  const chainRegistry = await ChainRegistry.init();
+
+  const choices = chainRegistry.data.map((item: CosmosChain) => {
+    return {
+      title: item?.pretty_name || '',
+      description: ChainPromptDetails[item.chain_id]?.description,
+      value: item?.chain_id,
+      disabled: ChainPromptDetails[item.chain_id]?.disabled,
+    };
+  });
+
+  const defaultSelected = choices.findIndex(item => item.value === DEFAULT.ChainId);
+
+  return {
+    ...BaseChainPrompt,
+    initial: defaultSelected === -1 ? undefined : defaultSelected,
+    choices,
+  };
 };

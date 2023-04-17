@@ -1,4 +1,7 @@
 import { Command, Flags, Interfaces } from '@oclif/core';
+import { ConsoleError } from '../types/ConsoleError';
+import { red, yellow } from '../utils/style';
+import { MESSAGES } from '../config';
 
 enum LogLevel {
   debug = 'debug',
@@ -41,9 +44,23 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     this.args = args as Args<T>;
   }
 
+  protected warning(message: string | string[]): void {
+    if (typeof message !== 'string') {
+      for (const item of message) this.warning(item);
+      return;
+    }
+
+    this.log(`${yellow(MESSAGES.WarningPrefix)}${message}`);
+  }
+
+  protected success(message: string): void {
+    this.log(`${MESSAGES.SuccessPrefix}${message}`);
+  }
+
   protected async catch(err: Error & { exitCode?: number }): Promise<any> {
     // add any custom logic to handle errors from the command
     // or simply return the parent class error handling
+    err.message = `${MESSAGES.ErrorPrefix}${err instanceof ConsoleError ? err.toConsoleString() : red(err.message)}`;
     return super.catch(err);
   }
 

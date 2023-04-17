@@ -1,8 +1,10 @@
-import { bold, green } from '../utils/style';
+import { bold, green, red } from '../utils/style';
 import { Contract } from '../types/Contract';
 import { getWokspaceRoot } from '../utils/paths';
 import path from 'node:path';
 import { DEFAULT } from '../config';
+import { ConsoleError } from '../types/ConsoleError';
+import { ErrorCodes } from '../exceptions/ErrorCodes';
 
 export class Contracts {
   private _data: Contract[];
@@ -44,6 +46,10 @@ export class Contracts {
     ]);
   }
 
+  assertGetContractByName(contractName: string): void {
+    if (!this.getContractByName(contractName)) throw new ContractNameNotFoundError(contractName);
+  }
+
   getContractByName(contractName: string): Contract | undefined {
     return this._data.find(item => item.name === contractName);
   }
@@ -63,5 +69,18 @@ export class Contracts {
     if (!contractsList) contractsList = '(none)';
 
     return `${bold('Available contracts: ')}${contractsList}`;
+  }
+}
+
+export class ContractNameNotFoundError extends ConsoleError {
+  contractName: string;
+
+  constructor(contractName: string) {
+    super(ErrorCodes.CONTRACT_NAME_NOT_FOUND);
+    this.contractName = contractName;
+  }
+
+  toConsoleString(): string {
+    return `${red('Contract with name')} ${bold(this.contractName)} ${red('not found')}`;
   }
 }

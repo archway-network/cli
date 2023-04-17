@@ -7,3 +7,9 @@ export const DEFAULT = {
   ChainFileExtension: '.json',
   DeploymentFileExtension: '.json',
 };
+
+export const MESSAGES = {
+  SuccessPrefix: '✅ ',
+  ErrorPrefix: '❌ ',
+  WarningPrefix: '⚠️ '
+}

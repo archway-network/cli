@@ -1,5 +1,5 @@
 import { Command, HelpBase, Interfaces, ux } from '@oclif/core';
-import { brand, yellow } from '../../utils/style';
+import { yellow } from '../../utils/style';
 
 function toArray<T>(input?: T | T[]): T[] {
   if (input === undefined) return [];

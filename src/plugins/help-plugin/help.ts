@@ -1,7 +1,6 @@
 // eslint-ignore-file
 import { Command, Help as BaseHelp } from '@oclif/core';
 import RootHelp from './root';
-import CommandHelp from './command';
 import { brand, yellow } from '../../utils/style';
 
 export default class Help extends BaseHelp {
