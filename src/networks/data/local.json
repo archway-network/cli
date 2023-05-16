@@ -4,10 +4,10 @@
     "chainId": "local-1",
     "type": "local",
     "fees": {
-      "feeDenom": "uarch"
+      "feeDenom": "aarch"
     },
     "gas": {
-      "prices": "0.002larch",
+      "prices": "900000aarch",
       "mode": "auto",
       "adjustment": "1.5"
     },
