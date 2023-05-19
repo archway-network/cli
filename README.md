@@ -1,6 +1,6 @@
 # Archway Developer CLI
 
-Make sure you've installed and configured all dependencies. For full installation and setup instructions, [visit the docs](https://docs.archway.io/docs/create/getting-started/install).
+Make sure you've installed and configured all dependencies. For full installation and setup instructions, [visit the docs](https://docs.archway.io/developers/getting-started/install).
 
 ## Dependencies
 
