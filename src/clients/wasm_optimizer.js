@@ -36,7 +36,7 @@ class WasmOptimizer {
     try {
       await this.#docker.ping();
     } catch (e) {
-      throw new Error('Docker is not running. Please start Docker and try again.');
+      throw new Error(e);
     }
 
     const image = await this.#fetchImage(isWorkspace);
