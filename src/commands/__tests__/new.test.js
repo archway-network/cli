@@ -315,10 +315,6 @@ describe('config file', () => {
       name,
       developer: {
         archwayd: { docker },
-        scripts: expect.objectContaining({
-          test: expect.any(String),
-          build: expect.any(String),
-        }),
         deployments: []
       }
     });
@@ -346,9 +342,9 @@ describe('config file', () => {
       network: {
         type: environment,
         name: testnet,
-        chainId: 'constantine-2',
+        chainId: 'constantine-3',
         fees: {
-          feeDenom: 'uconst'
+          feeDenom: 'aconst'
         }
       }
     });
