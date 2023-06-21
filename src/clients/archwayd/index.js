@@ -77,13 +77,17 @@ class ArchwayClient {
     return spawn(command, parsedArgs, { ...options, encoding: 'utf8' });
   }
 
-  async runJson(subCommand, args = [], { printStdout = true, ...options } = {}) {
+  async runJson(
+    subCommand,
+    args = [],
+    { printStdout = true, ...options } = {}
+  ) {
     try {
-      const archwayd = this.run(
-        subCommand,
-        [...args, '--output', 'json'],
-        { stdio: ['inherit', 'pipe', 'pipe'], maxBuffer: 1024 * 1024, ...options }
-      );
+      const archwayd = this.run(subCommand, [...args, '--output', 'json'], {
+        stdio: ['inherit', 'pipe', 'pipe'],
+        maxBuffer: 1024 * 1024,
+        ...options,
+      });
 
       if (printStdout) {
         archwayd.stdout?.pipe(process.stdout);
@@ -116,7 +120,10 @@ class DockerArchwayClient extends ArchwayClient {
   }
 
   get extraArgs() {
-    const dockerArgs = DockerArchwayClient.#getDockerArgs(this.workingDir, this.archwaydVersion);
+    const dockerArgs = DockerArchwayClient.#getDockerArgs(
+      this.workingDir,
+      this.archwaydVersion
+    );
     return [...dockerArgs, ...super.extraArgs];
   }
 
@@ -127,7 +134,7 @@ class DockerArchwayClient extends ArchwayClient {
       '-it',
       `--volume=${archwaydHome}:/root/.archway`,
       '--network=host',
-      `archwaynetwork/archwayd:${archwaydVersion}`
+      `archwaynetwork/archwayd:${archwaydVersion}`,
     ];
   }
 }
@@ -150,5 +157,5 @@ module.exports = Object.assign(ArchwayClient, {
   DefaultArchwaydHome,
   DefaultArchwaydVersion,
   ArchwayClientError,
-  createClient: clientFactory
+  createClient: clientFactory,
 });

@@ -104,7 +104,7 @@ describe('QueryCommands', () => {
       const contract = 'archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4';
 
       const args = '{ "get_count": {} }';
-      const output = await query.smartContract("contract-state", "smart", contract, args, defaultOptions);
+      const output = await query.smartContract('contract-state', 'smart', contract, args, defaultOptions);
       expect(output).toEqual(queryResult);
 
       expect(archwayd.calledWith).toMatchObject({

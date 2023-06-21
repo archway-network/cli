@@ -114,7 +114,7 @@ class Config {
    */
   static validate(data) {
     if (!Config.#isValidConfig(data)) {
-      throw new InvalidConfigError(`The config data seems invalid`);
+      throw new InvalidConfigError('The config data seems invalid');
     }
   }
 
@@ -163,7 +163,7 @@ class Config {
 
       return new Config(configData, configPath);
     } catch (e) {
-      throw new ConfigInitError(`Failed to initialize the project config file: make sure you are running the command from a CosmWasm project directory`, e);
+      throw new ConfigInitError('Failed to initialize the project config file: make sure you are running the command from a CosmWasm project directory', e);
     }
   }
 
@@ -183,7 +183,7 @@ class Config {
 
       return new Config(configData, configPath);
     } catch (e) {
-      throw new ConfigOpenError(`Failed to open the project config file: make sure you are running the command from an Archway project directory`, e);
+      throw new ConfigOpenError('Failed to open the project config file: make sure you are running the command from an Archway project directory', e);
     }
   }
 
@@ -232,7 +232,7 @@ class Deployments {
 
   async add(deployment = {}) {
     if (!Deployments.#isValidDeployment(deployment)) {
-      throw new InvalidDeploymentConfigError(`Could not save deployment data to config file`);
+      throw new InvalidDeploymentConfigError('Could not save deployment data to config file');
     }
 
     await this.config.update(
