@@ -10,18 +10,19 @@
       "request": "launch",
       "args": [
         "test",
-        "--",
         "--runInBand",
         "--watchAll=false",
         "--testNamePattern",
         "${jest.testNamePattern}",
         "--runTestsByPath",
-        "${jest.testFile}"
+        "${jest.testFile}",
+        "--detectOpenHandles",
+        "--coverage=false",
+        "--timeout=0"
       ],
       "cwd": "${workspaceFolder}",
       "console": "integratedTerminal",
-      "internalConsoleOptions": "neverOpen",
-      "disableOptimisticBPs": true,
+      "internalConsoleOptions": "openOnFirstSessionStart",
       "runtimeExecutable": "npm"
     }
   ]
