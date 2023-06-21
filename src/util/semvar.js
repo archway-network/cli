@@ -1,29 +1,19 @@
-const { spawn } = require('child_process');
+const semver = require('semver');
+const { spawn } = require('promisify-child-process');
 const chalk = require('chalk');
-
-function getVersion() {
-  const { version } = require('../../package.json');
-  return version;
-}
 
 async function checkSemanticVersion() {
   console.info('Checking for updates...');
-  const version = getVersion();
+  const { version, name } = require('../../package.json');
 
-  let runScript = {
-    cmd: 'npm',
-    params: ['view', '@archwayhq/cli', 'version']
-  };
+  const { stdout } = await spawn('npm', ['view', name, 'version'], { encoding: 'utf8', stdio: 'pipe' });
+  const lines = stdout.replace(/\r/g, '').split('\n');
+  const remote = lines.find(semver.valid);
 
-  const source = await spawn(runScript.cmd, runScript.params);
-  source.stdout.setEncoding('utf8');
-  source.stdout.on('data', remote => {
-    remote = remote.trim();
-    if (remote !== version) {
-      console.warn(chalk`{whiteBright A newer version of Archway CLI is available ({green.bold v${remote}})\nSupport for {green.bold v${version}} has ended. Install the latest version with {yellow.bold npm install -g @archwayhq/cli}}`);
-      console.info('If you want skip this check, prepend the command with ARCHWAY_SKIP_VERSION_CHECK=true, or add it to your environment file (.bashrc, .zshrc, ...)');
-    }
-  });
+  if (semver.gt(remote, version)) {
+    console.warn(chalk`{whiteBright A newer version of Archway CLI is available ({green.bold v${remote}})\nSupport for {green.bold v${version}} has ended. Install the latest version with {yellow.bold npm install -g @archwayhq/cli}}`);
+    console.info('If you want skip this check, prepend the command with ARCHWAY_SKIP_VERSION_CHECK=true, or add it to your environment file (.bashrc, .zshrc, ...)');
+  }
 }
 
 module.exports = { checkSemanticVersion };
