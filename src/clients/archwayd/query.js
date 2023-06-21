@@ -11,7 +11,10 @@ class QueryCommands {
 
   async txEventAttribute(txhash, eventType, attributeKey, options) {
     const transaction = await this.tx(txhash, options);
+    return QueryCommands.getTxEventAttribute(transaction, eventType, attributeKey);
+  }
 
+  static getTxEventAttribute(transaction, eventType, attributeKey) {
     const { logs: [{ events = [] } = {}] = [] } = transaction;
     const { attributes = [] } = events.find(event => event.type === eventType) || {};
     const { value } = attributes.find(attribute => attribute.key === attributeKey) || {};
@@ -34,30 +37,22 @@ class QueryCommands {
   }
 
   async #run(queryArgs = [], { node, flags = [], ...options } = {}) {
-    const args = [
-      ...queryArgs,
-      '--node', node,
-      ...flags
-    ];
-    const { stdout } = await this.#client.run(
-      'query',
-      args,
-      { printStdout: false, ...options, stdio: ['inherit', 'pipe', 'inherit'] }
-    );
+    const args = [...queryArgs, '--node', node, ...flags];
+    const { stdout } = await this.#client.run('query', args, {
+      printStdout: false,
+      ...options,
+      stdio: ['inherit', 'pipe', 'inherit'],
+    });
     return stdout;
   }
 
   async #runJson(queryArgs = [], { node, flags = [], ...options } = {}) {
-    const args = [
-      ...queryArgs,
-      '--node', node,
-      ...flags
-    ];
-    return await this.#client.runJson(
-      'query',
-      args,
-      { printStdout: false, ...options, stdio: ['inherit', 'pipe', 'pipe'] }
-    );
+    const args = [...queryArgs, '--node', node, ...flags];
+    return await this.#client.runJson('query', args, {
+      printStdout: false,
+      ...options,
+      stdio: ['inherit', 'pipe', 'pipe'],
+    });
   }
 }
 

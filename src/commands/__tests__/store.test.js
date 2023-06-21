@@ -34,17 +34,13 @@ beforeEach(() => {
   spawk.clean();
   spawk.preventUnmatched();
 
-  spawk.spawn('cargo', isCmd('metadata'))
-    .stdout(JSON.stringify(Fixtures.singleProjectMetadata));
+  spawk.spawn('cargo', isCmd('metadata')).stdout(JSON.stringify(Fixtures.singleProjectMetadata));
 
-  spawk.spawn('cargo', isCmd('locate-project'))
-    .stdout(`${cwd}/Cargo.toml`);
+  spawk.spawn('cargo', isCmd('locate-project')).stdout(`${cwd}/Cargo.toml`);
 
-  jest.spyOn(Config, 'open')
-    .mockResolvedValue(mockConfig);
+  jest.spyOn(Config, 'open').mockResolvedValue(mockConfig);
 
-  jest.spyOn(prompts, 'override')
-    .mockImplementationOnce(prompts.mockResolvedValue);
+  jest.spyOn(prompts, 'override').mockImplementationOnce(prompts.mockResolvedValue);
 });
 
 afterEach(() => {
@@ -56,18 +52,15 @@ describe('store', () => {
   const client = createClient();
 
   beforeEach(() => {
-    jest.spyOn(client.tx, 'wasm')
-      .mockResolvedValue(Fixtures.txWasmStore);
-    jest.spyOn(client.query, 'tx')
-      .mockResolvedValue(Fixtures.queryTxWasmStore);
+    jest.spyOn(client.tx, 'wasm').mockResolvedValue(Fixtures.txWasmStore);
+    jest.spyOn(client.query, 'tx').mockResolvedValue(Fixtures.queryTxWasmStore);
   });
 
   test('stores the wasm on-chain', async () => {
     jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add');
 
-    jest.spyOn(client.query, 'wasmCode')
-      .mockRejectedValue('should not happen');
+    jest.spyOn(client.query, 'wasmCode').mockRejectedValue('should not happen');
 
     await Store(client, { verify: false, from: 'alice', confirm: false });
 
@@ -78,7 +71,7 @@ describe('store', () => {
         from: 'alice',
         chainId: 'titus-1',
         node: expect.anything(),
-        flags: ['--yes']
+        flags: ['--yes'],
       })
     );
   });
@@ -87,17 +80,14 @@ describe('store', () => {
     jest.spyOn(client.query, 'txEventAttribute');
     jest.spyOn(mockConfig.deployments, 'add');
 
-    jest.spyOn(client.query, 'wasmCode')
-      .mockRejectedValue('should not happen');
+    jest.spyOn(client.query, 'wasmCode').mockRejectedValue('should not happen');
 
     await Store(client, { verify: false, from: 'alice' });
 
-    expect(client.query.txEventAttribute).toHaveBeenCalledWith(
+    expect(client.query.tx).toHaveBeenCalledWith(
       Fixtures.txWasmStore.txhash,
-      'store_code',
-      'code_id',
       expect.objectContaining({
-        node: expect.anything()
+        node: expect.anything(),
       })
     );
 
@@ -106,13 +96,12 @@ describe('store', () => {
       type: 'store',
       chainId: 'titus-1',
       codeId: 253,
-      txhash: Fixtures.txWasmStore.txhash
+      txhash: Fixtures.txWasmStore.txhash,
     });
   });
 
   test('does not validate', async () => {
-    jest.spyOn(client.query, 'wasmCode')
-      .mockRejectedValue('should not happen');
+    jest.spyOn(client.query, 'wasmCode').mockRejectedValue('should not happen');
 
     await Store(client, { verify: false, from: 'alice' });
 
@@ -124,15 +113,13 @@ describe('validate', () => {
   const client = createClient();
 
   beforeEach(() => {
-    jest.spyOn(client.query, 'wasmCode')
-      .mockResolvedValue(Fixtures.queryTxWasmStore);
+    jest.spyOn(client.query, 'wasmCode').mockResolvedValue(Fixtures.queryTxWasmStore);
 
     readFile.mockResolvedValue(Buffer.from('wasm content'));
   });
 
   test('does not store', async () => {
-    jest.spyOn(client.tx, 'wasm')
-      .mockRejectedValue('should not happen');
+    jest.spyOn(client.tx, 'wasm').mockRejectedValue('should not happen');
 
     await Store(client, { store: false, from: 'alice' });
 
@@ -146,7 +133,7 @@ describe('validate', () => {
       253,
       `${relativeOptimizedFilePath.replace('.wasm', '_download.wasm')}`,
       expect.objectContaining({
-        node: expect.anything()
+        node: expect.anything(),
       })
     );
   });
@@ -154,13 +141,9 @@ describe('validate', () => {
   test('compares the local and downloaded wasm files checksums', async () => {
     await Store(client, { store: false, from: 'bob' });
 
-    expect(readFile).toHaveBeenCalledWith(
-      relativeOptimizedFilePath
-    );
+    expect(readFile).toHaveBeenCalledWith(relativeOptimizedFilePath);
 
-    expect(readFile).toHaveBeenCalledWith(
-      `${relativeOptimizedFilePath.replace('.wasm', '_download.wasm')}`
-    );
+    expect(readFile).toHaveBeenCalledWith(`${relativeOptimizedFilePath.replace('.wasm', '_download.wasm')}`);
   });
 });
 

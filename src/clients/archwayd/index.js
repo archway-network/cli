@@ -219,5 +219,6 @@ module.exports = {
   MinimumArchwaydVersion,
   ArchwayClientError,
   ValidationError,
+  getTxEventAttribute: QueryCommands.getTxEventAttribute,
   createClient,
 };
