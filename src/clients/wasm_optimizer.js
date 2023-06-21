@@ -1,17 +1,17 @@
-const chalk = require('chalk');
-const ora = require('ora');
-const debug = require('debug')('wasm-optimizer');
-const { WritableStream } = require('node:stream/web');
-const path = require('node:path');
-const Docker = require('dockerode');
+const chalk = require("chalk");
+const ora = require("ora");
+const debug = require("debug")("wasm-optimizer");
+const { WritableStream } = require("node:stream/web");
+const path = require("node:path");
+const Docker = require("dockerode");
 
 /**
  * Wraps the rust-optimizer docker image and executes the proper optimizer for single projects or workspaces.
  */
 class WasmOptimizer {
-  static RustOptimizerImage = 'cosmwasm/rust-optimizer';
-  static WorkspaceOptimizerImage = 'cosmwasm/workspace-optimizer';
-  static Version = '0.12.12';
+  static RustOptimizerImage = "cosmwasm/rust-optimizer";
+  static WorkspaceOptimizerImage = "cosmwasm/workspace-optimizer";
+  static Version = "0.13.0";
 
   /**
    * @type {Docker}
@@ -36,7 +36,9 @@ class WasmOptimizer {
     try {
       await this.#docker.ping();
     } catch (e) {
-      throw new Error('Docker is not running. Please start Docker and try again.');
+      throw new Error(
+        "Docker is not running. Please start Docker and try again."
+      );
     }
 
     const image = await this.#fetchImage(isWorkspace);
@@ -50,27 +52,24 @@ class WasmOptimizer {
       AttachStdout: true,
       AttachStderr: true,
       Tty: false,
-      Env: [
-        'CARGO_TERM_COLOR=always',
-        'RUST_BACKTRACE=1',
-      ],
+      Env: ["CARGO_TERM_COLOR=always", "RUST_BACKTRACE=1"],
       Volumes: {
-        '/code': {},
-        '/code/target': {},
-        '/root/.cache/sccache': {},
-        '/usr/local/cargo/registry': {},
+        "/code": {},
+        "/code/target": {},
+        "/root/.cache/sccache": {},
+        "/usr/local/cargo/registry": {},
       },
       HostConfig: {
         AutoRemove: true,
         Binds: [
           `${workspaceRoot}:/code`,
           `${projectName}_cache:/code/target`,
-          'cosmwasm_sccache:/root/.cache/sccache',
-          'registry_cache:/usr/local/cargo/registry',
+          "cosmwasm_sccache:/root/.cache/sccache",
+          "registry_cache:/usr/local/cargo/registry",
         ],
       },
     };
-    debug('run', image, [], createOptions);
+    debug("run", image, [], createOptions);
 
     const stdout = createPipe(process.stdout);
     const stderr = createPipe(process.stderr);
@@ -91,17 +90,19 @@ class WasmOptimizer {
    * @param {string} containerName Name of the container to kill.
    */
   async #killIfRunning(containerName) {
-    debug('killIfRunning', 'checking if container is running', containerName);
+    debug("killIfRunning", "checking if container is running", containerName);
     const container = this.#docker.getContainer(containerName);
     try {
       const info = await container.inspect();
       if (info.State.Running) {
         const kill = container.kill();
-        ora.promise(kill, { text: chalk`{dim Killing running container {cyan ${containerName}}...}` });
+        ora.promise(kill, {
+          text: chalk`{dim Killing running container {cyan ${containerName}}...}`,
+        });
         await kill;
       }
     } catch (e) {
-      debug('killIfRunning', 'container not found', containerName);
+      debug("killIfRunning", "container not found", containerName);
     }
   }
 
@@ -112,14 +113,21 @@ class WasmOptimizer {
    * @returns {Promise<string>}
    */
   async #fetchImage(isWorkspace) {
-    const name = (isWorkspace ? WasmOptimizer.WorkspaceOptimizerImage : WasmOptimizer.RustOptimizerImage) +
-      (process.arch === 'arm64' ? '-arm64' : '');
+    const name =
+      (isWorkspace
+        ? WasmOptimizer.WorkspaceOptimizerImage
+        : WasmOptimizer.RustOptimizerImage) +
+      (process.arch === "arm64" ? "-arm64" : "");
     const image = `${name}:${WasmOptimizer.Version}`;
-    debug('fetchImage', 'searching for image locally', image);
-    const images = await this.#docker.listImages({ filters: { reference: [image] } });
+    debug("fetchImage", "searching for image locally", image);
+    const images = await this.#docker.listImages({
+      filters: { reference: [image] },
+    });
     if (images.length === 0) {
       const pull = this.#pullImage(image);
-      ora.promise(pull, { text: chalk`{dim Pulling docker image {cyan ${image}}...}` });
+      ora.promise(pull, {
+        text: chalk`{dim Pulling docker image {cyan ${image}}...}`,
+      });
       await pull;
     }
 
@@ -133,7 +141,7 @@ class WasmOptimizer {
    * @returns the pull stream output.
    */
   async #pullImage(image) {
-    debug('pullImage', 'downloading image', image);
+    debug("pullImage", "downloading image", image);
     return await new Promise((resolve, reject) => {
       this.#docker.pull(image, (err, stream) => {
         if (err) {
