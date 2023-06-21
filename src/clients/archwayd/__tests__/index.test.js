@@ -1,27 +1,37 @@
-const { DefaultArchwaydVersion, DefaultArchwaydHome, createClient } = require('..');
+const _ = require('lodash');
+const {
+  ArchwayClient,
+  DockerArchwayClient,
+  DefaultArchwaydHome,
+  MinimumArchwaydVersion,
+  ValidationError,
+  createClient
+} = require('..');
 const spawk = require('spawk');
+
+const isCmd = cmd => _.chain(_).head().eq(cmd).value();
 
 describe('ArchwayClient', () => {
   describe('constructor', () => {
-    test('builds a client that runs the archwayd binary', async () => {
-      const client = await createClient();
+    test('builds a client that runs the archwayd binary', () => {
+      const client = new ArchwayClient();
       const command = client.command;
       expect(command).toEqual('archwayd');
     });
   });
 
   describe('getExtraArgs', () => {
-    test('saves the extraArgs property', async () => {
+    test('saves the extraArgs property', () => {
       const extraArgs = ['--foo', '--bar'];
-      const client = await createClient({ extraArgs });
+      const client = new ArchwayClient({ extraArgs });
       expect(client.extraArgs).toEqual(extraArgs);
     });
   });
 
   describe('parseArgs', () => {
-    test('extends the supplied args', async () => {
+    test('extends the supplied args', () => {
       const extraArgs = ['--foo', '--bar'];
-      const client = await createClient({ extraArgs });
+      const client = new ArchwayClient({ extraArgs });
 
       const args = ['keys', 'list'];
       const expectedArgs = [...extraArgs, ...args];
@@ -31,8 +41,8 @@ describe('ArchwayClient', () => {
   });
 
   describe('getWorkingDir', () => {
-    test('returns the current folder', async () => {
-      const client = await createClient();
+    test('returns the current folder', () => {
+      const client = new ArchwayClient();
       expect(client.workingDir).toEqual('.');
     });
   });
@@ -49,7 +59,7 @@ describe('ArchwayClient', () => {
     });
 
     test('runs the archwayd binary with valid arguments', async () => {
-      const client = await createClient({ extraArgs: ['--keyring-backend', 'test'] });
+      const client = new ArchwayClient({ extraArgs: ['--keyring-backend', 'test'] });
       const archwayd = spawk.spawn(client.command);
 
       await client.run('keys', ['list']);
@@ -62,7 +72,7 @@ describe('ArchwayClient', () => {
     });
 
     test('returns the spawned process data', async () => {
-      const client = await createClient({ extraArgs: ['--keyring-backend', 'test'] });
+      const client = new ArchwayClient({ extraArgs: ['--keyring-backend', 'test'] });
       const archwayd = spawk.spawn(client.command).exit(1);
 
       const process = client.run('keys', ['list']);
@@ -84,7 +94,7 @@ describe('ArchwayClient', () => {
     });
 
     test('runs archwayd and parses the output as json', async () => {
-      const client = await createClient({ extraArgs: ['--keyring-backend', 'test'] });
+      const client = new ArchwayClient({ extraArgs: ['--keyring-backend', 'test'] });
       const output = { txhash: '123456' };
       const archwayd = spawk.spawn(client.command)
         .stdout(JSON.stringify(output));
@@ -100,8 +110,8 @@ describe('ArchwayClient', () => {
       expect(json).toMatchObject(output);
     });
 
-    test('returns an empty JSON in case the command does not return a JSON line', async () => {
-      const client = await createClient({ extraArgs: ['--keyring-backend', 'test'] });
+    test('returns an empty JSON in case the command does not return a JSON line', () => {
+      const client = new ArchwayClient({ extraArgs: ['--keyring-backend', 'test'] });
       spawk.spawn(client.command);
 
       const json = client.runJson('keys', ['list'], { printStdout: false });
@@ -109,48 +119,106 @@ describe('ArchwayClient', () => {
       expect(json).toMatchObject({});
     });
   });
+
+  describe('validateVersion', () => {
+    test('throws an error if the version is not a valid semver', async () => {
+      const client = new ArchwayClient({ archwaydVersion: 'x.y.z' });
+      await expect(client.validateVersion()).rejects.toThrow(ValidationError);
+    });
+
+    test('throws an error if the version is lower than the minimum', async () => {
+      const client = new ArchwayClient({ archwaydVersion: '0.0.1' });
+      await expect(client.validateVersion()).rejects.toThrow(ValidationError);
+    });
+
+    test('throws an error if the binary version is lower than the specified', async () => {
+      const client = new ArchwayClient();
+      const archwayd = spawk.spawn(client.command, isCmd('version')).stdout('0.0.1');
+
+      await expect(client.validateVersion()).rejects.toThrow(ValidationError);
+
+      expect(archwayd.called).toBeTruthy();
+    });
+
+    test('accepts the minimum version', async () => {
+      const client = new ArchwayClient();
+      const archwayd = spawk.spawn(client.command, isCmd('version')).stdout(MinimumArchwaydVersion);
+
+      await expect(client.validateVersion()).resolves.not.toThrow(ValidationError);
+
+      expect(archwayd.called).toBeTruthy();
+    });
+
+    test('accepts anything higher than the minimum version', async () => {
+      const client = new ArchwayClient({ archwaydVersion: '10.0.0' });
+      const archwayd = spawk.spawn(client.command, isCmd('version')).stdout('10.0.0');
+
+      await expect(client.validateVersion()).resolves.not.toThrow(ValidationError);
+
+      expect(archwayd.called).toBeTruthy();
+    });
+  });
 });
 
 describe('DockerArchwayClient', () => {
   describe('constructor', () => {
-    test('builds a client that runs using Docker', async () => {
-      const client = await createClient({ docker: true });
+    test('builds a client that runs using Docker', () => {
+      const client = new DockerArchwayClient();
       const command = client.command;
       expect(command).toEqual('docker');
     });
   });
 
   describe('getExtraArgs', () => {
-    test('extends the extraArgs with Docker args', async () => {
-      const client = await createClient({ docker: true });
+    test('extends the extraArgs with Docker args', () => {
+      const client = new DockerArchwayClient();
       expect(client.extraArgs).toEqual(expect.arrayContaining([
         'run',
         '--rm',
         '-it',
         '--network=host',
         `--volume=${DefaultArchwaydHome}:/root/.archway`,
-        `archwaynetwork/archwayd:${DefaultArchwaydVersion}`
+        `archwaynetwork/archwayd:v${MinimumArchwaydVersion}`
       ]));
     });
 
-    test('allows overriding the archwayd home path and version', async () => {
+    test('allows overriding the archwayd home path and version', () => {
       const archwaydHome = '/tmp/.archwayd';
-      const archwaydVersion = 'edge';
+      const archwaydVersion = '0.0.1';
 
-      const client = await createClient({ docker: true, archwaydHome, archwaydVersion });
+      const client = new DockerArchwayClient({ archwaydHome, archwaydVersion });
 
       expect(client.extraArgs).toEqual(expect.arrayContaining([
         `--volume=${archwaydHome}:/root/.archway`,
-        `archwaynetwork/archwayd:${archwaydVersion}`
+        `archwaynetwork/archwayd:v${archwaydVersion}`
       ]));
     });
   });
 
   describe('getWorkingDir', () => {
-    test('returns the current archwayd home', async () => {
+    test('returns the current archwayd home', () => {
       const archwaydHome = '/tmp/.archwayd';
-      const client = await createClient({ docker: true, archwaydHome });
+      const client = new DockerArchwayClient({ archwaydHome });
       expect(client.workingDir).toEqual(archwaydHome);
     });
+  });
+});
+
+describe('createClient', () => {
+  test('creates an ArchwayClient when not using docker', async () => {
+    spawk.spawn('archwayd', isCmd('version')).stdout(MinimumArchwaydVersion);
+    const client = await createClient();
+    expect(client).toBeInstanceOf(ArchwayClient);
+  });
+
+  test('creates a DockerArchwayClient when using docker', async () => {
+    spawk.spawn('archwayd', isCmd('version')).stdout(MinimumArchwaydVersion);
+    const client = await createClient({ docker: true });
+    expect(client).toBeInstanceOf(DockerArchwayClient);
+  });
+
+  test('validates the client version', async () => {
+    const client = createClient({ archwaydVersion: '0.0.2' });
+    await expect(client).rejects.toThrow(ValidationError);
   });
 });

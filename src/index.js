@@ -76,7 +76,7 @@ program
   .addOption(DockerOption)
   .action(async options => {
     options = await updateWithDockerOptions(options);
-    const archwayd = createClient(options);
+    const archwayd = await createClient(options);
     await Tools.Accounts(archwayd, options);
   });
 
@@ -109,7 +109,7 @@ program
   .addOption(DockerOption)
   .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
-    const archwayd = createClient(options);
+    const archwayd = await createClient(options);
     await Tools.Instantiate(archwayd, options);
   });
 
@@ -128,7 +128,7 @@ program
   .addOption(DockerOption)
   .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
-    const archwayd = createClient(options);
+    const archwayd = await createClient(options);
     await Tools.Deploy(archwayd, options);
   });
 
@@ -169,7 +169,7 @@ program
   .addOption(DockerOption)
   .action(async options => {
     options = await updateWithDockerOptions(options);
-    const archwayd = createClient(options);
+    const archwayd = await createClient(options);
     await Tools.Metadata(archwayd, options);
   });
 
@@ -224,7 +224,7 @@ program
   .description('Query for data on Archway network')
   .action(async (module, type, options) => {
     options = await updateWithDockerOptions(options);
-    const archwayd = createClient(options);
+    const archwayd = await createClient(options);
     await Tools.Query(archwayd, { module, type, options });
   });
 
@@ -238,7 +238,7 @@ program
   .addOption(DockerOption)
   .action(async ({ ...options }) => {
     options = await updateWithDockerOptions(options);
-    const archwayd = createClient(options);
+    const archwayd = await createClient(options);
     await Tools.Store(archwayd, options);
   });
 
@@ -253,7 +253,7 @@ program
   .description('Execute a smart contract transaction on Archway network')
   .action(async options => {
     options = await updateWithDockerOptions(options);
-    const archwayd = createClient(options);
+    const archwayd = await createClient(options);
     await Tools.Tx(archwayd, options);
   });
 
