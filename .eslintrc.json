@@ -9,12 +9,7 @@
   "parserOptions": {
     "ecmaVersion": "latest"
   },
-  "extends": [
-    "eslint:recommended",
-    "plugin:node/recommended",
-    "plugin:jest/recommended",
-    "prettier"
-  ],
+  "extends": ["eslint:recommended", "plugin:node/recommended", "plugin:jest/recommended", "prettier"],
   "rules": {
     "indent": ["error", 2],
     "array-callback-return": "error",
@@ -53,7 +48,7 @@
         "allowArrowFunctions": true
       }
     ],
-    "implicit-arrow-linebreak": "error",
+    "implicit-arrow-linebreak": "off",
     "generator-star-spacing": "error",
     "linebreak-style": "error",
     "key-spacing": "error",
