@@ -22,19 +22,17 @@ function getVersion() {
 async function getDefaultsFromConfig() {
   try {
     const {
-      developer: { archwayd: { docker = false, version: archwaydVersion } = {} } = {}
+      developer: { archwayd: { docker = false } = {} } = {},
+      network: { wasm: { archwayd: archwaydVersion } = {} } = {},
     } = await Config.read();
-    return { archwaydVersion, docker };
+    return { docker, archwaydVersion };
   } catch (e) {
     return { docker: false };
   }
 }
 
 async function updateWithDockerOptions(options) {
-  return await _.defaults(
-    options,
-    await getDefaultsFromConfig()
-  );
+  return await _.defaults(options, await getDefaultsFromConfig());
 }
 
 const DockerOption = new Option('-k, --docker', 'Use the docker version of archwayd');
