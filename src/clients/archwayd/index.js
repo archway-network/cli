@@ -153,9 +153,11 @@ function clientFactory({ docker = false, ...options } = {}) {
   }
 }
 
-module.exports = Object.assign(ArchwayClient, {
+module.exports = {
+  ArchwayClient,
+  DockerArchwayClient,
   DefaultArchwaydHome,
   DefaultArchwaydVersion,
   ArchwayClientError,
   createClient: clientFactory,
-});
+};

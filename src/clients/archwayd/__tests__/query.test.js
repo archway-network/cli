@@ -1,5 +1,5 @@
 const spawk = require('spawk');
-const ArchwayClient = require('..');
+const { ArchwayClient } = require('..');
 const QueryCommands = require('../query');
 
 const Fixtures = {
