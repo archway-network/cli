@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased
+
+### Changes
+
+* **instantiate:** save the deployed label ([#182](https://github.com/archway-network/archway-cli/issues/182))
+* **networks:** add constantine-3 ([#177](https://github.com/archway-network/archway-cli/issues/177))
+* **store:** saves the deployed wasm checksum ([#183](https://github.com/archway-network/archway-cli/issues/183))
+
+### Bug Fixes
+
+* **archwayd:** don't freeze the shell ([#184](https://github.com/archway-network/archway-cli/issues/184))
+* **archwayd:** validate minimum client version ([#180](https://github.com/archway-network/archway-cli/issues/180))
+* **build:** throw exception instead of hardcoded text  ([#176](https://github.com/archway-network/archway-cli/issues/176))
+* **cli:** check for newer versions using semver ([#185](https://github.com/archway-network/archway-cli/issues/185))
+
 ## [1.5.1](https://github.com/archway-network/archway-cli/compare/1.5.0...1.5.1) (2023-04-03)
 
 ### Changes
@@ -14,11 +29,11 @@
 * **accounts**: the command output will default to text mode for better readability ([#167](https://github.com/archway-network/archway-cli/pull/167)])
 * **build**: bump rust-optimizer to 0.12.12 ([#162](https://github.com/archway-network/archway-cli/pull/162)])
 
-## Bug Fixes
+### Bug Fixes
 
-**cli**: fixed an output error when running commands that require waiting for a tx result ([#163](https://github.com/archway-network/archway-cli/pull/163))
-**cli**: fixed issue when fetching the last contract address deployed ([#165](https://github.com/archway-network/archway-cli/pull/165))
-**instantiate**: fixed error when the codeId is not found in the deployments state ([#166](https://github.com/archway-network/archway-cli/pull/166))
+* **cli**: fixed an output error when running commands that require waiting for a tx result ([#163](https://github.com/archway-network/archway-cli/pull/163))
+* **cli**: fixed issue when fetching the last contract address deployed ([#165](https://github.com/archway-network/archway-cli/pull/165))
+* **instantiate**: fixed error when the codeId is not found in the deployments state ([#166](https://github.com/archway-network/archway-cli/pull/166))
 
 ## [1.4.1](https://github.com/archway-network/archway-cli/compare/1.4.0...1.4.1) (2023-02-28)
 
