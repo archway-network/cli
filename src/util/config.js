@@ -37,6 +37,7 @@ class InvalidDeploymentConfigError extends InvalidConfigError { }
  *  type: string,
  *  fees: { feeDenom: string },
  *  gas: { prices: string, mode: string, adjustment: string } }
+ *  wasm: { configDir: string, archwayd: string, bech32Hrp: string, binary: string }
  *  urls: {
  *    rpc: { url: string, port: number }
  *  },
@@ -100,6 +101,12 @@ class Config {
         prices: _.isString,
         mode: _.isString,
         adjustment: _.isString
+      }),
+      wasm: _.conforms({
+        configDir: _.isString,
+        archwayd: _.isString,
+        bech32Hrp: _.isString,
+        binary: _.isString
       }),
       urls: _.conforms({
         rpc: _.conforms({ url: _.isString, port: _.isNumber })

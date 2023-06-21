@@ -9,6 +9,9 @@ const { Config } = require('../util/config');
 const retry = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
+// eslint-disable-next-line no-unused-vars
+const { ArchwayClient } = require('../clients/archwayd');
+
 async function parseDeploymentOptions(cargo, config, { confirm, ...options } = {}) {
   const project = await cargo.projectMetadata();
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});

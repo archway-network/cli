@@ -1,11 +1,12 @@
 const debug = require('debug')('archwayd');
+const semver = require('semver');
 const { spawn } = require('promisify-child-process');
 
 const KeysCommands = require('./keys');
 const QueryCommands = require('./query');
 const TxCommands = require('./tx');
 
-const DefaultArchwaydVersion = 'v0.2.0';
+const MinimumArchwaydVersion = '0.5.2';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
 class ArchwayClientError extends Error {
@@ -20,22 +21,28 @@ class ArchwayClientError extends Error {
   }
 }
 
+class ValidationError extends Error {}
+
 /**
  * Facade for the archwayd client, which supports both Docker and binary implementations.
  */
 class ArchwayClient {
   #archwaydHome;
+  #archwaydVersion;
   #extraArgs;
   #keys;
   #query;
   #tx;
 
-  constructor({ archwaydHome = DefaultArchwaydHome, extraArgs = [] } = {}) {
+  constructor({ archwaydHome = DefaultArchwaydHome, archwaydVersion = MinimumArchwaydVersion, extraArgs = [] } = {}) {
     this.#archwaydHome = archwaydHome;
+    this.#archwaydVersion = archwaydVersion;
     this.#extraArgs = extraArgs;
     this.#keys = new KeysCommands(this);
     this.#query = new QueryCommands(this);
     this.#tx = new TxCommands(this);
+
+    debug('ArchwayClient initialized', 'home=', this.archwaydHome, 'version=', this.archwaydVersion);
   }
 
   get command() {
@@ -46,6 +53,10 @@ class ArchwayClient {
     return this.#archwaydHome;
   }
 
+  get archwaydVersion() {
+    return this.#archwaydVersion;
+  }
+
   get extraArgs() {
     return this.#extraArgs;
   }
@@ -54,14 +65,23 @@ class ArchwayClient {
     return '.';
   }
 
+  /***
+   * @type {KeysCommands}
+   */
   get keys() {
     return this.#keys;
   }
 
+  /***
+   * @type {QueryCommands}
+   */
   get query() {
     return this.#query;
   }
 
+  /***
+   * @type {TxCommands}
+   */
   get tx() {
     return this.#tx;
   }
@@ -73,15 +93,12 @@ class ArchwayClient {
   run(subCommand, args = [], options = { stdio: 'inherit' }) {
     const command = this.command;
     const parsedArgs = this.parseArgs([subCommand, ...args]);
-    debug(...parsedArgs);
-    return spawn(command, parsedArgs, { ...options, encoding: 'utf8' });
+    options = { ...options, encoding: 'utf8' };
+    debug(command, ...parsedArgs);
+    return spawn(command, parsedArgs, options);
   }
 
-  async runJson(
-    subCommand,
-    args = [],
-    { printStdout = true, ...options } = {}
-  ) {
+  async runJson(subCommand, args = [], { printStdout = true, ...options } = {}) {
     try {
       const archwayd = this.run(subCommand, [...args, '--output', 'json'], {
         stdio: ['inherit', 'pipe', 'pipe'],
@@ -103,14 +120,50 @@ class ArchwayClient {
       throw new ArchwayClientError(e.stderr);
     }
   }
+
+  /**
+   * Gets the archway client version.
+   *
+   * @returns {Promise<string>} the version of the installed archwayd client.
+   */
+  async getVersion() {
+    const { stdout } = await this.run('version', [], { stdio: ['inherit', 'pipe', 'inherit'] });
+    const lines = stdout.replace(/\r/g, '').split('\n');
+    return lines.find(semver.valid);
+  }
+
+  /**
+   * Validates if the installed version of archwayd is compatible with the client.
+   *
+   * @throws {ValidationError} if the version is not compatible.
+   */
+  async validateVersion() {
+    if (semver.valid(this.archwaydVersion) === null) {
+      throw new ValidationError(`Invalid Archwayd version: ${this.archwaydVersion}`);
+    }
+
+    if (semver.lt(this.archwaydVersion, MinimumArchwaydVersion)) {
+      throw new ValidationError(
+        `The archwayd version specified in your config.json file is not compatible with the CLI.
+        Minimum version required: ${MinimumArchwaydVersion}
+        Current version: ${this.archwaydVersion}
+        Check your config.json file and update it accordingly using the \`archway network -m\` command.`
+      );
+    }
+
+    const binVersion = await this.getVersion();
+    if (binVersion !== undefined && semver.valid(binVersion) !== null && semver.lt(binVersion, this.archwaydVersion)) {
+      throw new ValidationError(
+        `The archwayd version installed is not compatible with the CLI.
+        Minimum version required: ${MinimumArchwaydVersion}
+        Current archwayd version: ${this.archwaydVersion}
+        Check your config.json file and update it accordingly.`
+      );
+    }
+  }
 }
 
 class DockerArchwayClient extends ArchwayClient {
-  constructor({ archwaydVersion = DefaultArchwaydVersion, ...options } = {}) {
-    super(options);
-    this.archwaydVersion = archwaydVersion;
-  }
-
   get command() {
     return 'docker';
   }
@@ -120,21 +173,29 @@ class DockerArchwayClient extends ArchwayClient {
   }
 
   get extraArgs() {
-    const dockerArgs = DockerArchwayClient.#getDockerArgs(
-      this.workingDir,
-      this.archwaydVersion
-    );
+    const validVersion = semver.valid(this.archwaydVersion);
+    const imageTag = validVersion !== null ? `v${validVersion}` : this.archwaydVersion;
+    const dockerArgs = DockerArchwayClient.#getDockerArgs(this.workingDir, imageTag);
     return [...dockerArgs, ...super.extraArgs];
   }
 
-  static #getDockerArgs(archwaydHome, archwaydVersion) {
+  /**
+   * Returns the version of the docker image because the `archway version` command in the image returns an empty string.
+   *
+   * @returns {string} the version of the docker image
+   */
+  getVersion() {
+    return this.archwaydVersion;
+  }
+
+  static #getDockerArgs(archwaydHome, imageTag) {
     return [
       'run',
       '--rm',
       '-it',
       `--volume=${archwaydHome}:/root/.archway`,
       '--network=host',
-      `archwaynetwork/archwayd:${archwaydVersion}`,
+      `archwaynetwork/archwayd:${imageTag}`,
     ];
   }
 }
@@ -145,17 +206,18 @@ class DockerArchwayClient extends ArchwayClient {
  * @param {{ docker: bool, archwaydVersion: string, testnet: string, archwaydHome: string, extraArgs: array }} options
  * @returns {ArchwayClient}
  */
-function clientFactory({ docker = false, ...options } = {}) {
-  if (docker) {
-    return new DockerArchwayClient(options);
-  } else {
-    return new ArchwayClient(options);
-  }
+async function createClient({ docker = false, ...options } = {}) {
+  const client = docker ? new DockerArchwayClient(options) : new ArchwayClient(options);
+  await client.validateVersion();
+  return client;
 }
 
-module.exports = Object.assign(ArchwayClient, {
+module.exports = {
+  ArchwayClient,
+  DockerArchwayClient,
   DefaultArchwaydHome,
-  DefaultArchwaydVersion,
+  MinimumArchwaydVersion,
   ArchwayClientError,
-  createClient: clientFactory,
-});
+  ValidationError,
+  createClient,
+};

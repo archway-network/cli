@@ -1,6 +1,6 @@
 const spawk = require('spawk');
 const mockConsole = require('jest-mock-console');
-const ArchwayClient = require('../../clients/archwayd');
+const { ArchwayClient } = require('../../clients/archwayd');
 const Accounts = require('../accounts');
 
 beforeEach(() => {

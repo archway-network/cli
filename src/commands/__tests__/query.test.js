@@ -1,7 +1,7 @@
 const spawk = require('spawk');
 const mockConsole = require('jest-mock-console');
 const prompts = require('prompts');
-const ArchwayClient = require('../../clients/archwayd');
+const { ArchwayClient } = require('../../clients/archwayd');
 const { Config } = require('../../util/config');
 const Query = require('../query');
 
