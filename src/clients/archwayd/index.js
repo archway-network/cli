@@ -110,12 +110,14 @@ class ArchwayClient {
         archwayd.stdout?.pipe(process.stdout);
         archwayd.stderr?.pipe(process.stderr);
       } else {
-        archwayd.stdout?.on('data', data => {
-          // When the passphrase is requested by archwayd, we want to print it to stdout
-          const message = data.toString().toLowerCase();
-          if (message.includes('passphrase') || message.includes('error')) {
-            process.stdout.write(data);
-          }
+        [archwayd.stdout, archwayd.stderr].forEach(stream => {
+          stream?.on('data', data => {
+            // When the passphrase is requested by archwayd, we want to print it to stdout
+            const message = data.toString().toLowerCase();
+            if (message.includes('passphrase') || message.includes('error')) {
+              process.stdout.write(data);
+            }
+          });
         });
       }
 
