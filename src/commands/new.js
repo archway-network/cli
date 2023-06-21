@@ -110,7 +110,7 @@ async function cargoBuild(config, { build = false } = {}) {
 }
 
 async function main(name, { cwd, ...options }) {
-  console.info(`Creating new Archway project...`);
+  console.info('Creating new Archway project...');
   try {
     const workingDir = cwd || process.cwd();
     const config = await createProject({ name, cwd: workingDir, ...options });

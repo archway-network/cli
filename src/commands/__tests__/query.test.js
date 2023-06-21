@@ -60,12 +60,12 @@ describe('query', () => {
     jest.spyOn(mockConfig.deployments, 'add')
       .mockImplementation(() => { });
 
-    const archwayd = spawk.spawn(client.command).stdout(`Querying smart contract`);
+    const archwayd = spawk.spawn(client.command).stdout('Querying smart contract');
 
     const args = '{ "get_count": {} }';
     await Query(client, {
-      module: "contract-state",
-      type: "smart",
+      module: 'contract-state',
+      type: 'smart',
       options: {
         args,
       }

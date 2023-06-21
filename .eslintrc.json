@@ -5,27 +5,20 @@
     "es2019": true,
     "jest": true
   },
-  "plugins": [
-    "jest"
-  ],
+  "plugins": ["jest"],
   "parserOptions": {
     "ecmaVersion": "latest"
   },
   "extends": [
     "eslint:recommended",
     "plugin:node/recommended",
-    "plugin:jest/recommended"
+    "plugin:jest/recommended",
+    "prettier"
   ],
   "rules": {
-    "indent": [
-      "error",
-      2
-    ],
+    "indent": ["error", 2],
     "array-callback-return": "error",
-    "array-bracket-newline": [
-      "error",
-      "consistent"
-    ],
+    "array-bracket-newline": ["error", "consistent"],
     "array-bracket-spacing": "error",
     "arrow-body-style": [
       "error",
@@ -34,10 +27,7 @@
         "requireReturnForObjectLiteral": true
       }
     ],
-    "arrow-parens": [
-      "error",
-      "as-needed"
-    ],
+    "arrow-parens": ["error", "as-needed"],
     "arrow-spacing": "error",
     "block-spacing": "error",
     "block-scoped-var": "error",
@@ -54,14 +44,8 @@
     "curly": "error",
     "eqeqeq": "error",
     "func-call-spacing": "error",
-    "function-call-argument-newline": [
-      "error",
-      "consistent"
-    ],
-    "function-paren-newline": [
-      "error",
-      "consistent"
-    ],
+    "function-call-argument-newline": ["error", "consistent"],
+    "function-paren-newline": ["error", "consistent"],
     "func-style": [
       "error",
       "declaration",
@@ -92,12 +76,10 @@
       }
     ],
     "no-whitespace-before-property": "error",
-    "object-curly-spacing": [
-      "error",
-      "always"
-    ],
+    "object-curly-spacing": ["error", "always"],
     "operator-linebreak": "error",
     "prefer-arrow-callback": "error",
+    "quotes": ["warn", "single"],
     "require-atomic-updates": "error",
     "rest-spread-spacing": "error",
     "require-await": "warn",
@@ -120,34 +102,13 @@
     "template-curly-spacing": "error",
     "template-tag-spacing": "error",
     "yield-star-spacing": "error",
-    "node/exports-style": [
-      "error",
-      "module.exports"
-    ],
-    "node/file-extension-in-import": [
-      "error",
-      "always"
-    ],
-    "node/prefer-global/buffer": [
-      "error",
-      "always"
-    ],
-    "node/prefer-global/console": [
-      "error",
-      "always"
-    ],
-    "node/prefer-global/process": [
-      "error",
-      "always"
-    ],
-    "node/prefer-global/url-search-params": [
-      "error",
-      "always"
-    ],
-    "node/prefer-global/url": [
-      "error",
-      "always"
-    ],
+    "node/exports-style": ["error", "module.exports"],
+    "node/file-extension-in-import": ["error", "always"],
+    "node/prefer-global/buffer": ["error", "always"],
+    "node/prefer-global/console": ["error", "always"],
+    "node/prefer-global/process": ["error", "always"],
+    "node/prefer-global/url-search-params": ["error", "always"],
+    "node/prefer-global/url": ["error", "always"],
     "node/prefer-promises/dns": "warn",
     "node/prefer-promises/fs": "warn",
     "jest/no-disabled-tests": "error",
