@@ -20,8 +20,8 @@ const projectMetadata = {
   name: Fixtures.sampleConfig.name,
   version: '0.1.0',
   wasm: {
-    optimizedFilePath: `artifacts/${Fixtures.sampleConfig.name.replace(/-/g, '_')}.wasm`
-  }
+    optimizedFilePath: `artifacts/${Fixtures.sampleConfig.name.replace(/-/g, '_')}.wasm`,
+  },
 };
 const mockCargo = {
   projectMetadata: jest.fn().mockResolvedValue(projectMetadata),
@@ -39,11 +39,9 @@ beforeEach(() => {
   spawk.clean();
   spawk.preventUnmatched();
 
-  jest.spyOn(Config, 'open')
-    .mockResolvedValue(mockConfig);
+  jest.spyOn(Config, 'open').mockResolvedValue(mockConfig);
 
-  jest.spyOn(prompts, 'override')
-    .mockImplementationOnce(prompts.mockResolvedValue);
+  jest.spyOn(prompts, 'override').mockImplementationOnce(prompts.mockResolvedValue);
 });
 
 afterEach(() => {
@@ -55,18 +53,14 @@ describe('instantiate', () => {
   const client = createClient();
 
   beforeEach(() => {
-    jest.spyOn(client.keys, 'getAddress')
-      .mockResolvedValue(aliceAddress);
-    jest.spyOn(client.tx, 'wasm')
-      .mockResolvedValue(Fixtures.txWasmInstantiate);
-    jest.spyOn(client.query, 'tx')
-      .mockResolvedValue(Fixtures.queryTxWasmInstantiate);
+    jest.spyOn(client.keys, 'getAddress').mockResolvedValue(aliceAddress);
+    jest.spyOn(client.tx, 'wasm').mockResolvedValue(Fixtures.txWasmInstantiate);
+    jest.spyOn(client.query, 'tx').mockResolvedValue(Fixtures.queryTxWasmInstantiate);
   });
 
   test('instantiates last stored contract', async () => {
     jest.spyOn(client.query, 'txEventAttribute');
-    jest.spyOn(mockConfig.deployments, 'add')
-      .mockImplementation(() => { });
+    jest.spyOn(mockConfig.deployments, 'add').mockImplementation(() => {});
 
     await Instantiate(client, {
       from: 'alice',
@@ -75,12 +69,7 @@ describe('instantiate', () => {
       args: '{ "count": 0 }',
     });
 
-    const instantiateArgs = [
-      253,
-      '{ "count": 0 }',
-      '--label', 'test 0.1.0',
-      '--admin', aliceAddress
-    ];
+    const instantiateArgs = [253, '{ "count": 0 }', '--label', 'test 0.1.0', '--admin', aliceAddress];
     expect(client.tx.wasm).toHaveBeenCalledWith(
       'instantiate',
       instantiateArgs,
@@ -88,7 +77,7 @@ describe('instantiate', () => {
         from: 'alice',
         chainId: 'titus-1',
         node: expect.anything(),
-        flags: ['--yes']
+        flags: ['--yes'],
       })
     );
   });
@@ -109,7 +98,7 @@ describe('instantiate', () => {
       'instantiate',
       '_contract_address',
       expect.objectContaining({
-        node: expect.anything()
+        node: expect.anything(),
       })
     );
 
@@ -118,31 +107,27 @@ describe('instantiate', () => {
       type: 'instantiate',
       chainId: 'titus-1',
       codeId: 253,
+      label: 'test 0.1.0',
       txhash: Fixtures.txWasmInstantiate.txhash,
       address: contractAddress,
-      admin: aliceAddress
+      admin: aliceAddress,
+      args: { count: 0 },
     });
   });
 
   test('uses the code ID from the arguments', async () => {
     jest.spyOn(client.query, 'txEventAttribute');
-    jest.spyOn(mockConfig.deployments, 'add')
-      .mockImplementation(() => { });
+    jest.spyOn(mockConfig.deployments, 'add').mockImplementation(() => {});
 
     await Instantiate(client, {
       from: 'alice',
       confirm: false,
       label: 'test 0.1.0',
       args: '{ "count": 0 }',
-      codeId: 111
+      codeId: 111,
     });
 
-    const instantiateArgs = [
-      111,
-      '{ "count": 0 }',
-      '--label', 'test 0.1.0',
-      '--admin', aliceAddress
-    ];
+    const instantiateArgs = [111, '{ "count": 0 }', '--label', 'test 0.1.0', '--admin', aliceAddress];
     expect(client.tx.wasm).toHaveBeenCalledWith(
       'instantiate',
       instantiateArgs,
@@ -150,15 +135,14 @@ describe('instantiate', () => {
         from: 'alice',
         chainId: 'titus-1',
         node: expect.anything(),
-        flags: ['--yes']
+        flags: ['--yes'],
       })
     );
   });
 
   test('uses the admin address from the arguments', async () => {
     jest.spyOn(client.query, 'txEventAttribute');
-    jest.spyOn(mockConfig.deployments, 'add')
-      .mockImplementation(() => { });
+    jest.spyOn(mockConfig.deployments, 'add').mockImplementation(() => {});
 
     const bobAddress = 'archway1sgnl48q4df0y3cv2m42c9nq6wvmv25vauvreem';
     await Instantiate(client, {
@@ -166,15 +150,10 @@ describe('instantiate', () => {
       confirm: false,
       label: 'test 0.1.0',
       args: '{ "count": 0 }',
-      adminAddress: bobAddress
+      adminAddress: bobAddress,
     });
 
-    const instantiateArgs = [
-      253,
-      '{ "count": 0 }',
-      '--label', 'test 0.1.0',
-      '--admin', bobAddress
-    ];
+    const instantiateArgs = [253, '{ "count": 0 }', '--label', 'test 0.1.0', '--admin', bobAddress];
     expect(client.tx.wasm).toHaveBeenCalledWith(
       'instantiate',
       instantiateArgs,
@@ -182,7 +161,7 @@ describe('instantiate', () => {
         from: 'alice',
         chainId: 'titus-1',
         node: expect.anything(),
-        flags: ['--yes']
+        flags: ['--yes'],
       })
     );
   });

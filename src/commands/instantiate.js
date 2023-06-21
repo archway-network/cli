@@ -6,7 +6,14 @@ const { isJson, isArchwayAddress } = require('../util/validators');
 const retry = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
-async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confirm, args: optArgs, label: optLabel, defaultLabel, codeId: optCodeId, ...options } = {}) {
+// eslint-disable-next-line no-unused-vars
+const { ArchwayClient } = require('../clients/archwayd');
+
+async function parseDeploymentOptions(
+  cargo,
+  config = {},
+  { adminAddress, confirm, args: optArgs, label: optLabel, defaultLabel, codeId: optCodeId, ...options } = {}
+) {
   if (!_.isEmpty(optArgs) && !isJson(optArgs)) {
     throw new Error(`Arguments should be a JSON string, received "${optArgs}"`);
   }
@@ -15,13 +22,16 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
 
-  const { codeId: lastCodeId } = _.defaults({ codeId: optCodeId }, config.deployments.findLastByTypeAndProjectAndChainId('store', project.name, chainId));
+  const { codeId: lastCodeId } = _.defaults(
+    { codeId: optCodeId },
+    config.deployments.findLastByTypeAndProjectAndChainId('store', project.name, chainId)
+  );
 
   prompts.override({
     args: optArgs,
     label: optLabel || (defaultLabel && project.id) || undefined,
     codeId: lastCodeId,
-    ...options
+    ...options,
   });
   const { from, codeId, args, label } = await prompts([
     {
@@ -51,13 +61,13 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
       name: 'args',
       message: chalk`JSON encoded arguments for contract initialization {reset.dim (e.g. \{ "count": 0 \})}`,
       initial: '{}',
-      validate: value => !_.isEmpty(_.trim(value)) && isJson(_.trim(value)) || 'Invalid initialization args - inform a valid JSON string',
+      validate: value =>
+        (!_.isEmpty(_.trim(value)) && isJson(_.trim(value))) ||
+        'Invalid initialization args - inform a valid JSON string',
     },
   ]);
 
-  const flags = _.flatten([
-    confirm ? [] : ['--yes'],
-  ]).filter(_.isString);
+  const flags = _.flatten([confirm ? [] : ['--yes']]).filter(_.isString);
 
   return {
     ...options,
@@ -70,7 +80,7 @@ async function parseDeploymentOptions(cargo, config = {}, { adminAddress, confir
     chainId,
     node,
     gas,
-    flags
+    flags,
   };
 }
 
@@ -83,21 +93,39 @@ async function parseBech32Address(archwayd, address) {
   return await archwayd.keys.getAddress(address);
 }
 
-async function instantiateContract(archwayd, config, {
-  project: { name: projectName, id: projectId } = {},
-  adminAddress,
-  chainId,
-  node,
-  codeId,
-  label,
-  args,
-  ...options
-} = {}) {
+/**
+ * Instantiates a contract.
+ *
+ * @param {ArchwayClient} archwayd
+ * @param {Config} config
+ */
+async function instantiateContract(
+  archwayd,
+  config,
+  {
+    project: { name: projectName, id: projectId } = {},
+    adminAddress,
+    chainId,
+    node,
+    codeId,
+    label,
+    args,
+    ...options
+  } = {}
+) {
   console.info(chalk`Instantiating {cyan ${projectId}} from code id {cyan ${codeId}} on {cyan ${chainId}}...`);
 
   const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
   const instantiateArgs = [codeId, args, '--label', label, '--admin', bech32AdminAddress];
-  const { code, raw_log: rawLog, txhash } = await archwayd.tx.wasm('instantiate', instantiateArgs, { chainId, node, ...options });
+  const {
+    code,
+    raw_log: rawLog,
+    txhash,
+  } = await archwayd.tx.wasm('instantiate', instantiateArgs, {
+    chainId,
+    node,
+    ...options,
+  });
   if (code && code !== 0) {
     throw new Error(`Transaction failed: code=${code}, ${rawLog}`);
   }
@@ -116,7 +144,9 @@ async function instantiateContract(archwayd, config, {
     codeId,
     txhash,
     address: contractAddress,
-    admin: bech32AdminAddress
+    admin: bech32AdminAddress,
+    label,
+    args: JSON.parse(args),
   });
 
   console.info(chalk`\n{green Successfully instantiated the contract}`);
@@ -125,7 +155,9 @@ async function instantiateContract(archwayd, config, {
   console.info(chalk`{white   Address:   {cyan ${contractAddress}}}`);
   console.info(chalk`{white   Arguments: {cyan ${args}}}`);
 
-  console.warn(chalk`\n{whiteBright It is recommended that you now set the contract metadata using the command {magenta archway metadata}}`);
+  console.warn(
+    chalk`\n{whiteBright It is recommended that you now set the contract metadata using the command {magenta archway metadata}}`
+  );
 }
 
 async function instantiate(archwayd, { deployOptions, ...options } = {}) {
