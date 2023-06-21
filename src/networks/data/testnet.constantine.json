@@ -9,11 +9,11 @@
     "gas": {
       "prices": "900000000000000000000000000000aconst",
       "mode": "auto",
-      "adjustment": "1.5"
+      "adjustment": "1.4"
     },
     "wasm": {
       "bech32Hrp": "archway",
-      "archwayd": "0.5.2",
+      "archwayd": "1.0.0-rc.2",
       "configDir": ".archway",
       "binary": "archwayd"
     },
@@ -23,8 +23,5 @@
         "port": 443
       }
     }
-  },
-  "developer": {
-    "deployments": []
   }
 }

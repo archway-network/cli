@@ -2,29 +2,26 @@
   "network": {
     "name": "local",
     "chainId": "local-1",
-    "type": "local",
+    "type": "localnet",
     "fees": {
       "feeDenom": "aarch"
     },
     "gas": {
-      "prices": "900000aarch",
+      "prices": "900000000000000000000000000000aarch",
       "mode": "auto",
-      "adjustment": "1.5"
+      "adjustment": "1.4"
     },
     "wasm": {
       "bech32Hrp": "archway",
-      "archwayd": "0.1.0",
+      "archwayd": "1.0.0-rc.2",
       "configDir": ".archway",
       "binary": "archwayd"
     },
     "urls": {
       "rpc": {
-        "url": "tcp://localhost",
+        "url": "http://localhost",
         "port": 26657
-      },
-      "faucets": [
-        "http://localhost:8000"
-      ]
+      }
     }
   }
 }
