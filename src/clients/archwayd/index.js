@@ -5,7 +5,7 @@ const KeysCommands = require('./keys');
 const QueryCommands = require('./query');
 const TxCommands = require('./tx');
 
-const DefaultArchwaydVersion = 'v0.2.0';
+const DefaultArchwaydVersion = '0.6.0';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
 class ArchwayClientError extends Error {
@@ -122,7 +122,7 @@ class DockerArchwayClient extends ArchwayClient {
   get extraArgs() {
     const dockerArgs = DockerArchwayClient.#getDockerArgs(
       this.workingDir,
-      this.archwaydVersion
+      `v${this.archwaydVersion}`
     );
     return [...dockerArgs, ...super.extraArgs];
   }
