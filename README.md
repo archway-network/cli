@@ -18,10 +18,22 @@ Make sure you've installed and configured all dependencies. For full installatio
 npm i -g @archwayhq/cli
 ```
 
+or
+
+```bash
+yarn global add @archwayhq/cli
+```
+
 ### Install the development version
 
 ```bash
 npm i -g 'github:archway-network/archway-cli'
+```
+
+or
+
+```bash
+yarn global add 'github:archway-network/archway-cli'
 ```
 
 ## Usage
