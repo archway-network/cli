@@ -6,7 +6,7 @@ const KeysCommands = require('./keys');
 const QueryCommands = require('./query');
 const TxCommands = require('./tx');
 
-const MinimumArchwaydVersion = '0.5.2';
+const MinimumArchwaydVersion = '1.0.0-rc.2';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
 class ArchwayClientError extends Error {
