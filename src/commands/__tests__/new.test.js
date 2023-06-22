@@ -12,8 +12,7 @@ jest.mock('node:fs/promises');
 const cwd = '/tmp';
 
 beforeEach(() => {
-  jest.spyOn(prompts, 'override')
-    .mockImplementationOnce(prompts.mockResolvedValue);
+  jest.spyOn(prompts, 'override').mockImplementationOnce(prompts.mockResolvedValue);
 
   fs.access.mockResolvedValue(null);
 
@@ -74,7 +73,7 @@ describe('project settings', () => {
       const useTemplate = true;
       const template = 'increment';
 
-      originalPrompts.inject(['archonauts', useTemplate, template, false, 'local']);
+      originalPrompts.inject(['archonauts', useTemplate, template, false, 'localnet']);
 
       const answers = await fetchAnswers();
       expect(answers).toMatchObject({
@@ -114,7 +113,7 @@ describe('project settings', () => {
       expect(prompts.override).toHaveBeenCalledWith({
         name,
         useTemplate: true,
-        ...options
+        ...options,
       });
     });
   });
@@ -129,7 +128,7 @@ describe('project setup', () => {
     await New(name, {
       useTemplate: false,
       docker: false,
-      environment: 'local',
+      environment: 'localnet',
       build: false,
       cwd,
     });
@@ -138,18 +137,21 @@ describe('project setup', () => {
       command: 'cargo',
       args: expect.arrayContaining([
         'generate',
-        '--name', name,
-        '--git', 'https://github.com/archway-network/archway-templates',
-        '--branch', 'main',
-        'default'
-      ])
+        '--name',
+        name,
+        '--git',
+        'https://github.com/archway-network/archway-templates',
+        '--branch',
+        'main',
+        'default',
+      ]),
     });
   });
 
   test('converts snake case project name to lowercased kebab-case', async () => {
     const name = {
       raw: 'archonauts_snake_case',
-      normalized: 'archonauts-snake-case'
+      normalized: 'archonauts-snake-case',
     };
 
     const cargo = spawk.spawn('cargo');
@@ -157,7 +159,7 @@ describe('project setup', () => {
     await New(name.raw, {
       useTemplate: false,
       docker: false,
-      environment: 'local',
+      environment: 'localnet',
       build: false,
       cwd,
     });
@@ -166,18 +168,21 @@ describe('project setup', () => {
       command: 'cargo',
       args: expect.arrayContaining([
         'generate',
-        '--name', name.normalized,
-        '--git', 'https://github.com/archway-network/archway-templates',
-        '--branch', 'main',
-        'default'
-      ])
+        '--name',
+        name.normalized,
+        '--git',
+        'https://github.com/archway-network/archway-templates',
+        '--branch',
+        'main',
+        'default',
+      ]),
     });
   });
 
   test('converts camel case project name to lowercased kebab-case', async () => {
     const name = {
       raw: 'archonautsCamelCase',
-      normalized: 'archonautscamelcase'
+      normalized: 'archonautscamelcase',
     };
 
     const cargo = spawk.spawn('cargo');
@@ -185,7 +190,7 @@ describe('project setup', () => {
     await New(name.raw, {
       useTemplate: false,
       docker: false,
-      environment: 'local',
+      environment: 'localnet',
       build: false,
       cwd,
     });
@@ -194,18 +199,21 @@ describe('project setup', () => {
       command: 'cargo',
       args: expect.arrayContaining([
         'generate',
-        '--name', name.normalized,
-        '--git', 'https://github.com/archway-network/archway-templates',
-        '--branch', 'main',
-        'default'
-      ])
+        '--name',
+        name.normalized,
+        '--git',
+        'https://github.com/archway-network/archway-templates',
+        '--branch',
+        'main',
+        'default',
+      ]),
     });
   });
 
   test('converts whitespaced project names to lowercased kebab-case', async () => {
     const name = {
       raw: 'archonauts string case',
-      normalized: 'archonauts-string-case'
+      normalized: 'archonauts-string-case',
     };
 
     const cargo = spawk.spawn('cargo');
@@ -213,7 +221,7 @@ describe('project setup', () => {
     await New(name.raw, {
       useTemplate: false,
       docker: false,
-      environment: 'local',
+      environment: 'localnet',
       build: false,
       cwd,
     });
@@ -222,11 +230,14 @@ describe('project setup', () => {
       command: 'cargo',
       args: expect.arrayContaining([
         'generate',
-        '--name', name.normalized,
-        '--git', 'https://github.com/archway-network/archway-templates',
-        '--branch', 'main',
-        'default'
-      ])
+        '--name',
+        name.normalized,
+        '--git',
+        'https://github.com/archway-network/archway-templates',
+        '--branch',
+        'main',
+        'default',
+      ]),
     });
   });
 
@@ -238,7 +249,7 @@ describe('project setup', () => {
     await New(name, {
       template,
       docker: false,
-      environment: 'local',
+      environment: 'localnet',
       build: false,
       cwd,
     });
@@ -255,7 +266,7 @@ describe('project setup', () => {
     await New(name, {
       useTemplate: false,
       docker: false,
-      environment: 'local',
+      environment: 'localnet',
       build: true,
       cwd,
     });
@@ -265,7 +276,7 @@ describe('project setup', () => {
       args: ['build'],
       options: expect.objectContaining({
         cwd: path.join(cwd, name),
-      })
+      }),
     });
   });
 });
@@ -287,10 +298,7 @@ describe('config file', () => {
       cwd,
     });
 
-    expect(fs.writeFile).toHaveBeenCalledWith(
-      path.join(cwd, name, 'config.json'),
-      expect.any(String)
-    );
+    expect(fs.writeFile).toHaveBeenCalledWith(path.join(cwd, name, 'config.json'), expect.any(String));
   });
 
   test('contains project data', async () => {
@@ -315,8 +323,8 @@ describe('config file', () => {
       name,
       developer: {
         archwayd: { docker },
-        deployments: []
-      }
+        deployments: [],
+      },
     });
   });
 
@@ -344,9 +352,9 @@ describe('config file', () => {
         name: testnet,
         chainId: 'constantine-3',
         fees: {
-          feeDenom: 'aconst'
-        }
-      }
+          feeDenom: 'aconst',
+        },
+      },
     });
   });
 });

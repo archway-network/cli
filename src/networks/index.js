@@ -1,14 +1,11 @@
 const _ = require('lodash');
 
 const EnvironmentsDetails = {
-  local: { description: 'Used for local development' },
+  localnet: { description: 'Used for local development' },
   testnet: { description: 'Testing networks for validators and dApp developers' },
   mainnet: { description: 'Production network', disabled: true },
 };
-const Environments = _(EnvironmentsDetails)
-  .omitBy(_.property('disabled'))
-  .keys()
-  .value();
+const Environments = _(EnvironmentsDetails).omitBy(_.property('disabled')).keys().value();
 const DefaultEnvironment = 'testnet';
 
 const TestnetsDetails = {
@@ -28,13 +25,13 @@ const Prompts = {
       return {
         title: _.capitalize(name),
         value: name,
-        ...details
+        ...details,
       };
     }),
-    warn: 'This environment is unavailable for now'
+    warn: 'This environment is unavailable for now',
   },
   testnet: {
-    type: prev => (prev === 'testnet') ? 'select' : null,
+    type: prev => (prev === 'testnet' ? 'select' : null),
     name: 'testnet',
     message: 'Select a testnet to use',
     initial: _.indexOf(Testnets, DefaultTestnet),
@@ -42,11 +39,11 @@ const Prompts = {
       return {
         title: _.capitalize(name),
         value: name,
-        ...details
+        ...details,
       };
     }),
-    warn: 'This network is unavailable for now'
-  }
+    warn: 'This network is unavailable for now',
+  },
 };
 
 function loadNetworkConfig(environment, testnet = undefined) {
@@ -60,5 +57,5 @@ module.exports = {
   Testnets,
   TestnetsDetails,
   Prompts,
-  loadNetworkConfig
+  loadNetworkConfig,
 };
