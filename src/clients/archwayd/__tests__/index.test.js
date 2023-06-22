@@ -5,7 +5,7 @@ const {
   DefaultArchwaydHome,
   MinimumArchwaydVersion,
   ValidationError,
-  createClient
+  createClient,
 } = require('..');
 const spawk = require('spawk');
 
@@ -67,7 +67,7 @@ describe('ArchwayClient', () => {
       expect(archwayd.calledWith).toMatchObject({
         command: client.command,
         args: ['--keyring-backend', 'test', 'keys', 'list'],
-        options: { stdio: 'inherit', encoding: 'utf8' }
+        options: { stdio: 'inherit', encoding: 'utf8' },
       });
     });
 
@@ -96,15 +96,14 @@ describe('ArchwayClient', () => {
     test('runs archwayd and parses the output as json', async () => {
       const client = new ArchwayClient({ extraArgs: ['--keyring-backend', 'test'] });
       const output = { txhash: '123456' };
-      const archwayd = spawk.spawn(client.command)
-        .stdout(JSON.stringify(output));
+      const archwayd = spawk.spawn(client.command).stdout(JSON.stringify(output));
 
       const json = await client.runJson('keys', ['list'], { printStdout: false });
 
       expect(archwayd.calledWith).toMatchObject({
         command: client.command,
         args: ['--keyring-backend', 'test', 'keys', 'list', '--output', 'json'],
-        options: { stdio: ['inherit', 'pipe', 'pipe'], maxBuffer: 1024 * 1024 }
+        options: { stdio: ['inherit', 'pipe', 'pipe'], maxBuffer: 1024 * 1024 },
       });
 
       expect(json).toMatchObject(output);
@@ -172,14 +171,16 @@ describe('DockerArchwayClient', () => {
   describe('getExtraArgs', () => {
     test('extends the extraArgs with Docker args', () => {
       const client = new DockerArchwayClient();
-      expect(client.extraArgs).toEqual(expect.arrayContaining([
-        'run',
-        '--rm',
-        '-it',
-        '--network=host',
-        `--volume=${DefaultArchwaydHome}:/root/.archway`,
-        `archwaynetwork/archwayd:v${MinimumArchwaydVersion}`
-      ]));
+      expect(client.extraArgs).toEqual(
+        expect.arrayContaining([
+          'run',
+          '--rm',
+          '-it',
+          '--network=host',
+          `--volume=${DefaultArchwaydHome}:/root/.archway`,
+          `ghcr.io/archway-network/archwayd:v${MinimumArchwaydVersion}`,
+        ])
+      );
     });
 
     test('allows overriding the archwayd home path and version', () => {
@@ -188,10 +189,12 @@ describe('DockerArchwayClient', () => {
 
       const client = new DockerArchwayClient({ archwaydHome, archwaydVersion });
 
-      expect(client.extraArgs).toEqual(expect.arrayContaining([
-        `--volume=${archwaydHome}:/root/.archway`,
-        `archwaynetwork/archwayd:v${archwaydVersion}`
-      ]));
+      expect(client.extraArgs).toEqual(
+        expect.arrayContaining([
+          `--volume=${archwaydHome}:/root/.archway`,
+          `ghcr.io/archway-network/archwayd:v${archwaydVersion}`,
+        ])
+      );
     });
   });
 
