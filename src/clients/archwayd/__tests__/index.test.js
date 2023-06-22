@@ -178,7 +178,7 @@ describe('DockerArchwayClient', () => {
           '-it',
           '--network=host',
           `--volume=${DefaultArchwaydHome}:/root/.archway`,
-          `ghcr.io/archway-network/archwayd:v${MinimumArchwaydVersion}`,
+          `ghcr.io/archway-network/archwayd-debug:v${MinimumArchwaydVersion}`,
         ])
       );
     });
@@ -192,7 +192,7 @@ describe('DockerArchwayClient', () => {
       expect(client.extraArgs).toEqual(
         expect.arrayContaining([
           `--volume=${archwaydHome}:/root/.archway`,
-          `ghcr.io/archway-network/archwayd:v${archwaydVersion}`,
+          `ghcr.io/archway-network/archwayd-debug:v${archwaydVersion}`,
         ])
       );
     });
