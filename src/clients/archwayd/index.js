@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const debug = require('debug')('archwayd');
 const semver = require('semver');
 const { spawn } = require('promisify-child-process');
@@ -155,20 +156,20 @@ class ArchwayClient {
 
     if (semver.lt(this.archwaydVersion, MinimumArchwaydVersion)) {
       throw new ValidationError(
-        `The archwayd version specified in your config.json file is not compatible with the CLI.
+        `The archwayd version specified in your config file is not compatible with the CLI.
         Minimum version required: ${MinimumArchwaydVersion}
-        Current version: ${this.archwaydVersion}
+        Version in config.json: ${this.archwaydVersion}
         Check your config.json file and update it accordingly using the \`archway network -m\` command.`
       );
     }
 
     const binVersion = await this.getVersion();
-    if (binVersion !== undefined && semver.valid(binVersion) !== null && semver.lt(binVersion, this.archwaydVersion)) {
+    if (!_.isEmpty(binVersion) && semver.lt(binVersion, this.archwaydVersion)) {
       throw new ValidationError(
-        `The archwayd version installed is not compatible with the CLI.
-        Minimum version required: ${MinimumArchwaydVersion}
-        Current archwayd version: ${this.archwaydVersion}
-        Check your config.json file and update it accordingly.`
+        `The archwayd version installed is not compatible with the network.
+        Minimum version required by the config file: ${this.archwaydVersion}
+        Current archwayd version: ${this.binVersion}
+        Please install the latest version from https://github.com/archway-network/archway`
       );
     }
   }
@@ -184,29 +185,25 @@ class DockerArchwayClient extends ArchwayClient {
   }
 
   get extraArgs() {
-    const validVersion = semver.valid(this.archwaydVersion);
-    const imageTag = validVersion !== null ? `v${validVersion}` : this.archwaydVersion;
-    const dockerArgs = DockerArchwayClient.#getDockerArgs(this.workingDir, imageTag);
+    const dockerArgs = DockerArchwayClient.#getDockerArgs(this.workingDir, this.archwaydVersion);
     return [...dockerArgs, ...super.extraArgs];
   }
 
   /**
-   * Returns the version of the docker image because the `archway version` command in the image returns an empty string.
-   *
-   * @returns {string} the version of the docker image
+   * Returns `undefined` since the command `archway version` inside the docker image returns an empty string.
    */
   getVersion() {
-    return this.archwaydVersion;
+    return undefined;
   }
 
-  static #getDockerArgs(archwaydHome, imageTag) {
+  static #getDockerArgs(archwaydHome, archwaydVersion) {
     return [
       'run',
       '--rm',
       '-it',
       `--volume=${archwaydHome}:/root/.archway`,
       '--network=host',
-      `archwaynetwork/archwayd:${imageTag}`,
+      `ghcr.io/archway-network/archwayd:v${archwaydVersion}`,
     ];
   }
 }
