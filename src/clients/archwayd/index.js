@@ -203,7 +203,7 @@ class DockerArchwayClient extends ArchwayClient {
       '-it',
       `--volume=${archwaydHome}:/root/.archway`,
       '--network=host',
-      `ghcr.io/archway-network/archwayd:v${archwaydVersion}`,
+      `ghcr.io/archway-network/archwayd-debug:v${archwaydVersion}`,
     ];
   }
 }
