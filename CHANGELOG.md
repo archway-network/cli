@@ -7,6 +7,7 @@
 * **instantiate:** save the deployed label ([#182](https://github.com/archway-network/archway-cli/issues/182))
 * **networks:** add constantine-3 ([#177](https://github.com/archway-network/archway-cli/issues/177))
 * **store:** saves the deployed wasm checksum ([#183](https://github.com/archway-network/archway-cli/issues/183))
+* **archwayd:** change image repo to ghrc.io ([#187](https://github.com/archway-network/archway-cli/issues/187))
 
 ### Bug Fixes
 
