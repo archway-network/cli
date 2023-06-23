@@ -35,6 +35,9 @@ class ArchwayClient {
   #query;
   #tx;
 
+  /**
+   * @param {{ archwaydHome: string, archwaydVersion: string, extraArgs: string[] }} options
+   */
   constructor({ archwaydHome = DefaultArchwaydHome, archwaydVersion = MinimumArchwaydVersion, extraArgs = [] } = {}) {
     this.#archwaydHome = archwaydHome;
     this.#archwaydVersion = archwaydVersion;
@@ -44,6 +47,18 @@ class ArchwayClient {
     this.#tx = new TxCommands(this);
 
     debug('ArchwayClient initialized', 'home=', this.archwaydHome, 'version=', this.archwaydVersion);
+  }
+
+  /**
+   * Factory for creating an ArchwayClient.
+   *
+   * @param {{ archwaydHome: string, archwaydVersion: string, extraArgs: string[] }} options
+   * @returns {ArchwayClient}
+   */
+  static async createClient(options = {}) {
+    const client = new ArchwayClient(options);
+    await client.validateVersion();
+    return client;
   }
 
   get command() {
@@ -58,6 +73,9 @@ class ArchwayClient {
     return this.#archwaydVersion;
   }
 
+  /**
+   * @type {string[]}
+   */
   get extraArgs() {
     return this.#extraArgs;
   }
@@ -66,21 +84,21 @@ class ArchwayClient {
     return '.';
   }
 
-  /***
+  /**
    * @type {KeysCommands}
    */
   get keys() {
     return this.#keys;
   }
 
-  /***
+  /**
    * @type {QueryCommands}
    */
   get query() {
     return this.#query;
   }
 
-  /***
+  /**
    * @type {TxCommands}
    */
   get tx() {
@@ -175,58 +193,12 @@ class ArchwayClient {
   }
 }
 
-class DockerArchwayClient extends ArchwayClient {
-  get command() {
-    return 'docker';
-  }
-
-  get workingDir() {
-    return this.archwaydHome;
-  }
-
-  get extraArgs() {
-    const dockerArgs = DockerArchwayClient.#getDockerArgs(this.workingDir, this.archwaydVersion);
-    return [...dockerArgs, ...super.extraArgs];
-  }
-
-  /**
-   * Returns `undefined` since the command `archway version` inside the docker image returns an empty string.
-   */
-  getVersion() {
-    return undefined;
-  }
-
-  static #getDockerArgs(archwaydHome, archwaydVersion) {
-    return [
-      'run',
-      '--rm',
-      '-it',
-      `--volume=${archwaydHome}:/root/.archway`,
-      '--network=host',
-      `ghcr.io/archway-network/archwayd-debug:v${archwaydVersion}`,
-    ];
-  }
-}
-
-/**
- * Factory for creating an ArchwayClient.
- *
- * @param {{ docker: bool, archwaydVersion: string, testnet: string, archwaydHome: string, extraArgs: array }} options
- * @returns {ArchwayClient}
- */
-async function createClient({ docker = false, ...options } = {}) {
-  const client = docker ? new DockerArchwayClient(options) : new ArchwayClient(options);
-  await client.validateVersion();
-  return client;
-}
-
 module.exports = {
   ArchwayClient,
-  DockerArchwayClient,
   DefaultArchwaydHome,
   MinimumArchwaydVersion,
   ArchwayClientError,
   ValidationError,
   getTxEventAttribute: QueryCommands.getTxEventAttribute,
-  createClient,
+  createClient: ArchwayClient.createClient,
 };

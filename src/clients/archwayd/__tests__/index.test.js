@@ -1,12 +1,5 @@
 const _ = require('lodash');
-const {
-  ArchwayClient,
-  DockerArchwayClient,
-  DefaultArchwaydHome,
-  MinimumArchwaydVersion,
-  ValidationError,
-  createClient,
-} = require('..');
+const { ArchwayClient, MinimumArchwaydVersion, ValidationError, createClient } = require('..');
 const spawk = require('spawk');
 
 const isCmd = cmd => _.chain(_).head().eq(cmd).value();
@@ -159,65 +152,11 @@ describe('ArchwayClient', () => {
   });
 });
 
-describe('DockerArchwayClient', () => {
-  describe('constructor', () => {
-    test('builds a client that runs using Docker', () => {
-      const client = new DockerArchwayClient();
-      const command = client.command;
-      expect(command).toEqual('docker');
-    });
-  });
-
-  describe('getExtraArgs', () => {
-    test('extends the extraArgs with Docker args', () => {
-      const client = new DockerArchwayClient();
-      expect(client.extraArgs).toEqual(
-        expect.arrayContaining([
-          'run',
-          '--rm',
-          '-it',
-          '--network=host',
-          `--volume=${DefaultArchwaydHome}:/root/.archway`,
-          `ghcr.io/archway-network/archwayd-debug:v${MinimumArchwaydVersion}`,
-        ])
-      );
-    });
-
-    test('allows overriding the archwayd home path and version', () => {
-      const archwaydHome = '/tmp/.archwayd';
-      const archwaydVersion = '0.0.1';
-
-      const client = new DockerArchwayClient({ archwaydHome, archwaydVersion });
-
-      expect(client.extraArgs).toEqual(
-        expect.arrayContaining([
-          `--volume=${archwaydHome}:/root/.archway`,
-          `ghcr.io/archway-network/archwayd-debug:v${archwaydVersion}`,
-        ])
-      );
-    });
-  });
-
-  describe('getWorkingDir', () => {
-    test('returns the current archwayd home', () => {
-      const archwaydHome = '/tmp/.archwayd';
-      const client = new DockerArchwayClient({ archwaydHome });
-      expect(client.workingDir).toEqual(archwaydHome);
-    });
-  });
-});
-
 describe('createClient', () => {
-  test('creates an ArchwayClient when not using docker', async () => {
+  test('creates an ArchwayClient', async () => {
     spawk.spawn('archwayd', isCmd('version')).stdout(MinimumArchwaydVersion);
     const client = await createClient();
     expect(client).toBeInstanceOf(ArchwayClient);
-  });
-
-  test('creates a DockerArchwayClient when using docker', async () => {
-    spawk.spawn('archwayd', isCmd('version')).stdout(MinimumArchwaydVersion);
-    const client = await createClient({ docker: true });
-    expect(client).toBeInstanceOf(DockerArchwayClient);
   });
 
   test('validates the client version', async () => {
