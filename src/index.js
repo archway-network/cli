@@ -68,7 +68,7 @@ program
   .command('accounts')
   .description('List available wallets or add new wallet')
   .option('-a, --add <label>', 'Add a new wallet')
-  .hook.action(async options => {
+  .action(async options => {
     options = await updateWithDefaultsFromConfig(options);
     const archwayd = await createClient(options);
     await Tools.Accounts(archwayd, options);
