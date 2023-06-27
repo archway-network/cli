@@ -7,7 +7,6 @@ const { Config } = require('../util/config');
 const { isProjectName } = require('../util/validators');
 const { Prompts } = require('../networks');
 
-
 const TemplatesRepository = 'https://github.com/archway-network/archway-templates';
 const Templates = [
   { title: 'Increment', value: 'increment' },
@@ -30,29 +29,22 @@ const ProjectSetupQuestions = [
     type: 'confirm',
     name: 'useTemplate',
     message: 'Do you want to use a starter template?',
-    initial: false
+    initial: false,
   },
   {
-    type: prev => prev ? 'select' : null,
+    type: prev => (prev ? 'select' : null),
     name: 'template',
     message: 'Choose a template',
     choices: _.map(Templates, template => {
       return {
         description: `[https://github.com/${TemplatesRepository}/tree/main/${template.value}]`,
-        ...template
+        ...template,
       };
     }),
-  },
-  {
-    type: 'confirm',
-    name: 'docker',
-    message: 'Use Docker to run the archwayd daemon?',
-    initial: false
   },
   Prompts.environment,
   Prompts.testnet,
 ];
-
 
 async function createProject({ cwd, build, ...defaults } = {}) {
   const settings = await parseSettings(defaults);
@@ -66,10 +58,15 @@ async function createProject({ cwd, build, ...defaults } = {}) {
 }
 
 async function parseSettings(defaults) {
-  prompts.override(_.omitBy({
-    ...defaults,
-    useTemplate: defaults.template ? true : undefined
-  }, _.isUndefined));
+  prompts.override(
+    _.omitBy(
+      {
+        ...defaults,
+        useTemplate: defaults.template ? true : undefined,
+      },
+      _.isUndefined
+    )
+  );
 
   return await prompts(ProjectSetupQuestions);
 }
@@ -114,7 +111,9 @@ async function main(name, { cwd, ...options }) {
   try {
     const workingDir = cwd || process.cwd();
     const config = await createProject({ name, cwd: workingDir, ...options });
-    console.info(chalk`\n{green Successfully created project {cyan ${config.data.name}} with network configuration {cyan ${config.data.network.chainId}}}`);
+    console.info(
+      chalk`\n{green Successfully created project {cyan ${config.data.name}} with network configuration {cyan ${config.data.network.chainId}}}`
+    );
   } catch (e) {
     if (e instanceof PromptCancelledError) {
       console.warn(chalk`{yellow ${e.message}}`);

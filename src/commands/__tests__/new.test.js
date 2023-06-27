@@ -55,16 +55,14 @@ describe('project settings', () => {
     test('asks for user input', async () => {
       const name = 'archonauts';
       const useTemplate = false;
-      const docker = false;
       const environment = 'mainnet';
 
-      originalPrompts.inject([name, useTemplate, docker, environment]);
+      originalPrompts.inject([name, useTemplate, environment]);
 
       const answers = await fetchAnswers();
       expect(answers).toEqual({
         name,
         useTemplate,
-        docker,
         environment,
       });
     });
@@ -86,7 +84,7 @@ describe('project settings', () => {
       const environment = 'testnet';
       const testnet = 'titus';
 
-      originalPrompts.inject(['archonauts', false, false, environment, testnet]);
+      originalPrompts.inject(['archonauts', false, environment, testnet]);
 
       const answers = await fetchAnswers();
       expect(answers).toMatchObject({
@@ -103,7 +101,6 @@ describe('project settings', () => {
       const name = 'archonauts';
       const options = {
         template: 'increment',
-        docker: false,
         environment: 'testnet',
         testnet: 'titus',
       };
@@ -127,7 +124,6 @@ describe('project setup', () => {
 
     await New(name, {
       useTemplate: false,
-      docker: false,
       environment: 'localnet',
       build: false,
       cwd,
@@ -158,7 +154,6 @@ describe('project setup', () => {
 
     await New(name.raw, {
       useTemplate: false,
-      docker: false,
       environment: 'localnet',
       build: false,
       cwd,
@@ -189,7 +184,6 @@ describe('project setup', () => {
 
     await New(name.raw, {
       useTemplate: false,
-      docker: false,
       environment: 'localnet',
       build: false,
       cwd,
@@ -220,7 +214,6 @@ describe('project setup', () => {
 
     await New(name.raw, {
       useTemplate: false,
-      docker: false,
       environment: 'localnet',
       build: false,
       cwd,
@@ -248,7 +241,6 @@ describe('project setup', () => {
 
     await New(name, {
       template,
-      docker: false,
       environment: 'localnet',
       build: false,
       cwd,
@@ -265,7 +257,6 @@ describe('project setup', () => {
 
     await New(name, {
       useTemplate: false,
-      docker: false,
       environment: 'localnet',
       build: true,
       cwd,
@@ -291,7 +282,6 @@ describe('config file', () => {
 
     await New(name, {
       useTemplate: false,
-      docker: true,
       environment: 'testnet',
       testnet: 'constantine',
       build: false,
@@ -303,7 +293,6 @@ describe('config file', () => {
 
   test('contains project data', async () => {
     const name = 'archonauts';
-    const docker = true;
 
     let config = {};
     fs.writeFile.mockImplementationOnce((_path, configFile) => {
@@ -312,7 +301,6 @@ describe('config file', () => {
 
     await New(name, {
       useTemplate: false,
-      docker,
       environment: 'testnet',
       testnet: 'constantine',
       build: false,
@@ -322,7 +310,6 @@ describe('config file', () => {
     expect(config).toMatchObject({
       name,
       developer: {
-        archwayd: { docker },
         deployments: [],
       },
     });
@@ -339,7 +326,6 @@ describe('config file', () => {
 
     await New('archonauts', {
       useTemplate: false,
-      docker: false,
       environment,
       testnet,
       build: false,

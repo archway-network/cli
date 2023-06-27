@@ -204,8 +204,6 @@ program
 program
   .command('new')
   .description('Create a new project for Archway network')
-  .option('-k, --docker', 'Use the docker version of archwayd', false)
-  .option('--no-docker', 'Use the binary version of archwayd')
   .addOption(new Option('-e, --environment <value>', 'Environment to use for the project').choices(Environments))
   .addOption(new Option('-t, --testnet <value>', 'Testnet to use for the project').choices(Testnets))
   .option('--template <value>', 'Project template to use')
