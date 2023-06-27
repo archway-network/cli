@@ -76,6 +76,7 @@ program
 
 program
   .command('build')
+  .alias('buidl')
   .description('Build the project')
   .option('-o, --optimize', 'Builds an optimized wasm file ready for deployment')
   .action(async options => {
@@ -215,10 +216,11 @@ program
     await Tools.New(name, options);
   });
 
-let modChoices = ['code', ' contract', ' contract-history', ' contract-state', ' list-code', ' list-contract-by-code'];
-let typeChoices = ['smart', ' code_id', ' all', ' raw'];
+let modChoices = ['code', 'contract', 'contract-history', 'contract-state', 'list-code', 'list-contract-by-code'];
+let typeChoices = ['smart', 'code_id', 'all', 'raw'];
 program
   .command('query')
+  .alias('q')
   .argument('<module>', 'Query module to use; available modules: ' + String(modChoices))
   .argument('[type]', 'Subcommands (*if required by query module); available types: ' + String(typeChoices))
   .requiredOption('-a, --args <value>', 'JSON encoded arguments for query (e.g. \'{"get_count": {}}\')')
