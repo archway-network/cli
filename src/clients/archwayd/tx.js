@@ -37,7 +37,7 @@ class TxCommands {
       ...gasFlags,
       ...flags,
     ];
-    return await this.#client.runJson('tx', args, { printStdout: false, ...options });
+    return await this.#client.runJson('tx', args, { printOutput: true, ...options });
   }
 
   async #getGasFlags({ mode = 'auto', prices: defaultGasPrices, adjustment = 1.2 }, options) {
