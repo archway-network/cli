@@ -116,6 +116,8 @@ async function instantiateContract(
   console.info(chalk`Instantiating {cyan ${projectId}} from code id {cyan ${codeId}} on {cyan ${chainId}}...`);
 
   const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
+
+  console.info(chalk`Submitting transaction...`);
   const instantiateArgs = [codeId, args, '--label', label, '--admin', bech32AdminAddress];
   const {
     code,
