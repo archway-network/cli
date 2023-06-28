@@ -59,4 +59,4 @@ class QueryCommands {
   }
 }
 
-module.exports = QueryCommands;
+module.exports = { QueryCommands };

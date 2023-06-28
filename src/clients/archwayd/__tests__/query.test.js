@@ -1,6 +1,6 @@
 const spawk = require('spawk');
 const { ArchwayClient } = require('..');
-const QueryCommands = require('../query');
+const { QueryCommands } = require('../query');
 
 const Fixtures = {
   queryRewardsEstimateFees: require('./fixtures/query-rewards-estimate-fees.json'),

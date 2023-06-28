@@ -6,7 +6,7 @@ const { Command, Option, CommanderError, InvalidArgumentError } = require('comma
 const Tools = require('./commands');
 const { Config } = require('./util/config');
 const { PromptCancelledError } = require('./util/prompts');
-const { createClient, ArchwayClientError, TransactionCancelledError } = require('./clients/archwayd');
+const { createClient, ArchwayClientError, TxCancelledError, TxExecutionError } = require('./clients/archwayd');
 const { Environments, Testnets } = require('./networks');
 const { isJson, isProjectName, isArchwayAddress } = require('./util/validators');
 const { checkSemanticVersion } = require('./util/semvar');
@@ -278,12 +278,12 @@ async function run() {
   try {
     await program.parseAsync();
   } catch (e) {
-    if (e instanceof CommanderError || e instanceof PromptCancelledError || e instanceof TransactionCancelledError) {
+    if (e instanceof CommanderError || e instanceof PromptCancelledError || e instanceof TxCancelledError) {
       return;
     }
 
-    if (e instanceof ArchwayClientError) {
-      console.error(e.toString());
+    if (e instanceof ArchwayClientError || e instanceof TxExecutionError) {
+      console.error(chalk`{dim ${e.message}}`);
     } else {
       console.error(e);
     }

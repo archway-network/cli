@@ -1,6 +1,6 @@
 const spawk = require('spawk');
 const { ArchwayClient } = require('..');
-const TxCommands = require('../tx');
+const { TxCommands } = require('../tx');
 
 const Fixtures = {
   txWasmStore: require('./fixtures/tx-wasm-store.json'),

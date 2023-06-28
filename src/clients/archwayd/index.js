@@ -3,28 +3,30 @@ const debug = require('debug')('archwayd');
 const semver = require('semver');
 const { spawn } = require('promisify-child-process');
 
-const KeysCommands = require('./keys');
-const QueryCommands = require('./query');
-const TxCommands = require('./tx');
+const { KeysCommands } = require('./keys');
+const { QueryCommands } = require('./query');
+const { TxCommands, TxExecutionError } = require('./tx');
 
 const MinimumArchwaydVersion = '1.0.0-rc.2';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
 class ArchwayClientError extends Error {
+  #stderr;
+
   constructor(stderr) {
-    super('Failed to run archwayd');
+    super(`Failed to run archwayd: ${stderr}`);
     this.name = 'ArchwayClientError';
-    this.stderr = stderr;
+    this.#stderr = stderr;
   }
 
-  toString() {
-    return `${this.message}\n${this.stderr}`;
+  get stderr() {
+    return this.#stderr;
   }
 }
 
 class ValidationError extends Error {}
 
-class TransactionCancelledError extends Error {}
+class TxCancelledError extends Error {}
 
 /**
  * Facade for the archwayd client, which supports both Docker and binary implementations.
@@ -141,14 +143,14 @@ class ArchwayClient {
 
       const isCancelled = findLine(stderr, line => /cancelled transaction/i.test(line));
       if (!_.isEmpty(isCancelled)) {
-        throw new TransactionCancelledError();
+        throw new TxCancelledError();
       }
 
       const jsonOutput = findLine(stdout, line => /^{.*}/i.test(line)) || '{}';
       return JSON.parse(jsonOutput);
     } catch (e) {
       debug('error:', e);
-      if (e instanceof TransactionCancelledError) {
+      if (e instanceof TxCancelledError) {
         throw e;
       }
       const error = findLine(e.stderr, line => /^error:/i.test(line)) || e.message;
@@ -213,7 +215,9 @@ module.exports = {
   MinimumArchwaydVersion,
   ArchwayClientError,
   ValidationError,
-  TransactionCancelledError,
+  TxCancelledError,
+  TxExecutionError,
   getTxEventAttribute: QueryCommands.getTxEventAttribute,
+  assertValidTx: TxCommands.assertValidTx,
   createClient: ArchwayClient.createClient,
 };
