@@ -24,6 +24,7 @@ their keys using the available commands in `archwayd keys`.
 * **build:** throw exception instead of hardcoded text  ([#176](https://github.com/archway-network/archway-cli/issues/176))
 * **cli:** check for newer versions using semver ([#185](https://github.com/archway-network/archway-cli/issues/185))
 * **networks:** renamed local network to localnet ([#188](https://github.com/archway-network/archway-cli/issues/188))
+* **cargo:** resolve the WASM file name on arm64 ([#196](https://github.com/archway-network/archway-cli/issues/196))
 
 ### Code Refactoring
 
