@@ -31,7 +31,7 @@ async function retryWrapper(fn, { text = DefaultSpinnerText, ...options } = {}) 
  * @param {object} options
  */
 async function retryTx(archwayd, txhash, options) {
-  return await retry(
+  return await retryWrapper(
     async bail => {
       try {
         const tx = await archwayd.query.tx(txhash, options);
@@ -39,8 +39,8 @@ async function retryTx(archwayd, txhash, options) {
       } catch (e) {
         if (e instanceof TxExecutionError) {
           bail(e);
-          throw e;
         }
+        throw e;
       }
     },
     { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
