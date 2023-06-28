@@ -60,6 +60,10 @@ class TxCommands {
     );
   }
 
+  async setFlatFee(contract, flatFee, options) {
+    return await this.#runJson(['rewards', 'set-flat-fee', contract, flatFee], options);
+  }
+
   static assertValidTx({ code, raw_log: rawLog, txhash }) {
     if (code && code !== 0) {
       throw new TxExecutionError(code, rawLog, txhash);

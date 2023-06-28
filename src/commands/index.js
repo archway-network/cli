@@ -6,6 +6,7 @@ const DeployHistory = require('./deployments');
 const Instantiate = require('./instantiate');
 const Metadata = require('./metadata.js');
 const Network = require('./network');
+const Premium = require('./premium');
 const New = require('./new');
 const Query = require('./query');
 const Store = require('./store');
@@ -20,8 +21,9 @@ module.exports = {
   Instantiate,
   Metadata,
   Network,
+  Premium,
   New,
   Query,
   Store,
-  Tx
+  Tx,
 };

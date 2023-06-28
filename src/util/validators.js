@@ -1,22 +1,55 @@
 const _ = require('lodash');
 
-function isJson(str) {
-  const json = _.attempt(JSON.parse, str);
+/**
+ * Validates if the value is a JSON.
+ *
+ * @param {string} value
+ *
+ * @returns boolean
+ */
+function isJson(value) {
+  const json = _.attempt(JSON.parse, value);
   return !_.isError(json);
 }
 
-function isProjectName(name) {
-  const regexp = new RegExp('^[a-z0-9-_]+$');
-  return regexp.test(name);
+/**
+ * Validates if the value is an accepted project name.
+ *
+ * @param {string} value
+ *
+ * @returns boolean
+ */
+function isProjectName(value) {
+  return /^[a-z0-9-_]+$/.test(value);
 }
 
-function isArchwayAddress(address) {
-  const regexp = new RegExp('^(archway)1([a-z0-9]+)$');
-  return regexp.test(address);
+/**
+ * Validates if the value is an Archway bech32 address.
+ *
+ * @param {string} value
+ *
+ * @returns boolean
+ */
+function isArchwayAddress(value) {
+  return /^(archway)1([a-z0-9]+)$/.test(value);
+}
+
+/**
+ * Validates if the value is a coin.
+ *
+ * @param {string} value
+ * @param {string} denom
+ *
+ * @returns boolean
+ */
+function isCoin(value, denom = '') {
+  const regexp = /^([0-9]+)([a-z]+)$/;
+  return regexp.test(value) && value.match(regexp)?.at(2) === denom;
 }
 
 module.exports = {
   isJson,
   isProjectName,
-  isArchwayAddress
+  isArchwayAddress,
+  isCoin,
 };
