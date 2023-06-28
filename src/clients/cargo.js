@@ -21,13 +21,7 @@ class Cargo {
   }
 
   async generate(name, repository, branch, template) {
-    await this.#run([
-      'generate',
-      '--name', name,
-      '--git', repository,
-      '--branch', branch,
-      template
-    ]);
+    await this.#run(['generate', '--name', name, '--git', repository, '--branch', branch, template]);
   }
 
   async build({ release = false, locked = false, target } = {}, options) {
@@ -50,12 +44,7 @@ class Cargo {
    * @private
    */
   async metadata() {
-    const { stdout } = await this.#run([
-      'metadata',
-      '--quiet',
-      '--no-deps',
-      '--format-version=1'
-    ], { stdio: 'pipe' });
+    const { stdout } = await this.#run(['metadata', '--quiet', '--no-deps', '--format-version=1'], { stdio: 'pipe' });
     return JSON.parse(stdout);
   }
 
@@ -70,13 +59,16 @@ class Cargo {
     const { packages = [], target_directory: targetDirectory, workspace_root: workspaceRoot } = await this.metadata();
     const currentManifestPath = await this.locateProject();
 
-    const findPackageInPath = searchPath => packages
-      .find(({ manifest_path: manifestPath }) => path.dirname(manifestPath) === searchPath);
+    const findPackageInPath = searchPath =>
+      packages.find(({ manifest_path: manifestPath }) => path.dirname(manifestPath) === searchPath);
 
-    const firstPackageInWorkspace = searchPath => workspaceRoot === searchPath ? _.head(packages) : null;
+    const firstPackageInWorkspace = searchPath => (workspaceRoot === searchPath ? _.head(packages) : null);
 
-    const { name, version, manifest_path: manifestPath } =
-      findPackageInPath(currentManifestPath) || firstPackageInWorkspace(currentManifestPath) || {};
+    const {
+      name,
+      version,
+      manifest_path: manifestPath,
+    } = findPackageInPath(currentManifestPath) || firstPackageInWorkspace(currentManifestPath) || {};
 
     if (_.isEmpty(name) || _.isEmpty(version)) {
       throw new Error('Failed to resolve project metadata');
@@ -88,7 +80,7 @@ class Cargo {
     const wasm = {
       fileName: wasmFileName,
       filePath: path.join(targetDirectory, Cargo.WasmTarget, 'release', wasmFileName),
-      optimizedFilePath: path.join(workspaceRoot, 'artifacts', wasmFileName)
+      optimizedFilePath: path.join(workspaceRoot, 'artifacts', wasmFileName),
     };
 
     return { id, name, version, wasm, workspaceRoot, isWorkspace };
@@ -107,7 +99,7 @@ class Cargo {
       ...options,
       cwd: this.#cwd,
       encoding: 'utf8',
-      maxBuffer: 1024 * 1024 // (Large enough for verbose error debugging)
+      maxBuffer: 1024 * 1024, // (Large enough for verbose error debugging)
     });
   }
 }
