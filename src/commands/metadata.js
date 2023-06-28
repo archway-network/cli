@@ -7,7 +7,7 @@ const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress } = require('../util/validators');
 
 // eslint-disable-next-line no-unused-vars
-const { ArchwayClient, TxExecutionError, assertValidTx } = require('../clients/archwayd');
+const { ArchwayClient } = require('../clients/archwayd');
 
 async function parseTxOptions(config, { name: projectName }, { confirm, flags = [], ...options } = {}) {
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
@@ -21,7 +21,7 @@ async function parseTxOptions(config, { name: projectName }, { confirm, flags = 
     contract: lastDeployedContract || undefined,
     ...options,
   });
-  const { from, contract, ...contractMetadata } = await prompts([
+  const { from, contract, ownerAddress, rewardsAddress } = await prompts([
     {
       type: 'text',
       name: 'from',
@@ -33,6 +33,7 @@ async function parseTxOptions(config, { name: projectName }, { confirm, flags = 
       type: 'text',
       name: 'contract',
       message: chalk`Enter the smart contract address {reset.dim (e.g. "archway1...")}`,
+      initial: lastDeployedContract,
       validate: value => isArchwayAddress(_.trim(value)) || 'Invalid address',
       format: value => _.trim(value),
     },
@@ -40,7 +41,7 @@ async function parseTxOptions(config, { name: projectName }, { confirm, flags = 
       type: 'text',
       name: 'ownerAddress',
       message: chalk`Contract owner address which can change the metadata later on {reset.dim (e.g. "archway1...")}`,
-      initial: lastContractMetadata.developerAddress || undefined,
+      initial: lastContractMetadata?.ownerAddress,
       validate: value => _.isEmpty(_.trim(value)) || isArchwayAddress(_.trim(value)) || 'Invalid address',
       format: value => _.trim(value),
     },
@@ -48,13 +49,14 @@ async function parseTxOptions(config, { name: projectName }, { confirm, flags = 
       type: 'text',
       name: 'rewardsAddress',
       message: chalk`Address that will receive the rewards {reset.dim (e.g. "archway1...")}`,
-      initial: lastContractMetadata.rewardsAddress || undefined,
+      initial: lastContractMetadata?.rewardsAddress,
       validate: value => _.isEmpty(_.trim(value)) || isArchwayAddress(_.trim(value)) || 'Invalid address',
       format: value => _.trim(value),
     },
   ]);
 
   const extraFlags = _.flatten([confirm ? [] : ['--yes']]).filter(_.isString);
+  const contractMetadata = { ownerAddress, rewardsAddress };
 
   return {
     ...options,
