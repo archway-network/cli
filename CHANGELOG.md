@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+### ⚠ BREAKING CHANGES
+
+* **archwayd:** Dropped support for the Docker version of `archwayd`. To migrate
+from Docker-based environments, users will have to install `archwayd` from the
+official binary releases in the protocol repository, and also export/import
+their keys using the available commands in `archwayd keys`.
+
 ### Changes
 
 * **instantiate:** save the deployed label ([#182](https://github.com/archway-network/archway-cli/issues/182))
@@ -11,10 +18,16 @@
 
 ### Bug Fixes
 
+* **archwayd:** validate errors printed to stderr ([#194](https://github.com/archway-network/archway-cli/issues/194))
 * **archwayd:** don't freeze the shell ([#184](https://github.com/archway-network/archway-cli/issues/184))
 * **archwayd:** validate minimum client version ([#180](https://github.com/archway-network/archway-cli/issues/180))
 * **build:** throw exception instead of hardcoded text  ([#176](https://github.com/archway-network/archway-cli/issues/176))
 * **cli:** check for newer versions using semver ([#185](https://github.com/archway-network/archway-cli/issues/185))
+* **networks:** renamed local network to localnet ([#188](https://github.com/archway-network/archway-cli/issues/188))
+
+### Code Refactoring
+
+* **archwayd:** deprecated archwayd on Docker ([#190](https://github.com/archway-network/archway-cli/issues/190))
 
 ## [1.5.1](https://github.com/archway-network/archway-cli/compare/1.5.0...1.5.1) (2023-04-03)
 
