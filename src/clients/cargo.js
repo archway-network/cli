@@ -76,7 +76,8 @@ class Cargo {
 
     const id = `${name} ${version}`;
     const isWorkspace = path.dirname(manifestPath) !== workspaceRoot;
-    const wasmFileName = `${name.replace(/-/g, '_')}.wasm`;
+    const archSuffix = process.arch === 'arm64' ? '-aarch64' : '';
+    const wasmFileName = `${name.replace(/-/g, '_')}${archSuffix}.wasm`;
     const wasm = {
       fileName: wasmFileName,
       filePath: path.join(targetDirectory, Cargo.WasmTarget, 'release', wasmFileName),
