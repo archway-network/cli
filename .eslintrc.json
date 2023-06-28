@@ -40,7 +40,7 @@
     "eqeqeq": "error",
     "func-call-spacing": "error",
     "function-call-argument-newline": ["error", "consistent"],
-    "function-paren-newline": ["error", "consistent"],
+    "function-paren-newline": ["off"],
     "func-style": [
       "error",
       "declaration",
