@@ -19,18 +19,18 @@ class ConfigError extends Error {
   }
 }
 
-class ConfigFileNotFoundError extends ConfigError { }
-class ConfigOpenError extends ConfigError { }
-class ConfigInitError extends ConfigError { }
-class InvalidConfigError extends ConfigError { }
-class InvalidDeploymentConfigError extends InvalidConfigError { }
+class ConfigFileNotFoundError extends ConfigError {}
+class ConfigOpenError extends ConfigError {}
+class ConfigInitError extends ConfigError {}
+class InvalidConfigError extends ConfigError {}
+class InvalidDeploymentConfigError extends InvalidConfigError {}
 
 /**
  * Manages the Archway project configuration file.
  *
  * @typedef {{
  * name: string,
- * developer: { docker: boolean },
+ * developer: { deployments: [] },
  * network: {
  *  name: string,
  *  chainId: string,
@@ -90,7 +90,7 @@ class Config {
   static #isValidConfig = _.conforms({
     name: _.isString,
     developer: _.conforms({
-      archwayd: _.conforms({ docker: _.isBoolean })
+      deployments: _.conforms(_.isArray),
     }),
     network: _.conforms({
       name: _.isString,
@@ -100,16 +100,16 @@ class Config {
       gas: _.conforms({
         prices: _.isString,
         mode: _.isString,
-        adjustment: _.isString
+        adjustment: _.isString,
       }),
       wasm: _.conforms({
         configDir: _.isString,
         archwayd: _.isString,
         bech32Hrp: _.isString,
-        binary: _.isString
+        binary: _.isString,
       }),
       urls: _.conforms({
-        rpc: _.conforms({ url: _.isString, port: _.isNumber })
+        rpc: _.conforms({ url: _.isString, port: _.isNumber }),
       }),
     }),
   });
@@ -154,14 +154,13 @@ class Config {
    * @returns {Promise<Config>}
    * @throws {ConfigInitError}
    */
-  static async init(name, { docker = false, environment, testnet, ...extraData } = {}, workspaceRoot) {
+  static async init(name, { environment, testnet, ...extraData } = {}, workspaceRoot) {
     try {
       const projectConfig = {
         name: name,
         developer: {
-          archwayd: { docker },
-          deployments: []
-        }
+          deployments: [],
+        },
       };
       const networkConfig = loadNetworkConfig(environment, testnet);
       const configData = _.defaultsDeep(extraData, projectConfig, networkConfig);
@@ -170,7 +169,10 @@ class Config {
 
       return new Config(configData, configPath);
     } catch (e) {
-      throw new ConfigInitError('Failed to initialize the project config file: make sure you are running the command from a CosmWasm project directory', e);
+      throw new ConfigInitError(
+        'Failed to initialize the project config file: make sure you are running the command from a CosmWasm project directory',
+        e
+      );
     }
   }
 
@@ -185,12 +187,17 @@ class Config {
     try {
       const configPath = await Config.#getConfigFilePath(workspaceRoot);
       debug('opening config file at %s', configPath);
-      await fs.access(configPath).catch(e => { throw new ConfigFileNotFoundError(configPath, e); });
+      await fs.access(configPath).catch(e => {
+        throw new ConfigFileNotFoundError(configPath, e);
+      });
       const configData = require(configPath);
 
       return new Config(configData, configPath);
     } catch (e) {
-      throw new ConfigOpenError('Failed to open the project config file: make sure you are running the command from an Archway project directory', e);
+      throw new ConfigOpenError(
+        'Failed to open the project config file: make sure you are running the command from an Archway project directory',
+        e
+      );
     }
   }
 
@@ -242,20 +249,17 @@ class Deployments {
       throw new InvalidDeploymentConfigError('Could not save deployment data to config file');
     }
 
-    await this.config.update(
-      { developer: { deployments: [deployment] } },
-      { arrayMode: 'prepend' }
-    );
+    await this.config.update({ developer: { deployments: [deployment] } }, { arrayMode: 'prepend' });
   }
 
   list() {
-    return this.config.get('developer.deployments', [])
+    return this.config
+      .get('developer.deployments', [])
       .map(deployment => _.defaults(deployment, { project: this.config.get('name') }));
   }
 
   listBy(fields) {
-    return this.list()
-      .filter(_.matches(fields));
+    return this.list().filter(_.matches(fields));
   }
 
   listByChainId(chainId) {
@@ -264,8 +268,7 @@ class Deployments {
   }
 
   findLastBy(fields) {
-    return this.list()
-      .find(_.matches(fields));
+    return this.list().find(_.matches(fields));
   }
 
   findLastByTypeAndProjectAndChainId(type, project, chainId) {
@@ -279,7 +282,10 @@ function mergeCustomizer({ arrayMode = 'overwrite' } = {}) {
   return _.cond([
     [_.overEvery(_.isArray, _.constant(arrayMode === 'overwrite')), _.nthArg(1)],
     [_.overEvery(_.isArray, _.constant(arrayMode === 'append')), _.concat],
-    [_.overEvery(_.isArray, _.constant(arrayMode === 'prepend')), (objValue = [], srcValue = []) => [...srcValue, ...objValue]],
+    [
+      _.overEvery(_.isArray, _.constant(arrayMode === 'prepend')),
+      (objValue = [], srcValue = []) => [...srcValue, ...objValue],
+    ],
   ]);
 }
 
