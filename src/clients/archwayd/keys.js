@@ -32,4 +32,4 @@ class KeysCommands {
   }
 }
 
-module.exports = KeysCommands;
+module.exports = { KeysCommands };

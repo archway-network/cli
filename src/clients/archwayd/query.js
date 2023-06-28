@@ -32,14 +32,17 @@ class QueryCommands {
 
   async rewardsEstimateFees(gasLimit = 1, options) {
     /* eslint-disable-next-line camelcase */
-    const { gas_unit_price: gasUnitPrice } = await this.#runJson(['rewards', 'estimate-fees', gasLimit], options);
+    const { gas_unit_price: gasUnitPrice } = await this.#runJson(['rewards', 'estimate-fees', gasLimit], {
+      ...options,
+      stdio: ['inherit', 'pipe', 'pipe'],
+    });
     return `${gasUnitPrice.amount}${gasUnitPrice.denom}`;
   }
 
   async #run(queryArgs = [], { node, flags = [], ...options } = {}) {
     const args = [...queryArgs, '--node', node, ...flags];
     const { stdout } = await this.#client.run('query', args, {
-      printStdout: false,
+      printOutput: false,
       ...options,
       stdio: ['inherit', 'pipe', 'inherit'],
     });
@@ -49,11 +52,11 @@ class QueryCommands {
   async #runJson(queryArgs = [], { node, flags = [], ...options } = {}) {
     const args = [...queryArgs, '--node', node, ...flags];
     return await this.#client.runJson('query', args, {
-      printStdout: false,
+      printOutput: false,
       ...options,
       stdio: ['inherit', 'pipe', 'pipe'],
     });
   }
 }
 
-module.exports = QueryCommands;
+module.exports = { QueryCommands };

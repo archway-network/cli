@@ -11,7 +11,7 @@ const Fixtures = {
 
 const defaultOptions = {
   node: 'https://rpc.titus-1.archway.tech:443',
-  printStdout: false
+  printOutput: false,
 };
 
 jest.mock('ora');
@@ -23,8 +23,8 @@ const projectMetadata = {
   name: Fixtures.sampleConfig.name,
   version: '0.1.0',
   wasm: {
-    optimizedFilePath: `artifacts/${Fixtures.sampleConfig.name.replace(/-/g, '_')}.wasm`
-  }
+    optimizedFilePath: `artifacts/${Fixtures.sampleConfig.name.replace(/-/g, '_')}.wasm`,
+  },
 };
 
 const mockCargo = {
@@ -44,10 +44,8 @@ describe('query', () => {
     spawk.clean();
     spawk.preventUnmatched();
 
-    jest.spyOn(Config, 'open')
-      .mockResolvedValue(mockConfig);
-    jest.spyOn(prompts, 'override')
-      .mockImplementationOnce(prompts.mockResolvedValue);
+    jest.spyOn(Config, 'open').mockResolvedValue(mockConfig);
+    jest.spyOn(prompts, 'override').mockImplementationOnce(prompts.mockResolvedValue);
   });
 
   afterEach(() => {
@@ -57,8 +55,7 @@ describe('query', () => {
 
   test('queries last stored contract', async () => {
     jest.spyOn(client.query, 'txEventAttribute');
-    jest.spyOn(mockConfig.deployments, 'add')
-      .mockImplementation(() => { });
+    jest.spyOn(mockConfig.deployments, 'add').mockImplementation(() => {});
 
     const archwayd = spawk.spawn(client.command).stdout('Querying smart contract');
 
@@ -68,15 +65,22 @@ describe('query', () => {
       type: 'smart',
       options: {
         args,
-      }
-    },);
+      },
+    });
 
     let contractAddress = 'archway1yama69ck4d722lltrz64mf8q06u9r37y4kh5948cqpj49g0d5nlqvsuvse';
     expect(archwayd.calledWith).toMatchObject({
       args: [
-        'query', 'wasm', 'contract-state', 'smart', contractAddress, args,
-        '--node', defaultOptions.node,
-        '--output', 'json',
+        'query',
+        'wasm',
+        'contract-state',
+        'smart',
+        contractAddress,
+        args,
+        '--node',
+        defaultOptions.node,
+        '--output',
+        'json',
       ],
     });
   });

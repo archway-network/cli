@@ -91,7 +91,7 @@ describe('ArchwayClient', () => {
       const output = { txhash: '123456' };
       const archwayd = spawk.spawn(client.command).stdout(JSON.stringify(output));
 
-      const json = await client.runJson('keys', ['list'], { printStdout: false });
+      const json = await client.runJson('keys', ['list'], { printOutput: false });
 
       expect(archwayd.calledWith).toMatchObject({
         command: client.command,
@@ -106,7 +106,7 @@ describe('ArchwayClient', () => {
       const client = new ArchwayClient({ extraArgs: ['--keyring-backend', 'test'] });
       spawk.spawn(client.command);
 
-      const json = client.runJson('keys', ['list'], { printStdout: false });
+      const json = client.runJson('keys', ['list'], { printOutput: false });
 
       expect(json).toMatchObject({});
     });

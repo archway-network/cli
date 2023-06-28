@@ -3,26 +3,30 @@ const debug = require('debug')('archwayd');
 const semver = require('semver');
 const { spawn } = require('promisify-child-process');
 
-const KeysCommands = require('./keys');
-const QueryCommands = require('./query');
-const TxCommands = require('./tx');
+const { KeysCommands } = require('./keys');
+const { QueryCommands } = require('./query');
+const { TxCommands, TxExecutionError } = require('./tx');
 
 const MinimumArchwaydVersion = '1.0.0-rc.2';
 const DefaultArchwaydHome = `${process.env.HOME}/.archway`;
 
 class ArchwayClientError extends Error {
+  #stderr;
+
   constructor(stderr) {
-    super('Failed to run archwayd');
+    super(`Failed to run archwayd: ${stderr}`);
     this.name = 'ArchwayClientError';
-    this.stderr = stderr;
+    this.#stderr = stderr;
   }
 
-  toString() {
-    return `${this.message}\n${this.stderr}`;
+  get stderr() {
+    return this.#stderr;
   }
 }
 
 class ValidationError extends Error {}
+
+class TxCancelledError extends Error {}
 
 /**
  * Facade for the archwayd client, which supports both Docker and binary implementations.
@@ -110,14 +114,18 @@ class ArchwayClient {
   }
 
   run(subCommand, args = [], options = { stdio: 'inherit' }) {
-    const command = this.command;
-    const parsedArgs = this.parseArgs([subCommand, ...args]);
-    options = { ...options, encoding: 'utf8' };
-    debug(command, ...parsedArgs);
-    return spawn(command, parsedArgs, options);
+    try {
+      const command = this.command;
+      const parsedArgs = this.parseArgs([subCommand, ...args]);
+      options = { ...options, encoding: 'utf8' };
+      debug(...parsedArgs);
+      return spawn(command, parsedArgs, options);
+    } catch (e) {
+      throw new ArchwayClientError(e.message || e);
+    }
   }
 
-  async runJson(subCommand, args = [], { printStdout = true, ...options } = {}) {
+  async runJson(subCommand, args = [], { printOutput = true, ...options } = {}) {
     try {
       const archwayd = this.run(subCommand, [...args, '--output', 'json'], {
         stdio: ['inherit', 'pipe', 'pipe'],
@@ -125,28 +133,27 @@ class ArchwayClient {
         ...options,
       });
 
-      if (printStdout) {
+      if (printOutput) {
         archwayd.stdout?.pipe(process.stdout);
         archwayd.stderr?.pipe(process.stderr);
-      } else {
-        [archwayd.stdout, archwayd.stderr].forEach(stream => {
-          stream?.on('data', data => {
-            // When the passphrase is requested by archwayd, we want to print it to stdout
-            const message = data.toString().toLowerCase();
-            if (message.includes('passphrase') || message.includes('error')) {
-              process.stdout.write(data);
-            }
-          });
-        });
       }
 
-      const { stdout } = await archwayd;
-      const lines = stdout.replace(/\r/g, '').split('\n');
-      const jsonLines = lines.filter(line => line.startsWith('{'));
-      const jsonOutput = jsonLines.pop() || '{}';
+      const { stdout, stderr } = await archwayd;
+      debug('stdout=', stdout, 'stderr=', stderr);
+
+      const isCancelled = findLine(stderr, line => /cancelled transaction/i.test(line));
+      if (!_.isEmpty(isCancelled)) {
+        throw new TxCancelledError();
+      }
+
+      const jsonOutput = findLine(stdout, line => /^{.*}/i.test(line)) || '{}';
       return JSON.parse(jsonOutput);
     } catch (e) {
-      const error = e.stderr || e.message;
+      debug('error:', e);
+      if (e instanceof TxCancelledError) {
+        throw e;
+      }
+      const error = findLine(e.stderr, line => /^error:/i.test(line)) || e.message;
       throw new ArchwayClientError(error);
     }
   }
@@ -158,8 +165,7 @@ class ArchwayClient {
    */
   async getVersion() {
     const { stdout } = await this.run('version', [], { stdio: ['inherit', 'pipe', 'inherit'] });
-    const lines = stdout.replace(/\r/g, '').split('\n');
-    return lines.find(semver.valid);
+    return findLine(stdout, semver.valid);
   }
 
   /**
@@ -190,7 +196,17 @@ class ArchwayClient {
         Please install the latest version from https://github.com/archway-network/archway`
       );
     }
+
+    debug('required version=', this.archwaydVersion, 'binary version=', binVersion);
   }
+}
+
+function findLine(output, testFn) {
+  if (!output) {
+    return undefined;
+  }
+  const lines = output.replace(/\r/g, '').split('\n');
+  return lines.find(testFn);
 }
 
 module.exports = {
@@ -199,6 +215,9 @@ module.exports = {
   MinimumArchwaydVersion,
   ArchwayClientError,
   ValidationError,
+  TxCancelledError,
+  TxExecutionError,
   getTxEventAttribute: QueryCommands.getTxEventAttribute,
+  assertValidTx: TxCommands.assertValidTx,
   createClient: ArchwayClient.createClient,
 };

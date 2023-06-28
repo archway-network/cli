@@ -1,6 +1,6 @@
 const spawk = require('spawk');
 const { ArchwayClient } = require('..');
-const QueryCommands = require('../query');
+const { QueryCommands } = require('../query');
 
 const Fixtures = {
   queryRewardsEstimateFees: require('./fixtures/query-rewards-estimate-fees.json'),
@@ -9,7 +9,7 @@ const Fixtures = {
 
 const defaultOptions = {
   node: 'https://rpc.titus.archway.tech:443',
-  printStdout: false
+  printOutput: false,
 };
 
 beforeEach(() => {
@@ -28,8 +28,7 @@ describe('QueryCommands', () => {
       const client = new ArchwayClient();
       const query = new QueryCommands(client);
 
-      const archwayd = spawk.spawn(client.command)
-        .stdout(JSON.stringify(Fixtures.queryTxWasmStore));
+      const archwayd = spawk.spawn(client.command).stdout(JSON.stringify(Fixtures.queryTxWasmStore));
 
       const txhash = Fixtures.queryTxWasmStore.txhash;
       const transaction = await query.tx(txhash, defaultOptions);
@@ -37,11 +36,7 @@ describe('QueryCommands', () => {
       expect(transaction).toMatchObject(Fixtures.queryTxWasmStore);
 
       expect(archwayd.calledWith).toMatchObject({
-        args: [
-          'query', 'tx', txhash,
-          '--node', defaultOptions.node,
-          '--output', 'json',
-        ]
+        args: ['query', 'tx', txhash, '--node', defaultOptions.node, '--output', 'json'],
       });
     });
   });
@@ -51,8 +46,7 @@ describe('QueryCommands', () => {
       const client = new ArchwayClient();
       const query = new QueryCommands(client);
 
-      const archwayd = spawk.spawn(client.command)
-        .stdout(JSON.stringify(Fixtures.queryTxWasmStore));
+      const archwayd = spawk.spawn(client.command).stdout(JSON.stringify(Fixtures.queryTxWasmStore));
 
       const txhash = Fixtures.queryTxWasmStore.txhash;
       const codeId = await query.txEventAttribute(txhash, 'store_code', 'code_id', defaultOptions);
@@ -60,11 +54,7 @@ describe('QueryCommands', () => {
       expect(codeId).toEqual('253');
 
       expect(archwayd.calledWith).toMatchObject({
-        args: [
-          'query', 'tx', txhash,
-          '--node', defaultOptions.node,
-          '--output', 'json',
-        ]
+        args: ['query', 'tx', txhash, '--node', defaultOptions.node, '--output', 'json'],
       });
     });
   });
@@ -75,18 +65,14 @@ describe('QueryCommands', () => {
       const query = new QueryCommands(client);
 
       const outputFilePath = '/tmp/contract.wasm';
-      const archwayd = spawk.spawn(client.command)
-        .stdout(`Downloading wasm code to ${outputFilePath}`);
+      const archwayd = spawk.spawn(client.command).stdout(`Downloading wasm code to ${outputFilePath}`);
 
       const output = await query.wasmCode(1, outputFilePath, defaultOptions);
 
       expect(output).toEqual(`Downloading wasm code to ${outputFilePath}`);
 
       expect(archwayd.calledWith).toMatchObject({
-        args: [
-          'query', 'wasm', 'code', 1, outputFilePath,
-          '--node', defaultOptions.node,
-        ],
+        args: ['query', 'wasm', 'code', 1, outputFilePath, '--node', defaultOptions.node],
       });
     });
   });
@@ -98,8 +84,7 @@ describe('QueryCommands', () => {
 
       let queryResult = { count: 0 };
 
-      const archwayd = spawk.spawn(client.command)
-        .stdout(JSON.stringify(queryResult));
+      const archwayd = spawk.spawn(client.command).stdout(JSON.stringify(queryResult));
 
       const contract = 'archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4';
 
@@ -109,9 +94,16 @@ describe('QueryCommands', () => {
 
       expect(archwayd.calledWith).toMatchObject({
         args: [
-          'query', 'wasm', 'contract-state', 'smart', contract, args,
-          '--node', defaultOptions.node,
-          '--output', 'json',
+          'query',
+          'wasm',
+          'contract-state',
+          'smart',
+          contract,
+          args,
+          '--node',
+          defaultOptions.node,
+          '--output',
+          'json',
         ],
       });
     });
@@ -122,18 +114,13 @@ describe('QueryCommands', () => {
       const client = new ArchwayClient();
       const query = new QueryCommands(client);
 
-      const archwayd = spawk.spawn(client.command)
-        .stdout(JSON.stringify(Fixtures.queryRewardsEstimateFees));
+      const archwayd = spawk.spawn(client.command).stdout(JSON.stringify(Fixtures.queryRewardsEstimateFees));
 
       const output = await query.rewardsEstimateFees(13, defaultOptions);
       expect(output).toEqual('128.06592utitus');
 
       expect(archwayd.calledWith).toMatchObject({
-        args: [
-          'query', 'rewards', 'estimate-fees', 13,
-          '--node', defaultOptions.node,
-          '--output', 'json',
-        ],
+        args: ['query', 'rewards', 'estimate-fees', 13, '--node', defaultOptions.node, '--output', 'json'],
       });
     });
   });
