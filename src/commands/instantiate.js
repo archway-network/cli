@@ -3,7 +3,7 @@ const chalk = require('chalk');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { Config } = require('../util/config');
 const { isJson, isArchwayAddress } = require('../util/validators');
-const retry = require('../util/retry');
+const { retry } = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
 // eslint-disable-next-line no-unused-vars
@@ -118,19 +118,11 @@ async function instantiateContract(
   const bech32AdminAddress = await parseBech32Address(archwayd, adminAddress);
 
   console.info(chalk`Submitting transaction...`);
-  const instantiateArgs = [codeId, args, '--label', label, '--admin', bech32AdminAddress];
-  const {
-    code,
-    raw_log: rawLog,
-    txhash,
-  } = await archwayd.tx.wasm('instantiate', instantiateArgs, {
+  const { txhash } = await archwayd.tx.instantiate(codeId, args, label, bech32AdminAddress, {
     chainId,
     node,
     ...options,
   });
-  if (code && code !== 0) {
-    throw new Error(`Transaction failed: code=${code}, ${rawLog}`);
-  }
   const contractAddress = await retry(
     () => archwayd.query.txEventAttribute(txhash, 'instantiate', '_contract_address', { node }),
     { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }

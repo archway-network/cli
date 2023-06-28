@@ -1,12 +1,19 @@
 const _ = require('lodash');
 const chalk = require('chalk');
 const Cargo = require('../clients/cargo');
-const retry = require('../util/retry');
+const { retryTx } = require('../util/retry');
 const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress, isJson } = require('../util/validators');
 
-async function parseTxOptions(config, { name: projectName }, { confirm, args, flags = [], contract: optContract, ...options } = {}) {
+// eslint-disable-next-line no-unused-vars
+const { ArchwayClient, TxExecutionError, assertValidTx } = require('../clients/archwayd');
+
+async function parseTxOptions(
+  config,
+  { name: projectName },
+  { confirm, args, flags = [], contract: optContract, ...options } = {}
+) {
   if (!_.isEmpty(args) && !isJson(args)) {
     throw new Error(`Arguments should be a JSON string, received "${args}"`);
   }
@@ -33,12 +40,10 @@ async function parseTxOptions(config, { name: projectName }, { confirm, args, fl
       message: chalk`Enter the smart contract address {reset.dim (e.g. "archway1...")}`,
       validate: value => isArchwayAddress(_.trim(value)) || 'Invalid address',
       format: value => _.trim(value),
-    }
+    },
   ]);
 
-  const extraFlags = _.flatten([
-    confirm ? [] : ['--yes'],
-  ]).filter(_.isString);
+  const extraFlags = _.flatten([confirm ? [] : ['--yes']]).filter(_.isString);
 
   return {
     contract,
@@ -51,29 +56,26 @@ async function parseTxOptions(config, { name: projectName }, { confirm, args, fl
   };
 }
 
-async function executeTx(archwayd, cargo, options) {
+/**
+ * Executes a transaction on a WASM contract.
+ *
+ * @param {ArchwayClient} archwayd
+ * @param {Cargo} cargo
+ * @param {object} options
+ */
+async function executeTx(archwayd, cargo, options = {}) {
   const config = await Config.open();
   const project = await cargo.projectMetadata();
   const { node, contract, args, ...txOptions } = await parseTxOptions(config, project, options);
 
   console.info(chalk`Executing tx on contract {cyan ${contract}}...`);
   const { txhash } = await archwayd.tx.wasm('execute', [contract, args], { node, ...txOptions });
-  await retry(
-    async bail => {
-      const { code, raw_log: rawLog } = await archwayd.query.tx(txhash, { node });
-      if (code && code !== 0) {
-        const error = new Error(rawLog);
-        bail(error);
-        throw error;
-      }
-    },
-    { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
-  );
+  await retryTx(archwayd, txhash, { node });
 
   console.info(chalk`{green Executed tx on contract {cyan ${contract}}}\n`);
 }
 
-async function main(archwayd, options) {
+async function main(archwayd, options = {}) {
   try {
     const cargo = new Cargo();
     await executeTx(archwayd, cargo, options);

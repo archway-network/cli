@@ -1,20 +1,25 @@
 const _ = require('lodash');
 const chalk = require('chalk');
 const Cargo = require('../clients/cargo');
-const retry = require('../util/retry');
+const { retryTx } = require('../util/retry');
 const { Config } = require('../util/config');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress } = require('../util/validators');
 
+// eslint-disable-next-line no-unused-vars
+const { ArchwayClient, TxExecutionError, assertValidTx } = require('../clients/archwayd');
+
 async function parseTxOptions(config, { name: projectName }, { confirm, flags = [], ...options } = {}) {
   const { chainId, urls: { rpc } = {}, gas = {} } = config.get('network', {});
   const node = `${rpc.url}:${rpc.port}`;
-  const { codeId, address: lastDeployedContract } = config.deployments.findLastByTypeAndProjectAndChainId('instantiate', projectName, chainId) || {};
-  const { contractMetadata: lastContractMetadata = {} } = config.deployments.findLastByTypeAndProjectAndChainId('set-metadata', projectName, chainId) || {};
+  const { codeId, address: lastDeployedContract } =
+    config.deployments.findLastByTypeAndProjectAndChainId('instantiate', projectName, chainId) || {};
+  const { contractMetadata: lastContractMetadata = {} } =
+    config.deployments.findLastByTypeAndProjectAndChainId('set-metadata', projectName, chainId) || {};
 
   prompts.override({
     contract: lastDeployedContract || undefined,
-    ...options
+    ...options,
   });
   const { from, contract, ...contractMetadata } = await prompts([
     {
@@ -49,9 +54,7 @@ async function parseTxOptions(config, { name: projectName }, { confirm, flags = 
     },
   ]);
 
-  const extraFlags = _.flatten([
-    confirm ? [] : ['--yes'],
-  ]).filter(_.isString);
+  const extraFlags = _.flatten([confirm ? [] : ['--yes']]).filter(_.isString);
 
   return {
     ...options,
@@ -66,28 +69,25 @@ async function parseTxOptions(config, { name: projectName }, { confirm, flags = 
   };
 }
 
+/**
+ * Sets a contract rewards metadata.
+ *
+ * @param {ArchwayClient} archwayd
+ * @param {Cargo} cargo
+ * @param {object} options
+ */
 async function setContractMetadata(archwayd, cargo, options = {}) {
   const config = await Config.open();
   const project = await cargo.projectMetadata();
-  const { chainId, codeId, contract, contractMetadata, node, ...txOptions } = await parseTxOptions(config, project, options);
+  const { chainId, codeId, contract, contractMetadata, node, ...txOptions } = await parseTxOptions(
+    config,
+    project,
+    options
+  );
 
   console.info(chalk`Setting metadata for contract {cyan ${contract}} on {cyan ${chainId}}...`);
-  const { code, raw_log: rawLog, txhash } = await archwayd.tx.setContractMetadata(contract, contractMetadata, { chainId, node, ...txOptions });
-  if (code && code !== 0) {
-    throw new Error(`Transaction failed: code=${code}, ${rawLog}`);
-  }
-
-  await retry(
-    async bail => {
-      const { code, raw_log: rawLog } = await archwayd.query.tx(txhash, { node });
-      if (code && code !== 0) {
-        const error = new Error(rawLog);
-        bail(error);
-        throw error;
-      }
-    },
-    { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
-  );
+  const { txhash } = await archwayd.tx.setContractMetadata(contract, contractMetadata, { chainId, node, ...txOptions });
+  await retryTx(archwayd, txhash, { node });
 
   await config.deployments.add({
     project: project.name,
@@ -96,7 +96,7 @@ async function setContractMetadata(archwayd, cargo, options = {}) {
     codeId,
     txhash,
     contract,
-    contractMetadata
+    contractMetadata,
   });
 
   console.info(chalk`\n{green Successfully set contract metadata}`);

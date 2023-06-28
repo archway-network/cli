@@ -6,7 +6,7 @@ const path = require('node:path');
 const { readFile, copyFile, mkdir } = require('fs/promises');
 const { pathExists } = require('../util/fs');
 const { Config } = require('../util/config');
-const retry = require('../util/retry');
+const { retry } = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
 // eslint-disable-next-line no-unused-vars
@@ -115,15 +115,7 @@ async function storeWasm(
     await copyFile(optimizedFilePath, resolvedWasmPath);
   }
 
-  // eslint-disable-next-line camelcase
-  const {
-    code,
-    raw_log: rawLog,
-    txhash,
-  } = await archwayd.tx.wasm('store', [relativeWasmPath], { from, chainId, node, ...options });
-  if (code && code !== 0) {
-    throw new Error(`Transaction failed: code=${code}, ${rawLog}`);
-  }
+  const { txhash } = await archwayd.tx.store(relativeWasmPath, { from, chainId, node, ...options });
   const tx = await retry(() => archwayd.query.tx(txhash, { node }), {
     text: chalk`Waiting for tx {cyan ${txhash}} to confirm...`,
   });
