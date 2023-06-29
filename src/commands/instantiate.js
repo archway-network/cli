@@ -3,11 +3,11 @@ const chalk = require('chalk');
 const { prompts, PromptCancelledError } = require('../util/prompts');
 const { Config } = require('../util/config');
 const { isJson, isArchwayAddress } = require('../util/validators');
-const { retry } = require('../util/retry');
+const { retryTx } = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
 // eslint-disable-next-line no-unused-vars
-const { ArchwayClient } = require('../clients/archwayd');
+const { ArchwayClient, getTxEventAttribute } = require('../clients/archwayd');
 
 async function parseDeploymentOptions(
   cargo,
@@ -123,10 +123,8 @@ async function instantiateContract(
     node,
     ...options,
   });
-  const contractAddress = await retry(
-    () => archwayd.query.txEventAttribute(txhash, 'instantiate', '_contract_address', { node }),
-    { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
-  );
+  const tx = await retryTx(archwayd, txhash, { node });
+  const contractAddress = getTxEventAttribute(tx, 'instantiate', '_contract_address', { node });
   if (!txhash || !contractAddress) {
     throw new Error(`Failed to instantiate contract with code_id=${codeId} and args="${args}"`);
   }

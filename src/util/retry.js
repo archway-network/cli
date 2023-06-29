@@ -36,6 +36,7 @@ async function retryTx(archwayd, txhash, options) {
       try {
         const tx = await archwayd.query.tx(txhash, options);
         assertValidTx(tx);
+        return tx;
       } catch (e) {
         if (e instanceof TxExecutionError) {
           bail(e);

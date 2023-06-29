@@ -93,15 +93,6 @@ describe('instantiate', () => {
       args: '{ "count": 0 }',
     });
 
-    expect(client.query.txEventAttribute).toHaveBeenCalledWith(
-      Fixtures.txWasmInstantiate.txhash,
-      'instantiate',
-      '_contract_address',
-      expect.objectContaining({
-        node: expect.anything(),
-      })
-    );
-
     expect(mockConfig.deployments.add).toHaveBeenCalledWith({
       project: 'archway-increment',
       type: 'instantiate',

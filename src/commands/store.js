@@ -6,7 +6,7 @@ const path = require('node:path');
 const { readFile, copyFile, mkdir } = require('fs/promises');
 const { pathExists } = require('../util/fs');
 const { Config } = require('../util/config');
-const { retry } = require('../util/retry');
+const { retry, retryTx } = require('../util/retry');
 const Cargo = require('../clients/cargo');
 
 // eslint-disable-next-line no-unused-vars
@@ -116,9 +116,7 @@ async function storeWasm(
   }
 
   const { txhash } = await archwayd.tx.store(relativeWasmPath, { from, chainId, node, ...options });
-  const tx = await retry(() => archwayd.query.tx(txhash, { node }), {
-    text: chalk`Waiting for tx {cyan ${txhash}} to confirm...`,
-  });
+  const tx = await retryTx(archwayd, txhash, { node });
   const codeIdString = getTxEventAttribute(tx, 'store_code', 'code_id');
   const checksum = getTxEventAttribute(tx, 'store_code', 'code_checksum');
   const codeId = _.toNumber(codeIdString);
