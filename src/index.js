@@ -214,6 +214,21 @@ program
     await Tools.New(name, options);
   });
 
+program
+  .command('premium')
+  .description('Sets a flat fee for a contract premium')
+  .addHelpText('after', '\nImportant: To set a contract premium, you should first set the `metadata`')
+  .option('-c, --contract <address>', 'Optional contract address; defaults to the last deployed contract')
+  .option('-f, --from <value>', 'Name or address of account to sign transactions')
+  .option('--flat-fee <value>', 'Flat fee to set for the contract premium')
+  .option('--no-confirm', 'Skip tx broadcasting prompt confirmation')
+  .option('--flags <flags...>', 'Send additional flags to archwayd (e.g.: --flags --amount 1)')
+  .action(async options => {
+    options = await updateWithDefaultsFromConfig(options);
+    const archwayd = await createClient(options);
+    await Tools.Premium(archwayd, options);
+  });
+
 let modChoices = ['code', 'contract', 'contract-history', 'contract-state', 'list-code', 'list-contract-by-code'];
 let typeChoices = ['smart', 'code_id', 'all', 'raw'];
 program
