@@ -9,18 +9,18 @@ from Docker-based environments, users will have to install `archwayd` from the
 official binary releases in the protocol repository, and also export/import
 their keys using the available commands in `archwayd keys`.
 
-### Changes
+### Features
 
-* **instantiate:** save the deployed label ([#182](https://github.com/archway-network/archway-cli/issues/182))
 * **networks:** add constantine-3 ([#177](https://github.com/archway-network/archway-cli/issues/177))
-* **store:** saves the deployed wasm checksum ([#183](https://github.com/archway-network/archway-cli/issues/183))
-* **archwayd:** change image repo to ghrc.io ([#187](https://github.com/archway-network/archway-cli/issues/187))
+* **instantiate:** save the deployed label ([#182](https://github.com/archway-network/archway-cli/issues/182))
+* **store:** saves the deployed wasm checksum in config ([#183](https://github.com/archway-network/archway-cli/issues/183))
+* **premium:** add command to set flat fee ([#200](https://github.com/archway-network/archway-cli/issues/200))
 
 ### Bug Fixes
 
 * **archwayd:** validate errors printed to stderr ([#194](https://github.com/archway-network/archway-cli/issues/194))
 * **archwayd:** don't freeze the shell ([#184](https://github.com/archway-network/archway-cli/issues/184))
-* **archwayd:** validate minimum client version ([#180](https://github.com/archway-network/archway-cli/issues/180))
+* **archwayd:** validate the minimum client version ([#180](https://github.com/archway-network/archway-cli/issues/180))
 * **build:** throw exception instead of hardcoded text  ([#176](https://github.com/archway-network/archway-cli/issues/176))
 * **cli:** check for newer versions using semver ([#185](https://github.com/archway-network/archway-cli/issues/185))
 * **networks:** renamed local network to localnet ([#188](https://github.com/archway-network/archway-cli/issues/188))
