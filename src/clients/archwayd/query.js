@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 class QueryCommands {
   #client;
 
@@ -40,6 +42,10 @@ class QueryCommands {
   }
 
   async #run(queryArgs = [], { node, flags = [], ...options } = {}) {
+    if (_.isEmpty(node)) {
+      throw new Error('missing node argument');
+    }
+
     const args = [...queryArgs, '--node', node, ...flags];
     const { stdout } = await this.#client.run('query', args, {
       printOutput: false,

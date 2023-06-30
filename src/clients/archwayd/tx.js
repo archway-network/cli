@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 class TxExecutionError extends Error {
   #code;
   #rawLog;
@@ -71,6 +73,13 @@ class TxCommands {
   }
 
   async #runJson(txArgs = [], { gas = {}, from, chainId, node, flags = [], ...options } = {}) {
+    if (_.isEmpty(chainId)) {
+      throw new Error('missing chainId argument');
+    }
+    if (_.isEmpty(node)) {
+      throw new Error('missing node argument');
+    }
+
     const gasFlags = await this.#getGasFlags(gas, { node });
     const args = [
       ...txArgs,
