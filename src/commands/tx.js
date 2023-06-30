@@ -69,7 +69,7 @@ async function executeTx(archwayd, cargo, options = {}) {
   const { node, contract, args, ...txOptions } = await parseTxOptions(config, project, options);
 
   console.info(chalk`Executing tx on contract {cyan ${contract}}...`);
-  const { txhash } = await archwayd.tx.wasm('execute', [contract, args], { node, ...txOptions });
+  const { txhash } = await archwayd.tx.execute(contract, args, { node, ...txOptions });
   await retryTx(archwayd, txhash, { node });
 
   console.info(chalk`{green Executed tx on contract {cyan ${contract}}}\n`);

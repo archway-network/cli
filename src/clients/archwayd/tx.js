@@ -1,4 +1,8 @@
 const _ = require('lodash');
+const { isCoin } = require('../../util/validators');
+
+// eslint-disable-next-line no-unused-vars
+const { ArchwayClient } = require('.');
 
 class TxExecutionError extends Error {
   #code;
@@ -27,6 +31,9 @@ class TxExecutionError extends Error {
 }
 
 class TxCommands {
+  /**
+   * @type {ArchwayClient}
+   */
   #client;
 
   constructor(client) {
@@ -47,6 +54,10 @@ class TxCommands {
       [codeId, instantiateArgs, '--label', label, '--admin', adminAddress],
       options
     );
+  }
+
+  async execute(contract, args, options) {
+    return await this.wasm('execute', [contract, args], options);
   }
 
   async setContractMetadata(contract, { ownerAddress, rewardsAddress }, options) {
