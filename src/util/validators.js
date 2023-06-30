@@ -42,9 +42,9 @@ function isArchwayAddress(value) {
  *
  * @returns boolean
  */
-function isCoin(value, denom = '') {
+function isCoin(value, denom = undefined) {
   const regexp = /^([0-9]+)([a-z]+)$/;
-  return regexp.test(value) && value.match(regexp)?.at(2) === denom;
+  return regexp.test(value) && (_.isEmpty(denom) || value.match(regexp)?.at(2) === denom);
 }
 
 module.exports = {

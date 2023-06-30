@@ -1,9 +1,6 @@
 const _ = require('lodash');
 const { isCoin } = require('../../util/validators');
 
-// eslint-disable-next-line no-unused-vars
-const { ArchwayClient } = require('.');
-
 class TxExecutionError extends Error {
   #code;
   #rawLog;
@@ -31,9 +28,6 @@ class TxExecutionError extends Error {
 }
 
 class TxCommands {
-  /**
-   * @type {ArchwayClient}
-   */
   #client;
 
   constructor(client) {
@@ -83,7 +77,7 @@ class TxCommands {
     }
   }
 
-  async #runJson(txArgs = [], { gas = {}, from, chainId, node, flags = [], ...options } = {}) {
+  async #runJson(txArgs = [], { fees, gas, from, chainId, node, flags = [], ...options } = {}) {
     if (_.isEmpty(chainId)) {
       throw new Error('missing chainId argument');
     }
@@ -91,7 +85,7 @@ class TxCommands {
       throw new Error('missing node argument');
     }
 
-    const gasFlags = await this.#getGasFlags(gas, { node });
+    const gasFlags = await this.#getGasFlags(fees, gas, { node });
     const args = [
       ...txArgs,
       ['--from', from],
@@ -108,9 +102,13 @@ class TxCommands {
     return tx;
   }
 
-  async #getGasFlags({ mode = 'auto', prices: defaultGasPrices, adjustment = 1.2 }, options) {
-    const gasPrices = (await this.#getMinimumConsensusFee(options)) || defaultGasPrices;
-    return ['--gas', mode, '--gas-prices', gasPrices, '--gas-adjustment', adjustment];
+  async #getGasFlags(fees, { mode = 'auto', prices: defaultGasPrices, adjustment = 1.2 } = {}, options) {
+    if (isCoin(fees)) {
+      return ['--fees', fees];
+    } else {
+      const gasPrices = (await this.#getMinimumConsensusFee(options)) || defaultGasPrices;
+      return ['--gas', mode, '--gas-prices', gasPrices, '--gas-adjustment', adjustment];
+    }
   }
 
   async #getMinimumConsensusFee(options) {
