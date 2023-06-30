@@ -124,4 +124,24 @@ describe('QueryCommands', () => {
       });
     });
   });
+
+  describe('flatFee', () => {
+    test('queries the flat fee for a contract', async () => {
+      const client = new ArchwayClient();
+      const query = new QueryCommands(client);
+
+      const amount = '1000';
+      const denom = 'aarch';
+
+      const archwayd = spawk.spawn(client.command).stdout(JSON.stringify({ amount, denom }));
+
+      const contractAddress = 'archway1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqukxvuk';
+      const output = await query.flatFee(contractAddress, defaultOptions);
+      expect(output).toEqual(`${amount}${denom}`);
+
+      expect(archwayd.calledWith).toMatchObject({
+        args: ['query', 'rewards', 'flat-fee', contractAddress, '--node', defaultOptions.node, '--output', 'json'],
+      });
+    });
+  });
 });

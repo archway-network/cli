@@ -41,6 +41,14 @@ class QueryCommands {
     return `${gasUnitPrice.amount}${gasUnitPrice.denom}`;
   }
 
+  async flatFee(contract, options) {
+    const { amount, denom } = await this.#runJson(['rewards', 'flat-fee', contract], {
+      ...options,
+      stdio: ['inherit', 'pipe', 'pipe'],
+    });
+    return `${amount}${denom}`;
+  }
+
   async #run(queryArgs = [], { node, flags = [], ...options } = {}) {
     if (_.isEmpty(node)) {
       throw new Error('missing node argument');
