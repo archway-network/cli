@@ -106,16 +106,17 @@ class TxCommands {
     if (isCoin(fees)) {
       return ['--fees', fees];
     } else {
-      const gasPrices = (await this.#getMinimumConsensusFee(options)) || defaultGasPrices;
+      const { gasUnitPrice } = await this.#getEstimatedFee(1, options);
+      const gasPrices = gasUnitPrice ? `${gasUnitPrice.amount}${gasUnitPrice.denom}` : defaultGasPrices;
       return ['--gas', mode, '--gas-prices', gasPrices, '--gas-adjustment', adjustment];
     }
   }
 
-  async #getMinimumConsensusFee(options) {
+  async #getEstimatedFee(gasLimit, options) {
     try {
-      return await this.#client.query.rewardsEstimateFees(1, options);
+      return await this.#client.query.rewardsEstimateFees(gasLimit, options);
     } catch (e) {
-      return undefined;
+      return {};
     }
   }
 }

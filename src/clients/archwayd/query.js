@@ -32,21 +32,25 @@ class QueryCommands {
     return await this.#runJson(['wasm', module, type, contract, args], options);
   }
 
-  async rewardsEstimateFees(gasLimit = 1, options) {
+  async rewardsEstimateFees(gasLimit = 1, { contract, ...options }) {
+    const args = ['rewards', 'estimate-fees', gasLimit, ..._.compact([contract])];
     /* eslint-disable-next-line camelcase */
-    const { gas_unit_price: gasUnitPrice } = await this.#runJson(['rewards', 'estimate-fees', gasLimit], {
+    const {
+      gas_unit_price: gasUnitPrice,
+      estimated_fee: [estimatedFee],
+    } = await this.#runJson(args, {
       ...options,
       stdio: ['inherit', 'pipe', 'pipe'],
     });
-    return `${gasUnitPrice.amount}${gasUnitPrice.denom}`;
+    return { gasUnitPrice, estimatedFee };
   }
 
   async flatFee(contract, options) {
-    const { amount, denom } = await this.#runJson(['rewards', 'flat-fee', contract], {
+    const flatFee = await this.#runJson(['rewards', 'flat-fee', contract], {
       ...options,
       stdio: ['inherit', 'pipe', 'pipe'],
     });
-    return `${amount}${denom}`;
+    return flatFee;
   }
 
   async #run(queryArgs = [], { node, flags = [], ...options } = {}) {
