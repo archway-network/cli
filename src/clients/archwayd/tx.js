@@ -50,8 +50,28 @@ class TxCommands {
     );
   }
 
-  async execute(contract, args, options) {
-    return await this.wasm('execute', [contract, parseJsonArgs(args)], options);
+  async execute(contract, args, { gas, ...options }) {
+    const executeArgs = [contract, parseJsonArgs(args)];
+    const gasEstimate = await this.wasm('execute', executeArgs, {
+      ...options,
+      gas: { ...gas, adjustment: 1.5 },
+      simulate: true,
+    });
+    if (!_.isNumber(gasEstimate)) {
+      throw new Error('failed to simulate gas estimate');
+    }
+
+    const { estimatedFee } = await this.#getEstimatedFee(gasEstimate, { ...options, contract });
+    if (_.isEmpty(estimatedFee)) {
+      throw new Error('failed to calculate estimated fee');
+    }
+
+    const fees = `${estimatedFee.amount}${estimatedFee.denom}`;
+    return await this.wasm('execute', executeArgs, {
+      ...options,
+      gas: { ...gas, mode: gasEstimate },
+      fees,
+    });
   }
 
   async setContractMetadata(contract, { ownerAddress, rewardsAddress }, options) {
@@ -72,12 +92,12 @@ class TxCommands {
   }
 
   static assertValidTx({ code, raw_log: rawLog, txhash }) {
-    if (code && code !== 0) {
+    if (code && _.toInteger(code) !== 0) {
       throw new TxExecutionError(code, rawLog, txhash);
     }
   }
 
-  async #runJson(txArgs = [], { fees, gas, from, chainId, node, flags = [], ...options } = {}) {
+  async #runJson(txArgs = [], { fees, gas, from, chainId, node, flags = [], simulate = false, ...options } = {}) {
     if (_.isEmpty(chainId)) {
       throw new Error('missing chainId argument');
     }
@@ -85,7 +105,7 @@ class TxCommands {
       throw new Error('missing node argument');
     }
 
-    const gasFlags = await this.#getGasFlags(fees, gas, { node });
+    const gasFlags = await this.#getGasFlags(gas, fees, simulate, { node });
     const args = [
       ...txArgs,
       ['--from', from],
@@ -96,25 +116,32 @@ class TxCommands {
       ...flags,
     ].flat();
 
+    if (simulate) {
+      return await this.#client.simulate('tx', args, options);
+    }
+
     const tx = await this.#client.runJson('tx', args, { printOutput: true, ...options });
     TxCommands.assertValidTx(tx);
 
     return tx;
   }
 
-  async #getGasFlags(fees, { mode = 'auto', prices: defaultGasPrices, adjustment = 1.2 } = {}, options) {
+  async #getGasFlags(gas = {}, fees, simulate = false, options) {
+    const { mode: gasWanted = 'auto', prices: defaultGasPrices, adjustment = 1.2 } = gas;
     if (isCoin(fees)) {
-      return ['--fees', fees];
+      return ['--gas', gasWanted, '--fees', fees];
+    } else if (simulate) {
+      return ['--gas', gasWanted, '--gas-adjustment', adjustment];
     } else {
       const { gasUnitPrice } = await this.#getEstimatedFee(1, options);
       const gasPrices = gasUnitPrice ? `${gasUnitPrice.amount}${gasUnitPrice.denom}` : defaultGasPrices;
-      return ['--gas', mode, '--gas-prices', gasPrices, '--gas-adjustment', adjustment];
+      return ['--gas', gasWanted, '--gas-adjustment', adjustment, '--gas-prices', gasPrices];
     }
   }
 
-  async #getEstimatedFee(gasLimit, options) {
+  async #getEstimatedFee(gasLimit, { contract, node }) {
     try {
-      return await this.#client.query.rewardsEstimateFees(gasLimit, options);
+      return await this.#client.query.rewardsEstimateFees(gasLimit, { contract, node });
     } catch (e) {
       return {};
     }

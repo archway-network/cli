@@ -1,0 +1,12 @@
+{
+  "gas_unit_price": {
+    "denom": "aarch",
+    "amount": "900000000000.000000000000000000"
+  },
+  "estimated_fee": [
+    {
+      "denom": "aarch",
+      "amount": "147961927999999747"
+    }
+  ]
+}
