@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { isCoin } = require('../../util/validators');
+const { isCoin, isJson } = require('../../util/validators');
 
 class TxExecutionError extends Error {
   #code;
@@ -42,16 +42,16 @@ class TxCommands {
     return await this.wasm('store', [wasmPath], options);
   }
 
-  async instantiate(codeId, instantiateArgs, label, adminAddress, options) {
+  async instantiate(codeId, args, label, adminAddress, options) {
     return await this.wasm(
       'instantiate',
-      [codeId, instantiateArgs, '--label', label, '--admin', adminAddress],
+      [codeId, parseJsonArgs(args), '--label', label, '--admin', adminAddress],
       options
     );
   }
 
   async execute(contract, args, options) {
-    return await this.wasm('execute', [contract, args], options);
+    return await this.wasm('execute', [contract, parseJsonArgs(args)], options);
   }
 
   async setContractMetadata(contract, { ownerAddress, rewardsAddress }, options) {
@@ -118,6 +118,14 @@ class TxCommands {
       return undefined;
     }
   }
+}
+
+function parseJsonArgs(args) {
+  args = _.isPlainObject(args) ? JSON.stringify(args) : args;
+  if (!isJson(args)) {
+    throw new Error('invalid JSON args');
+  }
+  return args;
 }
 
 module.exports = { TxCommands, TxExecutionError };
