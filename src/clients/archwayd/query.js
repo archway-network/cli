@@ -34,14 +34,11 @@ class QueryCommands {
 
   async rewardsEstimateFees(gasLimit = 1, { contract, ...options }) {
     const args = ['rewards', 'estimate-fees', gasLimit, ..._.compact([contract])];
-    /* eslint-disable-next-line camelcase */
-    const {
-      gas_unit_price: gasUnitPrice,
-      estimated_fee: [estimatedFee],
-    } = await this.#runJson(args, {
+    const estimateFeeOutput = await this.#runJson(args, {
       ...options,
       stdio: ['inherit', 'pipe', 'pipe'],
     });
+    const { gas_unit_price: gasUnitPrice, estimated_fee: [estimatedFee] = [] } = estimateFeeOutput;
     return { gasUnitPrice, estimatedFee };
   }
 
@@ -68,6 +65,10 @@ class QueryCommands {
   }
 
   async #runJson(queryArgs = [], { node, flags = [], ...options } = {}) {
+    if (_.isEmpty(node)) {
+      throw new Error('missing node argument');
+    }
+
     const args = [...queryArgs, '--node', node, ...flags];
     return await this.#client.runJson('query', args, {
       printOutput: false,
