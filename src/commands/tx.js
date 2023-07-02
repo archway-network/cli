@@ -7,7 +7,7 @@ const { prompts, PromptCancelledError } = require('../util/prompts');
 const { isArchwayAddress, isJson } = require('../util/validators');
 
 // eslint-disable-next-line no-unused-vars
-const { ArchwayClient, TxExecutionError, assertValidTx } = require('../clients/archwayd');
+const { ArchwayClient } = require('../clients/archwayd');
 
 async function parseTxOptions(
   config,
@@ -56,6 +56,16 @@ async function parseTxOptions(
   };
 }
 
+async function parseAddress(archwayd, name) {
+  if (isArchwayAddress(name)) {
+    return name;
+  }
+
+  console.info(chalk`Fetching address for wallet {cyan ${name}}...`);
+
+  return await archwayd.keys.getAddress(name);
+}
+
 /**
  * Executes a transaction on a WASM contract.
  *
@@ -66,10 +76,11 @@ async function parseTxOptions(
 async function executeTx(archwayd, cargo, options = {}) {
   const config = await Config.open();
   const project = await cargo.projectMetadata();
-  const { node, contract, args, ...txOptions } = await parseTxOptions(config, project, options);
+  const { node, from, contract, args, ...txOptions } = await parseTxOptions(config, project, options);
+  const address = await parseAddress(archwayd, from);
 
   console.info(chalk`Executing tx on contract {cyan ${contract}}...`);
-  const { txhash } = await archwayd.tx.execute(contract, args, { node, ...txOptions });
+  const { txhash } = await archwayd.tx.execute(contract, args, { from: address, node, ...txOptions });
   await retryTx(archwayd, txhash, { node });
 
   console.info(chalk`{green Executed tx on contract {cyan ${contract}}}\n`);
