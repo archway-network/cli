@@ -3,7 +3,7 @@ const ora = require('ora');
 const chalk = require('chalk');
 
 // eslint-disable-next-line no-unused-vars
-const { ArchwayClient, TxExecutionError, assertValidTx } = require('../clients/archwayd');
+const { ArchwayClient, assertValidTx } = require('../clients/archwayd');
 
 const DefaultSpinnerText = 'Wait...';
 const DefaultRetryOptions = {
@@ -33,16 +33,16 @@ async function retryWrapper(fn, { text = DefaultSpinnerText, ...options } = {}) 
 async function retryTx(archwayd, txhash, options) {
   return await retryWrapper(
     async bail => {
+      const tx = await archwayd.query.tx(txhash, options);
+
       try {
-        const tx = await archwayd.query.tx(txhash, options);
         assertValidTx(tx);
-        return tx;
       } catch (e) {
-        if (e instanceof TxExecutionError) {
-          bail(e);
-        }
-        throw e;
+        bail(e);
+        return {};
       }
+
+      return tx;
     },
     { text: chalk`Waiting for tx {cyan ${txhash}} to confirm...` }
   );
