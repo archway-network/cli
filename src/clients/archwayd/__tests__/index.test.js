@@ -110,6 +110,37 @@ describe('ArchwayClient', () => {
     });
   });
 
+  describe('simulate', () => {
+    beforeEach(() => {
+      spawk.clean();
+      spawk.preventUnmatched();
+    });
+
+    afterEach(() => {
+      spawk.done();
+      jest.clearAllMocks();
+    });
+
+    test('runs archwayd and parses the stderr for the gas estimate', async () => {
+      const client = new ArchwayClient({ extraArgs: ['--keyring-backend', 'test'] });
+
+      const gasEstimate = 123456;
+      const archwayd = spawk.spawn(client.command).stderr(`gas estimate: ${gasEstimate}`);
+
+      const contractAddress = 'archway1abc';
+      const args = '{ "increment": {} }';
+      const simulateResult = await client.simulate('tx', ['wasm', 'execute', contractAddress, args]);
+
+      expect(archwayd.calledWith).toMatchObject({
+        command: client.command,
+        args: ['--keyring-backend', 'test', 'tx', 'wasm', 'execute', contractAddress, args, '--dry-run'],
+        options: { stdio: ['inherit', 'pipe', 'pipe'], maxBuffer: 1024 * 1024 },
+      });
+
+      expect(simulateResult).toEqual(gasEstimate);
+    });
+  });
+
   describe('validateVersion', () => {
     test('throws an error if the version is not a valid semver', async () => {
       const client = new ArchwayClient({ archwaydVersion: 'x.y.z' });
