@@ -3,7 +3,7 @@ const _ = require('lodash');
 const EnvironmentsDetails = {
   localnet: { description: 'Used for local development' },
   testnet: { description: 'Testing networks for validators and dApp developers' },
-  mainnet: { description: 'Production network', disabled: true },
+  mainnet: { description: 'Production network' },
 };
 const Environments = _(EnvironmentsDetails).omitBy(_.property('disabled')).keys().value();
 const DefaultEnvironment = 'testnet';
