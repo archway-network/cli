@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [1.6.0](https://github.com/archway-network/archway-cli/compare/1.5.1...1.6.0) (2023-07-03)
 
 ### ⚠ BREAKING CHANGES
 
@@ -11,20 +11,22 @@ their keys using the available commands in `archwayd keys`.
 
 ### Features
 
+* **networks:** add mainnet ([#202](https://github.com/archway-network/archway-cli/issues/202))
 * **networks:** add constantine-3 ([#177](https://github.com/archway-network/archway-cli/issues/177))
-* **instantiate:** save the deployed label ([#182](https://github.com/archway-network/archway-cli/issues/182))
 * **store:** saves the deployed wasm checksum in config ([#183](https://github.com/archway-network/archway-cli/issues/183))
+* **instantiate:** save the deployed label ([#182](https://github.com/archway-network/archway-cli/issues/182))
 * **premium:** add command to set flat fee ([#200](https://github.com/archway-network/archway-cli/issues/200))
 
 ### Bug Fixes
 
-* **archwayd:** validate errors printed to stderr ([#194](https://github.com/archway-network/archway-cli/issues/194))
 * **archwayd:** don't freeze the shell ([#184](https://github.com/archway-network/archway-cli/issues/184))
 * **archwayd:** validate the minimum client version ([#180](https://github.com/archway-network/archway-cli/issues/180))
+* **archwayd:** validate errors printed to stderr ([#194](https://github.com/archway-network/archway-cli/issues/194))
 * **build:** throw exception instead of hardcoded text  ([#176](https://github.com/archway-network/archway-cli/issues/176))
 * **cli:** check for newer versions using semver ([#185](https://github.com/archway-network/archway-cli/issues/185))
 * **networks:** renamed local network to localnet ([#188](https://github.com/archway-network/archway-cli/issues/188))
 * **cargo:** resolve the WASM file name on arm64 ([#196](https://github.com/archway-network/archway-cli/issues/196))
+* **tx:** execute contracts with premium enabled ([#201](https://github.com/archway-network/archway-cli/issues/201))
 
 ### Code Refactoring
 
