@@ -100,7 +100,7 @@ class Config {
       gas: _.conforms({
         prices: _.isString,
         mode: _.isString,
-        adjustment: _.isString,
+        adjustment: _.overSome([_.isNumber, _.isString]),
       }),
       wasm: _.conforms({
         configDir: _.isString,

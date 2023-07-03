@@ -7,13 +7,13 @@
       "feeDenom": "atitus"
     },
     "gas": {
-      "prices": "900000000000000000000000000000atitus",
+      "prices": "900000000000.000000000000000000atitus",
       "mode": "auto",
-      "adjustment": "1.4"
+      "adjustment": 1.4
     },
     "wasm": {
       "bech32Hrp": "archway",
-      "archwayd": "1.0.0-rc.2",
+      "archwayd": "1.0.0",
       "configDir": ".archway",
       "binary": "archwayd"
     },
