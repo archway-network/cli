@@ -4,6 +4,7 @@ const { QueryCommands } = require('../query');
 
 const Fixtures = {
   queryRewardsEstimateFees: require('./fixtures/query-rewards-estimate-fees.json'),
+  queryRewardsEstimateFeesWithGas: require('./fixtures/query-rewards-estimate-fees-with-gas.json'),
   queryTxWasmStore: require('./fixtures/query-tx-wasm-store.json'),
 };
 
@@ -116,11 +117,61 @@ describe('QueryCommands', () => {
 
       const archwayd = spawk.spawn(client.command).stdout(JSON.stringify(Fixtures.queryRewardsEstimateFees));
 
-      const output = await query.rewardsEstimateFees(13, defaultOptions);
-      expect(output).toEqual('128.06592utitus');
+      const output = await query.rewardsEstimateFees(1, defaultOptions);
+      expect(output).toEqual({
+        gasUnitPrice: { amount: '900000000000.000000000000000000', denom: 'aarch' },
+        estimatedFee: { amount: '900000000000', denom: 'aarch' },
+      });
 
       expect(archwayd.calledWith).toMatchObject({
-        args: ['query', 'rewards', 'estimate-fees', 13, '--node', defaultOptions.node, '--output', 'json'],
+        args: ['query', 'rewards', 'estimate-fees', 1, '--node', defaultOptions.node, '--output', 'json'],
+      });
+    });
+
+    test('queries the', async () => {
+      const client = new ArchwayClient();
+      const query = new QueryCommands(client);
+
+      const archwayd = spawk.spawn(client.command).stdout(JSON.stringify(Fixtures.queryRewardsEstimateFeesWithGas));
+
+      const contractAddress = 'archway1dfxl39mvqlufzsdf089u4ltlhns6scgun6vf5mkym7cy0zpsrausequkm4';
+      const output = await query.rewardsEstimateFees(13, { contract: contractAddress, ...defaultOptions });
+      expect(output).toEqual({
+        gasUnitPrice: { amount: '900000000000.000000000000000000', denom: 'aarch' },
+        estimatedFee: { amount: '11700000000000', denom: 'aarch' },
+      });
+
+      expect(archwayd.calledWith).toMatchObject({
+        args: [
+          'query',
+          'rewards',
+          'estimate-fees',
+          13,
+          contractAddress,
+          '--node',
+          defaultOptions.node,
+          '--output',
+          'json',
+        ],
+      });
+    });
+  });
+
+  describe('flatFee', () => {
+    test('queries the flat fee for a contract', async () => {
+      const client = new ArchwayClient();
+      const query = new QueryCommands(client);
+
+      const flatFee = { amount: '1000', denom: 'aarch' };
+
+      const archwayd = spawk.spawn(client.command).stdout(JSON.stringify(flatFee));
+
+      const contractAddress = 'archway1wug8sewp6cedgkmrmvhl3lf3tulagm9hnvy8p0rppz9yjw0g4wtqukxvuk';
+      const output = await query.flatFee(contractAddress, defaultOptions);
+      expect(output).toEqual(flatFee);
+
+      expect(archwayd.calledWith).toMatchObject({
+        args: ['query', 'rewards', 'flat-fee', contractAddress, '--node', defaultOptions.node, '--output', 'json'],
       });
     });
   });

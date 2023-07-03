@@ -1,3 +1,6 @@
+const _ = require('lodash');
+const { isCoin, isJson } = require('../../util/validators');
+
 class TxExecutionError extends Error {
   #code;
   #rawLog;
@@ -39,12 +42,33 @@ class TxCommands {
     return await this.wasm('store', [wasmPath], options);
   }
 
-  async instantiate(codeId, instantiateArgs, label, adminAddress, options) {
+  async instantiate(codeId, args, label, adminAddress, options) {
     return await this.wasm(
       'instantiate',
-      [codeId, instantiateArgs, '--label', label, '--admin', adminAddress],
+      [codeId, parseJsonArgs(args), '--label', label, '--admin', adminAddress],
       options
     );
+  }
+
+  async execute(contract, args, { gas: { adjustment: gasAdjustment = 1.2, ...gas }, ...options }) {
+    const executeArgs = [contract, parseJsonArgs(args)];
+    const gasEstimate = await this.wasm('execute', executeArgs, { ...options, gas, simulate: true });
+    if (!_.isNumber(gasEstimate)) {
+      throw new Error('failed to simulate gas estimate');
+    }
+
+    const adjustedGasEstimate = _.ceil((gasEstimate + 20000) * gasAdjustment);
+    const { estimatedFee } = await this.#getEstimatedFee(adjustedGasEstimate, { ...options, contract });
+    if (_.isEmpty(estimatedFee)) {
+      throw new Error('failed to calculate estimated fee');
+    }
+
+    const fees = `${estimatedFee.amount}${estimatedFee.denom}`;
+    return await this.wasm('execute', executeArgs, {
+      ...options,
+      gas: { ...gas, mode: adjustedGasEstimate },
+      fees,
+    });
   }
 
   async setContractMetadata(contract, { ownerAddress, rewardsAddress }, options) {
@@ -65,13 +89,20 @@ class TxCommands {
   }
 
   static assertValidTx({ code, raw_log: rawLog, txhash }) {
-    if (code && code !== 0) {
+    if (code && _.toInteger(code) !== 0) {
       throw new TxExecutionError(code, rawLog, txhash);
     }
   }
 
-  async #runJson(txArgs = [], { gas = {}, from, chainId, node, flags = [], ...options } = {}) {
-    const gasFlags = await this.#getGasFlags(gas, { node });
+  async #runJson(txArgs = [], { fees, gas, from, chainId, node, flags = [], simulate = false, ...options } = {}) {
+    if (_.isEmpty(chainId)) {
+      throw new Error('missing chainId argument');
+    }
+    if (_.isEmpty(node)) {
+      throw new Error('missing node argument');
+    }
+
+    const gasFlags = await this.#getGasFlags(gas, fees, simulate, { node });
     const args = [
       ...txArgs,
       ['--from', from],
@@ -82,24 +113,44 @@ class TxCommands {
       ...flags,
     ].flat();
 
+    if (simulate) {
+      return await this.#client.simulate('tx', args, options);
+    }
+
     const tx = await this.#client.runJson('tx', args, { printOutput: true, ...options });
     TxCommands.assertValidTx(tx);
 
     return tx;
   }
 
-  async #getGasFlags({ mode = 'auto', prices: defaultGasPrices, adjustment = 1.2 }, options) {
-    const gasPrices = (await this.#getMinimumConsensusFee(options)) || defaultGasPrices;
-    return ['--gas', mode, '--gas-prices', gasPrices, '--gas-adjustment', adjustment];
-  }
-
-  async #getMinimumConsensusFee(options) {
-    try {
-      return await this.#client.query.rewardsEstimateFees(1, options);
-    } catch (e) {
-      return undefined;
+  async #getGasFlags(gas = {}, fees, simulate = false, options) {
+    const { mode: gasWanted = 'auto', prices: defaultGasPrices, adjustment = 1.2 } = gas;
+    if (isCoin(fees)) {
+      return ['--gas', gasWanted, '--fees', fees];
+    } else if (simulate) {
+      return ['--gas', 'auto'];
+    } else {
+      const { gasUnitPrice } = await this.#getEstimatedFee(1, options);
+      const gasPrices = gasUnitPrice ? `${gasUnitPrice.amount}${gasUnitPrice.denom}` : defaultGasPrices;
+      return ['--gas', gasWanted, '--gas-adjustment', adjustment, '--gas-prices', gasPrices];
     }
   }
+
+  async #getEstimatedFee(gasLimit, { contract, node }) {
+    try {
+      return await this.#client.query.rewardsEstimateFees(gasLimit, { contract, node });
+    } catch (e) {
+      return {};
+    }
+  }
+}
+
+function parseJsonArgs(args) {
+  args = _.isPlainObject(args) ? JSON.stringify(args) : args;
+  if (!isJson(args)) {
+    throw new Error('invalid JSON args');
+  }
+  return args;
 }
 
 module.exports = { TxCommands, TxExecutionError };

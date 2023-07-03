@@ -269,6 +269,7 @@ program
 
 program
   .command('tx')
+  .aliases(['exec', 'execute'])
   .option('-c, --contract <address>', 'Optional contract address override; defaults to last deployed')
   .option('-f, --from <value>', 'Name or address of account to sign transactions')
   .option('-a, --args <value>', 'JSON encoded arguments to execute in transaction; defaults to "{}"')

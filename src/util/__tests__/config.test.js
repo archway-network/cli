@@ -1,7 +1,7 @@
-const _ = require('lodash');
 const fs = require('node:fs/promises');
 const spawk = require('spawk');
 const { Config, ConfigFilename, ConfigFileNotFoundError } = require('../config');
+const { arrayStartsWith } = require('../helpers');
 
 const Fixtures = {
   sampleConfig: require('./fixtures/sample-config.json'),
@@ -10,8 +10,6 @@ const Fixtures = {
 
 const workspaceRoot = Fixtures.singleProjectMetadata.workspace_root;
 const configPath = `${workspaceRoot}/${ConfigFilename}`;
-
-const isCmd = cmd => _.chain(_).head().eq(cmd).value();
 
 jest.mock('node:fs/promises');
 
@@ -38,11 +36,9 @@ describe('Config', () => {
     });
 
     it('opens a config file using cargo to find the workspace root', async () => {
-      spawk.spawn('cargo', isCmd('metadata'))
-        .stdout(JSON.stringify(Fixtures.singleProjectMetadata));
+      spawk.spawn('cargo', arrayStartsWith('metadata')).stdout(JSON.stringify(Fixtures.singleProjectMetadata));
 
-      spawk.spawn('cargo', isCmd('locate-project'))
-        .stdout(`${workspaceRoot}/Cargo.toml`);
+      spawk.spawn('cargo', arrayStartsWith('locate-project')).stdout(`${workspaceRoot}/Cargo.toml`);
 
       fs.access.mockResolvedValue(undefined);
 

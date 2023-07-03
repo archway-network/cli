@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const path = require('node:path');
 const spawk = require('spawk');
 const mockConsole = require('jest-mock-console');
@@ -6,6 +5,7 @@ const { readFile } = require('fs/promises');
 const prompts = require('prompts');
 const { ArchwayClient } = require('../../clients/archwayd');
 const { Config } = require('../../util/config');
+const { arrayStartsWith } = require('../../util/helpers');
 const Store = require('../store');
 
 const Fixtures = {
@@ -22,7 +22,6 @@ jest.mock('fs/promises');
 const mockConfig = new Config(Fixtures.sampleConfig, '/tmp/config.json');
 
 const cwd = '/tmp/test/archway-project';
-const isCmd = cmd => _.chain(_).head().eq(cmd).value();
 
 const workspaceRoot = '/tmp/test/archway-project';
 const optimizedFilePath = `${workspaceRoot}/artifacts/archway_project.wasm`;
@@ -34,9 +33,9 @@ beforeEach(() => {
   spawk.clean();
   spawk.preventUnmatched();
 
-  spawk.spawn('cargo', isCmd('metadata')).stdout(JSON.stringify(Fixtures.singleProjectMetadata));
+  spawk.spawn('cargo', arrayStartsWith('metadata')).stdout(JSON.stringify(Fixtures.singleProjectMetadata));
 
-  spawk.spawn('cargo', isCmd('locate-project')).stdout(`${cwd}/Cargo.toml`);
+  spawk.spawn('cargo', arrayStartsWith('locate-project')).stdout(`${cwd}/Cargo.toml`);
 
   jest.spyOn(Config, 'open').mockResolvedValue(mockConfig);
 

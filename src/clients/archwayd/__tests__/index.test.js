@@ -1,8 +1,6 @@
-const _ = require('lodash');
 const { ArchwayClient, MinimumArchwaydVersion, ValidationError, createClient } = require('..');
+const { arrayStartsWith } = require('../../../util/helpers');
 const spawk = require('spawk');
-
-const isCmd = cmd => _.chain(_).head().eq(cmd).value();
 
 describe('ArchwayClient', () => {
   describe('constructor', () => {
@@ -112,6 +110,37 @@ describe('ArchwayClient', () => {
     });
   });
 
+  describe('simulate', () => {
+    beforeEach(() => {
+      spawk.clean();
+      spawk.preventUnmatched();
+    });
+
+    afterEach(() => {
+      spawk.done();
+      jest.clearAllMocks();
+    });
+
+    test('runs archwayd and parses the stderr for the gas estimate', async () => {
+      const client = new ArchwayClient({ extraArgs: ['--keyring-backend', 'test'] });
+
+      const gasEstimate = 123456;
+      const archwayd = spawk.spawn(client.command).stderr(`gas estimate: ${gasEstimate}`);
+
+      const contractAddress = 'archway1abc';
+      const args = '{ "increment": {} }';
+      const simulateResult = await client.simulate('tx', ['wasm', 'execute', contractAddress, args]);
+
+      expect(archwayd.calledWith).toMatchObject({
+        command: client.command,
+        args: ['--keyring-backend', 'test', 'tx', 'wasm', 'execute', contractAddress, args, '--dry-run'],
+        options: { stdio: ['inherit', 'pipe', 'pipe'], maxBuffer: 1024 * 1024 },
+      });
+
+      expect(simulateResult).toEqual(gasEstimate);
+    });
+  });
+
   describe('validateVersion', () => {
     test('throws an error if the version is not a valid semver', async () => {
       const client = new ArchwayClient({ archwaydVersion: 'x.y.z' });
@@ -125,7 +154,7 @@ describe('ArchwayClient', () => {
 
     test('throws an error if the binary version is lower than the specified', async () => {
       const client = new ArchwayClient();
-      const archwayd = spawk.spawn(client.command, isCmd('version')).stdout('0.0.1');
+      const archwayd = spawk.spawn(client.command, arrayStartsWith('version')).stdout('0.0.1');
 
       await expect(client.validateVersion()).rejects.toThrow(ValidationError);
 
@@ -134,7 +163,7 @@ describe('ArchwayClient', () => {
 
     test('accepts the minimum version', async () => {
       const client = new ArchwayClient();
-      const archwayd = spawk.spawn(client.command, isCmd('version')).stdout(MinimumArchwaydVersion);
+      const archwayd = spawk.spawn(client.command, arrayStartsWith('version')).stdout(MinimumArchwaydVersion);
 
       await expect(client.validateVersion()).resolves.not.toThrow(ValidationError);
 
@@ -143,7 +172,7 @@ describe('ArchwayClient', () => {
 
     test('accepts anything higher than the minimum version', async () => {
       const client = new ArchwayClient({ archwaydVersion: '10.0.0' });
-      const archwayd = spawk.spawn(client.command, isCmd('version')).stdout('10.0.0');
+      const archwayd = spawk.spawn(client.command, arrayStartsWith('version')).stdout('10.0.0');
 
       await expect(client.validateVersion()).resolves.not.toThrow(ValidationError);
 
@@ -154,7 +183,7 @@ describe('ArchwayClient', () => {
 
 describe('createClient', () => {
   test('creates an ArchwayClient', async () => {
-    spawk.spawn('archwayd', isCmd('version')).stdout(MinimumArchwaydVersion);
+    spawk.spawn('archwayd', arrayStartsWith('version')).stdout(MinimumArchwaydVersion);
     const client = await createClient();
     expect(client).toBeInstanceOf(ArchwayClient);
   });

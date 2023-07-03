@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 class QueryCommands {
   #client;
 
@@ -30,16 +32,29 @@ class QueryCommands {
     return await this.#runJson(['wasm', module, type, contract, args], options);
   }
 
-  async rewardsEstimateFees(gasLimit = 1, options) {
-    /* eslint-disable-next-line camelcase */
-    const { gas_unit_price: gasUnitPrice } = await this.#runJson(['rewards', 'estimate-fees', gasLimit], {
+  async rewardsEstimateFees(gasLimit = 1, { contract, ...options }) {
+    const args = ['rewards', 'estimate-fees', gasLimit, ..._.compact([contract])];
+    const estimateFeeOutput = await this.#runJson(args, {
       ...options,
       stdio: ['inherit', 'pipe', 'pipe'],
     });
-    return `${gasUnitPrice.amount}${gasUnitPrice.denom}`;
+    const { gas_unit_price: gasUnitPrice, estimated_fee: [estimatedFee] = [] } = estimateFeeOutput;
+    return { gasUnitPrice, estimatedFee };
+  }
+
+  async flatFee(contract, options) {
+    const flatFee = await this.#runJson(['rewards', 'flat-fee', contract], {
+      ...options,
+      stdio: ['inherit', 'pipe', 'pipe'],
+    });
+    return flatFee;
   }
 
   async #run(queryArgs = [], { node, flags = [], ...options } = {}) {
+    if (_.isEmpty(node)) {
+      throw new Error('missing node argument');
+    }
+
     const args = [...queryArgs, '--node', node, ...flags];
     const { stdout } = await this.#client.run('query', args, {
       printOutput: false,
@@ -50,6 +65,10 @@ class QueryCommands {
   }
 
   async #runJson(queryArgs = [], { node, flags = [], ...options } = {}) {
+    if (_.isEmpty(node)) {
+      throw new Error('missing node argument');
+    }
+
     const args = [...queryArgs, '--node', node, ...flags];
     return await this.#client.runJson('query', args, {
       printOutput: false,

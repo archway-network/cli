@@ -1,3 +1,5 @@
+const os = require('node:os');
+
 const _ = require('lodash');
 const debug = require('debug')('archwayd');
 const semver = require('semver');
@@ -125,9 +127,26 @@ class ArchwayClient {
     }
   }
 
-  async runJson(subCommand, args = [], { printOutput = true, ...options } = {}) {
+  async runJson(subCommand, args = [], options = {}) {
+    const { stdout } = await this.#runPiped(subCommand, [...args, '--output', 'json'], options);
+    const jsonOutput = findLine(stdout, line => /^{.*}$/i.test(line)) || '{}';
+    return JSON.parse(jsonOutput);
+  }
+
+  async simulate(subCommand, args = [], options = {}) {
+    const { stderr } = await this.#runPiped(subCommand, [...args, '--dry-run'], {
+      ...options,
+      printOutput: false,
+    });
+    const regex = /^gas estimate: (\d+)$/i;
+    const output = findLine(stderr, line => regex.test(line));
+    const gasEstimate = output?.match(regex)?.at(1);
+    return _.toInteger(gasEstimate);
+  }
+
+  async #runPiped(subCommand, args = [], { printOutput = true, ...options } = {}) {
     try {
-      const archwayd = this.run(subCommand, [...args, '--output', 'json'], {
+      const archwayd = this.run(subCommand, args, {
         stdio: ['inherit', 'pipe', 'pipe'],
         maxBuffer: 1024 * 1024,
         ...options,
@@ -146,8 +165,7 @@ class ArchwayClient {
         throw new TxCancelledError();
       }
 
-      const jsonOutput = findLine(stdout, line => /^{.*}/i.test(line)) || '{}';
-      return JSON.parse(jsonOutput);
+      return { stdout, stderr };
     } catch (e) {
       debug('error:', e);
       if (e instanceof TxCancelledError) {
@@ -205,7 +223,7 @@ function findLine(output, testFn) {
   if (!output) {
     return undefined;
   }
-  const lines = output.replace(/\r/g, '').split('\n');
+  const lines = output.replace(/\r/g, '').split(os.EOL);
   return lines.find(testFn);
 }
 
