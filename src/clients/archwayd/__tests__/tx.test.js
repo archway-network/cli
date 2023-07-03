@@ -27,7 +27,7 @@ const defaultOptions = {
   gas: {
     mode: 'auto',
     prices: '900aarch',
-    adjustment: '1.5',
+    adjustment: 1.5,
   },
   printOutput: false,
 };
@@ -194,13 +194,17 @@ describe('TxCommands', () => {
         .spawn(client.command, args => isTxWasmExecute(args) && _.includes(args, '--dry-run'))
         .stderr(`gas estimate: ${gasEstimate}`);
 
+      const adjustedGasEstimate = _.ceil((gasEstimate + 20000) * defaultOptions.gas.adjustment);
       spawk
-        .spawn(client.command, arrayStartsWith(['query', 'rewards', 'estimate-fees', gasEstimate, contractAddress]))
+        .spawn(
+          client.command,
+          arrayStartsWith(['query', 'rewards', 'estimate-fees', adjustedGasEstimate, contractAddress])
+        )
         .stdout(JSON.stringify(Fixtures.queryRewardsEstimateFeesWithPremium));
 
       const archwayd = spawk
         .spawn(client.command, isTxWasmExecute)
-        .stderr(`gas estimate: ${gasEstimate}`)
+        .stderr(`gas estimate: ${adjustedGasEstimate}`)
         .stdout(JSON.stringify(Fixtures.txWasmExecute));
 
       const args = JSON.stringify({ increment: {} });
@@ -216,7 +220,7 @@ describe('TxCommands', () => {
           ['--chain-id', defaultOptions.chainId],
           ['--node', defaultOptions.node],
           ['--broadcast-mode', 'sync'],
-          ['--gas', gasEstimate],
+          ['--gas', adjustedGasEstimate],
           ['--fees', `${amount}${denom}`],
           ['--output', 'json'],
         ].flat(),

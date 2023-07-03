@@ -50,18 +50,15 @@ class TxCommands {
     );
   }
 
-  async execute(contract, args, { gas, ...options }) {
+  async execute(contract, args, { gas: { adjustment: gasAdjustment = 1.2, ...gas }, ...options }) {
     const executeArgs = [contract, parseJsonArgs(args)];
-    const gasEstimate = await this.wasm('execute', executeArgs, {
-      ...options,
-      gas: { ...gas, adjustment: 1.5 },
-      simulate: true,
-    });
+    const gasEstimate = await this.wasm('execute', executeArgs, { ...options, gas, simulate: true });
     if (!_.isNumber(gasEstimate)) {
       throw new Error('failed to simulate gas estimate');
     }
 
-    const { estimatedFee } = await this.#getEstimatedFee(gasEstimate, { ...options, contract });
+    const adjustedGasEstimate = _.ceil((gasEstimate + 20000) * gasAdjustment);
+    const { estimatedFee } = await this.#getEstimatedFee(adjustedGasEstimate, { ...options, contract });
     if (_.isEmpty(estimatedFee)) {
       throw new Error('failed to calculate estimated fee');
     }
@@ -69,7 +66,7 @@ class TxCommands {
     const fees = `${estimatedFee.amount}${estimatedFee.denom}`;
     return await this.wasm('execute', executeArgs, {
       ...options,
-      gas: { ...gas, mode: gasEstimate },
+      gas: { ...gas, mode: adjustedGasEstimate },
       fees,
     });
   }
@@ -131,7 +128,7 @@ class TxCommands {
     if (isCoin(fees)) {
       return ['--gas', gasWanted, '--fees', fees];
     } else if (simulate) {
-      return ['--gas', gasWanted, '--gas-adjustment', adjustment];
+      return ['--gas', 'auto'];
     } else {
       const { gasUnitPrice } = await this.#getEstimatedFee(1, options);
       const gasPrices = gasUnitPrice ? `${gasUnitPrice.amount}${gasUnitPrice.denom}` : defaultGasPrices;
