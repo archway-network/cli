@@ -57,7 +57,7 @@ class TxCommands {
       throw new Error('failed to simulate gas estimate');
     }
 
-    const adjustedGasEstimate = _.ceil((gasEstimate + 20000) * gasAdjustment);
+    const adjustedGasEstimate = _.ceil((gasEstimate + 20000) * _.toNumber(gasAdjustment));
     const { estimatedFee } = await this.#getEstimatedFee(adjustedGasEstimate, { ...options, contract });
     if (_.isEmpty(estimatedFee)) {
       throw new Error('failed to calculate estimated fee');
