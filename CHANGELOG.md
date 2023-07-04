@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Bug Fixes
+
+- **archwayd**: cleanup gas simulation to execute tx ([#203](https://github.com/archway-network/archway-cli/pull/203))
+
 ## [1.6.0](https://github.com/archway-network/archway-cli/compare/1.5.1...1.6.0) (2023-07-03)
 
 ### ⚠ BREAKING CHANGES
