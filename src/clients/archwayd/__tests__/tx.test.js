@@ -194,7 +194,7 @@ describe('TxCommands', () => {
         .spawn(client.command, args => isTxWasmExecute(args) && _.includes(args, '--dry-run'))
         .stderr(`gas estimate: ${gasEstimate}`);
 
-      const adjustedGasEstimate = _.ceil((gasEstimate + 20000) * defaultOptions.gas.adjustment);
+      const adjustedGasEstimate = _.ceil(gasEstimate * defaultOptions.gas.adjustment);
       spawk
         .spawn(
           client.command,
