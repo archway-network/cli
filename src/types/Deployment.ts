@@ -60,7 +60,7 @@ export interface StoreWasm extends BaseWasm {
  */
 export interface InstantiateDeployment extends DeploymentWithChain {
   contract: InstantiatedContract;
-  msg: string;
+  msg: any;
 }
 
 /**
@@ -127,8 +127,9 @@ export const deploymentContractValidator = ow.object.exactShape({
  * Format validator for the {@link Metadata} interface
  */
 export const metadataValidator = ow.optional.object.exactShape({
-  ownerAddress: ow.string,
-  rewardsAddress: ow.string,
+  contractAddress: ow.string,
+  ownerAddress: ow.optional.string,
+  rewardsAddress: ow.optional.string,
 });
 
 /**

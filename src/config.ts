@@ -2,7 +2,7 @@
  * Default values accross the project
  */
 export const DEFAULT = {
-  ChainId: 'constantine-2',
+  ChainId: 'constantine-3',
   ConfigFileName: 'modulor.json',
   ContractsRelativePath: './contracts',
   ContractsCargoWorkspace: 'contracts/*',
@@ -16,6 +16,7 @@ export const DEFAULT = {
   TemplateBranch: 'feature/workspace-template',
   GasPriceAmount: '0.005',
   GasPriceDenom: 'uarch',
+  InstantiateSchemaRelativePath: './schema/instantiate_msg.json',
 };
 
 /**

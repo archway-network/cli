@@ -33,10 +33,15 @@ const validateTemplateName = async (value: string): Promise<string> => {
 };
 
 /**
- * Template value flag that displays a prompt if it is not found
+ * Definition of Template value flag that displays a prompt if it is not found
  */
-export const templateWithPrompt = Flags.string({
+export const definitionTemplateWithPrompt = {
   description: TemplateFlagDescription,
   default: getTemplateName,
   parse: validateTemplateName,
-});
+};
+
+/**
+ * Template value flag that displays a prompt if it is not found
+ */
+export const templateWithPrompt = Flags.string(definitionTemplateWithPrompt);

@@ -1,7 +1,9 @@
 import path from 'node:path';
 import crypto from 'node:crypto';
-import fs, { readFile } from 'node:fs/promises';
+import fs from 'node:fs/promises';
 import toml from 'toml';
+import Ajv from 'ajv';
+import addFormats from 'ajv-formats';
 
 import { bold, green, red } from '@/utils/style';
 import { Contract } from '@/types/Contract';
@@ -12,6 +14,7 @@ import { Cargo } from './Cargo';
 import { readSubDirectories } from '@/utils/filesystem';
 import { NotFoundError } from '@/exceptions';
 import { Deployments } from './Deployments';
+import { InstantiateError } from '@/commands/contracts/instantiate';
 
 import { DeploymentAction, StoreDeployment } from '@/types/Deployment';
 import { ConsoleError } from '@/types/ConsoleError';
@@ -239,6 +242,24 @@ export class Contracts {
     return `${bold('Available contracts: ')}${contractsList}`;
   }
 
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async validateInstantiateSchema(contractName: string, initArgs: any): Promise<boolean> {
+    const contract = this.assertGetContractByName(contractName)
+    const schema = JSON.parse(await fs.readFile(path.join(contract.root, DEFAULT.InstantiateSchemaRelativePath), 'utf-8'));
+    const validator = addFormats(new Ajv()).compile(schema);
+    const isValid = validator(initArgs);
+
+    if (!isValid) {
+      throw new InstantiateError(
+        `the message arguments does not match the schema: ${validator.errors
+          ?.map(item => `${item.instancePath} ${item.message}`)
+          .join(', ')}`
+      );
+    }
+
+    return true;
+  }
+
   /**
    * Generate the checksum of the current optimized build of a contract
    *
@@ -248,7 +269,7 @@ export class Contracts {
   async generateChecksum(contractName: string): Promise<string> {
     const contract = this.assertGetContractByName(contractName);
 
-    const fileBuffer = await readFile(contract.wasm.optimizedFilePath);
+    const fileBuffer = await fs.readFile(contract.wasm.optimizedFilePath);
     const hashSum = crypto.createHash('sha256');
     hashSum.update(fileBuffer);
 
@@ -270,6 +291,20 @@ export class Contracts {
     return deployments.find(
       item => item.action === DeploymentAction.STORE && checksum === (item as StoreDeployment).wasm.checksum
     ) as StoreDeployment;
+  }
+
+  async findCodeId(contractName: string, chainId: string): Promise<number | undefined> {
+    const contract = this.assertGetContractByName(contractName);
+
+    const stored = contract.deployments.find(item => {
+      const pastDeploy = item as StoreDeployment;
+
+      return (
+        pastDeploy.contract.version === contract.version && pastDeploy.action === DeploymentAction.STORE && pastDeploy.chainId === chainId
+      );
+    });
+
+    return stored?.wasm.codeId;
   }
 }
 

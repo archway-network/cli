@@ -12,7 +12,7 @@ describe('config init', () => {
   let promptsSpy: SinonSpy;
 
   before(() => {
-    prompts.inject(['constantine-2']);
+    prompts.inject(['constantine-3']);
     writeStub = sinon.stub(fs, 'writeFile');
     readdirStub = sinon.stub(fs, 'readdir').callsFake(async () => []);
     accessStub = sinon.stub(fs, 'access').rejects();
@@ -28,7 +28,7 @@ describe('config init', () => {
 
   test
     .stdout()
-    .command(['config init', '--chain=constantine-2'])
+    .command(['config init', '--chain=constantine-3'])
     .it('creates config file with chain flag', ctx => {
       expect(ctx.stdout).to.contain(MESSAGES.SuccessPrefix);
       expect(promptsSpy.called).to.be.false;

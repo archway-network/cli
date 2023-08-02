@@ -1,9 +1,11 @@
 import { Flags } from '@oclif/core';
+import { AlphabetLowercase } from '@oclif/core/lib/interfaces';
 import { CustomOptions, DefaultContext } from '@oclif/core/lib/interfaces/parser';
 
 import { showPrompt } from '@/ui/Prompt';
 import { FromAccountPrompt } from '@/services/Prompts';
 import { parseAmount } from '@/utils/coin';
+
 import { Amount } from '@/types/Coin';
 
 const FromDescription = 'Signer of the tx';
@@ -26,37 +28,57 @@ const getFromAccount = async (_input: DefaultContext<CustomOptions>, isWritingMa
 };
 
 /**
- * Transaction From flag
+ * Definition of Transaction From flag
  */
-export const transactionFrom = Flags.string({
+export const definitionTransactionFrom = {
   description: FromDescription,
-  char: 'f',
+  char: 'f' as AlphabetLowercase,
   default: getFromAccount,
-});
+};
 
 /**
- * Trnsaction Fee flag
+ * Transaction From flag
  */
-export const transactionFee = Flags.custom<Amount>({
+export const transactionFrom = Flags.string(definitionTransactionFrom);
+
+/**
+ * Definition of Transaction Fee flag
+ */
+export const definitionTransactionFee = {
   description: FeeDescription,
-  parse: async (val: string) => parseAmount(val),
-});
+  parse: async (val: string): Promise<Amount> => parseAmount(val),
+};
+
+/**
+ * Transaction Fee flag
+ */
+export const transactionFee = Flags.custom<Amount>(definitionTransactionFee);
+
+/**
+ * Definition of Transaction Fee Account flag
+ */
+export const definitionTransactionFeeAccount = {
+  description: FeeAccountDescription,
+};
 
 /**
  * Transaction Fee Account flag
  */
-export const transactionFeeAccount = Flags.string({
-  description: FeeAccountDescription,
-});
+export const transactionFeeAccount = Flags.string(definitionTransactionFeeAccount);
+
+/**
+ * Definition of Transaction Confirm flag
+ */
+export const definitionTransactionConfirm = {
+  default: true,
+  description: ConfirmDescription,
+  allowNo: true,
+};
 
 /**
  * Transaction Confirm flag
  */
-export const transactionConfirm = Flags.boolean({
-  default: true,
-  description: ConfirmDescription,
-  allowNo: true,
-});
+export const transactionConfirm = Flags.boolean(definitionTransactionConfirm);
 
 /**
  * All of the Transaction related flags

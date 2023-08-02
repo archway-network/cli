@@ -5,10 +5,12 @@ import fs from 'node:fs/promises';
 import { BaseCommand } from '@/lib/base';
 import { DEFAULT } from '@/config';
 import { bold, green, red } from '@/utils/style';
-import { CosmosChain } from '@/types/Chain';
 import { ChainRegistry } from '@/domain/ChainRegistry';
-import { ConsoleError } from '@/types/ConsoleError';
 import { ErrorCodes } from '@/exceptions/ErrorCodes';
+import { stdinInput } from '@/arguments/stdinInput';
+
+import { CosmosChain } from '@/types/Chain';
+import { ConsoleError } from '@/types/ConsoleError';
 
 /**
  * Command 'config chains import'
@@ -21,7 +23,7 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
 
   static args = {
     file: Args.string({ name: 'file', required: false, ignoreStdin: true, description: 'Path to file to be imported' }),
-    piped: Args.string({ name: 'piped', required: false, hidden: true }),
+    stdinInput
   };
 
   /**
@@ -30,15 +32,15 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    if (this.args.file && this.args.piped) {
+    if (this.args.file && this.args.stdinInput) {
       throw new OnlyOneImportError();
-    } else if (!this.args.file && !this.args.piped) {
+    } else if (!this.args.file && !this.args.stdinInput) {
       throw new ImportFileRequiredError();
     }
 
     // If it is piped, parse the received content, otherwise try to open file
-    const chainInfo: CosmosChain = this.args.piped ?
-      JSON.parse(this.args.piped || '') :
+    const chainInfo: CosmosChain = this.args.stdinInput ?
+      JSON.parse(this.args.stdinInput || '') :
       JSON.parse(await fs.readFile(this.args.file as string, 'utf-8'));
 
     const chainRegistry = await ChainRegistry.init();

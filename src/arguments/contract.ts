@@ -5,10 +5,15 @@ import { sanitizeDirName } from '@/utils/sanitize';
 const ContractArgumentDescription = 'Name of the contract';
 
 /**
- * Contract name argument
+ * Definition of Contract name required argument
  */
-export const contractNameRequired = Args.string({
+export const definitionContractNameRequired = Args.string({
   required: true,
   parse: async val => sanitizeDirName(val),
   description: ContractArgumentDescription,
 });
+
+/**
+ * Contract name required argument
+ */
+export const contractNameRequired = Args.string(definitionContractNameRequired);

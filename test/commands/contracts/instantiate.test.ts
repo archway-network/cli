@@ -9,10 +9,10 @@ import { contractProjectMetadata } from '../../dummies/contracts';
 import { Contracts } from '../../../src/domain/Contracts';
 import { configString } from '../../dummies/configFile';
 import * as FilesystemUtils from '../../../src/utils/filesystem';
-import { dummyStoreTransaction } from '../../dummies/transactions';
+import { dummyInstantiateTransaction, dummyStoreTransaction } from '../../dummies/transactions';
 import { aliceAccountName, aliceStoreEntry, aliceStoredAccount } from '../../dummies/accounts';
 
-describe('contracts store', () => {
+describe('contracts instantiate', () => {
   const contractName = contractProjectMetadata.name;
   let readStub: SinonStub;
   let writeStub: SinonStub;
@@ -22,6 +22,8 @@ describe('contracts store', () => {
   let keyringListStub: SinonStub;
   let metadataStub: SinonStub;
   let validWorkspaceStub: SinonStub;
+  let validateSchemaStub: SinonStub;
+  let findCodeIdStub: SinonStub;
   let signingClientStub: SinonStub;
   before(() => {
     readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
@@ -33,9 +35,11 @@ describe('contracts store', () => {
     metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
+    validateSchemaStub = sinon.stub(Contracts.prototype, 'validateInstantiateSchema').callsFake(async () => true);
+    findCodeIdStub = sinon.stub(Contracts.prototype, 'findCodeId').callsFake(async () => dummyStoreTransaction.codeId);
     signingClientStub = sinon
       .stub(SigningArchwayClient, 'connectWithSigner')
-      .callsFake(async () => ({ upload: async () => dummyStoreTransaction } as any));
+      .callsFake(async () => ({ instantiate: async () => dummyInstantiateTransaction } as any));
   });
   after(() => {
     readStub.restore();
@@ -46,31 +50,31 @@ describe('contracts store', () => {
     keyringListStub.restore();
     metadataStub.restore();
     validWorkspaceStub.restore();
+    validateSchemaStub.restore();
+    findCodeIdStub.restore();
     signingClientStub.restore();
   });
-  describe('Stores the smart contract', () => {
+  describe('Instantiates the smart contract', () => {
     test
       .stdout()
-      .command(['contracts store', contractName, `--from=${aliceAccountName}`])
-      .it('Uploads wasm file', ctx => {
-        expect(ctx.stdout).to.contain('uploaded');
-        expect(ctx.stdout).to.contain(dummyStoreTransaction.codeId);
+      .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`])
+      .it('Instantiates smart contract', ctx => {
+        expect(ctx.stdout).to.contain('instantiated');
+        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
         expect(ctx.stdout).to.contain('Transaction:');
-        expect(ctx.stdout).to.contain(dummyStoreTransaction.transactionHash);
+        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
       });
   });
 
   describe('Prints json output', () => {
     test
       .stdout()
-      .command(['contracts store', contractName, `--from=${aliceAccountName}`, '--json'])
-      .it('Uploads wasm file', ctx => {
+      .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`, '--json'])
+      .it('Instantiates smart contract', ctx => {
         expect(ctx.stdout).to.not.contain('uploaded');
-        expect(ctx.stdout).to.contain(dummyStoreTransaction.transactionHash);
-        expect(ctx.stdout).to.contain(dummyStoreTransaction.codeId);
-        expect(ctx.stdout).to.contain(dummyStoreTransaction.originalSize);
-        expect(ctx.stdout).to.contain(dummyStoreTransaction.originalChecksum);
-        expect(ctx.stdout).to.contain(dummyStoreTransaction.gasUsed);
+        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
+        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
+        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.gasUsed);
       });
   });
 });

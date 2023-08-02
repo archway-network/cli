@@ -29,7 +29,7 @@ export default class AccountsGet extends BaseCommand<typeof AccountsGet> {
    */
   public async run(): Promise<void> {
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const account = await accountsDomain.get(this.args.account);
+    const account = await accountsDomain.get(this.args.account!);
 
     if (this.flags.address) {
       this.log(account.address);

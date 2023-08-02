@@ -1,6 +1,6 @@
 export const configFile = {
   name: 'foo',
-  chainId: 'constantine-2',
+  chainId: 'constantine-3',
   contractsPath: './contracts',
 };
 

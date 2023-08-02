@@ -3,7 +3,7 @@ import path from 'node:path';
 import _ from 'lodash';
 import ow from 'ow';
 import { GasPrice, StargateClient } from '@cosmjs/stargate';
-import { SigningArchwayClient } from '@archwayhq/arch3-core';
+import { SigningArchwayClient } from '@archwayhq/arch3.js';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { getWorkspaceRoot } from '@/utils/paths';

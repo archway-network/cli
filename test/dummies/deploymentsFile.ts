@@ -13,6 +13,7 @@ export const deploymentFile = {
         admin: 'archway1ef8r7lwu6xtxkzhkmeufpcv7m3xy4gm5l2mazd',
       },
       metadata: {
+        contractAddress: 'archway1ef8r7lwu6xtxkzhkmeufpcv7m3xy4gm5l2mazd',
         ownerAddress: 'archway1ef8r7lwu6xtxkzhkmeufpcv7m3xy4gm5l2mazd',
         rewardsAddress: 'archway1ef8r7lwu6xtxkzhkmeufpcv7m3xy4gm5l2mazd',
       },

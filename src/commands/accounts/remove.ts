@@ -29,7 +29,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
    */
   public async run(): Promise<void> {
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const accountInfo = await accountsDomain.keystore.assertAccountExists(this.args.account);
+    const accountInfo = await accountsDomain.keystore.assertAccountExists(this.args.account!);
 
     this.warning(
       `${yellow('Attention:')} this will permanently delete the account ${bold.green(accountInfo.name)} (${darkGreen(

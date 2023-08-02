@@ -7,10 +7,15 @@ import { Amount } from '@/types/Coin';
 const AmountArgumentDescription = 'Token amount';
 
 /**
- * Contract name argument
+ * Definition of Amount required argument
  */
-export const amountRequired = Args.custom<Amount>({
+export const definitionAmountRequired = {
   required: true,
   description: AmountArgumentDescription,
-  parse: async (val: string) => parseAmount(val),
-});
+  parse: async (val: string): Promise<Amount> => parseAmount(val),
+};
+
+/**
+ * Amount required argument
+ */
+export const amountRequired = Args.custom<Amount>(definitionAmountRequired);

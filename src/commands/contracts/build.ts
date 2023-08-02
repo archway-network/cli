@@ -33,16 +33,16 @@ export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
     if (this.flags.optimize) {
       this.log(`Building optimized wasm file for ${this.args.contract}...`);
 
-      const resultPath = await config.contractsInstance.optimize(this.args.contract);
+      const resultPath = await config.contractsInstance.optimize(this.args.contract!);
       this.success(`Optimized Wasm binary saved to ${cyan(resultPath)}}}`);
     } else {
       this.log(`Building the project ${this.args.contract}...`);
-      const resultPath = await config.contractsInstance.build(this.args.contract);
+      const resultPath = await config.contractsInstance.build(this.args.contract!);
       this.success(`Wasm binary saved to ${cyan(resultPath)}}}`);
     }
 
     if (this.flags.schemas) {
-      await config.contractsInstance.schemas(this.args.contract);
+      await config.contractsInstance.schemas(this.args.contract!);
       this.success('Schemas generated');
     }
   }

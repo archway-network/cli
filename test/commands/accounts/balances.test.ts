@@ -7,7 +7,7 @@ import { StargateClient } from '@cosmjs/stargate';
 
 import { aliceStoreEntry, aliceAccountName, aliceStoredAccount, dummyAmount, dummyAmmountString, bobAddress } from '../../dummies/accounts';
 import { configString } from '../../dummies/configFile';
-import { SigningArchwayClient } from '@archwayhq/arch3-core';
+import { SigningArchwayClient } from '@archwayhq/arch3.js';
 
 describe('accounts balances', () => {
   let readStub: SinonStub;

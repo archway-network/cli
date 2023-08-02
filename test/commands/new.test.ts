@@ -28,7 +28,7 @@ describe('new', () => {
   });
   describe('without cli arguments', () => {
     before(() => {
-      prompts.inject(['constantine-2', 'my-contract', true, 'increment']);
+      prompts.inject(['constantine-3', 'my-contract', true, 'increment']);
       // Cargo generate workspace call
       spawk.spawn('cargo');
       // Cargo generate contract call
@@ -53,7 +53,7 @@ describe('new', () => {
     });
     test
       .stdout()
-      .command(['new', projectName, '--chain=constantine-2', '--contract-name=test-contract', '--template=default'])
+      .command(['new', projectName, '--chain=constantine-3', '--contract-name=test-contract', '--template=default'])
       .it('doesn`t ask for input', ctx => {
         expect(ctx.stdout).to.contain(projectName);
         expect(ctx.stdout).to.contain('created and configured for the chain');

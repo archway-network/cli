@@ -34,7 +34,7 @@ export default class AccountsBalancesGet extends BaseCommand<typeof AccountsBala
     const result = await showSpinner(async () => {
       const client = await config.getStargateClient();
 
-      return accountsDomain.queryBalance(client, this.args.account);
+      return accountsDomain.queryBalance(client, this.args.account!);
     }, 'Querying balance');
 
     if (this.jsonEnabled()) {
