@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import sinon, { SinonSpy, SinonStub } from 'sinon';
 
 import { Cargo } from '../../src/domain/Cargo';
-import { contractProjectMetadata } from '../mocks/contracts';
+import { contractProjectMetadata } from '../dummies/contracts';
 
 describe('new', () => {
   const projectName = 'test-name';

@@ -3,7 +3,7 @@ import sinon, { SinonStub } from 'sinon';
 import fs from 'node:fs/promises';
 
 import { expectOutputJSON } from '../../helpers/expect';
-import { configString } from '../../mocks/configFile';
+import { configString } from '../../dummies/configFile';
 
 describe('config show', () => {
   let readStub: SinonStub;

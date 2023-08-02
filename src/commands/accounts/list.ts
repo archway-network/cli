@@ -1,6 +1,7 @@
 import { BaseCommand } from '@/lib/base';
 import { Accounts } from '@/domain/Accounts';
 import { KeyringFlags } from '@/flags/keyring';
+import { yellow } from '@/utils/style';
 
 import { BackendType } from '@/types/Account';
 
@@ -33,6 +34,8 @@ export default class AccountsList extends BaseCommand<typeof AccountsList> {
       for (const item of list) {
         this.log(`${Accounts.prettyPrintNameAndAddress(item)}\n`);
       }
+
+      if (list.length === 0) this.log(yellow('No accounts found'));
     }
   }
 }

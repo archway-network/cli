@@ -5,7 +5,7 @@ import { InvalidFormatError, NotFoundError } from '@/exceptions';
 import { KeystoreBackend, OsKeystore } from './KeystoreBackends';
 import { ACCOUNTS } from '@/config';
 import { bold } from '@/utils/style';
-import { assertIsValidAddress, parsePublicKey } from '@/utils/accounts';
+import { assertIsValidAddress } from '@/utils/accounts';
 
 import {
   Account,
@@ -103,14 +103,11 @@ export class Accounts {
    * Create a new account in the keyring
    *
    * @param name - Account name
+   * @param mnemonic - Optional - 24 word mnemonic to use in the new account
    * @returns Promise containing an instance of {@link AccountWithMnemonic}
    */
-  async new(name: string): Promise<AccountWithMnemonic> {
-    const result = await this._keystore.add(name);
-
-    result.publicKey.key = parsePublicKey(result.publicKey.key);
-
-    return result;
+  async new(name: string, mnemonic?: string): Promise<AccountWithMnemonic> {
+    return this._keystore.add(name, mnemonic);
   }
 
   /**

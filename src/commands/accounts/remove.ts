@@ -32,7 +32,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
     const accountInfo = await accountsDomain.keystore.assertAccountExists(this.args.account);
 
     this.warning(
-      `${yellow('Attention:')} this will permanently delete the account ${bold.green(accountInfo.name)}\n(${darkGreen(
+      `${yellow('Attention:')} this will permanently delete the account ${bold.green(accountInfo.name)} (${darkGreen(
         accountInfo.address
       )})\n`
     );

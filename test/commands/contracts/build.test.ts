@@ -4,9 +4,9 @@ import fs from 'node:fs/promises';
 import sinon, { SinonStub } from 'sinon';
 
 import { Cargo } from '../../../src/domain/Cargo';
-import { contractProjectMetadata } from '../../mocks/contracts';
+import { contractProjectMetadata } from '../../dummies/contracts';
 import { Contracts } from '../../../src/domain/Contracts';
-import { configString } from '../../mocks/configFile';
+import { configString } from '../../dummies/configFile';
 import { DockerOptimizer } from '../../../src/domain/DockerOptimizer';
 import * as FilesystemUtils from '../../../src/utils/filesystem';
 
@@ -18,7 +18,7 @@ describe('contracts build', () => {
   let readSubDirStub: SinonStub;
   let metadataStub: SinonStub;
   let validWorkspaceStub: SinonStub;
-  let optimizerMock: SinonStub;
+  let optimizerStub: SinonStub;
   before(() => {
     spawk.preventUnmatched();
     readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
@@ -55,10 +55,10 @@ describe('contracts build', () => {
 
   describe('Build optimized', () => {
     before(() => {
-      optimizerMock = sinon.stub(DockerOptimizer.prototype, 'run').callsFake(async () => ({ statusCode: 0 }));
+      optimizerStub = sinon.stub(DockerOptimizer.prototype, 'run').callsFake(async () => ({ statusCode: 0 }));
     });
     after(() => {
-      optimizerMock.restore();
+      optimizerStub.restore();
     });
     test
       .stdout()
@@ -72,10 +72,10 @@ describe('contracts build', () => {
   describe('Docker optimizer', () => {
     const expectedError = 'Docker run failed';
     before(() => {
-      optimizerMock = sinon.stub(DockerOptimizer.prototype, 'run').callsFake(async () => ({ error: expectedError, statusCode: 1 }));
+      optimizerStub = sinon.stub(DockerOptimizer.prototype, 'run').callsFake(async () => ({ error: expectedError, statusCode: 1 }));
     });
     after(() => {
-      optimizerMock.restore();
+      optimizerStub.restore();
     });
     test
       .stderr()

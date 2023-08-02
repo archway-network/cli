@@ -3,8 +3,8 @@ import sinon, { SinonStub, SinonSpy } from 'sinon';
 import fs from 'node:fs/promises';
 
 import ConfigChains from '../../../src/commands/config/chains';
-import { configString } from '../../mocks/configFile';
-import { chainString } from '../../mocks/chainFile';
+import { configString } from '../../dummies/configFile';
+import { chainString } from '../../dummies/chainFile';
 
 const expectHelp = (ctx: any) => {
   expect(ctx.stdout).to.contain('Description:');

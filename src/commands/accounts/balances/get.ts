@@ -42,7 +42,7 @@ export default class AccountsBalancesGet extends BaseCommand<typeof AccountsBala
     } else {
       this.log(`Balances for account ${green(result.account.name)} (${darkGreen(result.account.address)})\n`);
       if (result.account.balances.length === 0) this.log(`- ${yellow('Empty wallet')}`);
-      for (const item of result.account.balances) this.log(`- ${bold(item.amount)} ${item.denom}`);
+      for (const item of result.account.balances) this.log(`- ${bold(item.amount)}${item.denom}`);
     }
   }
 }

@@ -16,13 +16,13 @@ import { Account, AccountBase, AccountWithMnemonic } from '@/types/Account';
  */
 export abstract class KeystoreBackend {
   /**
-   * Adds a new account to the keyring
+   * Adds a new account to the keyring, if mnemonic is not passed, it generates one
    *
    * @param name - Name of the new account
-   * @param data - Optional - {@link AccountWithMnemonic} to be added to the keyring
+   * @param data - Optional - Mnemonic of the account
    * @returns Promise containing the newly created account data
    */
-  abstract add(name: string, data?: AccountWithMnemonic): Promise<AccountWithMnemonic>;
+  abstract add(name: string, mnemonic?: string): Promise<AccountWithMnemonic>;
 
   /**
    * Get a list of the accounts in the keystore, only by name and address
@@ -98,29 +98,24 @@ export abstract class KeystoreBackend {
    */
   protected async createAccountObject(
     name: string,
-    account?: AccountWithMnemonic,
+    mnemonic?: string,
     prefix = ACCOUNTS.AddressBech32Prefix
   ): Promise<AccountWithMnemonic> {
-    let result = account;
+    const wallet = await (mnemonic ?
+      DirectSecp256k1HdWallet.fromMnemonic(mnemonic, { prefix }) :
+      DirectSecp256k1HdWallet.generate(24, { prefix }));
 
-    // If parameter with object already received, validate it
-    if (result) {
-      Accounts.assertIsValidAccountWithMnemonic(account);
-    } else {
-      // Create a brand new account, generating a mnemonic
-      const wallet = await DirectSecp256k1HdWallet.generate(24, { prefix });
-      const newAccount = (await wallet.getAccounts())[0];
+    const newAccount = (await wallet.getAccounts())[0];
 
-      result = {
-        name,
-        address: newAccount.address,
-        publicKey: {
-          '@type': newAccount.algo,
-          key: newAccount.pubkey.toString(),
-        },
-        mnemonic: wallet.mnemonic,
-      };
-    }
+    const result = {
+      name,
+      address: newAccount.address,
+      publicKey: {
+        '@type': newAccount.algo,
+        key: parsePublicKey(newAccount.pubkey.toString()),
+      },
+      mnemonic: wallet.mnemonic,
+    };
 
     await this.assertAccountDoesNotExist(result.name);
     await this.assertAccountDoesNotExist(result.address);
@@ -234,8 +229,8 @@ export class OsKeystore extends KeystoreBackend {
   /**
    * {@inheritDoc KeystoreBackend.add}
    */
-  async add(name: string, data?: AccountWithMnemonic): Promise<AccountWithMnemonic> {
-    const account = await this.createAccountObject(name, data);
+  async add(name: string, mnemonic?: string): Promise<AccountWithMnemonic> {
+    const account = await this.createAccountObject(name, mnemonic);
 
     keyring.OsStore.set(this.serviceName, this.createEntryTag(account.name, account.address), JSON.stringify(account));
 
@@ -274,7 +269,6 @@ export class OsKeystore extends KeystoreBackend {
       const result = JSON.parse(stored);
 
       Accounts.assertIsValidAccountWithMnemonic(result);
-      result.publicKey.key = parsePublicKey(result.publicKey.key);
 
       return result;
     }
@@ -307,9 +301,9 @@ export class FileKeystore extends KeystoreBackend {
   /**
    * {@inheritDoc KeystoreBackend.add}
    */
-  async add(name: string, data?: AccountWithMnemonic): Promise<AccountWithMnemonic> {
+  async add(name: string, mnemonic?: string): Promise<AccountWithMnemonic> {
     const password = await this.promptPassword(name);
-    const account = await this.createAccountObject(name, data);
+    const account = await this.createAccountObject(name, mnemonic);
 
     keyring.FileStore.set(this.filesPath, this.createEntryTag(account.name, account.address), JSON.stringify(account), password);
 
@@ -349,7 +343,6 @@ export class FileKeystore extends KeystoreBackend {
       const result = JSON.parse(stored);
 
       Accounts.assertIsValidAccountWithMnemonic(result);
-      result.publicKey.key = parsePublicKey(result.publicKey.key);
 
       return result;
     }
@@ -395,8 +388,8 @@ export class TestKeystore extends KeystoreBackend {
   /**
    * {@inheritDoc KeystoreBackend.add}
    */
-  async add(name: string, data?: AccountWithMnemonic): Promise<AccountWithMnemonic> {
-    const account = await this.createAccountObject(name, data);
+  async add(name: string, mnemonic?: string): Promise<AccountWithMnemonic> {
+    const account = await this.createAccountObject(name, mnemonic);
 
     keyring.UnencryptedFileStore.set(
       this.filesPath,
@@ -437,7 +430,6 @@ export class TestKeystore extends KeystoreBackend {
       const result = JSON.parse(stored);
 
       Accounts.assertIsValidAccountWithMnemonic(result);
-      result.publicKey.key = parsePublicKey(result.publicKey.key);
 
       return result;
     }

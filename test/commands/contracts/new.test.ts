@@ -5,9 +5,9 @@ import fs from 'node:fs/promises';
 import sinon, { SinonSpy, SinonStub } from 'sinon';
 
 import { Cargo } from '../../../src/domain/Cargo';
-import { contractProjectMetadata } from '../../mocks/contracts';
+import { contractProjectMetadata } from '../../dummies/contracts';
 import { Contracts } from '../../../src/domain/Contracts';
-import { configString } from '../../mocks/configFile';
+import { configString } from '../../dummies/configFile';
 
 describe('contracts new', () => {
   const contractName = 'test-name';
