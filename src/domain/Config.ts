@@ -4,7 +4,7 @@ import _ from 'lodash';
 import ow from 'ow';
 
 import { ConfigData, ConfigDataWithContracts, configDataValidator } from '@/types/ConfigData';
-import { getWokspaceRoot } from '@/utils/paths';
+import { getWorkspaceRoot } from '@/utils/paths';
 import { MergeMode } from '@/types/utils';
 import { mergeCustomizer } from '@/utils';
 import { DEFAULT } from '@/config';
@@ -13,7 +13,7 @@ import { Contracts } from './Contracts';
 import { FileAlreadyExistsError } from '@/exceptions';
 import { writeFileWithDir } from '@/utils/filesystem';
 import { InvalidFormatError } from '@/exceptions';
-import { Deployment } from '@/types/Deployment';
+import { DeploymentWithChain } from '@/types/Deployment';
 import { Contract } from '@/types/Contract';
 import { Deployments } from './Deployments';
 
@@ -62,7 +62,7 @@ export class Config {
     return this._contracts.listContracts();
   }
 
-  get deployments(): Deployment[] {
+  get deployments(): DeploymentWithChain[] {
     return this._deployments.listDeployments();
   }
 
@@ -70,29 +70,24 @@ export class Config {
    * Initializes a {@link Config} instance, by receiving a {@link ConfigData} object
    *
    * @param data - {@link ConfigData} representation of a config file
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing an instance of {@link Config}
    */
-  static async init(data: ConfigData): Promise<Config> {
-    const configPath = await this.getFilePath();
+  static async init(data: ConfigData, workingDir?: string): Promise<Config> {
+    const configPath = await this.getFilePath(workingDir);
     const contracts = await Contracts.open();
     const deployments = await Deployments.open();
-    return new Config(
-      data.name,
-      data.chainId,
-      data.contractsPath || DEFAULT.ContractsRelativePath,
-      contracts,
-      deployments,
-      configPath
-    );
+    return new Config(data.name, data.chainId, data.contractsPath || DEFAULT.ContractsRelativePath, contracts, deployments, configPath);
   }
 
   /**
    * Verify if the config file exists
    *
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing boolean
    */
-  static async exists(): Promise<boolean> {
-    const configPath = await this.getFilePath();
+  static async exists(workingDir?: string): Promise<boolean> {
+    const configPath = await this.getFilePath(workingDir);
     try {
       await fs.access(configPath);
       return true;
@@ -104,10 +99,11 @@ export class Config {
   /**
    * Open the config file in the project
    *
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing an instance of {@link Config}
    */
-  static async open(): Promise<Config> {
-    const configPath = await this.getFilePath();
+  static async open(workingDir?: string): Promise<Config> {
+    const configPath = await this.getFilePath(workingDir);
     const data: ConfigData = JSON.parse(await fs.readFile(configPath, 'utf8'));
 
     this.assertIsValidConfigData(data, configPath);
@@ -119,23 +115,27 @@ export class Config {
    * Creates a config file if it doesn't exist
    *
    * @param chainId - Chain id that will be the default chain in the project
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing an instance of {@link Config}
    */
-  static async create(chainId: string): Promise<Config> {
-    if (await Config.exists()) {
+  static async create(chainId: string, workingDir?: string): Promise<Config> {
+    if (await Config.exists(workingDir)) {
       throw new FileAlreadyExistsError(DEFAULT.ConfigFileName);
     }
 
     // Get Workspace root
-    const workingDir = await getWokspaceRoot();
+    const directory = workingDir || (await getWorkspaceRoot());
     // Get name of Workspace root directory
-    const name = path.basename(workingDir).replace(' ', '-');
+    const name = path.basename(directory).replace(' ', '-');
 
     // Create config file
-    const configFile = await Config.init({
-      name,
-      chainId,
-    });
+    const configFile = await Config.init(
+      {
+        name,
+        chainId,
+      },
+      directory
+    );
     await configFile.write();
 
     return configFile;
@@ -144,10 +144,11 @@ export class Config {
   /**
    * Get the absolute path of the config file
    *
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing the absolute path of the config file
    */
-  static async getFilePath(): Promise<string> {
-    const workspaceRoot = await getWokspaceRoot();
+  static async getFilePath(workingDir?: string): Promise<string> {
+    const workspaceRoot = workingDir || (await getWorkspaceRoot());
 
     return path.join(workspaceRoot, DEFAULT.ConfigFileName);
   }

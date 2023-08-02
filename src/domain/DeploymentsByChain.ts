@@ -5,8 +5,8 @@ import _ from 'lodash';
 import terminalLink from 'terminal-link';
 
 import { DEFAULT } from '@/config';
-import { DeploymentAction, DeploymentBase, DeploymentFile, deploymentValidator } from '@/types/Deployment';
-import { getWokspaceRoot } from '@/utils/paths';
+import { DeploymentAction, Deployment, DeploymentFile, deploymentValidator } from '@/types/Deployment';
+import { getWorkspaceRoot } from '@/utils/paths';
 import { blue, bold, green } from '@/utils/style';
 import { InvalidFormatError } from '@/exceptions';
 
@@ -41,7 +41,7 @@ export class DeploymentsByChain {
    * @param deployments - Array of {@link Deployment}
    * @returns Instance of {@link DeploymentsByChain}
    */
-  static init(chainId: string, deployments: DeploymentBase[]): DeploymentsByChain {
+  static init(chainId: string, deployments: Deployment[]): DeploymentsByChain {
     return new DeploymentsByChain(chainId, { deployments });
   }
 
@@ -67,7 +67,7 @@ export class DeploymentsByChain {
    * @returns Promise containing the absolute path of the deployment file
    */
   static async getFilePath(chainId: string): Promise<string> {
-    const workspaceRoot = await getWokspaceRoot();
+    const workspaceRoot = await getWorkspaceRoot();
 
     return path.join(workspaceRoot, DEFAULT.DeploymentsRelativePath, `./${chainId}.json`);
   }
@@ -101,7 +101,7 @@ export class DeploymentsByChain {
    */
   prettyPrint(explorerTxUrl?: string): string {
     // Group by deployments of same contract name and version
-    const mappedVersions: Record<string, DeploymentBase[]> = {};
+    const mappedVersions: Record<string, Deployment[]> = {};
 
     for (const item of this._data.deployments) {
       const id = `${item.contract.name}-${item.contract.version}`;

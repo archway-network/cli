@@ -2,26 +2,34 @@ import path from 'node:path';
 
 import { bold, green, red } from '@/utils/style';
 import { Contract } from '@/types/Contract';
-import { getWokspaceRoot } from '@/utils/paths';
-import { DEFAULT } from '@/config';
+import { getWorkspaceRoot } from '@/utils/paths';
+import { DEFAULT, REPOSITORIES } from '@/config';
 import { ConsoleError } from '@/types/ConsoleError';
 import { ErrorCodes } from '@/exceptions/ErrorCodes';
+import { Cargo } from './Cargo';
 
 /**
  * Manages the contracts' data in the project
  */
 export class Contracts {
   private _data: Contract[];
+  private _contractsPath: string;
 
   /**
    * @param data - Array of {@link Contract}
+   * @param contractsPath - Path of the directory where contracts will be found
    */
-  constructor(data: Contract[]) {
+  constructor(data: Contract[], contractsPath: string) {
     this._data = data;
+    this._contractsPath = contractsPath;
   }
 
   get data(): Contract[] {
     return this._data;
+  }
+
+  get contractsPath(): string {
+    return this._contractsPath;
   }
 
   /**
@@ -32,31 +40,33 @@ export class Contracts {
    */
   // TO DO: Add logic to read data from real files
   static async open(contractsRelativePath?: string): Promise<Contracts> {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _filePath = await this.getFilePath(contractsRelativePath);
+    const contractsPath = await this.getFilePath(contractsRelativePath);
 
-    return new Contracts([
-      {
-        name: 'my-contract',
-        version: '0.1.0',
-      },
-      {
-        name: 'my-contract-2',
-        version: '0.1.0',
-      },
-      {
-        name: 'my-contract-3',
-        version: '0.1.0',
-      },
-      {
-        name: 'increment',
-        version: '0.1.0',
-      },
-      {
-        name: 'my-nft',
-        version: '0.1.3',
-      },
-    ]);
+    return new Contracts(
+      [
+        {
+          name: 'my-contract',
+          version: '0.1.0',
+        },
+        {
+          name: 'my-contract-2',
+          version: '0.1.0',
+        },
+        {
+          name: 'my-contract-3',
+          version: '0.1.0',
+        },
+        {
+          name: 'increment',
+          version: '0.1.0',
+        },
+        {
+          name: 'my-nft',
+          version: '0.1.3',
+        },
+      ],
+      contractsPath
+    );
   }
 
   /**
@@ -66,9 +76,26 @@ export class Contracts {
    * @returns Promise containing the absolute path of the contracts file
    */
   static async getFilePath(contractsRelativePath?: string): Promise<string> {
-    const workspaceRoot = await getWokspaceRoot();
+    const workspaceRoot = await getWorkspaceRoot();
 
     return path.join(workspaceRoot, contractsRelativePath || DEFAULT.ContractsRelativePath);
+  }
+
+  /**
+   * Create a new contract from one of the archway templates
+   *
+   * @param name - Contract name
+   * @param template - Name of the template to use
+   */
+  async new(name: string, template: string): Promise<void> {
+    const cargo = new Cargo();
+    await cargo.generate({
+      name,
+      repository: REPOSITORIES.Templates,
+      branch: DEFAULT.TemplateBranch,
+      template: template,
+      destinationDir: this.contractsPath,
+    });
   }
 
   /**

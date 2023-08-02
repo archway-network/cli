@@ -17,6 +17,6 @@
     ],
     "tsdoc/syntax": "warn",
     "valid-jsdoc": "off",
-    "indent": ["error", 2, { "MemberExpression": 1 }]
+    "indent": ["error", 2, { "MemberExpression": 1, "SwitchCase": 1 }]
   }
 }

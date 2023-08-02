@@ -2,6 +2,7 @@ import { Command, Flags, Interfaces } from '@oclif/core';
 import { ConsoleError } from '@/types/ConsoleError';
 import { red, yellow } from '@/utils/style';
 import { MESSAGES } from '@/config';
+import { PromptCanceledError } from '@/ui/Prompt';
 
 enum LogLevel {
   debug = 'debug',
@@ -84,7 +85,13 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * @param err - Error caught
    * @returns - Promise containing updated error object
    */
-  protected async catch(err: Error & { exitCode?: number }): Promise<Error & { exitCode?: number }> {
+  protected async catch(err: Error & { exitCode?: number }): Promise<Error & { exitCode?: number } | undefined> {
+    // Special case, if it is PromptCancelledError, display as a warning instead
+    if (err instanceof PromptCanceledError) {
+      this.warning(err.toConsoleString());
+      return undefined;
+    }
+
     err.message = `${MESSAGES.ErrorPrefix}${err instanceof ConsoleError ? err.toConsoleString() : red(err.message)}`;
     return super.catch(err);
   }

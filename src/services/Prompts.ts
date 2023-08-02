@@ -3,6 +3,7 @@ import { Choice, PromptObject } from 'prompts';
 import { DEFAULT } from '@/config';
 import { ChainRegistry } from '@/domain/ChainRegistry';
 import { CosmosChain } from '@/types/Chain';
+import { ContractTemplates } from '@/domain/ContractTemplates';
 
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
   'constantine-1': { description: 'Stable testnet - recommended for dApp development' },
@@ -41,3 +42,31 @@ export const getChainPrompt = async (): Promise<PromptObject> => {
     choices,
   };
 };
+
+/**
+ * Terminal prompt to ask the user for a contract name
+ */
+export const ContractNamePrompt: PromptObject = {
+  type: 'text',
+  name: 'contract-name',
+  message: 'Choose a name for your contract',
+  validate: value => Boolean(value),
+};
+
+/**
+ * Terminal prompt to ask the user for a template after confirmation
+ */
+export const TemplatePrompt: PromptObject[] = [
+  {
+    type: 'confirm',
+    name: 'use-template',
+    message: 'Do you want to use a starter template?',
+    initial: false,
+  },
+  {
+    type: prev => (prev ? 'select' : null),
+    name: 'template',
+    message: 'Choose a template',
+    choices: ContractTemplates.getTemplateChoices(),
+  },
+];

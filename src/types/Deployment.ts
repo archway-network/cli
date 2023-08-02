@@ -6,20 +6,20 @@ import { Coin, coinValidator } from './Coin';
  * Deployment file information
  */
 export interface DeploymentFile {
-  deployments: DeploymentBase[];
+  deployments: Deployment[];
 }
 
 /**
  * Deployment information with chain id included
  */
-export interface Deployment extends DeploymentBase {
+export interface DeploymentWithChain extends Deployment {
   chainId: string;
 }
 
 /**
  * Base Deployment information
  */
-export interface DeploymentBase {
+export interface Deployment {
   action: DeploymentAction;
   txhash: string;
   contract: BaseContract;
@@ -37,7 +37,7 @@ export interface BaseContract {
 /**
  * Store Deployment information
  */
-export interface StoreDeployment extends Deployment {
+export interface StoreDeployment extends DeploymentWithChain {
   wasm: StoreWasm;
 }
 
@@ -58,7 +58,7 @@ export interface StoreWasm extends BaseWasm {
 /**
  * Instantiate Deployment information
  */
-export interface InstantiateDeployment extends Deployment {
+export interface InstantiateDeployment extends DeploymentWithChain {
   contract: InstantiatedContract;
   msg: string;
 }
@@ -74,7 +74,7 @@ export interface InstantiatedContract extends BaseContract {
 /**
  * Metadata Deployment information
  */
-export interface MetadataDeployment extends Deployment {
+export interface MetadataDeployment extends DeploymentWithChain {
   contract: InstantiatedContract;
   metadata: Metadata;
 }
@@ -90,7 +90,7 @@ export interface Metadata {
 /**
  * Premium Deployment information
  */
-export interface PremiumDeployment extends Deployment {
+export interface PremiumDeployment extends DeploymentWithChain {
   contract: InstantiatedContract;
   flatFee: Coin;
 }
@@ -132,7 +132,7 @@ export const metadataValidator = ow.optional.object.exactShape({
 });
 
 /**
- * Format validator for the {@link Deployment} interface
+ * Format validator for the {@link DeploymentWithChain} interface
  */
 export const deploymentValidator = ow.object.exactShape({
   chainId: ow.optional.string,

@@ -2,10 +2,10 @@ import ow from 'ow';
 import path from 'node:path';
 
 import { bold } from '@/utils/style';
-import { Deployment, DeploymentAction, DeploymentBase, DeploymentFile, deploymentFileValidator } from '@/types/Deployment';
+import { DeploymentWithChain, DeploymentAction, Deployment, DeploymentFile, deploymentFileValidator } from '@/types/Deployment';
 import { ChainRegistry } from './ChainRegistry';
 import { DeploymentsByChain } from './DeploymentsByChain';
-import { getWokspaceRoot } from '@/utils/paths';
+import { getWorkspaceRoot } from '@/utils/paths';
 import { DEFAULT } from '@/config';
 import { readFilesFromDirectory } from '@/utils/filesystem';
 import { InvalidFormatError } from '@/exceptions';
@@ -17,26 +17,34 @@ export const noDeploymentsMessage = 'No deployments found';
  */
 export class Deployments {
   private _data: DeploymentsByChain[];
+  private _deploymentsPath: string;
 
   /**
    * @param data - Array of {@link DeploymentsByChain}
+   * @param configPath - Absolute path of the deployments directory
    */
-  constructor(data: DeploymentsByChain[]) {
+  constructor(data: DeploymentsByChain[], deploymentsPath: string) {
     this._data = data;
+    this._deploymentsPath = deploymentsPath;
   }
 
   get data(): DeploymentsByChain[] {
     return this._data;
   }
 
+  get deploymentsPath(): string {
+    return this._deploymentsPath;
+  }
+
   /**
    * Read the data form the deployment files of the project
    *
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing and instance of {@link Deployments}
    */
-  static async open(): Promise<Deployments> {
+  static async open(workingDir?: string): Promise<Deployments> {
     // Get all deployments of all chains
-    const deploymentsPath = await this.getDeploymentsPath();
+    const deploymentsPath = await this.getDeploymentsPath(workingDir);
     const filesRead = await readFilesFromDirectory(deploymentsPath, DEFAULT.DeploymentFileExtension);
 
     const allDeployments: DeploymentsByChain[] = [];
@@ -50,16 +58,17 @@ export class Deployments {
       }
     }
 
-    return new Deployments(allDeployments);
+    return new Deployments(allDeployments, deploymentsPath);
   }
 
   /**
    * Get the absolute path of the deployments directory
    *
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing the absolute path of the deployments directory
    */
-  static async getDeploymentsPath(): Promise<string> {
-    const workspaceRoot = await getWokspaceRoot();
+  static async getDeploymentsPath(workingDir?: string): Promise<string> {
+    const workspaceRoot = workingDir || (await getWorkspaceRoot());
 
     return path.join(workspaceRoot, DEFAULT.DeploymentsRelativePath);
   }
@@ -90,11 +99,11 @@ export class Deployments {
    *
    * @returns Array containing all the deployments
    */
-  listDeployments(): Deployment[] {
-    let result: Deployment[] = [];
+  listDeployments(): DeploymentWithChain[] {
+    let result: DeploymentWithChain[] = [];
 
     for (const item of this._data) {
-      result = [...result, ...item.data.deployments.map(auxDeploy => ({ chainId: item.chainId, ...auxDeploy } as Deployment))];
+      result = [...result, ...item.data.deployments.map(auxDeploy => ({ chainId: item.chainId, ...auxDeploy } as DeploymentWithChain))];
     }
 
     return result;
@@ -169,7 +178,7 @@ export class Deployments {
   toSingleDeploymentFile(chainId?: string, action?: DeploymentAction, contractName?: string): DeploymentFile {
     const filtered = this.filter(chainId, action, contractName);
 
-    let allDeployments: DeploymentBase[] = [];
+    let allDeployments: Deployment[] = [];
 
     for (const item of filtered) {
       allDeployments = [...allDeployments, ...item.data.deployments];

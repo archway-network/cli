@@ -9,6 +9,10 @@ export const DEFAULT = {
   DeploymentsRelativePath: './.modulor/deployments',
   ChainFileExtension: '.json',
   DeploymentFileExtension: '.json',
+  Template: 'default',
+  WorkspaceTemplate: 'base-workspace',
+  // TO DO change back once templates are merged to main
+  TemplateBranch: 'feature/workspace-template',
 };
 
 /**
@@ -17,5 +21,12 @@ export const DEFAULT = {
 export const MESSAGES = {
   SuccessPrefix: '✅ ',
   ErrorPrefix: '❌ ',
-  WarningPrefix: '⚠️ '
-}
+  WarningPrefix: '⚠️ ',
+};
+
+/**
+ * URLs of relevant git repositories
+ */
+export const REPOSITORIES = {
+  Templates: 'https://github.com/archway-network/archway-templates',
+};

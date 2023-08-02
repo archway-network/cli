@@ -30,7 +30,7 @@ export const getRepositoryRoot = _.memoize(_getRepositoryRoot)
  *
  * @returns Promise containing the workspace root
  */
-export const getWokspaceRoot = async (): Promise<string> => {
+export const getWorkspaceRoot = async (): Promise<string> => {
   const repositoryRoot = await getRepositoryRoot();
 
   return repositoryRoot || process.cwd();

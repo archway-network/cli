@@ -2,14 +2,14 @@ import _ from 'lodash';
 import { prompt, prompts, inject, override, PromptObject, Answers, Options } from 'prompts';
 
 import { ConsoleError } from '@/types/ConsoleError';
-import { red } from '@/utils/style';
+import { yellow } from '@/utils/style';
 import { ErrorCodes } from '@/exceptions/ErrorCodes';
 
 /**
  * Handle user canceling the prompt
  */
 const onCancel = () => {
-  throw new PromptCancelledError();
+  throw new PromptCanceledError();
 };
 
 /**
@@ -24,18 +24,18 @@ export const showPrompt = async (questions: PromptObject | PromptObject[], optio
 };
 
 /**
- * Error when a prompt is cancelled by the user
+ * Error when a prompt is canceled by the user
  */
-export class PromptCancelledError extends ConsoleError {
+export class PromptCanceledError extends ConsoleError {
   constructor() {
-    super(ErrorCodes.PROMPT_CANCELLED);
+    super(ErrorCodes.PROMPT_CANCELED);
   }
 
   /**
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${red('Prompt cancelled')}`;
+    return `${yellow('Operation canceled')}`;
   }
 }
 

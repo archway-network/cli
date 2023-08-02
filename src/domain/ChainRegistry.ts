@@ -2,7 +2,7 @@ import ow from 'ow';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
-import { getWokspaceRoot } from '@/utils/paths';
+import { getWorkspaceRoot } from '@/utils/paths';
 import { DEFAULT } from '@/config';
 import { ChainRegistrySpec, CosmosChain, cosmosChainValidator } from '@/types/Chain';
 import { BuiltInChains } from '@/services/BuiltInChains';
@@ -108,7 +108,7 @@ export class ChainRegistry extends ChainRegistrySpec {
    * @returns Promise containing the absolute path of the chains directory
    */
   static async getDirectoryPath(chainsRelativePath?: string): Promise<string> {
-    return path.join(await getWokspaceRoot(), chainsRelativePath || DEFAULT.ChainsRelativePath);
+    return path.join(await getWorkspaceRoot(), chainsRelativePath || DEFAULT.ChainsRelativePath);
   }
 
   /**
@@ -217,7 +217,6 @@ export class ChainRegistry extends ChainRegistrySpec {
    * @param chainInfo - Chain info object to be imported
    */
   async import(chainInfo: CosmosChain): Promise<void> {
-    console.error('222222', chainInfo)
     ChainRegistry.assertIsValidChain(chainInfo);
 
     await this.writeChainFile(chainInfo);

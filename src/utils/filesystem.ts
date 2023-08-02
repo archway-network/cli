@@ -9,7 +9,13 @@ import path from 'node:path';
  * @returns Promise containing the data in the files as an array of strings
  */
 export const readFilesFromDirectory = async (directoryPath: string, extension?: string): Promise<Record<string, string>> => {
-  let filesList = (await fs.readdir(directoryPath)) || [];
+  let filesList: string[];
+
+  try {
+    filesList = (await fs.readdir(directoryPath)) || [];
+  } catch {
+    filesList = [];
+  }
 
   if (extension) filesList = filesList.filter(item => path.extname(item) === extension);
 
