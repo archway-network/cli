@@ -6,7 +6,6 @@ import { Accounts } from '@/domain/Accounts';
 import { KeyringFlags } from '@/flags/keyring';
 
 import { BackendType } from '@/types/Account';
-import { NotFoundError } from '@/exceptions';
 
 /**
  * Command 'accounts get'
@@ -30,9 +29,7 @@ export default class AccountsGet extends BaseCommand<typeof AccountsGet> {
    */
   public async run(): Promise<void> {
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const account = await accountsDomain.keystore.getPublicInfo(this.args.account);
-
-    if (!account) throw new NotFoundError('Account', this.args.account);
+    const account = await accountsDomain.get(this.args.account);
 
     if (this.flags.address) {
       this.log(account.address);

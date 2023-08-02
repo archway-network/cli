@@ -49,7 +49,7 @@ describe('config chains', () => {
 
     test
       .stdout()
-      .command(['config chains import', 'constantine-1'])
+      .command(['config chains import', 'constantine-2'])
       .it('imports chain and writes file', ctx => {
         expect(ctx.stdout).to.contain('Imported chain');
         expect(writeStub.called).to.be.true;
@@ -63,7 +63,7 @@ describe('config chains', () => {
 
     test
       .stderr()
-      .command(['config chains import', 'constantine-1', '"{}"'])
+      .command(['config chains import', 'constantine-2', '"{}"'])
       .catch(/(Please specify only one file to import)/)
       .it('fails on double input');
   });
@@ -71,7 +71,7 @@ describe('config chains', () => {
   describe('export', () => {
     test
       .stdout()
-      .command(['config chains export', 'constantine-1'])
+      .command(['config chains export', 'constantine-2'])
       .it('exports chain to file', ctx => {
         expect(ctx.stdout).to.contain('Exported chain to');
         expect(writeStub.called).to.be.true;
@@ -81,7 +81,7 @@ describe('config chains', () => {
   describe('use', () => {
     test
       .stdout()
-      .command(['config chains use', '--chain=constantine-1'])
+      .command(['config chains use', '--chain=constantine-2'])
       .it('updates config file to use chain', ctx => {
         expect(ctx.stdout).to.contain('Switched chain to');
         expect(writeStub.called).to.be.true;

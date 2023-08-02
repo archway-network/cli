@@ -1,5 +1,7 @@
 import ow from 'ow';
 
+import { Coin } from './Coin';
+
 /**
  * Account base information
  */
@@ -37,6 +39,17 @@ export enum BackendType {
   test = 'test',
   file = 'file',
   os = 'os',
+}
+
+/**
+ * Account balances information for json export
+ */
+export interface AccountBalancesJSON {
+  account: {
+    name: string;
+    address: string;
+    balances: Coin[];
+  };
 }
 
 /**

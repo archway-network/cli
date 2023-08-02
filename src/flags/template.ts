@@ -10,11 +10,12 @@ const TemplateFlagDescription = 'Template name';
 /**
  * Util function to prompt the user for a template if it is not provided
  *
- * @param input - Oclif context
+ * @param _input - Oclif context, not used
+ * @param isWritingManifest - Optional - Sometimes Oclif tries to cache the default, to avoid it from triggering multiple prompts, we verify that this variable is undefined
  * @returns Promise containing the template value if prompted
  */
-const getTemplateName = async (input: DefaultContext<CustomOptions>): Promise<string | undefined> => {
-  if (input?.options?.name) {
+const getTemplateName = async (_input: DefaultContext<CustomOptions>, isWritingManifest?: boolean): Promise<string | undefined> => {
+  if (isWritingManifest === undefined) {
     const response = await showPrompt(TemplatePrompt);
     return response.template as string;
   }

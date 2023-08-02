@@ -8,7 +8,7 @@ import TitusSchema from '@/repositories/ChainSchemas/titus.json';
 // eslint-disable-next-line unicorn/no-static-only-class
 export class BuiltInChains {
   static chainMap: Record<string, CosmosChain> = {
-    'constantine-1': ConstantineSchema as CosmosChain,
+    'constantine-2': ConstantineSchema as CosmosChain,
     'titus-1': TitusSchema as CosmosChain,
   };
 

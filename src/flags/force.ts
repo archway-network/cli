@@ -13,7 +13,7 @@ export const forceFlag = Flags.custom<boolean>({
   char: 'f',
 });
 
-export const checkConfirmation = async (force = false): Promise<void> => {
+export const askForConfirmation = async (force = false): Promise<void> => {
   if (!force) {
     const result = await showPrompt(confirmationPrompt);
 

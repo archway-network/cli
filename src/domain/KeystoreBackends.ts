@@ -58,7 +58,7 @@ export abstract class KeystoreBackend {
       // Making the await happen inside the loop so the user does not see
       // a lot of OS password inputs popup at the same time, but one by one
       /* eslint-disable no-await-in-loop */
-      const auxAccount = await this.getPublicInfo(item.address);
+      const auxAccount = await this.getWithoutMnemonic(item.address);
 
       if (auxAccount) result.push(auxAccount);
     }
@@ -72,7 +72,7 @@ export abstract class KeystoreBackend {
    * @param nameOrAddress - Account name or account address to search by
    * @returns Promise containing the account's data, or undefined if it doesn't exist
    */
-  async getPublicInfo(nameOrAddress: string): Promise<Account | undefined> {
+  async getWithoutMnemonic(nameOrAddress: string): Promise<Account | undefined> {
     let found = await this.get(nameOrAddress);
 
     if (found) {
@@ -93,9 +93,14 @@ export abstract class KeystoreBackend {
    *
    * @param name - Account name
    * @param account - Optional - Existing {@link AccountWithMnemonic} to be validated
+   * @param prefix - Optional - Bech 32 prefix for the generated address, defaults to 'archway'
    * @returns Promise containing the {@link AccountWithMnemonic}
    */
-  protected async createAccountObject(name: string, account?: AccountWithMnemonic): Promise<AccountWithMnemonic> {
+  protected async createAccountObject(
+    name: string,
+    account?: AccountWithMnemonic,
+    prefix = ACCOUNTS.AddressBech32Prefix
+  ): Promise<AccountWithMnemonic> {
     let result = account;
 
     // If parameter with object already received, validate it
@@ -103,7 +108,7 @@ export abstract class KeystoreBackend {
       Accounts.assertIsValidAccountWithMnemonic(account);
     } else {
       // Create a brand new account, generating a mnemonic
-      const wallet = await DirectSecp256k1HdWallet.generate(24, { prefix: 'archway' });
+      const wallet = await DirectSecp256k1HdWallet.generate(24, { prefix });
       const newAccount = (await wallet.getAccounts())[0];
 
       result = {
@@ -153,7 +158,7 @@ export abstract class KeystoreBackend {
    * @param nameOrAddress - Account name or address to search by
    * @returns Promise containing the name and address, or undefined if not found
    */
-  protected async findNameAndAddressInList(nameOrAddress: string): Promise<AccountBase | undefined> {
+  async findNameAndAddressInList(nameOrAddress: string): Promise<AccountBase | undefined> {
     const list = await this.listNameAndAddress();
 
     for (const item of list) {
@@ -395,7 +400,7 @@ export class TestKeystore extends KeystoreBackend {
 
     keyring.UnencryptedFileStore.set(
       this.filesPath,
-      this.createEntryTag(account.name, account.address),
+      this.createEntryTag(account.name, account.address, ACCOUNTS.TestEntrySuffix),
       JSON.stringify(account, undefined, 2)
     );
 
@@ -410,7 +415,7 @@ export class TestKeystore extends KeystoreBackend {
     const result: AccountBase[] = [];
 
     for (const item of found) {
-      const auxAccount = this.parseEntryTag(item);
+      const auxAccount = this.parseEntryTag(item, ACCOUNTS.TestEntrySuffix);
       if (auxAccount) result.push(auxAccount);
     }
 

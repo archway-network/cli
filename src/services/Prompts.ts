@@ -6,7 +6,7 @@ import { CosmosChain } from '@/types/Chain';
 import { ContractTemplates } from '@/domain/ContractTemplates';
 
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
-  'constantine-1': { description: 'Stable testnet - recommended for dApp development' },
+  'constantine-2': { description: 'Stable testnet - recommended for dApp development' },
   'titus-1': { description: 'Nightly releases - chain state can be cleared at any time' },
 };
 

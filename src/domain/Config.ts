@@ -2,21 +2,28 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import _ from 'lodash';
 import ow from 'ow';
+import { GasPrice, StargateClient } from '@cosmjs/stargate';
 
-import { ConfigData, ConfigDataWithContracts, configDataValidator } from '@/types/ConfigData';
 import { getWorkspaceRoot } from '@/utils/paths';
-import { MergeMode } from '@/types/utils';
 import { mergeCustomizer } from '@/utils';
-import { DEFAULT } from '@/config';
+import { ACCOUNTS, DEFAULT } from '@/config';
 import { bold } from '@/utils/style';
 import { Contracts } from './Contracts';
-import { AlreadyExistsError } from '@/exceptions';
+import { AlreadyExistsError, NotFoundError } from '@/exceptions';
 import { writeFileWithDir } from '@/utils/filesystem';
 import { InvalidFormatError } from '@/exceptions';
-import { DeploymentWithChain } from '@/types/Deployment';
-import { Contract } from '@/types/Contract';
 import { Deployments } from './Deployments';
 import { sanitizeDirName } from '@/utils/sanitize';
+import { ChainRegistry } from './ChainRegistry';
+
+import { MergeMode } from '@/types/utils';
+import { CosmosChain } from '@/types/Chain';
+import { DeploymentWithChain } from '@/types/Deployment';
+import { Contract } from '@/types/Contract';
+import { ConfigData, ConfigDataWithContracts, configDataValidator } from '@/types/ConfigData';
+import { SigningArchwayClient } from '@archwayhq/arch3-core';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
+import { AccountWithMnemonic } from '@/types/Account';
 
 /**
  * Manages the config file of the project and creates instances of ChainRegistry, Deployments and Contracts
@@ -27,6 +34,7 @@ export class Config {
   private _contractsPath: string;
   private _contracts: Contracts;
   private _deployments: Deployments;
+  private _chainRegistry: ChainRegistry;
   private _workspaceRoot: string;
   private _configPath: string;
 
@@ -34,8 +42,9 @@ export class Config {
    * @param name - Name of the project
    * @param chainId - Active/selected chain id in the project
    * @param contractsPath - Path of the contract files in the project
-   * @param contracts - Array containing all the contracts
-   * @param deployments - Array containing all the deployments
+   * @param contracts - Instance of {@link Contracts} of the project
+   * @param deployments - Instance of {@link Deployments} of the project
+   * @param chainRegistry - Instance of {@link ChainRegistry} of the project
    * @param workspaceRoot - Absolute path of the project's workspace root
    * @param configPath - Absolute path of the project's config file
    */
@@ -46,6 +55,7 @@ export class Config {
     contractsPath: string,
     contracts: Contracts,
     deployments: Deployments,
+    chainRegistry: ChainRegistry,
     workspaceRoot: string,
     configPath: string
   ) {
@@ -54,6 +64,7 @@ export class Config {
     this._contractsPath = contractsPath;
     this._contracts = contracts;
     this._deployments = deployments;
+    this._chainRegistry = chainRegistry;
     this._workspaceRoot = workspaceRoot;
     this._configPath = configPath;
   }
@@ -82,6 +93,10 @@ export class Config {
     return this._deployments;
   }
 
+  get chainRegistry(): ChainRegistry {
+    return this._chainRegistry;
+  }
+
   get contracts(): Contract[] {
     return this._contracts.listContracts();
   }
@@ -102,6 +117,7 @@ export class Config {
     const configPath = await this.getFilePath(workingDir);
     const deployments = await Deployments.open(workingDir);
     const contracts = await Contracts.open(workingDir, data.contractsPath);
+    const chainRegistry = await ChainRegistry.init(workingDir);
 
     return new Config(
       data.name,
@@ -109,6 +125,7 @@ export class Config {
       data.contractsPath || DEFAULT.ContractsRelativePath,
       contracts,
       deployments,
+      chainRegistry,
       workspaceRoot,
       configPath
     );
@@ -245,6 +262,61 @@ export class Config {
     if (writeAfterUpdate) {
       await this.write();
     }
+  }
+
+  /**
+   * Get the chain info of the currently active chain in the project
+   *
+   * @returns Promise containing the {@link CosmosChain} data
+   */
+  async activeChainInfo(): Promise<CosmosChain> {
+    const result = this._chainRegistry.getChainById(this._chainId);
+
+    if (!result) throw new NotFoundError("Chain in the project's configuration", this._chainId);
+
+    return result;
+  }
+
+  /**
+   * Get the rpc endpoint of the currently active chain in the project
+   *
+   * @param chainInfo - Optional - Instance of {@link CosmosChain} to extract the endpoint from
+   * @returns Promise containing the rpc endpoint, throws an error if not found
+   */
+  async activeChainRpcEndpoint(chainInfo?: CosmosChain): Promise<string> {
+    const auxInfo = chainInfo || (await this.activeChainInfo());
+
+    if (!auxInfo.apis?.rpc?.[0]?.address) throw new NotFoundError('Rpc endpoint for chain', this._chainId);
+
+    return auxInfo.apis.rpc[0].address;
+  }
+
+  /**
+   * Get a Stargate client of the currently active chain in the project
+   *
+   * @returns Promise containing the {@link StargateClient}
+   */
+  async getStargateClient(): Promise<StargateClient> {
+    const rpcEndpoint = await this.activeChainRpcEndpoint();
+
+    return StargateClient.connect(rpcEndpoint);
+  }
+
+  /**
+   * Get a Stargate client of the currently active chain in the project
+   *
+   * @returns Promise containing the {@link StargateClient}
+   */
+  async getSigningArchwayClient(account: AccountWithMnemonic): Promise<SigningArchwayClient> {
+    const chainInfo = await this.activeChainInfo();
+    const rpcEndpoint = await this.activeChainRpcEndpoint(chainInfo);
+
+    const offlineSigner = await DirectSecp256k1HdWallet.fromMnemonic(account!.mnemonic, { prefix: ACCOUNTS.AddressBech32Prefix });
+    const gasPrice = GasPrice.fromString(`${DEFAULT.GasPriceAmount}${chainInfo?.fees?.fee_tokens?.[0]?.denom || DEFAULT.GasPriceDenom}`);
+
+    return SigningArchwayClient.connectWithSigner(rpcEndpoint, offlineSigner, {
+      gasPrice,
+    });
   }
 
   /**

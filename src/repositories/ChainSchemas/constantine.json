@@ -5,7 +5,7 @@
   "network_type": "testnet",
   "website": "https://archway.io/",
   "pretty_name": "Constantine",
-  "chain_id": "constantine-1",
+  "chain_id": "constantine-2",
   "bech32_prefix": "archway",
   "daemon_name": "archwayd",
   "node_home": "$HOME/.archway",
@@ -38,7 +38,7 @@
     "cosmwasm_enabled": true,
     "ibc_go_version": "v3.3.0",
     "genesis": {
-      "genesis_url": "https://raw.githubusercontent.com/archway-network/networks/main/constantine-1/genesis.json"
+      "genesis_url": "https://raw.githubusercontent.com/archway-network/networks/main/constantine-2/genesis.json"
     },
     "versions": [
       {
@@ -77,19 +77,19 @@
   "apis": {
     "rpc": [
       {
-        "address": "https://rpc.constantine-1.archway.tech",
+        "address": "https://rpc.constantine-2.archway.tech",
         "provider": "Archway Foundation"
       }
     ],
     "rest": [
       {
-        "address": "https://api.constantine-1.archway.tech",
+        "address": "https://api.constantine-2.archway.tech",
         "provider": "Archway Foundation"
       }
     ],
     "grpc": [
       {
-        "address": "grpc.constantine-1.archway.tech:443",
+        "address": "grpc.constantine-2.archway.tech:443",
         "provider": "Archway Foundation"
       }
     ]
@@ -97,9 +97,9 @@
   "explorers": [
     {
       "kind": "Constantine",
-      "url": "https://explorer.constantine-1.archway.tech/",
-      "tx_page": "https://explorer.constantine-1.archway.tech/transactions/${txHash}",
-      "account_page": "https://explorer.constantine-1.archway.tech/account/${accountAddress}"
+      "url": "https://explorer.constantine-2.archway.tech/",
+      "tx_page": "https://explorer.constantine-2.archway.tech/transactions/${txHash}",
+      "account_page": "https://explorer.constantine-2.archway.tech/account/${accountAddress}"
     }
   ]
 }

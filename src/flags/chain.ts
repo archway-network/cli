@@ -10,11 +10,12 @@ const ChainFlagDescription = 'ID of the chain';
 /**
  * Util function to prompt the user for a chain id if it is not provided
  *
- * @param input - Oclif context
+ * @param _input - Oclif context, not used
+ * @param isWritingManifest - Optional - Sometimes Oclif tries to cache the default, to avoid it from triggering multiple prompts, we verify that this variable is undefined
  * @returns Promise containing the chain id value if prompted
  */
-const getChainId = async (input: DefaultContext<CustomOptions>): Promise<string | undefined> => {
-  if (input?.options?.name) {
+const getChainId = async (_input: DefaultContext<CustomOptions>, isWritingManifest?: boolean): Promise<string | undefined> => {
+  if (isWritingManifest === undefined) {
     const chainPrompt = await getChainPrompt();
     const response = await showPrompt(chainPrompt);
     return response.chain as string;
@@ -56,5 +57,5 @@ export const chainOptional = Flags.custom<string>({
 export const chainRequired = Flags.custom<string>({
   description: ChainFlagDescription,
   parse: validateChainId,
-  required: true
+  required: true,
 });

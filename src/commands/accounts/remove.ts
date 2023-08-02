@@ -2,7 +2,7 @@ import { BaseCommand } from '@/lib/base';
 import { bold, darkGreen, yellow } from '@/utils/style';
 import { accountRequired } from '@/arguments/account';
 import { Accounts } from '@/domain/Accounts';
-import { checkConfirmation, forceFlag } from '@/flags/force';
+import { askForConfirmation, forceFlag } from '@/flags/force';
 import { KeyringFlags } from '@/flags/keyring';
 
 import { BackendType } from '@/types/Account';
@@ -36,11 +36,11 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
         accountInfo.address
       )})\n`
     );
-    await checkConfirmation(this.flags.force);
+    await askForConfirmation(this.flags.force);
 
-    await accountsDomain.keystore.remove(accountInfo.address);
+    await accountsDomain.remove(accountInfo.address);
 
-    this.log('\n');
+    this.log();
     this.success(`${darkGreen('Account')} ${bold.green(accountInfo.name)} ${darkGreen('deleted')}`);
   }
 }

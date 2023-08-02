@@ -39,7 +39,7 @@ export const chainFile = {
     cosmwasm_enabled: true,
     ibc_go_version: 'v3.3.0',
     genesis: {
-      genesis_url: 'https://raw.githubusercontent.com/archway-network/networks/main/constantine-1/genesis.json',
+      genesis_url: 'https://raw.githubusercontent.com/archway-network/networks/main/constantine-2/genesis.json',
     },
     versions: [
       {
@@ -78,19 +78,19 @@ export const chainFile = {
   apis: {
     rpc: [
       {
-        address: 'https://rpc.constantine-1.archway.tech',
+        address: 'https://rpc.constantine-2.archway.tech',
         provider: 'Archway Foundation',
       },
     ],
     rest: [
       {
-        address: 'https://api.constantine-1.archway.tech',
+        address: 'https://api.constantine-2.archway.tech',
         provider: 'Archway Foundation',
       },
     ],
     grpc: [
       {
-        address: 'grpc.constantine-1.archway.tech:443',
+        address: 'grpc.constantine-2.archway.tech:443',
         provider: 'Archway Foundation',
       },
     ],
@@ -98,11 +98,11 @@ export const chainFile = {
   explorers: [
     {
       kind: 'Constantine',
-      url: 'https://explorer.constantine-1.archway.tech/',
+      url: 'https://explorer.constantine-2.archway.tech/',
       // eslint-disable-next-line no-template-curly-in-string
-      tx_page: 'https://explorer.constantine-1.archway.tech/transactions/${txHash}',
+      tx_page: 'https://explorer.constantine-2.archway.tech/transactions/${txHash}',
       // eslint-disable-next-line no-template-curly-in-string
-      account_page: 'https://explorer.constantine-1.archway.tech/account/${accountAddress}',
+      account_page: 'https://explorer.constantine-2.archway.tech/account/${accountAddress}',
     },
   ],
 };

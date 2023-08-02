@@ -2,7 +2,7 @@
  * Default values accross the project
  */
 export const DEFAULT = {
-  ChainId: 'constantine-1',
+  ChainId: 'constantine-2',
   ConfigFileName: 'modulor.json',
   ContractsRelativePath: './contracts',
   ContractsCargoWorkspace: 'contracts/*',
@@ -14,6 +14,8 @@ export const DEFAULT = {
   WorkspaceTemplate: 'base-workspace',
   // TO DO change back once templates are merged to main
   TemplateBranch: 'feature/workspace-template',
+  GasPriceAmount: '0.005',
+  GasPriceDenom: 'uarch',
 };
 
 /**
@@ -41,4 +43,5 @@ export const ACCOUNTS = {
   EntrySeparator: '<-<>->',
   EntrySuffix: 'account',
   TestEntrySuffix: 'test',
+  AddressBech32Prefix: 'archway',
 };

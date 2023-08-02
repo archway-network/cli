@@ -8,6 +8,7 @@ export const darkGreen = _chalk.rgb(113, 185, 141);
 export const red = _chalk.redBright;
 export const blue = _chalk.blueBright;
 export const cyan = _chalk.cyan;
+export const white = _chalk.white;
 
 // Styles
 export const bold = _chalk.bold;
