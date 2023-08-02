@@ -148,7 +148,8 @@ export class Cargo {
 
     if (useDocker) {
       const optimizer = new DockerOptimizer();
-      const { error, statusCode } = await optimizer.run(workspaceRoot, root === workspaceRoot);
+      const isPackageInsideWorkspace = root === workspaceRoot
+      const { error, statusCode } = await optimizer.run(workspaceRoot, isPackageInsideWorkspace);
       if (statusCode !== 0) {
         throw error instanceof Error ? error : new BaseError(error);
       }

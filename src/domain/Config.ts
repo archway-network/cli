@@ -3,6 +3,8 @@ import path from 'node:path';
 import _ from 'lodash';
 import ow from 'ow';
 import { GasPrice, StargateClient } from '@cosmjs/stargate';
+import { SigningArchwayClient } from '@archwayhq/arch3-core';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { getWorkspaceRoot } from '@/utils/paths';
 import { mergeCustomizer } from '@/utils';
@@ -18,22 +20,20 @@ import { ChainRegistry } from './ChainRegistry';
 
 import { MergeMode } from '@/types/utils';
 import { CosmosChain } from '@/types/Chain';
-import { DeploymentWithChain } from '@/types/Deployment';
+import { Deployment } from '@/types/Deployment';
 import { Contract } from '@/types/Contract';
 import { ConfigData, ConfigDataWithContracts, configDataValidator } from '@/types/ConfigData';
-import { SigningArchwayClient } from '@archwayhq/arch3-core';
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { AccountWithMnemonic } from '@/types/Account';
+import { prettyPrintTransaction } from '@/utils/transactions';
 
 /**
- * Manages the config file of the project and creates instances of ChainRegistry, Deployments and Contracts
+ * Manages the config file of the project and creates instances of ChainRegistry and Contracts
  */
 export class Config {
   private _name: string;
   private _chainId: string;
   private _contractsPath: string;
   private _contracts: Contracts;
-  private _deployments: Deployments;
   private _chainRegistry: ChainRegistry;
   private _workspaceRoot: string;
   private _configPath: string;
@@ -43,7 +43,6 @@ export class Config {
    * @param chainId - Active/selected chain id in the project
    * @param contractsPath - Path of the contract files in the project
    * @param contracts - Instance of {@link Contracts} of the project
-   * @param deployments - Instance of {@link Deployments} of the project
    * @param chainRegistry - Instance of {@link ChainRegistry} of the project
    * @param workspaceRoot - Absolute path of the project's workspace root
    * @param configPath - Absolute path of the project's config file
@@ -54,7 +53,6 @@ export class Config {
     chainId: string,
     contractsPath: string,
     contracts: Contracts,
-    deployments: Deployments,
     chainRegistry: ChainRegistry,
     workspaceRoot: string,
     configPath: string
@@ -63,7 +61,6 @@ export class Config {
     this._chainId = chainId;
     this._contractsPath = contractsPath;
     this._contracts = contracts;
-    this._deployments = deployments;
     this._chainRegistry = chainRegistry;
     this._workspaceRoot = workspaceRoot;
     this._configPath = configPath;
@@ -90,7 +87,7 @@ export class Config {
   }
 
   get deploymentsInstance(): Deployments {
-    return this._deployments;
+    return this._contracts.deployments;
   }
 
   get chainRegistry(): ChainRegistry {
@@ -101,8 +98,8 @@ export class Config {
     return this._contracts.listContracts();
   }
 
-  get deployments(): DeploymentWithChain[] {
-    return this._deployments.listDeployments();
+  get deployments(): Deployment[] {
+    return this._contracts.deployments.listDeployments();
   }
 
   /**
@@ -115,7 +112,6 @@ export class Config {
   static async init(data: ConfigData, workingDir?: string): Promise<Config> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
     const configPath = await this.getFilePath(workingDir);
-    const deployments = await Deployments.open(workingDir);
     const contracts = await Contracts.open(workingDir, data.contractsPath);
     const chainRegistry = await ChainRegistry.init(workingDir);
 
@@ -124,7 +120,6 @@ export class Config {
       data.chainId,
       data.contractsPath || DEFAULT.ContractsRelativePath,
       contracts,
-      deployments,
       chainRegistry,
       workspaceRoot,
       configPath
@@ -333,6 +328,18 @@ export class Config {
     }
 
     return `${bold('Project: ')}${this._name}\n${bold('Selected chain: ')}${this._chainId}` + contractsStatus;
+  }
+
+  /**
+   * Get a formatted version of a transaction hash, with clickable link when possible
+   *
+   * @param txHash - Hash of the transaction
+   * @returns Transaction hash, with clickable tx link when available
+   */
+  async prettyPrintTxHash(txHash: string): Promise<string> {
+    const explorerTxUrl = this._chainRegistry.getChainById(this._chainId)?.explorers?.find(item => Boolean(item.tx_page))?.tx_page;
+
+    return prettyPrintTransaction(txHash, explorerTxUrl);
   }
 
   /**

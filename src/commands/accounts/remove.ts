@@ -18,7 +18,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
   };
 
   static flags = {
-    force: forceFlag(),
+    force: forceFlag,
     ...KeyringFlags,
   };
 

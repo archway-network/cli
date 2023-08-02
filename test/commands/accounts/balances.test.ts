@@ -57,7 +57,7 @@ describe('accounts balances', () => {
     });
     test
       .stdout()
-      .command(['accounts balances send', aliceAccountName, dummyAmmountString, `--to=${bobAddress}`])
+      .command(['accounts balances send', dummyAmmountString, `--from=${aliceAccountName}`, `--to=${bobAddress}`])
       .it('sends tokens from an account', ctx => {
         expect(ctx.stdout).to.contain('Sent');
         expect(ctx.stdout).to.contain(aliceAccountName);

@@ -20,7 +20,7 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
   };
 
   static flags = {
-    chain: chainWithPrompt(),
+    chain: chainWithPrompt,
     'no-contract': Flags.boolean(),
     'contract-name': Flags.string(),
     template: Flags.string(),

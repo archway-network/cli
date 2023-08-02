@@ -1,17 +1,20 @@
 import path from 'node:path';
-import fs from 'node:fs/promises';
+import crypto from 'node:crypto';
+import fs, { readFile } from 'node:fs/promises';
 import toml from 'toml';
 
 import { bold, green, red } from '@/utils/style';
 import { Contract } from '@/types/Contract';
 import { getWorkspaceRoot } from '@/utils/paths';
 import { DEFAULT, REPOSITORIES } from '@/config';
-import { ConsoleError } from '@/types/ConsoleError';
 import { ErrorCodes } from '@/exceptions/ErrorCodes';
 import { Cargo } from './Cargo';
 import { readSubDirectories } from '@/utils/filesystem';
-import { CargoProjectMetadata } from '@/types/Cargo';
 import { NotFoundError } from '@/exceptions';
+import { Deployments } from './Deployments';
+
+import { DeploymentAction, StoreDeployment } from '@/types/Deployment';
+import { ConsoleError } from '@/types/ConsoleError';
 
 /**
  * Manages the contracts' data in the project
@@ -20,16 +23,19 @@ export class Contracts {
   private _data: Contract[];
   private _workspaceRoot: string;
   private _contractsRoot: string;
+  private _deployments: Deployments;
 
   /**
    * @param data - Array of {@link Contract}
    * @param workspaceRoot - Absolute path of the project's workspace root
    * @param contractsRoot - Path of the directory where contracts will be found
+   * @param deployments - Instance of {@link Deployments} of the project
    */
-  constructor(data: Contract[], workspaceRoot: string, contractsRoot: string) {
+  constructor(data: Contract[], workspaceRoot: string, contractsRoot: string, deployments: Deployments) {
     this._data = data;
     this._workspaceRoot = workspaceRoot;
     this._contractsRoot = contractsRoot;
+    this._deployments = deployments;
   }
 
   get data(): Contract[] {
@@ -42,6 +48,10 @@ export class Contracts {
 
   get contractsRoot(): string {
     return this._contractsRoot;
+  }
+
+  get deployments(): Deployments {
+    return this._deployments;
   }
 
   /**
@@ -61,26 +71,14 @@ export class Contracts {
 
     const data = await Promise.all(cargoInstances.map(item => item.projectMetadata()));
 
-    return new Contracts(
-      data.map(item => this.addDeploymentsData(item)),
-      workspaceRoot,
-      contractsRoot
-    );
-  }
+    const deployments = await Deployments.open(workingDir);
 
-  /**
-   * Convert {@link CargoProjectMetadata} into a {@link Contract} object
-   *
-   * @param metadata - Project Metadata to parse
-   * @param rootPath - Absolute path where the contract is located
-   * @returns An instance of {@link Contract}
-   */
-  static addDeploymentsData(metadata: CargoProjectMetadata): Contract {
-    return {
-      ...metadata,
-      // TO DO Add deployments to Contract class
-      deployments: [],
-    };
+    return new Contracts(
+      data.map(item => deployments.makeContractFromMetadata(item)),
+      workspaceRoot,
+      contractsRoot,
+      deployments
+    );
   }
 
   /**
@@ -100,7 +98,7 @@ export class Contracts {
   /**
    * Verifies that a project has a valid workspace
    *
-   * @param params - Object of type {@link GenerateParams}
+   * @returns Empty promise
    */
   async assertValidWorkspace(): Promise<void> {
     const relativeContracts = `${path.relative(this._workspaceRoot, this._contractsRoot)}/*`;
@@ -132,7 +130,7 @@ export class Contracts {
     const generatedPath = path.join(this.contractsRoot, name);
     const generatedCrate = new Cargo(generatedPath);
     const metadata = await generatedCrate.projectMetadata();
-    const result = Contracts.addDeploymentsData(metadata);
+    const result = this._deployments.makeContractFromMetadata(metadata);
     this._data.push(result);
 
     return result;
@@ -205,10 +203,14 @@ export class Contracts {
    * Check if a contract exists by name, if not found throws an error
    *
    * @param contractName - Name of the contract to get
-   * @returns void
+   * @returns The contract matching the name
    */
-  assertGetContractByName(contractName: string): void {
-    if (!this.getContractByName(contractName)) throw new ContractNameNotFoundError(contractName);
+  assertGetContractByName(contractName: string): Contract {
+    const result = this.getContractByName(contractName);
+
+    if (!result) throw new ContractNameNotFoundError(contractName);
+
+    return result;
   }
 
   /**
@@ -236,6 +238,39 @@ export class Contracts {
 
     return `${bold('Available contracts: ')}${contractsList}`;
   }
+
+  /**
+   * Generate the checksum of the current optimized build of a contract
+   *
+   * @param contractName - Name of the contract to generate checksum of
+   * @returns Promise containing the checksum
+   */
+  async generateChecksum(contractName: string): Promise<string> {
+    const contract = this.assertGetContractByName(contractName);
+
+    const fileBuffer = await readFile(contract.wasm.optimizedFilePath);
+    const hashSum = crypto.createHash('sha256');
+    hashSum.update(fileBuffer);
+
+    return hashSum.digest('hex');
+  }
+
+  /**
+   * Verifies if the checksum of the current optimized build has already been deployed
+   *
+   * @param contractName - Name of the contract to verify
+   * @param chainId - Id of the chain
+   * @returns Promise containing true or false
+   */
+  async isChecksumAlreadyDeployed(contractName: string, chainId: string): Promise<StoreDeployment | undefined> {
+    const checksum = await this.generateChecksum(contractName);
+
+    const deployments = this._deployments.filterFlat(chainId, undefined, contractName);
+
+    return deployments.find(
+      item => item.action === DeploymentAction.STORE && checksum === (item as StoreDeployment).wasm.checksum
+    ) as StoreDeployment;
+  }
 }
 
 /**
@@ -262,7 +297,7 @@ export class ContractNameNotFoundError extends ConsoleError {
  */
 export class InvalidWorkspaceError extends ConsoleError {
   /**
-   * @param workspaceRoot - Path of the project's workspace
+   * @param cargoFilePath - Path of the cargo file
    * @param requiredWorkspaceMember - Required value in workspace.members array
    */
   constructor(public cargoFilePath: string, public requiredWorkspaceMember: string) {

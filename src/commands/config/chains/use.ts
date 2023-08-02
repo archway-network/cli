@@ -12,7 +12,7 @@ import { chainRequired } from '@/flags/chain';
 export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse> {
   static summary = `Switches the current chain in use and updates the ${bold(DEFAULT.ConfigFileName)} config file with his information.`;
   static flags = {
-    chain: chainRequired(),
+    chain: chainRequired,
   };
 
   /**

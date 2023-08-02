@@ -13,7 +13,7 @@ import { chainOptional } from '@/flags/chain';
 export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployments> {
   static summary = 'Displays the list of deployments, allows filtering by chain, action and contract.';
   static flags = {
-    chain: chainOptional(),
+    chain: chainOptional,
     action: Flags.string({ options: Object.values(DeploymentAction), description: 'Deployment action to filter by' }),
     contract: Flags.string({ aliases: ['c'], description: 'Contract name to filter by' }),
   };

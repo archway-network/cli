@@ -2,25 +2,15 @@ import { Args } from '@oclif/core';
 
 import { parseAmount } from '@/utils/coin';
 
+import { Amount } from '@/types/Coin';
+
 const AmountArgumentDescription = 'Token amount';
-
-/**
- * Check if string is a valid coin
- *
- * @param value - User input to be validated
- * @returns The same value without any changes
- */
-const validateCoin = async (value: string): Promise<string> => {
-  parseAmount(value);
-
-  return value;
-};
 
 /**
  * Contract name argument
  */
-export const amountRequired = Args.string({
+export const amountRequired = Args.custom<Amount>({
   required: true,
   description: AmountArgumentDescription,
-  parse: validateCoin,
+  parse: async (val: string) => parseAmount(val),
 });

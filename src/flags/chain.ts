@@ -37,7 +37,7 @@ const validateChainId = async (value: string): Promise<string> => {
 /**
  * Chain id flag that displays a prompt if value is not found
  */
-export const chainWithPrompt = Flags.custom<string>({
+export const chainWithPrompt = Flags.string({
   description: ChainFlagDescription,
   default: getChainId,
   parse: validateChainId,
@@ -46,7 +46,7 @@ export const chainWithPrompt = Flags.custom<string>({
 /**
  * Chain id flag that is optional
  */
-export const chainOptional = Flags.custom<string>({
+export const chainOptional = Flags.string({
   description: ChainFlagDescription,
   parse: validateChainId,
 });
@@ -54,7 +54,7 @@ export const chainOptional = Flags.custom<string>({
 /**
  * Chain id flag that is required
  */
-export const chainRequired = Flags.custom<string>({
+export const chainRequired = Flags.string({
   description: ChainFlagDescription,
   parse: validateChainId,
   required: true,

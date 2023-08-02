@@ -2,13 +2,16 @@ import ow from 'ow';
 import path from 'node:path';
 
 import { bold } from '@/utils/style';
-import { DeploymentWithChain, DeploymentAction, Deployment, DeploymentFile, deploymentFileValidator } from '@/types/Deployment';
 import { ChainRegistry } from './ChainRegistry';
 import { DeploymentsByChain } from './DeploymentsByChain';
 import { getWorkspaceRoot } from '@/utils/paths';
 import { DEFAULT } from '@/config';
 import { readFilesFromDirectory } from '@/utils/filesystem';
 import { InvalidFormatError } from '@/exceptions';
+
+import { DeploymentWithChain, DeploymentAction, DeploymentFile, deploymentFileValidator, Deployment } from '@/types/Deployment';
+import { CargoProjectMetadata } from '@/types/Cargo';
+import { Contract } from '@/types/Contract';
 
 export const noDeploymentsMessage = 'No deployments found';
 
@@ -21,7 +24,7 @@ export class Deployments {
 
   /**
    * @param data - Array of {@link DeploymentsByChain}
-   * @param configPath - Absolute path of the deployments directory
+   * @param deploymentsRoot - Absolute path of the deployments directory
    */
   constructor(data: DeploymentsByChain[], deploymentsRoot: string) {
     this._data = data;
@@ -54,7 +57,7 @@ export class Deployments {
 
       // Only add to deployments if file has valid format
       if (this.isValidDeploymentFile(deployment)) {
-        allDeployments.push(new DeploymentsByChain(path.basename(fileName, DEFAULT.DeploymentFileExtension), deployment));
+        allDeployments.push(DeploymentsByChain.init(deploymentsRoot, path.basename(fileName, DEFAULT.DeploymentFileExtension), deployment.deployments));
       }
     }
 
@@ -110,14 +113,43 @@ export class Deployments {
   }
 
   /**
-   * Filters the deployments by the arguments passed
+   * Add deployment metadata into the registry, writing to the corresponding chain's deployment file
+   *
+   * @param deployment - Instance of {@link Deployment} to be stored in the deployments folder
+   * @param chainId - Id of the chain where the deployment happened
+   * @returns Empty promise
+   */
+  async addDeployment(deployment: Deployment, chainId: string): Promise<void> {
+    const existingDeployments = this.getDeploymentsByChainId(chainId);
+
+    if (existingDeployments) {
+      existingDeployments.registerDeployment(deployment);
+      await existingDeployments.write();
+    } else {
+      const newFile = DeploymentsByChain.init(this._deploymentsRoot, chainId, [deployment]);
+      await newFile.write();
+    }
+  }
+
+  /**
+   * Filters the deployments by the arguments passed, returning them grouped by chain
+   *
+   * @param chainId - Chain id to search by
+   * @returns Instance of {@link DeploymentsByChain} for the chain or undefined if not found
+   */
+  getDeploymentsByChainId(chainId: string): DeploymentsByChain | undefined {
+    return this._data.find(item => item.chainId === chainId);
+  }
+
+  /**
+   * Filters the deployments by the arguments passed, returning them grouped by chain
    *
    * @param chainId - Optional - Chain id to filter by
    * @param action  - Optional - Action to filter by
    * @param contractName - Optional - Contract name to filter by
-   * @returns Array with the results of the filtered deployments
+   * @returns Array of instances of {@link DeploymentsByChain} with the results of the filtered deployments
    */
-  filter(chainId?: string, action?: DeploymentAction, contractName?: string): DeploymentsByChain[] {
+  filterGroupedByChain(chainId?: string, action?: DeploymentAction, contractName?: string): DeploymentsByChain[] {
     let result: DeploymentsByChain[] = [];
 
     for (const chainDeployments of this._data) {
@@ -128,9 +160,29 @@ export class Deployments {
         );
 
         if (filtered?.length) {
-          result = [...result, DeploymentsByChain.init(chainDeployments.chainId, filtered)];
+          result = [...result, DeploymentsByChain.init(this._deploymentsRoot, chainDeployments.chainId, filtered)];
         }
       }
+    }
+
+    return result;
+  }
+
+  /**
+   * Filters the deployments by the arguments passed
+   *
+   * @param chainId - Optional - Chain id to filter by
+   * @param action  - Optional - Action to filter by
+   * @param contractName - Optional - Contract name to filter by
+   * @returns Array of instances of {@link DeploymentWithChain} with the results of the filtered deployments
+   */
+  filterFlat(chainId?: string, action?: DeploymentAction, contractName?: string): DeploymentWithChain[] {
+    const filtered = this.filterGroupedByChain(chainId, action, contractName);
+
+    let result: DeploymentWithChain[] = [];
+
+    for (const item of filtered) {
+      result = [...result, ...item.data.deployments.map(auxDepl => ({ ...auxDepl, chainId: item.chainId }))];
     }
 
     return result;
@@ -145,7 +197,7 @@ export class Deployments {
    * @returns Promise containing the formatted string of the deployements that match the filters
    */
   async prettyPrint(chainId?: string, action?: DeploymentAction, contractName?: string): Promise<string> {
-    const filtered = this.filter(chainId, action, contractName);
+    const filtered = this.filterGroupedByChain(chainId, action, contractName);
 
     if (!filtered?.length) {
       return `${bold(noDeploymentsMessage)}`;
@@ -176,14 +228,25 @@ export class Deployments {
    * @returns Instance of {@link DeploymentFile} containing the deployments that match the filters
    */
   toSingleDeploymentFile(chainId?: string, action?: DeploymentAction, contractName?: string): DeploymentFile {
-    const filtered = this.filter(chainId, action, contractName);
+    const result = this.filterFlat(chainId, action, contractName);
 
-    let allDeployments: Deployment[] = [];
+    return { deployments: result } as DeploymentFile;
+  }
 
-    for (const item of filtered) {
-      allDeployments = [...allDeployments, ...item.data.deployments];
-    }
+  /**
+   * Add deployment metadata to a {@link CargoProjectMetadata} object,
+   * converting it into a {@link Contract} object
+   *
+   * @param metadata - Project Metadata to use as base for the {@link Contract} object
+   * @returns An instance of {@link Contract}
+   */
+  makeContractFromMetadata(metadata: CargoProjectMetadata): Contract {
+    const filteredDeployments = this.filterFlat(undefined, undefined, metadata.name);
 
-    return { deployments: allDeployments } as DeploymentFile;
+    return {
+      ...metadata,
+      // TO DO Add deployments to Contract class
+      deployments: filteredDeployments,
+    };
   }
 }

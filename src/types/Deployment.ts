@@ -13,7 +13,7 @@ export interface DeploymentFile {
  * Deployment information with chain id included
  */
 export interface DeploymentWithChain extends Deployment {
-  chainId: string;
+  chainId?: string;
 }
 
 /**
@@ -132,7 +132,7 @@ export const metadataValidator = ow.optional.object.exactShape({
 });
 
 /**
- * Format validator for the {@link DeploymentWithChain} interface
+ * Format validator for the {@link Deployment} interface
  */
 export const deploymentValidator = ow.object.exactShape({
   chainId: ow.optional.string,

@@ -11,7 +11,7 @@ import { chainWithPrompt } from '@/flags/chain';
 export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
   static summary = 'Initializes a config file for the current project.';
   static flags = {
-    chain: chainWithPrompt(),
+    chain: chainWithPrompt,
   };
 
   /**
@@ -20,7 +20,7 @@ export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    await Config.create(this.flags.chain as string);
+    await Config.create(this.flags.chain!);
 
     this.success(`${green('Config file')} ${bold(DEFAULT.ConfigFileName)} ${green('created')}`);
   }

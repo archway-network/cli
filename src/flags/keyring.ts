@@ -8,7 +8,7 @@ const KeyringPathDescription = 'File-based keyring path';
 /**
  * Keyring Backend flag
  */
-export const keyringBackend = Flags.custom<string>({
+export const keyringBackend = Flags.string({
   description: KeyringBackendDescription,
   default: 'os',
   options: Object.values(BackendType),
@@ -17,11 +17,14 @@ export const keyringBackend = Flags.custom<string>({
 /**
  * Keyring path flag
  */
-export const keyringPath = Flags.custom<string>({
+export const keyringPath = Flags.string({
   description: KeyringPathDescription,
 });
 
+/**
+ * All of the Keyring related flags
+ */
 export const KeyringFlags = {
-  'keyring-backend': keyringBackend(),
-  'keyring-path': keyringPath(),
+  'keyring-backend': keyringBackend,
+  'keyring-path': keyringPath,
 };

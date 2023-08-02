@@ -85,9 +85,19 @@ export const getAccountPasswordPrompt = (nameOrAddress: string): PromptObject =>
 /**
  * Terminal prompt to ask the user for an account password
  */
-export const confirmationPrompt: PromptObject = {
+export const ConfirmationPrompt: PromptObject = {
   type: 'confirm',
   name: 'confirm',
   message: 'Do you want to proceed?',
   initial: false,
+};
+
+/**
+ * Terminal prompt to ask the user for a signer account for a transaction
+ */
+export const FromAccountPrompt: PromptObject = {
+  type: 'text',
+  name: 'from',
+  message: 'Enter the name or address of the account that will send the transaction',
+  validate: value => Boolean(value),
 };

@@ -7,3 +7,12 @@ import { DeploymentWithChain } from './Deployment';
 export interface Contract extends CargoProjectMetadata {
   deployments: DeploymentWithChain[];
 }
+
+/**
+ * Options for the instantiate-permission flag
+ */
+export enum InstantiatePermission {
+  ANY_OF = 'any-of',
+  EVERYBODY = 'everybody',
+  NOBODY = 'nobody',
+}

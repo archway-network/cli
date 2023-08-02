@@ -18,7 +18,7 @@ export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
   };
 
   static flags = {
-    template: templateWithPrompt(),
+    template: templateWithPrompt,
   };
 
   /**

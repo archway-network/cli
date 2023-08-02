@@ -2,13 +2,13 @@ import ow from 'ow';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import _ from 'lodash';
-import terminalLink from 'terminal-link';
 
-import { DEFAULT } from '@/config';
-import { DeploymentAction, Deployment, DeploymentFile, deploymentValidator } from '@/types/Deployment';
-import { getWorkspaceRoot } from '@/utils/paths';
 import { blue, bold, green } from '@/utils/style';
 import { InvalidFormatError } from '@/exceptions';
+import { writeFileWithDir } from '@/utils/filesystem';
+import { prettyPrintTransaction } from '@/utils/transactions';
+
+import { DeploymentAction, Deployment, DeploymentFile, deploymentValidator } from '@/types/Deployment';
 
 /**
  * Manage the deployments of a specific chain, represented in a deployment file by chain id
@@ -16,14 +16,17 @@ import { InvalidFormatError } from '@/exceptions';
 export class DeploymentsByChain {
   private _chainId: string;
   private _data: DeploymentFile;
+  private _path: string;
 
   /**
    * @param chainId - Chain id of the chain where the deployments belong
    * @param data - Instance of {@link DeploymentFile} that contains the related deployments
+   * @param path - Absolute path of the deployments file for this chain
    */
-  constructor(chainId: string, data: DeploymentFile) {
+  constructor(chainId: string, data: DeploymentFile, path: string) {
     this._chainId = chainId;
     this._data = data;
+    this._path = path;
   }
 
   get chainId(): string {
@@ -34,44 +37,49 @@ export class DeploymentsByChain {
     return this._data;
   }
 
+  get path(): string {
+    return this._path;
+  }
+
   /**
-   * Initializes a {@link DeploymentsByChain} instance, by receiving the chain id and deployments
+   * Initializes a {@link DeploymentsByChain} instance, by receiving the chain id, deployments and path
    *
-   * @param chainId - Chain id associated with the deployments
+   * @param deploymentsPath - Path to the directory containing the deployments data
+   * @param chainId - Chain id of the deployment
    * @param deployments - Array of {@link Deployment}
    * @returns Instance of {@link DeploymentsByChain}
    */
-  static init(chainId: string, deployments: Deployment[]): DeploymentsByChain {
-    return new DeploymentsByChain(chainId, { deployments });
+  static init(deploymentsPath: string, chainId: string, deployments: Deployment[]): DeploymentsByChain {
+    const path = this.getFilePath(deploymentsPath, chainId);
+
+    return new DeploymentsByChain(chainId, { deployments }, path);
   }
 
   /**
    * Reads a deployments file, finding it by its chain id
    *
-   * @param chainId - Chain id of the deployment file to be read
-   * @param workingDir - Optional - Path of the working directory
+   * @param deploymentsPath - Path to the directory containing the deployments data
+   * @param chainId - Chain id of the deployment
    * @returns Promise containing an instance of {@link DeploymentsByChain}
    */
-  static async open(chainId: string, workingDir?: string): Promise<DeploymentsByChain> {
-    const configPath = await this.getFilePath(chainId, workingDir);
-    const data: DeploymentFile = JSON.parse(await fs.readFile(configPath, 'utf8'));
+  static async open(deploymentsPath: string, chainId: string): Promise<DeploymentsByChain> {
+    const path = this.getFilePath(deploymentsPath, chainId);
+    const data: DeploymentFile = JSON.parse(await fs.readFile(path, 'utf8'));
 
-    this.assertIsValidDeployment(data, configPath);
+    this.assertIsValidDeployment(data, path);
 
-    return new DeploymentsByChain(chainId, data);
+    return new DeploymentsByChain(chainId, data, path);
   }
 
   /**
    * Get the absolute path of a deployment file, by its associated chain id
    *
-   * @param chainId - Chain id of the deployment file
-   * @param workingDir - Optional - Path of the working directory
+   * @param deploymentsPath - Path to the directory containing the deployments data
+   * @param chainId - Chain id of the deployment
    * @returns Promise containing the absolute path of the deployment file
    */
-  static async getFilePath(chainId: string, workingDir?: string): Promise<string> {
-    const workspaceRoot = await getWorkspaceRoot(workingDir);
-
-    return path.join(workspaceRoot, DEFAULT.DeploymentsRelativePath, `./${chainId}.json`);
+  static getFilePath(deploymentsPath: string, chainId: string): string {
+    return path.join(deploymentsPath, `./${chainId}.json`);
   }
 
   /**
@@ -94,6 +102,30 @@ export class DeploymentsByChain {
   static isValidDeployment = (data: unknown): boolean => {
     return ow.isValid(data, deploymentValidator);
   };
+
+  /**
+   * Add a deployment to the deployments list
+   *
+   * @param deployment - {@link Deployment} object to write
+   */
+  registerDeployment(deployment: Deployment): void {
+    const withoutChainId = { ...deployment, chainId: undefined };
+
+    // Add to inner data
+    this._data.deployments = [withoutChainId, ...this._data.deployments];
+  }
+
+  /**
+   * Write the deployments data of an instance of this class into a file (creates one if it doesn't exist)
+   *
+   * @param chain - {@link CosmosChain} object to write
+   * @returns Empty promise
+   */
+  async write(): Promise<void> {
+    const jsonData = JSON.stringify(this._data, null, 2);
+
+    await writeFileWithDir(this.path, jsonData);
+  }
 
   /**
    * Get a formatted version of the deployment file
@@ -129,27 +161,10 @@ export class DeploymentsByChain {
             `\nOwner address: ${auxDeploy.metadata?.ownerAddress}\nRewards address: ${auxDeploy.metadata?.rewardsAddress}` :
             '') +
           (auxDeploy.action === DeploymentAction.INSTANTIATE ? `\nAdmin: ${auxDeploy.contract.admin}` : '') +
-          `\nTransaction: ${this.prettyPrintTransaction(auxDeploy.txhash, explorerTxUrl)}`;
+          `\nTransaction: ${prettyPrintTransaction(auxDeploy.txhash, explorerTxUrl)}`;
       }
     }
 
     return result;
-  }
-
-  /**
-   * Get a formatted version of a transaction, with clickable link when possible
-   *
-   * @param txHash - Hash of the transaction
-   * @param explorerTxUrl - Optional - URL of the explorer, that will be used to pretty print a link to the transaction
-   * @returns Transaction hash, with clickable tx link when available
-   */
-  private prettyPrintTransaction(txHash: string, explorerTxUrl?: string): string {
-    if (!explorerTxUrl) {
-      return txHash;
-    }
-
-    const txUrl = explorerTxUrl.replace(/(\${txHash})/, txHash.trim());
-
-    return blue(terminalLink(txHash, txUrl, { fallback: () => txUrl }));
   }
 }

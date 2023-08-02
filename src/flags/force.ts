@@ -1,6 +1,6 @@
 import { Flags } from '@oclif/core';
 
-import { confirmationPrompt } from '@/services/Prompts';
+import { ConfirmationPrompt } from '@/services/Prompts';
 import { PromptCanceledError, showPrompt } from '@/ui/Prompt';
 
 const ForceFlagDescription = "Forces execution (don't show confirmation prompt)";
@@ -8,14 +8,14 @@ const ForceFlagDescription = "Forces execution (don't show confirmation prompt)"
 /**
  * Force flag
  */
-export const forceFlag = Flags.custom<boolean>({
+export const forceFlag = Flags.boolean({
   description: ForceFlagDescription,
   char: 'f',
 });
 
 export const askForConfirmation = async (force = false): Promise<void> => {
   if (!force) {
-    const result = await showPrompt(confirmationPrompt);
+    const result = await showPrompt(ConfirmationPrompt);
 
     if (!result.confirm) throw new PromptCanceledError();
   }

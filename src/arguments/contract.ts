@@ -2,7 +2,7 @@ import { Args } from '@oclif/core';
 
 import { sanitizeDirName } from '@/utils/sanitize';
 
-const ContractArgumentDescription = 'Contract name';
+const ContractArgumentDescription = 'Name of the contract';
 
 /**
  * Contract name argument

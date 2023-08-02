@@ -35,7 +35,7 @@ const validateTemplateName = async (value: string): Promise<string> => {
 /**
  * Template value flag that displays a prompt if it is not found
  */
-export const templateWithPrompt = Flags.custom<string>({
+export const templateWithPrompt = Flags.string({
   description: TemplateFlagDescription,
   default: getTemplateName,
   parse: validateTemplateName,
