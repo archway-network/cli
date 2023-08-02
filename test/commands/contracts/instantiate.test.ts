@@ -43,7 +43,7 @@ describe('contracts instantiate', () => {
     validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     validateSchemaStub = sinon.stub(Contracts.prototype, <any>'assertValidJSONSchema').callsFake(async () => {});
-    findStoreStub = sinon.stub(Contracts.prototype, 'findStoreDeployment').callsFake(async () => storeDeployment as StoreDeployment);
+    findStoreStub = sinon.stub(Contracts.prototype, 'findStoreDeployment').callsFake(() => storeDeployment as StoreDeployment);
     signingClientStub = sinon
       .stub(SigningArchwayClient, 'connectWithSigner')
       .callsFake(async () => ({ instantiate: async () => dummyInstantiateTransaction } as any));
@@ -61,27 +61,24 @@ describe('contracts instantiate', () => {
     findStoreStub.restore();
     signingClientStub.restore();
   });
-  describe('Instantiates the smart contract', () => {
-    test
-      .stdout()
-      .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`])
-      .it('Instantiates smart contract', ctx => {
-        expect(ctx.stdout).to.contain('instantiated');
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
-        expect(ctx.stdout).to.contain('Transaction:');
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
-      });
-  });
 
-  describe('Prints json output', () => {
-    test
-      .stdout()
-      .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`, '--json'])
-      .it('Instantiates smart contract', ctx => {
-        expect(ctx.stdout).to.not.contain('uploaded');
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.gasUsed);
-      });
-  });
+  test
+    .stdout()
+    .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`])
+    .it('Instantiates the smart contract', ctx => {
+      expect(ctx.stdout).to.contain('instantiated');
+      expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
+      expect(ctx.stdout).to.contain('Transaction:');
+      expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
+    });
+
+  test
+    .stdout()
+    .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`, '--json'])
+    .it('Prints json outputt', ctx => {
+      expect(ctx.stdout).to.not.contain('uploaded');
+      expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
+      expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
+      expect(ctx.stdout).to.contain(dummyInstantiateTransaction.gasUsed);
+    });
 });

@@ -4,9 +4,10 @@ import fs from 'node:fs/promises';
 import toml from 'toml';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
+import { Coin, StargateClient } from '@cosmjs/stargate';
 
-import { readSubDirectories, getWorkspaceRoot, bold, green, red } from '@/utils';
-import { Contract } from '@/types';
+import { readSubDirectories, getWorkspaceRoot, bold, green, red, darkGreen, yellow } from '@/utils';
+import { AccountBalancesJSON, Contract } from '@/types';
 import { DEFAULT, REPOSITORIES } from '@/GlobalConfig';
 import { Cargo, Deployments } from '@/domain';
 import { ErrorCodes, ExecuteError, InstantiateError, NotFoundError, QueryError } from '@/exceptions';
@@ -320,9 +321,9 @@ export class Contracts {
    *
    * @param contractName - Name of the contract to search by
    * @param chainId - Chain id to search by
-   * @returns Promise containing an instance of {@link StoreDeployment} or undefined if not found
+   * @returns An instance of {@link StoreDeployment} or undefined if not found
    */
-  async findStoreDeployment(contractName: string, chainId: string): Promise<StoreDeployment | undefined> {
+  findStoreDeployment(contractName: string, chainId: string): StoreDeployment | undefined {
     const contract = this.assertGetContractByName(contractName);
 
     return contract.deployments.find(item => {
@@ -339,9 +340,9 @@ export class Contracts {
    *
    * @param contractName - Name of the contract to search by
    * @param chainId - Chain id to search by
-   * @returns Promise containing an instance of {@link InstantiateDeployment} or undefined if not found
+   * @returns An instance of {@link InstantiateDeployment} or undefined if not found
    */
-  async findInstantiateDeployment(contractName: string, chainId: string): Promise<InstantiateDeployment | undefined> {
+  findInstantiateDeployment(contractName: string, chainId: string): InstantiateDeployment | undefined {
     const contract = this.assertGetContractByName(contractName);
 
     return contract.deployments.find(item => {
@@ -353,6 +354,62 @@ export class Contracts {
         pastDeploy.chainId === chainId
       );
     }) as InstantiateDeployment | undefined;
+  }
+
+  /**
+   * Returns a list of all the last instantiated deployments of all contracts
+   *
+   * @param chainId - Chain id to search by
+   * @returns An array of instances of {@link InstantiateDeployment}
+   */
+  getAllInstantiateDeployments(chainId: string): InstantiateDeployment[] {
+    const instantiatedDeployments = this._data.map(
+      contract =>
+        contract.deployments.find(item => {
+          const pastDeploy = item as InstantiateDeployment;
+
+          return (
+            pastDeploy.contract.version === contract.version &&
+            pastDeploy.action === DeploymentAction.INSTANTIATE &&
+            pastDeploy.chainId === chainId
+          );
+        }) as InstantiateDeployment | undefined
+    );
+
+    return instantiatedDeployments.filter(item => item !== undefined) as InstantiateDeployment[];
+  }
+
+  /**
+   * Query the balance of contracts
+   *
+   * @param client - Stargate client to use when querying
+   * @param instantiateDeployements - An array of instances of {@link InstantiateDeployment} to query
+   * @returns Promise containing the balances result
+   */
+  async queryAllBalances(client: StargateClient, instantiatedDeployments: InstantiateDeployment[]): Promise<AccountBalancesJSON[]> {
+    const balances = await Promise.all(instantiatedDeployments.map(item => client.getAllBalances(item.contract.address)));
+
+    return instantiatedDeployments.map((item, index) => ({
+      account: {
+        name: item.contract.name,
+        address: item.contract.address,
+        balances: balances[index] as Coin[],
+      },
+    }));
+  }
+
+  /**
+   * Get a formatted version of a contract balance
+   *
+   * @param balance - Contract balance data
+   * @returns Formatted contract address balance
+   */
+  prettyPrintBalances(balance: AccountBalancesJSON): string {
+    let result = `Balances for contract ${green(balance.account.name)} (${darkGreen(balance.account.address)})\n\n`;
+    if (balance.account.balances.length === 0) result += `- ${yellow('Empty balance')}\n`;
+    for (const item of balance.account.balances) result += `- ${bold(item.amount)}${item.denom}\n`;
+
+    return result;
   }
 }
 

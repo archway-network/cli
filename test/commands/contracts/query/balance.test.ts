@@ -1,26 +1,25 @@
 import { expect, test } from '@oclif/test';
 import fs from 'node:fs/promises';
 import sinon, { SinonStub } from 'sinon';
-import { SigningArchwayClient } from '@archwayhq/arch3.js';
 import keyring from '@archwayhq/keyring-go';
+import { StargateClient } from '@cosmjs/stargate';
 
-import { Cargo, Contracts } from '../../../src/domain';
+import { Cargo, Contracts } from '../../../../src/domain';
 import {
-  aliceAccountName,
   aliceStoreEntry,
   aliceStoredAccount,
   configString,
   contractProjectMetadata,
-  dummyMigrateTransaction,
+  dummyAmount,
   instantiateDeployment,
-} from '../../dummies';
-import * as FilesystemUtils from '../../../src/utils/filesystem';
+} from '../../../dummies';
+import * as FilesystemUtils from '../../../../src/utils/filesystem';
 
-import { InstantiateDeployment } from '../../../src/types';
+import { InstantiateDeployment } from '../../../../src/types';
+import { expectOutputJSON } from '../../../helpers/expect';
 
-describe('contracts migrate', () => {
+describe('contracts query balance', () => {
   const contractName = contractProjectMetadata.name;
-  const codeId = 111;
   let readStub: SinonStub;
   let writeStub: SinonStub;
   let mkdirStub: SinonStub;
@@ -29,8 +28,9 @@ describe('contracts migrate', () => {
   let keyringListStub: SinonStub;
   let metadataStub: SinonStub;
   let validWorkspaceStub: SinonStub;
+  let validateSchemaStub: SinonStub;
   let findInstantiateStub: SinonStub;
-  let signingClientStub: SinonStub;
+  let stargateClientStub: SinonStub;
   before(() => {
     readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
     writeStub = sinon.stub(fs, 'writeFile');
@@ -41,12 +41,14 @@ describe('contracts migrate', () => {
     metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    validateSchemaStub = sinon.stub(Contracts.prototype, <any>'assertValidJSONSchema').callsFake(async () => {});
     findInstantiateStub = sinon
       .stub(Contracts.prototype, 'findInstantiateDeployment')
       .callsFake(() => instantiateDeployment as InstantiateDeployment);
-    signingClientStub = sinon
-      .stub(SigningArchwayClient, 'connectWithSigner')
-      .callsFake(async () => ({ migrate: async () => dummyMigrateTransaction } as any));
+    stargateClientStub = sinon
+      .stub(StargateClient, 'connect')
+      .callsFake(async () => ({ getAllBalances: async () => [dummyAmount] } as any));
   });
   after(() => {
     readStub.restore();
@@ -57,26 +59,20 @@ describe('contracts migrate', () => {
     keyringListStub.restore();
     metadataStub.restore();
     validWorkspaceStub.restore();
+    validateSchemaStub.restore();
     findInstantiateStub.restore();
-    signingClientStub.restore();
+    stargateClientStub.restore();
   });
 
   test
     .stdout()
-    .command(['contracts migrate', contractName, `--code=${codeId}`, `--from=${aliceAccountName}`])
-    .it('Migrates the smart contract', ctx => {
-      expect(ctx.stdout).to.contain('migrated');
-      expect(ctx.stdout).to.contain(contractProjectMetadata.label);
-      expect(ctx.stdout).to.contain('Transaction:');
-      expect(ctx.stdout).to.contain(dummyMigrateTransaction.transactionHash);
+    .command(['contracts query balance', contractName])
+    .it('Query balance of a contract', ctx => {
+      expect(ctx.stdout).to.contain('Balances for contract');
+      expect(ctx.stdout).to.contain(instantiateDeployment.contract.name);
+      expect(ctx.stdout).to.contain(dummyAmount.amount);
+      expect(ctx.stdout).to.contain(dummyAmount.denom);
     });
 
-  test
-    .stdout()
-    .command(['contracts migrate', contractName, `--code=${codeId}`, `--from=${aliceAccountName}`, '--json'])
-    .it('Prints json output', ctx => {
-      expect(ctx.stdout).to.not.contain('migrated');
-      expect(ctx.stdout).to.contain(dummyMigrateTransaction.transactionHash);
-      expect(ctx.stdout).to.contain(dummyMigrateTransaction.gasUsed);
-    });
+  test.stdout().command(['contracts query balance', contractName, '--json']).it('Prints json output', expectOutputJSON);
 });

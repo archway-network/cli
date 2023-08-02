@@ -75,7 +75,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     // If code id is not set as flag, try to get it from deployments history
     let codeId = this.flags.code;
     if (!codeId) {
-      codeId = (await config.contractsInstance.findStoreDeployment(this.args.contract!, config.chainId))?.wasm.codeId;
+      codeId = (config.contractsInstance.findStoreDeployment(this.args.contract!, config.chainId))?.wasm.codeId;
 
       if (!codeId) throw new NotFoundError("Code id of contract's store deployment");
     }

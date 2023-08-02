@@ -43,7 +43,7 @@ describe('contracts premium', () => {
     validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
     findInstantiateStub = sinon
       .stub(Contracts.prototype, 'findInstantiateDeployment')
-      .callsFake(async () => instantiateDeployment as InstantiateDeployment);
+      .callsFake(() => instantiateDeployment as InstantiateDeployment);
     signingClientStub = sinon
       .stub(SigningArchwayClient, 'connectWithSigner')
       .callsFake(async () => ({ setContractPremium: async () => dummyPremiumTransaction } as any));
@@ -60,30 +60,27 @@ describe('contracts premium', () => {
     findInstantiateStub.restore();
     signingClientStub.restore();
   });
-  describe('Sets the premium fee for a smart contract', () => {
-    test
-      .stdout()
-      .command(['contracts premium', contractName, `--premium-fee=${newFee}`, `--from=${aliceAccountName}`])
-      .it('Sets smart contract premium', ctx => {
-        expect(ctx.stdout).to.contain('Premium for the contract');
-        expect(ctx.stdout).to.contain('updated');
-        expect(ctx.stdout).to.contain(newFee);
-        expect(ctx.stdout).to.contain('Transaction:');
-        expect(ctx.stdout).to.contain(dummyPremiumTransaction.transactionHash);
-      });
-  });
 
-  describe('Prints json output', () => {
-    test
-      .stdout()
-      .command(['contracts premium', contractName, `--premium-fee=${newFee}`, `--from=${aliceAccountName}`, '--json'])
-      .it('Sets smart contract premium', ctx => {
-        expect(ctx.stdout).to.not.contain('uploaded');
-        expect(ctx.stdout).to.contain(dummyPremiumTransaction.transactionHash);
-        expect(ctx.stdout).to.contain(dummyPremiumTransaction.premium.contractAddress);
-        expect(ctx.stdout).to.contain(dummyPremiumTransaction.premium.flatFee.denom);
-        expect(ctx.stdout).to.contain(dummyPremiumTransaction.premium.flatFee.amount);
-        expect(ctx.stdout).to.contain(dummyPremiumTransaction.gasUsed);
-      });
-  });
+  test
+    .stdout()
+    .command(['contracts premium', contractName, `--premium-fee=${newFee}`, `--from=${aliceAccountName}`])
+    .it('Sets the premium fee for a smart contract', ctx => {
+      expect(ctx.stdout).to.contain('Premium for the contract');
+      expect(ctx.stdout).to.contain('updated');
+      expect(ctx.stdout).to.contain(newFee);
+      expect(ctx.stdout).to.contain('Transaction:');
+      expect(ctx.stdout).to.contain(dummyPremiumTransaction.transactionHash);
+    });
+
+  test
+    .stdout()
+    .command(['contracts premium', contractName, `--premium-fee=${newFee}`, `--from=${aliceAccountName}`, '--json'])
+    .it('Prints json output', ctx => {
+      expect(ctx.stdout).to.not.contain('uploaded');
+      expect(ctx.stdout).to.contain(dummyPremiumTransaction.transactionHash);
+      expect(ctx.stdout).to.contain(dummyPremiumTransaction.premium.contractAddress);
+      expect(ctx.stdout).to.contain(dummyPremiumTransaction.premium.flatFee.denom);
+      expect(ctx.stdout).to.contain(dummyPremiumTransaction.premium.flatFee.amount);
+      expect(ctx.stdout).to.contain(dummyPremiumTransaction.gasUsed);
+    });
 });

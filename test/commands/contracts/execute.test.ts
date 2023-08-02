@@ -45,7 +45,7 @@ describe('contracts execute', () => {
     validateSchemaStub = sinon.stub(Contracts.prototype, <any>'assertValidJSONSchema').callsFake(async () => {});
     findInstantiateStub = sinon
       .stub(Contracts.prototype, 'findInstantiateDeployment')
-      .callsFake(async () => instantiateDeployment as InstantiateDeployment);
+      .callsFake(() => instantiateDeployment as InstantiateDeployment);
     signingClientStub = sinon
       .stub(SigningArchwayClient, 'connectWithSigner')
       .callsFake(async () => ({ execute: async () => dummyExecuteTransaction } as any));
@@ -63,27 +63,24 @@ describe('contracts execute', () => {
     findInstantiateStub.restore();
     signingClientStub.restore();
   });
-  describe('Executes a transaction in a contract', () => {
-    test
-      .stdout()
-      .command(['contracts execute', contractName, '--args={}', `--from=${aliceAccountName}`])
-      .it('Sets smart contract premium', ctx => {
-        expect(ctx.stdout).to.contain('Executed contract');
-        expect(ctx.stdout).to.contain(contractName);
-        expect(ctx.stdout).to.contain('Transaction:');
-        expect(ctx.stdout).to.contain(dummyExecuteTransaction.transactionHash);
-      });
-  });
 
-  describe('Prints json output', () => {
-    test
-      .stdout()
-      .command(['contracts execute', contractName, '--args={}', `--from=${aliceAccountName}`, '--json'])
-      .it('Sets smart contract premium', ctx => {
-        expect(ctx.stdout).to.not.contain('Executed contract');
-        expect(ctx.stdout).to.contain(dummyExecuteTransaction.transactionHash);
-        expect(ctx.stdout).to.contain(dummyExecuteTransaction.gasWanted);
-        expect(ctx.stdout).to.contain(dummyExecuteTransaction.gasUsed);
-      });
-  });
+  test
+    .stdout()
+    .command(['contracts execute', contractName, '--args={}', `--from=${aliceAccountName}`])
+    .it('Executes a transaction in a contract', ctx => {
+      expect(ctx.stdout).to.contain('Executed contract');
+      expect(ctx.stdout).to.contain(contractName);
+      expect(ctx.stdout).to.contain('Transaction:');
+      expect(ctx.stdout).to.contain(dummyExecuteTransaction.transactionHash);
+    });
+
+  test
+    .stdout()
+    .command(['contracts execute', contractName, '--args={}', `--from=${aliceAccountName}`, '--json'])
+    .it('Prints json output', ctx => {
+      expect(ctx.stdout).to.not.contain('Executed contract');
+      expect(ctx.stdout).to.contain(dummyExecuteTransaction.transactionHash);
+      expect(ctx.stdout).to.contain(dummyExecuteTransaction.gasWanted);
+      expect(ctx.stdout).to.contain(dummyExecuteTransaction.gasUsed);
+    });
 });

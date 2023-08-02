@@ -46,7 +46,7 @@ describe('contracts query smart', () => {
     validateSchemaStub = sinon.stub(Contracts.prototype, <any>'assertValidJSONSchema').callsFake(async () => {});
     findInstantiateStub = sinon
       .stub(Contracts.prototype, 'findInstantiateDeployment')
-      .callsFake(async () => instantiateDeployment as InstantiateDeployment);
+      .callsFake(() => instantiateDeployment as InstantiateDeployment);
     signingClientStub = sinon
       .stub(SigningArchwayClient, 'connectWithSigner')
       .callsFake(async () => ({ queryContractSmart: async () => dummyQueryResult } as any));
@@ -64,18 +64,15 @@ describe('contracts query smart', () => {
     findInstantiateStub.restore();
     signingClientStub.restore();
   });
-  describe('Queries a contract', () => {
-    test
-      .stdout()
-      .command(['contracts query smart', contractName, '--args={}', `--from=${aliceAccountName}`])
-      .it('Sets smart contract premium', ctx => {
-        expect(ctx.stdout).to.contain(dummyQueryResult.msg);
-      });
-  });
-  describe('Query result is JSON formatted', () => {
-    test
-      .stdout()
-      .command(['contracts query smart', contractName, '--args={}', `--from=${aliceAccountName}`])
-      .it('Sets smart contract premium', expectOutputJSON);
-  });
+  test
+    .stdout()
+    .command(['contracts query smart', contractName, '--args={}', `--from=${aliceAccountName}`])
+    .it('Queries a contract', ctx => {
+      expect(ctx.stdout).to.contain(dummyQueryResult.msg);
+    });
+
+  test
+    .stdout()
+    .command(['contracts query smart', contractName, '--args={}', `--from=${aliceAccountName}`])
+    .it('Query result is JSON formatted', expectOutputJSON);
 });

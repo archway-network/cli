@@ -41,7 +41,7 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const fromAccount: AccountWithMnemonic = await accountsDomain.getWithMnemonic(this.flags.from!);
 
-    const instantiated = await config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
+    const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
 
     if (!instantiated) throw new NotFoundError('Instantiated deployment with a contract address');
 
