@@ -25,7 +25,8 @@
     "ow": "^0.28.2",
     "promisify-child-process": "^4.1.1",
     "prompts": "^2.4.2",
-    "terminal-link": "^2.1.1"
+    "terminal-link": "^2.1.1",
+    "toml": "^3.0.0"
   },
   "devDependencies": {
     "@oclif/test": "^2.3.15",

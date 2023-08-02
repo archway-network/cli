@@ -4,31 +4,41 @@ import spawk from 'spawk';
 import fs from 'node:fs/promises';
 import sinon, { SinonSpy, SinonStub } from 'sinon';
 
-import { Cargo } from '../../src/domain/Cargo';
-import { contractProjectMetadata } from '../mocks/contracts';
+import { Cargo } from '../../../src/domain/Cargo';
+import { contractProjectMetadata } from '../../mocks/contracts';
+import { Contracts } from '../../../src/domain/Contracts';
+import { configString } from '../../mocks/configFile';
 
-describe('new', () => {
-  const projectName = 'test-name';
+describe('contracts new', () => {
+  const contractName = 'test-name';
+  const templateName = 'default';
+  let readStub: SinonStub;
   let writeStub: SinonStub;
   let mkdirStub: SinonStub;
   let metadataStub: SinonStub;
+  let validWorkspaceStub: SinonStub;
   let promptsSpy: SinonSpy;
   before(() => {
     spawk.preventUnmatched();
+    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
     writeStub = sinon.stub(fs, 'writeFile');
     mkdirStub = sinon.stub(fs, 'mkdir');
     metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
     promptsSpy = sinon.spy(prompts, 'prompt');
   });
   after(() => {
+    readStub.restore();
     writeStub.restore();
     mkdirStub.restore();
     metadataStub.restore();
+    validWorkspaceStub.restore();
     promptsSpy.restore();
   });
-  describe('without cli arguments', () => {
+  describe('without template name', () => {
     before(() => {
-      prompts.inject(['constantine-1', 'my-contract', true, 'increment']);
+      prompts.inject([templateName]);
       // Cargo generate workspace call
       spawk.spawn('cargo');
       // Cargo generate contract call
@@ -36,14 +46,15 @@ describe('new', () => {
     });
     test
       .stdout()
-      .command(['new', projectName])
+      .command(['contracts new', contractName])
       .it('asks for input', ctx => {
-        expect(ctx.stdout).to.contain(projectName);
-        expect(ctx.stdout).to.contain('created and configured for the chain');
+        expect(ctx.stdout).to.contain(contractName);
+        expect(ctx.stdout).to.contain('created from template');
+        expect(ctx.stdout).to.contain(templateName);
         expect(promptsSpy.called).to.be.true;
       });
   });
-  describe('with cli arguments', () => {
+  describe('with template', () => {
     before(() => {
       // Cargo generate call
       spawk.spawn('cargo');
@@ -53,10 +64,11 @@ describe('new', () => {
     });
     test
       .stdout()
-      .command(['new', projectName, '--chain=constantine-1', '--contract-name=test-contract', '--template=default'])
+      .command(['contracts new', contractName, `--template=${templateName}`])
       .it('doesn`t ask for input', ctx => {
-        expect(ctx.stdout).to.contain(projectName);
-        expect(ctx.stdout).to.contain('created and configured for the chain');
+        expect(ctx.stdout).to.contain(contractName);
+        expect(ctx.stdout).to.contain('created from template');
+        expect(ctx.stdout).to.contain(templateName);
         expect(promptsSpy.called).to.be.false;
       });
   });

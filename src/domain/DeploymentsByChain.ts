@@ -49,10 +49,11 @@ export class DeploymentsByChain {
    * Reads a deployments file, finding it by its chain id
    *
    * @param chainId - Chain id of the deployment file to be read
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing an instance of {@link DeploymentsByChain}
    */
-  static async open(chainId: string): Promise<DeploymentsByChain> {
-    const configPath = await this.getFilePath(chainId);
+  static async open(chainId: string, workingDir?: string): Promise<DeploymentsByChain> {
+    const configPath = await this.getFilePath(chainId, workingDir);
     const data: DeploymentFile = JSON.parse(await fs.readFile(configPath, 'utf8'));
 
     this.assertIsValidDeployment(data, configPath);
@@ -64,10 +65,11 @@ export class DeploymentsByChain {
    * Get the absolute path of a deployment file, by its associated chain id
    *
    * @param chainId - Chain id of the deployment file
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing the absolute path of the deployment file
    */
-  static async getFilePath(chainId: string): Promise<string> {
-    const workspaceRoot = await getWorkspaceRoot();
+  static async getFilePath(chainId: string, workingDir?: string): Promise<string> {
+    const workspaceRoot = await getWorkspaceRoot(workingDir);
 
     return path.join(workspaceRoot, DEFAULT.DeploymentsRelativePath, `./${chainId}.json`);
   }

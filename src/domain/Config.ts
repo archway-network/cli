@@ -16,6 +16,7 @@ import { InvalidFormatError } from '@/exceptions';
 import { DeploymentWithChain } from '@/types/Deployment';
 import { Contract } from '@/types/Contract';
 import { Deployments } from './Deployments';
+import { sanitizeDirName } from '@/utils/sanitize';
 
 /**
  * Manages the config file of the project and creates instances of ChainRegistry, Deployments and Contracts
@@ -26,23 +27,34 @@ export class Config {
   private _contractsPath: string;
   private _contracts: Contracts;
   private _deployments: Deployments;
+  private _workspaceRoot: string;
   private _configPath: string;
 
   /**
    * @param name - Name of the project
    * @param chainId - Active/selected chain id in the project
-   * @param contractsPath - Absolute path of the contract files in the project
+   * @param contractsPath - Path of the contract files in the project
    * @param contracts - Array containing all the contracts
    * @param deployments - Array containing all the deployments
+   * @param workspaceRoot - Absolute path of the project's workspace root
    * @param configPath - Absolute path of the project's config file
    */
   // eslint-disable-next-line max-params
-  constructor(name: string, chainId: string, contractsPath: string, contracts: Contracts, deployments: Deployments, configPath: string) {
+  constructor(
+    name: string,
+    chainId: string,
+    contractsPath: string,
+    contracts: Contracts,
+    deployments: Deployments,
+    workspaceRoot: string,
+    configPath: string
+  ) {
     this._name = name;
     this._chainId = chainId;
     this._contractsPath = contractsPath;
     this._contracts = contracts;
     this._deployments = deployments;
+    this._workspaceRoot = workspaceRoot;
     this._configPath = configPath;
   }
 
@@ -54,8 +66,20 @@ export class Config {
     return this._chainId;
   }
 
+  get workspaceRoot(): string {
+    return this._workspaceRoot;
+  }
+
   get contractsPath(): string {
     return this._contractsPath;
+  }
+
+  get contractsInstance(): Contracts {
+    return this._contracts;
+  }
+
+  get deploymentsInstance(): Deployments {
+    return this._deployments;
   }
 
   get contracts(): Contract[] {
@@ -74,10 +98,20 @@ export class Config {
    * @returns Promise containing an instance of {@link Config}
    */
   static async init(data: ConfigData, workingDir?: string): Promise<Config> {
+    const workspaceRoot = await getWorkspaceRoot(workingDir);
     const configPath = await this.getFilePath(workingDir);
-    const contracts = await Contracts.open();
-    const deployments = await Deployments.open();
-    return new Config(data.name, data.chainId, data.contractsPath || DEFAULT.ContractsRelativePath, contracts, deployments, configPath);
+    const deployments = await Deployments.open(workingDir);
+    const contracts = await Contracts.open(workingDir, data.contractsPath);
+
+    return new Config(
+      data.name,
+      data.chainId,
+      data.contractsPath || DEFAULT.ContractsRelativePath,
+      contracts,
+      deployments,
+      workspaceRoot,
+      configPath
+    );
   }
 
   /**
@@ -124,9 +158,9 @@ export class Config {
     }
 
     // Get Workspace root
-    const directory = workingDir || (await getWorkspaceRoot());
+    const directory = await getWorkspaceRoot(workingDir);
     // Get name of Workspace root directory
-    const name = path.basename(directory).replace(' ', '-');
+    const name = sanitizeDirName(path.basename(directory));
 
     // Create config file
     const configFile = await Config.init(
@@ -138,6 +172,7 @@ export class Config {
     );
     await configFile.write();
 
+    console.log(configFile._contractsPath)
     return configFile;
   }
 
@@ -148,7 +183,7 @@ export class Config {
    * @returns Promise containing the absolute path of the config file
    */
   static async getFilePath(workingDir?: string): Promise<string> {
-    const workspaceRoot = workingDir || (await getWorkspaceRoot());
+    const workspaceRoot = await getWorkspaceRoot(workingDir);
 
     return path.join(workspaceRoot, DEFAULT.ConfigFileName);
   }
@@ -223,8 +258,7 @@ export class Config {
     let contractsStatus = '';
 
     if (withContracts) {
-      const contracts = await Contracts.open(this._contractsPath);
-      contractsStatus = `\n\n${await contracts.prettyPrint()}`;
+      contractsStatus = `\n\n${await this.contractsInstance.prettyPrint()}`;
     }
 
     return `${bold('Project: ')}${this._name}\n${bold('Selected chain: ')}${this._chainId}` + contractsStatus;
@@ -236,11 +270,9 @@ export class Config {
    * @returns Instance of {@link ConfigDataWithContracts}
    */
   async dataWithContracts(): Promise<ConfigDataWithContracts> {
-    const contracts = await Contracts.open(this._contractsPath);
-
     return {
       ...this.toConfigData(),
-      contracts: contracts.listContracts(),
+      contracts: this.contractsInstance.listContracts(),
     };
   }
 }

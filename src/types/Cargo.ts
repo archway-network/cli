@@ -97,15 +97,15 @@ export interface Scripts {
 }
 
 /**
- * Cargo project metadata information
+ * Cargo contract metadata information
  */
-export interface ProjectMetadata {
-  id: string;
+export interface CargoProjectMetadata {
   name: string;
   version: string;
+  label: string;
   wasm: Wasm;
+  root: string;
   workspaceRoot: string;
-  isWorkspace: boolean;
 }
 
 /**

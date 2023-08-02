@@ -17,23 +17,23 @@ export const noDeploymentsMessage = 'No deployments found';
  */
 export class Deployments {
   private _data: DeploymentsByChain[];
-  private _deploymentsPath: string;
+  private _deploymentsRoot: string;
 
   /**
    * @param data - Array of {@link DeploymentsByChain}
    * @param configPath - Absolute path of the deployments directory
    */
-  constructor(data: DeploymentsByChain[], deploymentsPath: string) {
+  constructor(data: DeploymentsByChain[], deploymentsRoot: string) {
     this._data = data;
-    this._deploymentsPath = deploymentsPath;
+    this._deploymentsRoot = deploymentsRoot;
   }
 
   get data(): DeploymentsByChain[] {
     return this._data;
   }
 
-  get deploymentsPath(): string {
-    return this._deploymentsPath;
+  get deploymentsRoot(): string {
+    return this._deploymentsRoot;
   }
 
   /**
@@ -44,8 +44,8 @@ export class Deployments {
    */
   static async open(workingDir?: string): Promise<Deployments> {
     // Get all deployments of all chains
-    const deploymentsPath = await this.getDeploymentsPath(workingDir);
-    const filesRead = await readFilesFromDirectory(deploymentsPath, DEFAULT.DeploymentFileExtension);
+    const deploymentsRoot = await this.getDeploymentsRoot(workingDir);
+    const filesRead = await readFilesFromDirectory(deploymentsRoot, DEFAULT.DeploymentFileExtension);
 
     const allDeployments: DeploymentsByChain[] = [];
 
@@ -58,7 +58,7 @@ export class Deployments {
       }
     }
 
-    return new Deployments(allDeployments, deploymentsPath);
+    return new Deployments(allDeployments, deploymentsRoot);
   }
 
   /**
@@ -67,8 +67,8 @@ export class Deployments {
    * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing the absolute path of the deployments directory
    */
-  static async getDeploymentsPath(workingDir?: string): Promise<string> {
-    const workspaceRoot = workingDir || (await getWorkspaceRoot());
+  static async getDeploymentsRoot(workingDir?: string): Promise<string> {
+    const workspaceRoot = await getWorkspaceRoot(workingDir);
 
     return path.join(workspaceRoot, DEFAULT.DeploymentsRelativePath);
   }

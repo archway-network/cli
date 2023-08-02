@@ -23,7 +23,7 @@ describe('config init', () => {
     accessStub.restore();
     readdirStub.restore();
     writeStub.restore();
-    prompts.prompt.restore();
+    promptsSpy.restore();
   });
 
   test

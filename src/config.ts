@@ -5,6 +5,7 @@ export const DEFAULT = {
   ChainId: 'constantine-1',
   ConfigFileName: 'modulor.json',
   ContractsRelativePath: './contracts',
+  ContractsCargoWorkspace: 'contracts/*',
   ChainsRelativePath: './.modulor/chains',
   DeploymentsRelativePath: './.modulor/deployments',
   ChainFileExtension: '.json',

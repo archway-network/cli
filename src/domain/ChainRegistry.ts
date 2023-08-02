@@ -1,12 +1,11 @@
 import ow from 'ow';
 import path from 'node:path';
-import fs from 'node:fs/promises';
 
 import { getWorkspaceRoot } from '@/utils/paths';
 import { DEFAULT } from '@/config';
 import { ChainRegistrySpec, CosmosChain, cosmosChainValidator } from '@/types/Chain';
 import { BuiltInChains } from '@/services/BuiltInChains';
-import { readFilesFromDirectory, writeFileWithDir } from '@/utils/filesystem';
+import { fileExists, readFilesFromDirectory, writeFileWithDir } from '@/utils/filesystem';
 import { FileAlreadyExistsError, InvalidFormatError } from '@/exceptions';
 import { bold, red, yellow } from '@/utils/style';
 import { ConsoleError } from '@/types/ConsoleError';
@@ -48,10 +47,11 @@ export class ChainRegistry extends ChainRegistrySpec {
    * Initializes the Chain Registry, by loading the built-in chains and reading the imported chain files.
    *
    * @param chainsDirectory - Optional - Path to the directory where the imported chains are
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing a {@link ChainRegistry} instance
    */
-  static async init(chainsRelativePath?: string): Promise<ChainRegistry> {
-    const directoryPath = await this.getDirectoryPath(chainsRelativePath);
+  static async init(workingDir?: string): Promise<ChainRegistry> {
+    const directoryPath = await this.getDirectoryPath(workingDir);
 
     let filesRead: Record<string, string> = {};
 
@@ -104,11 +104,11 @@ export class ChainRegistry extends ChainRegistrySpec {
   /**
    * Get the absolute path of the imported chains directory
    *
-   * @param chainsRelativePath - Optional - Relative path of the chains directory
+   * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing the absolute path of the chains directory
    */
-  static async getDirectoryPath(chainsRelativePath?: string): Promise<string> {
-    return path.join(await getWorkspaceRoot(), chainsRelativePath || DEFAULT.ChainsRelativePath);
+  static async getDirectoryPath(workingDir?: string): Promise<string> {
+    return path.join(await getWorkspaceRoot(workingDir), DEFAULT.ChainsRelativePath);
   }
 
   /**
@@ -150,12 +150,7 @@ export class ChainRegistry extends ChainRegistrySpec {
    */
   async fileExists(chainId: string): Promise<boolean> {
     const chainPath = await this.getFilePath(chainId);
-    try {
-      await fs.access(chainPath);
-      return true;
-    } catch {
-      return false;
-    }
+    return fileExists(chainPath);
   }
 
   /**

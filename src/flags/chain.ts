@@ -1,8 +1,9 @@
 import { Flags } from '@oclif/core';
-import { getChainPrompt } from '../services/Prompts';
-import { showPrompt } from '../ui/Prompt';
-import { ChainRegistry } from '../domain/ChainRegistry';
 import { CustomOptions, DefaultContext } from '@oclif/core/lib/interfaces/parser';
+
+import { getChainPrompt } from '@/services/Prompts';
+import { showPrompt } from '@/ui/Prompt';
+import { ChainRegistry } from '@/domain/ChainRegistry';
 
 const ChainFlagDescription = 'ID of the chain';
 
@@ -33,7 +34,7 @@ const validateChainId = async (value: string): Promise<string> => {
 };
 
 /**
- * Chain flag that displays a prompt if value is not found
+ * Chain id flag that displays a prompt if value is not found
  */
 export const chainWithPrompt = Flags.custom<string>({
   description: ChainFlagDescription,
@@ -42,7 +43,7 @@ export const chainWithPrompt = Flags.custom<string>({
 });
 
 /**
- * Chain flag that is optional
+ * Chain id flag that is optional
  */
 export const chainOptional = Flags.custom<string>({
   description: ChainFlagDescription,
@@ -50,7 +51,7 @@ export const chainOptional = Flags.custom<string>({
 });
 
 /**
- * Chain flag that is required
+ * Chain id flag that is required
  */
 export const chainRequired = Flags.custom<string>({
   description: ChainFlagDescription,

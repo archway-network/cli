@@ -2,7 +2,10 @@ import _ from 'lodash';
 import path from 'node:path';
 import { ChildProcessPromise, PromisifySpawnOptions, spawn } from 'promisify-child-process';
 
-import { BuildParams, GenerateParams, Metadata, ProjectMetadata } from '@/types/Cargo';
+import { BuildParams, CargoProjectMetadata, GenerateParams, Metadata } from '@/types/Cargo';
+import { ConsoleError } from '@/types/ConsoleError';
+import { ErrorCodes } from '@/exceptions/ErrorCodes';
+import { bold, red } from '@/utils/style';
 
 /**
  * Facade Class for the cargo shell command
@@ -80,9 +83,9 @@ export class Cargo {
    * If ran from a workspace, it will return the first package in the workspace.
    * If ran from a package folder, it will return the current package metadata.
    *
-   * @returns Object of type {@link ProjectMetadata}
+   * @returns Promise containing object of type {@link ProjectMetadata}
    */
-  async projectMetadata(): Promise<ProjectMetadata> {
+  async projectMetadata(): Promise<CargoProjectMetadata> {
     const { packages = [], target_directory: targetDirectory, workspace_root: workspaceRoot } = await this.metadata();
     const currentManifestPath = await this.locateProject();
 
@@ -98,11 +101,11 @@ export class Cargo {
     } = findPackageInPath(currentManifestPath) || firstPackageInWorkspace(currentManifestPath) || {};
 
     if (!name || !version) {
-      throw new Error('Failed to resolve project metadata');
+      throw new CargoMetadataError(this.workingDir);
     }
 
-    const id = `${name} ${version}`;
-    const isWorkspace = path.dirname(manifestPath || '') !== workspaceRoot;
+    const label = `${name}-${version}`;
+    const root = path.dirname(manifestPath || '');
     const wasmFileName = `${name.replace(/-/g, '_')}.wasm`;
     const wasm = {
       fileName: wasmFileName,
@@ -110,7 +113,7 @@ export class Cargo {
       optimizedFilePath: path.join(workspaceRoot, 'artifacts', wasmFileName),
     };
 
-    return { id, name, version, wasm, workspaceRoot, isWorkspace };
+    return { name, label, version, wasm, root, workspaceRoot };
   }
 
   /**
@@ -128,5 +131,24 @@ export class Cargo {
       encoding: 'utf8',
       maxBuffer: 1024 * 1024, // (Large enough for verbose error debugging)
     });
+  }
+}
+
+/**
+ * Error when project metadata can't be resolved
+ */
+export class CargoMetadataError extends ConsoleError {
+  /**
+   * @param workingDir - Optional - Path from where the project metadata was attempted to load
+   */
+  constructor(public workingDir?: string) {
+    super(ErrorCodes.CARGO_METADATA_ERROR);
+  }
+
+  /**
+   * {@inheritDoc ConsoleError.toConsoleString}
+   */
+  toConsoleString(): string {
+    return `${red('Failed to resolve project metadata')}${this.workingDir ? bold(` from ${this.workingDir}`) : ''}`;
   }
 }

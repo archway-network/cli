@@ -5,7 +5,6 @@ import { Cargo } from './Cargo';
 import { Config } from './Config';
 import { DEFAULT, REPOSITORIES } from '@/config';
 import { sanitizeDirName } from '@/utils/sanitize';
-import { Contracts } from './Contracts';
 
 /**
  * Type of project
@@ -40,7 +39,6 @@ export class NewProject {
     const sanitizedProjectName = sanitizeDirName(params.name);
     const sanitizedContractName = sanitizeDirName(params.contractName);
     const projectDir = path.join(workingDir, sanitizedProjectName);
-    const contractsDir = path.join(projectDir, DEFAULT.ContractsRelativePath);
 
     // Create project depending on type
     switch (type) {
@@ -50,12 +48,11 @@ export class NewProject {
     }
 
     // Create config file
-    await Config.create(params.chainId, projectDir);
+    const config = await Config.create(params.chainId, projectDir);
 
     // Create contract
     if (params.contractTemplate) {
-      const contracts = new Contracts([], contractsDir);
-      await contracts.new(sanitizedContractName, params.contractTemplate);
+      await config.contractsInstance.new(sanitizedContractName, params.contractTemplate);
     }
   }
 }

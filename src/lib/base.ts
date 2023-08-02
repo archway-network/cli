@@ -92,7 +92,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       return undefined;
     }
 
-    err.message = `${MESSAGES.ErrorPrefix}${err instanceof ConsoleError ? err.toConsoleString() : red(err.message)}`;
+    err.message = `${MESSAGES.ErrorPrefix}${err instanceof ConsoleError ? err.toConsoleString() : red((err as any)?.stderr || err.message)}`;
     return super.catch(err);
   }
 

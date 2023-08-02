@@ -1,7 +1,8 @@
 import { Choice } from 'prompts';
 
-import { Template } from '@/types/Template';
+import { ContractTemplate } from '@/types/ContractTemplate';
 import { REPOSITORIES } from '@/config';
+import { InvalidValueError } from '@/exceptions';
 
 /**
  * Contract templates to be used in generated projects
@@ -11,7 +12,7 @@ export class ContractTemplates {
   /**
    * An array containing all the templates
    */
-  static allTemplates: Template[] = [
+  static allTemplates: ContractTemplate[] = [
     { title: 'Increment', value: 'increment' },
     { title: 'CW20', value: 'cw20/base' },
     { title: 'CW20 escrow', value: 'cw20/escrow' },
@@ -37,5 +38,25 @@ export class ContractTemplates {
    */
   static getTemplateValues(): string[] {
     return ['default', ...this.allTemplates.map(item => item.value)];
+  }
+
+  /**
+   * Verify if a template value is valid, throws error if not
+   *
+   * @param value - Template value to validate
+   * @returns void
+   */
+  static assertIsValidTemplate(value: string): void {
+    if (!this.isValidTemplate(value)) throw new InvalidValueError(value, 'Template');
+  }
+
+  /**
+   * Verify if a template value is valid
+   *
+   * @param value - Template value to validate
+   * @returns Boolean, whether it is valid or not
+   */
+  static isValidTemplate(value: string): boolean {
+    return this.getTemplateValues().includes(value);
   }
 }
