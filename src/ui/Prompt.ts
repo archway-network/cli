@@ -1,9 +1,9 @@
 import _ from 'lodash';
 import { prompt, prompts, inject, override, PromptObject, Answers, Options } from 'prompts';
 
-import { ConsoleError } from '../types/ConsoleError';
-import { red } from '../utils/style';
-import { ErrorCodes } from '../exceptions/ErrorCodes';
+import { ConsoleError } from '@/types/ConsoleError';
+import { red } from '@/utils/style';
+import { ErrorCodes } from '@/exceptions/ErrorCodes';
 
 /**
  * Handle user canceling the prompt

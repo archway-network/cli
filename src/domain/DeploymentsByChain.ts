@@ -4,11 +4,11 @@ import path from 'node:path';
 import _ from 'lodash';
 import terminalLink from 'terminal-link';
 
-import { DEFAULT } from '../config';
-import { Deployment, DeploymentAction, DeploymentFile, deploymentValidator } from '../types/Deployment';
-import { getWokspaceRoot } from '../utils/paths';
-import { blue, bold, green } from '../utils/style';
-import { InvalidFormatError } from '../exceptions';
+import { DEFAULT } from '@/config';
+import { Deployment, DeploymentAction, DeploymentFile, deploymentValidator } from '@/types/Deployment';
+import { getWokspaceRoot } from '@/utils/paths';
+import { blue, bold, green } from '@/utils/style';
+import { InvalidFormatError } from '@/exceptions';
 
 /**
  * Manage the deployments of a specific chain, represented in a deployment file by chain id

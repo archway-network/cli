@@ -2,13 +2,13 @@ import path from 'node:path';
 import { Args } from '@oclif/core';
 import fs from 'node:fs/promises';
 
-import { BaseCommand } from '../../../lib/base';
-import { DEFAULT } from '../../../config';
-import { bold, green, red } from '../../../utils/style';
-import { CosmosChain } from '../../../types/Chain';
-import { ChainRegistry } from '../../../domain/ChainRegistry';
-import { ConsoleError } from '../../../types/ConsoleError';
-import { ErrorCodes } from '../../../exceptions/ErrorCodes';
+import { BaseCommand } from '@/lib/base';
+import { DEFAULT } from '@/config';
+import { bold, green, red } from '@/utils/style';
+import { CosmosChain } from '@/types/Chain';
+import { ChainRegistry } from '@/domain/ChainRegistry';
+import { ConsoleError } from '@/types/ConsoleError';
+import { ErrorCodes } from '@/exceptions/ErrorCodes';
 
 /**
  * Command 'config chains import'

@@ -1,8 +1,8 @@
 import { Command } from '@oclif/core';
 import terminalLink from 'terminal-link';
 
-import Help from '../../../plugins/help-plugin/help';
-import { blue } from '../../../utils/style';
+import Help from '@/plugins/help-plugin/help';
+import { blue } from '@/utils/style';
 
 /**
  * Command 'config chains'

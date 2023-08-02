@@ -1,5 +1,5 @@
-import { BaseCommand } from '../../lib/base';
-import { ConfigFile } from '../../domain/ConfigFile';
+import { BaseCommand } from '@/lib/base';
+import { ConfigFile } from '@/domain/ConfigFile';
 
 /**
  * Command 'config show'

@@ -1,8 +1,8 @@
-import { BaseCommand } from '../../lib/base';
-import { ConfigFile } from '../../domain/ConfigFile';
-import { bold, green } from '../../utils/style';
-import { DEFAULT } from '../../config';
-import { chainWithPrompt } from '../../flags/chain';
+import { BaseCommand } from '@/lib/base';
+import { ConfigFile } from '@/domain/ConfigFile';
+import { bold, green } from '@/utils/style';
+import { DEFAULT } from '@/config';
+import { chainWithPrompt } from '@/flags/chain';
 
 /**
  * Command 'config init'

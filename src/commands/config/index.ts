@@ -1,6 +1,6 @@
 import { Command } from '@oclif/core';
 
-import Help from '../../plugins/help-plugin/help';
+import Help from '@/plugins/help-plugin/help';
 
 /**
  * Command 'config'

@@ -1,10 +1,10 @@
 {
   "name": "archway-cli",
   "version": "0.0.0",
-  "description": "Archway CLI",
+  "description": "Modulor - Archway CLI",
   "author": "PhiLabs",
   "bin": {
-    "archway": "./bin/run"
+    "mod": "./bin/run"
   },
   "homepage": "https://github.com/archway-network/archway-cli-v2",
   "license": "MIT",
@@ -27,38 +27,44 @@
     "terminal-link": "^2.1.1"
   },
   "devDependencies": {
-    "@oclif/test": "^2.3.8",
-    "@types/chai": "^4",
+    "@oclif/test": "^2.3.15",
+    "@types/chai": "^4.3.4",
+    "@types/expect": "^24.3.0",
     "@types/lodash": "^4.14.192",
-    "@types/mocha": "^9.0.0",
-    "@types/node": "^16.18.14",
-    "@types/prompts": "^2.4.3",
-    "chai": "^4",
+    "@types/mocha": "^9.1.1",
+    "@types/node": "^18.15.11",
+    "@types/prompts": "^2.4.4",
+    "chai": "^4.3.7",
     "eslint": "^7.32.0",
-    "eslint-config-oclif": "^4",
+    "eslint-config-oclif": "^4.0.0",
     "eslint-config-oclif-typescript": "^1.0.3",
     "eslint-plugin-tsdoc": "^0.2.17",
     "fancy-test": "^2.0.18",
-    "mocha": "^9",
+    "mocha": "^10.2.0",
     "nyc": "^15.1.0",
-    "oclif": "^3",
+    "oclif": "^3.8.0",
     "shx": "^0.3.4",
     "sinon": "^15.0.3",
     "ts-alias": "^0.0.7",
     "ts-node": "^10.9.1",
+    "tsc-alias": "^1.8.5",
+    "tsconfig-paths": "^4.2.0",
     "tslib": "^2.5.0",
-    "typescript": "^4.9.5"
+    "typescript": "^5.0.4"
   },
   "oclif": {
-    "bin": "archway",
-    "dirname": "archway",
+    "bin": "mod",
+    "dirname": "mod",
     "commands": "./dist/commands",
-    "helpClass": "./src/plugins/help-plugin/help",
+    "helpClass": "./dist/plugins/help-plugin/help",
     "plugins": [],
-    "topicSeparator": " "
+    "topicSeparator": " ",
+    "macos": {
+      "identifier": "com.archway.modulor"
+    }
   },
   "scripts": {
-    "build": "shx rm -rf dist && tsc -b",
+    "build": "shx rm -rf dist && tsc -b && tsc-alias -p tsconfig.json",
     "lint": "eslint . --ext .ts --config .eslintrc",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",

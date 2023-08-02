@@ -1,13 +1,12 @@
-oclif-hello-world
+Modulor CLI
 =================
 
-oclif example Hello World CLI
+Modulor CLI for Archway network
 
-[![oclif](https://img.shields.io/badge/cli-oclif-brightgreen.svg)](https://oclif.io)
-[![Version](https://img.shields.io/npm/v/oclif-hello-world.svg)](https://npmjs.org/package/oclif-hello-world)
-[![CircleCI](https://circleci.com/gh/oclif/hello-world/tree/main.svg?style=shield)](https://circleci.com/gh/oclif/hello-world/tree/main)
-[![Downloads/week](https://img.shields.io/npm/dw/oclif-hello-world.svg)](https://npmjs.org/package/oclif-hello-world)
-[![License](https://img.shields.io/npm/l/oclif-hello-world.svg)](https://github.com/oclif/hello-world/blob/main/package.json)
+[![oclif](https://img.shields.io/badge/cli-mod-brightgreen.svg)](https://oclif.io)
+[![Version](https://img.shields.io/npm/v/@archway-cli/modulor.svg)](https://npmjs.org/package/@archway-cli/modulor)
+[![Downloads/week](https://img.shields.io/npm/dw/@archway-cli/modulor.svg)](https://npmjs.org/package/@archway-cli/modulor)
+[![License](https://img.shields.io/npm/l/@archway-cli/modulor.svg)](https://github.com/archway-network/archway-cli-v2/blob/main/package.json)
 
 <!-- toc -->
 * [Usage](#usage)
@@ -17,321 +16,194 @@ oclif example Hello World CLI
 <!-- usage -->
 ```sh-session
 $ npm install -g archway-cli
-$ archway COMMAND
+$ mod COMMAND
 running command...
-$ archway (--version)
+$ mod (--version)
 archway-cli/0.0.0 darwin-arm64 node-v16.18.1
-$ archway --help [COMMAND]
+$ mod --help [COMMAND]
 USAGE
-  $ archway COMMAND
+  $ mod COMMAND
 ...
 ```
 <!-- usagestop -->
 # Commands
 <!-- commands -->
-* [`archway hello PERSON`](#archway-hello-person)
-* [`archway hello world`](#archway-hello-world)
-* [`archway help [COMMANDS]`](#archway-help-commands)
-* [`archway plugins`](#archway-plugins)
-* [`archway plugins:install PLUGIN...`](#archway-pluginsinstall-plugin)
-* [`archway plugins:inspect PLUGIN...`](#archway-pluginsinspect-plugin)
-* [`archway plugins:install PLUGIN...`](#archway-pluginsinstall-plugin-1)
-* [`archway plugins:link PLUGIN`](#archway-pluginslink-plugin)
-* [`archway plugins:uninstall PLUGIN...`](#archway-pluginsuninstall-plugin)
-* [`archway plugins:uninstall PLUGIN...`](#archway-pluginsuninstall-plugin-1)
-* [`archway plugins:uninstall PLUGIN...`](#archway-pluginsuninstall-plugin-2)
-* [`archway plugins update`](#archway-plugins-update)
+* [`mod accounts`](#mod-accounts)
+* [`mod config`](#mod-config)
+* [`mod config chains`](#mod-config-chains)
+* [`mod config chains export CHAIN`](#mod-config-chains-export-chain)
+* [`mod config chains import [FILE]`](#mod-config-chains-import-file)
+* [`mod config chains use`](#mod-config-chains-use)
+* [`mod config deployments`](#mod-config-deployments)
+* [`mod config init`](#mod-config-init)
+* [`mod config show`](#mod-config-show)
+* [`mod contracts`](#mod-contracts)
+* [`mod rewards`](#mod-rewards)
 
-## `archway hello PERSON`
+## `mod accounts`
 
-Say hello
-
-```
-USAGE
-  $ archway hello PERSON -f <value>
-
-ARGUMENTS
-  PERSON  Person to say hello to
-
-FLAGS
-  -f, --from=<value>  (required) Who is saying hello
-
-DESCRIPTION
-  Say hello
-
-EXAMPLES
-  $ oex hello friend --from oclif
-  hello friend from oclif! (./src/commands/hello/index.ts)
-```
-
-_See code: [dist/commands/hello/index.ts](https://github.com/archway-network/archway-cli-v2/blob/v0.0.0/dist/commands/hello/index.ts)_
-
-## `archway hello world`
-
-Say hello world
+Display help for the accounts command.
 
 ```
 USAGE
-  $ archway hello world
-
-DESCRIPTION
-  Say hello world
-
-EXAMPLES
-  $ archway hello world
-  hello world! (./src/commands/hello/world.ts)
+  $ mod accounts
 ```
 
-## `archway help [COMMANDS]`
+_See code: [dist/commands/accounts/index.ts](https://github.com/archway-network/archway-cli-v2/blob/v0.0.0/dist/commands/accounts/index.ts)_
 
-Display help for archway.
+## `mod config`
+
+Display help for the config command.
 
 ```
 USAGE
-  $ archway help [COMMANDS] [-n]
-
-ARGUMENTS
-  COMMANDS  Command to show help for.
-
-FLAGS
-  -n, --nested-commands  Include all nested commands in the output.
-
-DESCRIPTION
-  Display help for archway.
+  $ mod config
 ```
 
-_See code: [@oclif/plugin-help](https://github.com/oclif/plugin-help/blob/v5.2.6/src/commands/help.ts)_
+_See code: [dist/commands/config/index.ts](https://github.com/archway-network/archway-cli-v2/blob/v0.0.0/dist/commands/config/index.ts)_
 
-## `archway plugins`
+## `mod config chains`
 
-List installed plugins.
+Chain management commands. The chain files follow the https://raw.githubusercontent.com/cosmos/chain-registry/master/chain.schema.json schema.
 
 ```
 USAGE
-  $ archway plugins [--core]
-
-FLAGS
-  --core  Show core plugins.
-
-DESCRIPTION
-  List installed plugins.
-
-EXAMPLES
-  $ archway plugins
+  $ mod config chains
 ```
 
-_See code: [@oclif/plugin-plugins](https://github.com/oclif/plugin-plugins/blob/v2.3.2/src/commands/plugins/index.ts)_
+## `mod config chains export CHAIN`
 
-## `archway plugins:install PLUGIN...`
-
-Installs a plugin into the CLI.
+Exports a built-in chain registry file to {project-root}/.modulor/chains/{chain-id}.json.
 
 ```
 USAGE
-  $ archway plugins:install PLUGIN...
-
-ARGUMENTS
-  PLUGIN  Plugin to install.
-
-FLAGS
-  -f, --force    Run yarn install with force flag.
-  -h, --help     Show CLI help.
-  -v, --verbose
-
-DESCRIPTION
-  Installs a plugin into the CLI.
-  Can be installed from npm or a git url.
-
-  Installation of a user-installed plugin will override a core plugin.
-
-  e.g. If you have a core plugin that has a 'hello' command, installing a user-installed plugin with a 'hello' command
-  will override the core plugin implementation. This is useful if a user needs to update core plugin functionality in
-  the CLI without the need to patch and update the whole CLI.
-
-
-ALIASES
-  $ archway plugins add
-
-EXAMPLES
-  $ archway plugins:install myplugin 
-
-  $ archway plugins:install https://github.com/someuser/someplugin
-
-  $ archway plugins:install someuser/someplugin
-```
-
-## `archway plugins:inspect PLUGIN...`
-
-Displays installation properties of a plugin.
-
-```
-USAGE
-  $ archway plugins:inspect PLUGIN...
-
-ARGUMENTS
-  PLUGIN  [default: .] Plugin to inspect.
-
-FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
+  $ mod config chains export CHAIN [--json] [--log-level debug|info|warn|error]
 
 GLOBAL FLAGS
-  --json  Format output as json.
-
-DESCRIPTION
-  Displays installation properties of a plugin.
-
-EXAMPLES
-  $ archway plugins:inspect myplugin
-```
-
-## `archway plugins:install PLUGIN...`
-
-Installs a plugin into the CLI.
-
-```
-USAGE
-  $ archway plugins:install PLUGIN...
-
-ARGUMENTS
-  PLUGIN  Plugin to install.
-
-FLAGS
-  -f, --force    Run yarn install with force flag.
-  -h, --help     Show CLI help.
-  -v, --verbose
-
-DESCRIPTION
-  Installs a plugin into the CLI.
-  Can be installed from npm or a git url.
-
-  Installation of a user-installed plugin will override a core plugin.
-
-  e.g. If you have a core plugin that has a 'hello' command, installing a user-installed plugin with a 'hello' command
-  will override the core plugin implementation. This is useful if a user needs to update core plugin functionality in
-  the CLI without the need to patch and update the whole CLI.
-
-
-ALIASES
-  $ archway plugins add
+  --json                Format output as json.
+  --log-level=<option>  Specify level for logging.
+                        <options: debug|info|warn|error>
 
 EXAMPLES
-  $ archway plugins:install myplugin 
-
-  $ archway plugins:install https://github.com/someuser/someplugin
-
-  $ archway plugins:install someuser/someplugin
+  $ mod config chains export
 ```
 
-## `archway plugins:link PLUGIN`
+## `mod config chains import [FILE]`
 
-Links a plugin into the CLI for development.
+Import a chain registry file and save it to {project-root}/.modulor/chains/{chain-id}.json.
 
 ```
 USAGE
-  $ archway plugins:link PLUGIN
+  $ mod config chains import [FILE] [PIPED] [--json] [--log-level debug|info|warn|error]
 
-ARGUMENTS
-  PATH  [default: .] path to plugin
-
-FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
-
-DESCRIPTION
-  Links a plugin into the CLI for development.
-  Installation of a linked plugin will override a user-installed or core plugin.
-
-  e.g. If you have a user-installed or core plugin that has a 'hello' command, installing a linked plugin with a 'hello'
-  command will override the user-installed or core plugin implementation. This is useful for development work.
-
+GLOBAL FLAGS
+  --json                Format output as json.
+  --log-level=<option>  Specify level for logging.
+                        <options: debug|info|warn|error>
 
 EXAMPLES
-  $ archway plugins:link myplugin
+  $ mod config chains import
 ```
 
-## `archway plugins:uninstall PLUGIN...`
+## `mod config chains use`
 
-Removes a plugin from the CLI.
-
-```
-USAGE
-  $ archway plugins:uninstall PLUGIN...
-
-ARGUMENTS
-  PLUGIN  plugin to uninstall
-
-FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
-
-DESCRIPTION
-  Removes a plugin from the CLI.
-
-ALIASES
-  $ archway plugins unlink
-  $ archway plugins remove
-```
-
-## `archway plugins:uninstall PLUGIN...`
-
-Removes a plugin from the CLI.
+Switches the current chain in use and updates the modulor.json config file with his information.
 
 ```
 USAGE
-  $ archway plugins:uninstall PLUGIN...
-
-ARGUMENTS
-  PLUGIN  plugin to uninstall
+  $ mod config chains use --chain <value> [--json] [--log-level debug|info|warn|error]
 
 FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
+  --chain=<value>  (required)
 
-DESCRIPTION
-  Removes a plugin from the CLI.
+GLOBAL FLAGS
+  --json                Format output as json.
+  --log-level=<option>  Specify level for logging.
+                        <options: debug|info|warn|error>
 
-ALIASES
-  $ archway plugins unlink
-  $ archway plugins remove
+EXAMPLES
+  $ mod config chains use
 ```
 
-## `archway plugins:uninstall PLUGIN...`
+## `mod config deployments`
 
-Removes a plugin from the CLI.
+Displays the list of deployments, allows filtering by chain, action and contract.
 
 ```
 USAGE
-  $ archway plugins:uninstall PLUGIN...
-
-ARGUMENTS
-  PLUGIN  plugin to uninstall
+  $ mod config deployments [--json] [--log-level debug|info|warn|error] [--chain <value>] [--action
+    store|instantiate|metadata|premium] [--contract <value>]
 
 FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
+  --action=<option>   <options: store|instantiate|metadata|premium>
+  --chain=<value>
+  --contract=<value>
 
-DESCRIPTION
-  Removes a plugin from the CLI.
+GLOBAL FLAGS
+  --json                Format output as json.
+  --log-level=<option>  Specify level for logging.
+                        <options: debug|info|warn|error>
 
-ALIASES
-  $ archway plugins unlink
-  $ archway plugins remove
+EXAMPLES
+  $ mod config deployments
 ```
 
-## `archway plugins update`
+## `mod config init`
 
-Update installed plugins.
+Initializes a config file for the current project.
 
 ```
 USAGE
-  $ archway plugins update [-h] [-v]
+  $ mod config init [--json] [--log-level debug|info|warn|error] [--chain <value>]
 
 FLAGS
-  -h, --help     Show CLI help.
-  -v, --verbose
+  --chain=<value>
 
-DESCRIPTION
-  Update installed plugins.
+GLOBAL FLAGS
+  --json                Format output as json.
+  --log-level=<option>  Specify level for logging.
+                        <options: debug|info|warn|error>
+
+EXAMPLES
+  $ mod config init
 ```
+
+## `mod config show`
+
+Shows the config file for the current project.
+
+```
+USAGE
+  $ mod config show [--json] [--log-level debug|info|warn|error]
+
+GLOBAL FLAGS
+  --json                Format output as json.
+  --log-level=<option>  Specify level for logging.
+                        <options: debug|info|warn|error>
+
+EXAMPLES
+  $ mod config show
+```
+
+## `mod contracts`
+
+Display help for the contracts command.
+
+```
+USAGE
+  $ mod contracts
+```
+
+_See code: [dist/commands/contracts/index.ts](https://github.com/archway-network/archway-cli-v2/blob/v0.0.0/dist/commands/contracts/index.ts)_
+
+## `mod rewards`
+
+Display help for the rewards command.
+
+```
+USAGE
+  $ mod rewards
+```
+
+_See code: [dist/commands/rewards/index.ts](https://github.com/archway-network/archway-cli-v2/blob/v0.0.0/dist/commands/rewards/index.ts)_
 <!-- commandsstop -->

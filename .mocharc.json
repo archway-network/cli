@@ -1,7 +1,8 @@
 {
   "require": [
     "test/helpers/init.js",
-    "ts-node/register"
+    "ts-node/register",
+    "tsconfig-paths/register"
   ],
   "watch-extensions": [
     "ts"

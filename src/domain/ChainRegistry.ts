@@ -2,15 +2,15 @@ import ow from 'ow';
 import path from 'node:path';
 import fs from 'node:fs/promises';
 
-import { getWokspaceRoot } from '../utils/paths';
-import { DEFAULT } from '../config';
-import { CosmosChain, cosmosChainValidator } from '../types/Chain';
-import { BuiltInChains } from '../services/BuiltInChains';
-import { readFilesFromDirectory, writeFileWithDir } from '../utils/filesystem';
-import { FileAlreadyExistsError, InvalidFormatError } from '../exceptions';
-import { bold, red, yellow } from '../utils/style';
-import { ConsoleError } from '../types/ConsoleError';
-import { ErrorCodes } from '../exceptions/ErrorCodes';
+import { getWokspaceRoot } from '@/utils/paths';
+import { DEFAULT } from '@/config';
+import { CosmosChain, cosmosChainValidator } from '@/types/Chain';
+import { BuiltInChains } from '@/services/BuiltInChains';
+import { readFilesFromDirectory, writeFileWithDir } from '@/utils/filesystem';
+import { FileAlreadyExistsError, InvalidFormatError } from '@/exceptions';
+import { bold, red, yellow } from '@/utils/style';
+import { ConsoleError } from '@/types/ConsoleError';
+import { ErrorCodes } from '@/exceptions/ErrorCodes';
 
 /**
  * Manages the chains in the project, including the built-in and the imported ones.

@@ -1,6 +1,6 @@
-import { CosmosChain } from '../types/Chain';
-import ConstantineSchema from '../repositories/ChainSchemas/constantine.json';
-import TitusSchema from '../repositories/ChainSchemas/titus.json';
+import { CosmosChain } from '@/types/Chain';
+import ConstantineSchema from '@/repositories/ChainSchemas/constantine.json';
+import TitusSchema from '@/repositories/ChainSchemas/titus.json';
 
 /**
  * Class containing data from the built-in chains

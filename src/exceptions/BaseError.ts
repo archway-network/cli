@@ -1,5 +1,5 @@
-import { ConsoleError } from '../types/ConsoleError';
-import { red } from '../utils/style';
+import { ConsoleError } from '@/types/ConsoleError';
+import { red } from '@/utils/style';
 import { ErrorCodes } from './ErrorCodes';
 
 /**

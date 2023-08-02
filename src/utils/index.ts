@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-import { MergeMode } from '../types/utils';
+import { MergeMode } from '@/types/utils';
 
 /**
  * Util function that customizes merging of objects, used as parameter of lodash's 'mergeWith' function

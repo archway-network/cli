@@ -1,8 +1,8 @@
 import { Choice, PromptObject } from 'prompts';
 
-import { DEFAULT } from '../config';
-import { ChainRegistry } from '../domain/ChainRegistry';
-import { CosmosChain } from '../types/Chain';
+import { DEFAULT } from '@/config';
+import { ChainRegistry } from '@/domain/ChainRegistry';
+import { CosmosChain } from '@/types/Chain';
 
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
   'constantine-1': { description: 'Stable testnet - recommended for dApp development' },

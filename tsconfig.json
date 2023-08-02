@@ -11,7 +11,7 @@
     "target": "es2019",
     "baseUrl": "./",
     "paths": {
-      "@commands/*": ["src/commands/*"]
+      "@/*": ["src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.js"]

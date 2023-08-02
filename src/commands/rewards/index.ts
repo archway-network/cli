@@ -1,5 +1,5 @@
 import { Command } from '@oclif/core';
-import Help from '../../plugins/help-plugin/help';
+import Help from '@/plugins/help-plugin/help';
 
 export default class Rewards extends Command {
   static summary = 'Display help for the rewards command.';

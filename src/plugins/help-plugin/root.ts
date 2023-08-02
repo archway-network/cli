@@ -1,5 +1,5 @@
 import { HelpBase, ux } from '@oclif/core';
-import { brand, yellow } from '../../utils/style';
+import { brand, yellow } from '@/utils/style';
 
 export default class RootHelp extends HelpBase {
   public async showHelp(): Promise<void> {

@@ -1,14 +1,14 @@
 import ow from 'ow';
 import path from 'node:path';
 
-import { bold } from '../utils/style';
-import { Deployment, DeploymentAction, DeploymentFile, deploymentFileValidator } from '../types/Deployment';
+import { bold } from '@/utils/style';
+import { Deployment, DeploymentAction, DeploymentFile, deploymentFileValidator } from '@/types/Deployment';
 import { ChainRegistry } from './ChainRegistry';
 import { DeploymentsByChain } from './DeploymentsByChain';
-import { getWokspaceRoot } from '../utils/paths';
-import { DEFAULT } from '../config';
-import { readFilesFromDirectory } from '../utils/filesystem';
-import { InvalidFormatError } from '../exceptions';
+import { getWokspaceRoot } from '@/utils/paths';
+import { DEFAULT } from '@/config';
+import { readFilesFromDirectory } from '@/utils/filesystem';
+import { InvalidFormatError } from '@/exceptions';
 
 export const noDeploymentsMessage = 'No deployments found';
 

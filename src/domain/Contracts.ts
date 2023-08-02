@@ -1,11 +1,11 @@
 import path from 'node:path';
 
-import { bold, green, red } from '../utils/style';
-import { Contract } from '../types/Contract';
-import { getWokspaceRoot } from '../utils/paths';
-import { DEFAULT } from '../config';
-import { ConsoleError } from '../types/ConsoleError';
-import { ErrorCodes } from '../exceptions/ErrorCodes';
+import { bold, green, red } from '@/utils/style';
+import { Contract } from '@/types/Contract';
+import { getWokspaceRoot } from '@/utils/paths';
+import { DEFAULT } from '@/config';
+import { ConsoleError } from '@/types/ConsoleError';
+import { ErrorCodes } from '@/exceptions/ErrorCodes';
 
 /**
  * Manages the contracts' data in the project

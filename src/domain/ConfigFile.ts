@@ -3,16 +3,16 @@ import path from 'node:path';
 import _ from 'lodash';
 import ow from 'ow';
 
-import { ConfigData, ConfigDataWithContracts, configDataValidator } from '../types/ConfigData';
-import { getWokspaceRoot } from '../utils/paths';
-import { MergeMode } from '../types/utils';
-import { mergeCustomizer } from '../utils';
-import { DEFAULT } from '../config';
-import { bold } from '../utils/style';
+import { ConfigData, ConfigDataWithContracts, configDataValidator } from '@/types/ConfigData';
+import { getWokspaceRoot } from '@/utils/paths';
+import { MergeMode } from '@/types/utils';
+import { mergeCustomizer } from '@/utils';
+import { DEFAULT } from '@/config';
+import { bold } from '@/utils/style';
 import { Contracts } from './Contracts';
-import { FileAlreadyExistsError } from '../exceptions';
-import { writeFileWithDir } from '../utils/filesystem';
-import { InvalidFormatError } from '../exceptions';
+import { FileAlreadyExistsError } from '@/exceptions';
+import { writeFileWithDir } from '@/utils/filesystem';
+import { InvalidFormatError } from '@/exceptions';
 
 /**
  * Manages the config file of the project

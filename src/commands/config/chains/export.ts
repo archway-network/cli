@@ -1,12 +1,12 @@
-import { BaseCommand } from '../../../lib/base';
+import { BaseCommand } from '@/lib/base';
 import path from 'node:path';
 import { Args } from '@oclif/core';
 
-import { DEFAULT } from '../../../config';
-import { bold, green } from '../../../utils/style';
-import { BuiltInChains } from '../../../services/BuiltInChains';
-import { ChainRegistry } from '../../../domain/ChainRegistry';
-import { CosmosChain } from '../../../types/Chain';
+import { DEFAULT } from '@/config';
+import { bold, green } from '@/utils/style';
+import { BuiltInChains } from '@/services/BuiltInChains';
+import { ChainRegistry } from '@/domain/ChainRegistry';
+import { CosmosChain } from '@/types/Chain';
 
 /**
  * Command 'config chains export'
