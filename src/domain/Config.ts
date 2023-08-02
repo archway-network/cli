@@ -4,11 +4,11 @@ import _ from 'lodash';
 import ow from 'ow';
 import { StargateClient } from '@cosmjs/stargate';
 import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
+import { DirectSecp256k1HdWallet, OfflineSigner } from '@cosmjs/proto-signing';
 
 import { getWorkspaceRoot, mergeCustomizer, writeFileWithDir, sanitizeDirName, prettyPrintTransaction, bold } from '@/utils';
 import { ACCOUNTS, DEFAULT } from '@/GlobalConfig';
-import { ChainRegistry, Contracts, Deployments } from '@/domain';
+import { ChainRegistry, Contracts, Deployments, Ledger } from '@/domain';
 import { AlreadyExistsError, NotFoundError, InvalidFormatError } from '@/exceptions';
 
 import {
@@ -19,7 +19,8 @@ import {
   ConfigData,
   ConfigDataWithContracts,
   configDataValidator,
-  AccountWithMnemonic,
+  Account,
+  AccountType,
 } from '@/types';
 
 /**
@@ -309,13 +310,13 @@ export class Config {
    *
    * @returns Promise containing the {@link StargateClient}
    */
-  async getSigningArchwayClient(account: AccountWithMnemonic): Promise<SigningArchwayClient> {
+  async getSigningArchwayClient(account: Account): Promise<SigningArchwayClient> {
     const chainInfo = await this.activeChainInfo();
     const rpcEndpoint = await this.activeChainRpcEndpoint(chainInfo);
 
-    const offlineSigner = await DirectSecp256k1HdWallet.fromMnemonic(account!.mnemonic, { prefix: ACCOUNTS.AddressBech32Prefix });
+    const signer = await (account.type === AccountType.LEDGER ? Ledger.getLedgerSigner() : DirectSecp256k1HdWallet.fromMnemonic(account.mnemonic!, { prefix: ACCOUNTS.AddressBech32Prefix }));
 
-    return SigningArchwayClient.connectWithSigner(rpcEndpoint, offlineSigner);
+    return SigningArchwayClient.connectWithSigner(rpcEndpoint, signer);
   }
 
   /**

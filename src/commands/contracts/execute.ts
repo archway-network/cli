@@ -11,7 +11,7 @@ import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/flag
 import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { SuccessMessages } from '@/services';
 
-import { AccountWithMnemonic, Amount, BackendType } from '@/types';
+import { Account, Amount, BackendType } from '@/types';
 
 /**
  * Command 'contracts execute'
@@ -60,7 +60,7 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const fromAccount: AccountWithMnemonic = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
 
     const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
 

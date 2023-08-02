@@ -10,7 +10,7 @@ import { KeyringFlags, TransactionFlags } from '@/flags';
 import { showSpinner } from '@/ui';
 import { SuccessMessages } from '@/services';
 
-import { AccountWithMnemonic, BackendType, InstantiatePermission, DeploymentAction, StoreDeployment } from '@/types';
+import { Account, BackendType, InstantiatePermission, DeploymentAction, StoreDeployment } from '@/types';
 
 /**
  * Command 'contracts store'
@@ -62,7 +62,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
     }
 
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const fromAccount: AccountWithMnemonic = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
     const wasmCode = await fs.readFile(contract.wasm.optimizedFilePath);
 
     this.log(`Uploading optimized wasm for contract ${blue(contract.name)}`);

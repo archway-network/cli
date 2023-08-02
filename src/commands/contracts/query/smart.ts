@@ -9,7 +9,7 @@ import { showSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags } from '@/flags';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 
-import { AccountWithMnemonic, BackendType } from '@/types';
+import { Account, BackendType } from '@/types';
 import { SuccessMessages } from '@/services';
 
 /**
@@ -54,7 +54,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const fromAccount: AccountWithMnemonic = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
 
     const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
 

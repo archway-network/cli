@@ -10,7 +10,7 @@ import { KeyringFlags, TransactionFlags } from '@/flags';
 import { NotFoundError } from '@/exceptions';
 import { SuccessMessages } from '@/services';
 
-import { AccountWithMnemonic, BackendType, DeploymentAction, MetadataDeployment } from '@/types';
+import { Account, BackendType, DeploymentAction, MetadataDeployment } from '@/types';
 
 /**
  * Command 'contracts metadata'
@@ -40,7 +40,7 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const fromAccount: AccountWithMnemonic = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
 
     const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
 

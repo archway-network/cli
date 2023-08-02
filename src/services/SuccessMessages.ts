@@ -12,7 +12,7 @@ import { BaseCommand } from '@/lib/base';
 import { blue, bold, cyan, darkGreen, green, white, yellow } from '@/utils';
 import { DEFAULT } from '@/GlobalConfig';
 
-import { Account, AccountBalancesJSON, AccountBase, AccountWithMnemonic, Amount, Contract } from '@/types';
+import { Account, AccountBalancesJSON, AccountBase, AccountType, Amount, Contract } from '@/types';
 
 export const SuccessMessages = {
   accounts: {
@@ -26,7 +26,7 @@ export const SuccessMessages = {
           for (const item of balance.account.balances) command.log(`- ${bold(item.amount)}${item.denom}`);
         }
       },
-      send: (command: BaseCommand<any>, amount: Amount, from: AccountWithMnemonic, to: AccountBase): void => {
+      send: (command: BaseCommand<any>, amount: Amount, from: Account, to: AccountBase): void => {
         command.success(
           darkGreen(`Sent ${white.reset.bold(amount.plainText)} from ${green(from.name)} to ${green(to.name || to.address)}`)
         );
@@ -56,19 +56,26 @@ export const SuccessMessages = {
         if (list.length === 0) command.log(yellow('No accounts found'));
       }
     },
-    new: (command: BaseCommand<any>, account: AccountWithMnemonic): void => {
+    new: (command: BaseCommand<any>, account: Account): void => {
       if (command.jsonEnabled()) {
         command.logJson(account);
       } else {
         command.success(`${darkGreen('Account')} ${green(account.name)} successfully created!`);
         command.log(`\nAddress: ${green(account.address)}\n`);
         command.log(Accounts.prettyPrintPublicKey(account.publicKey));
-        command.log(`\n${bold('Mnemonic:')} ${account.mnemonic}\n`);
-        command.warning(
-          `${yellow('Important:')} write this mnemonic phrase in a safe place. It is the ${bold(
-            'only'
-          )} way to recover your account if you forget your password.`
-        );
+        if (account.type === AccountType.LOCAL) {
+          command.log(`\n${bold('Mnemonic:')} ${account.mnemonic}\n`);
+          command.warning(
+            `${yellow('Important:')} write this mnemonic phrase in a safe place. It is the ${bold(
+              'only'
+            )} way to recover your account if you forget your password.`
+          );
+        }
+
+        if (account.type === AccountType.LEDGER) {
+          command.log();
+          command.warning(yellow('Ledger account'));
+        }
       }
     },
     remove: (command: BaseCommand<any>, account: AccountBase): void => {

@@ -6,7 +6,7 @@ import { Accounts } from '@/domain';
 import { KeyringFlags } from '@/flags';
 import { SuccessMessages } from '@/services';
 
-import { BackendType } from '@/types';
+import { AccountType, BackendType } from '@/types';
 
 /**
  * Command 'accounts new'
@@ -30,8 +30,10 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
+    const type = this.flags.ledger ? AccountType.LEDGER : AccountType.LOCAL;
+
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const account = await accountsDomain.new(this.args.account!, this.flags.mnemonic);
+    const account = await accountsDomain.new(this.args.account!, type, this.flags.mnemonic);
 
     SuccessMessages.accounts.new(this, account);
   }

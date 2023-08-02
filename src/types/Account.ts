@@ -2,26 +2,26 @@ import ow from 'ow';
 
 import { Coin } from '@/types';
 
+export enum AccountType {
+  LOCAL = 'local',
+  LEDGER = 'ledger'
+}
+
 /**
  * Account base information
  */
 export interface AccountBase {
   name: string;
   address: string;
+  type: AccountType;
 }
 
 /**
- * Account information
+ * Account information (with optional mnemonic)
  */
 export interface Account extends AccountBase {
   publicKey: PublicKey;
-}
-
-/**
- * Account with mnemonic information
- */
-export interface AccountWithMnemonic extends Account {
-  mnemonic: string;
+  mnemonic?: string;
 }
 
 /**
@@ -75,6 +75,8 @@ const AccountShape = {
   name: ow.string,
   address: ow.string,
   publicKey: publicKeyValidator,
+  type: ow.string.oneOf(Object.values(AccountType)),
+  mnemonic: ow.optional.string,
 };
 
 /**
@@ -83,7 +85,7 @@ const AccountShape = {
 export const accountValidator = ow.object.exactShape(AccountShape);
 
 /**
- * Format validator for the {@link AccountWithMnemonic} interface
+ * Format validator for the {@link Account} interface, with mandatory mnemonic value
  */
 export const accountWithMnemonicValidator = ow.object.exactShape({
   ...AccountShape,

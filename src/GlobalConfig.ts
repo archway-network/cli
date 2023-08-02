@@ -43,7 +43,7 @@ export const REPOSITORIES = {
 export const ACCOUNTS = {
   SecretServiceName: 'archway.modulor',
   KeyFilesPath: `${process.env.HOME}/.archway`,
-  EntrySeparator: '<-<>->',
+  EntrySeparator: '<-_>',
   EntrySuffix: 'account',
   TestEntrySuffix: 'test',
   AddressBech32Prefix: 'archway',

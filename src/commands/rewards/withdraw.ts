@@ -5,7 +5,7 @@ import { buildStdFee, darkGreen, green } from '@/utils';
 import { showSpinner } from '@/ui';
 import { SuccessMessages } from '@/services';
 
-import { AccountWithMnemonic, BackendType } from '@/types';
+import { Account, BackendType } from '@/types';
 
 /**
  * Command 'rewards withdraw'
@@ -26,7 +26,7 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
    */
   public async run(): Promise<void> {
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const account: AccountWithMnemonic = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const account: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
 
     const config = await Config.init();
 

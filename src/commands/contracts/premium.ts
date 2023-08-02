@@ -9,7 +9,7 @@ import { KeyringFlags, TransactionFlags, AmountRequiredFlag } from '@/flags';
 import { NotFoundError } from '@/exceptions';
 import { SuccessMessages } from '@/services';
 
-import { AccountWithMnemonic, BackendType, DeploymentAction, PremiumDeployment } from '@/types';
+import { Account, BackendType, DeploymentAction, PremiumDeployment } from '@/types';
 
 /**
  * Command 'contracts premium'
@@ -38,7 +38,7 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const fromAccount: AccountWithMnemonic = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
 
     const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
 

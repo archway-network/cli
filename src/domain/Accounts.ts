@@ -4,16 +4,17 @@ import { Coin, StargateClient } from '@cosmjs/stargate';
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
 import { FileKeystore, KeystoreBackend, OsKeystore, TestKeystore } from '@/domain';
 import { ACCOUNTS } from '@/GlobalConfig';
-import { assertIsValidAddress, bold } from '@/utils';
+import { assertIsValidAddress, bold, yellow } from '@/utils';
 
 import {
   Account,
   AccountBalancesJSON,
   AccountBase,
-  AccountWithMnemonic,
+  AccountType,
   AccountsParams,
   BackendType,
   PublicKey,
+  accountValidator,
   accountWithMnemonicValidator,
 } from '@/types';
 
@@ -58,7 +59,7 @@ export class Accounts {
   }
 
   /**
-   * Verify if an object has the valid format of a {@link AccountWithMnemonic}, throws error if not
+   * Verify if an object has the valid format of a {@link Account} (including the mnemonic except for ledger accounts), throws error if not
    *
    * @param data - Object instance to validate
    * @param name - Optional - Name of the account, will be used in the possible error
@@ -69,13 +70,13 @@ export class Accounts {
   };
 
   /**
-   * Verify if an object has the valid format of a {@link AccountWithMnemonic}
+   * Verify if an object has the valid format of a {@link Account} (including mnemonic, except for ledger accounts)
    *
    * @param data - Object instance to validate
    * @returns Boolean, whether it is valid or not
    */
   static isValidAccountWithMnemonic = (data: unknown): boolean => {
-    return ow.isValid(data, accountWithMnemonicValidator);
+    return (data as any).type === AccountType.LEDGER ? ow.isValid(data, accountValidator) : ow.isValid(data, accountWithMnemonicValidator);
   };
 
   /**
@@ -95,18 +96,21 @@ export class Accounts {
    * @returns Pretty formatted string
    */
   static prettyPrintNameAndAddress(account: AccountBase): string {
-    return `${bold('Name:')} ${account.name}\n${bold('Address:')} ${account.address}`;
+    return `${bold('Name:')} ${account.name}\n${bold('Address:')} ${account.address}${
+      account.type === AccountType.LEDGER ? `\n${yellow('Ledger account')}` : ''
+    }`;
   }
 
   /**
    * Create a new account in the keyring
    *
    * @param name - Account name
+   * @param type - {@link AccountType} value
    * @param mnemonic - Optional - 24 word mnemonic to use in the new account
-   * @returns Promise containing an instance of {@link AccountWithMnemonic}
+   * @returns Promise containing an instance of {@link Account}
    */
-  async new(name: string, mnemonic?: string): Promise<AccountWithMnemonic> {
-    return this._keystore.add(name, mnemonic);
+  async new(name: string, type: AccountType, mnemonic?: string): Promise<Account> {
+    return this._keystore.add(name, type, mnemonic);
   }
 
   /**
@@ -127,9 +131,9 @@ export class Accounts {
    * Get a single account by name or address with mnemonic, throws error if not found
    *
    * @param nameOrAddress - Account name or account address to search by
-   * @returns Promise containing an instance of {@link AccountWithMnemonic}
+   * @returns Promise containing an instance of {@link Account}
    */
-  async getWithMnemonic(nameOrAddress: string): Promise<AccountWithMnemonic> {
+  async getWithMnemonic(nameOrAddress: string): Promise<Account> {
     const account = await this.keystore.get(nameOrAddress);
 
     if (!account) throw new NotFoundError('Account', nameOrAddress);
@@ -198,6 +202,7 @@ export class Accounts {
     return {
       name: found?.name || '',
       address: found?.address || address,
+      type: found?.type || AccountType.LOCAL,
     };
   }
 }

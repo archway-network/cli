@@ -87,7 +87,7 @@ export class Prompts {
    */
   static async accountPassword(nameOrAddress: string): Promise<Answers<'password'>> {
     return showPrompt({
-      type: 'text',
+      type: 'password',
       name: 'password',
       message: `Enter the password for the account ${nameOrAddress}`,
     });
