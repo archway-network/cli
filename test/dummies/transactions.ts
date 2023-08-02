@@ -642,3 +642,7 @@ export const dummyMigrateTransaction = {
   gasWanted: 77_562,
   gasUsed: 75_033,
 };
+
+export const dummyQueryResult = {
+  msg: 'Hello, Archway!',
+};

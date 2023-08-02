@@ -8,3 +8,4 @@ export * from './InvalidPasswordError';
 export * from './InvalidValueError';
 export * from './NotFoundError';
 export * from './OnlyOneArgSourceError';
+export * from './QueryError';

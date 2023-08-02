@@ -28,6 +28,7 @@ describe('contracts execute', () => {
   let keyringListStub: SinonStub;
   let metadataStub: SinonStub;
   let validWorkspaceStub: SinonStub;
+  let validateSchemaStub: SinonStub;
   let findInstantiateStub: SinonStub;
   let signingClientStub: SinonStub;
   before(() => {
@@ -40,6 +41,8 @@ describe('contracts execute', () => {
     metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    validateSchemaStub = sinon.stub(Contracts.prototype, <any>'assertValidJSONSchema').callsFake(async () => {});
     findInstantiateStub = sinon
       .stub(Contracts.prototype, 'findInstantiateDeployment')
       .callsFake(async () => instantiateDeployment as InstantiateDeployment);
@@ -56,6 +59,7 @@ describe('contracts execute', () => {
     keyringListStub.restore();
     metadataStub.restore();
     validWorkspaceStub.restore();
+    validateSchemaStub.restore();
     findInstantiateStub.restore();
     signingClientStub.restore();
   });

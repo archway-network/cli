@@ -4,21 +4,22 @@ import sinon, { SinonStub } from 'sinon';
 import { SigningArchwayClient } from '@archwayhq/arch3.js';
 import keyring from '@archwayhq/keyring-go';
 
-import { Cargo, Contracts } from '../../../src/domain';
+import { Cargo, Contracts } from '../../../../src/domain';
 import {
   aliceAccountName,
   aliceStoreEntry,
   aliceStoredAccount,
   configString,
   contractProjectMetadata,
-  dummyInstantiateTransaction,
-  storeDeployment,
-} from '../../dummies';
-import * as FilesystemUtils from '../../../src/utils/filesystem';
+  dummyQueryResult,
+  instantiateDeployment,
+} from '../../../dummies';
+import { expectOutputJSON } from '../../../helpers/expect';
+import * as FilesystemUtils from '../../../../src/utils/filesystem';
 
-import { StoreDeployment } from '../../../src/types';
+import { InstantiateDeployment } from '../../../../src/types';
 
-describe('contracts instantiate', () => {
+describe('contracts query smart', () => {
   const contractName = contractProjectMetadata.name;
   let readStub: SinonStub;
   let writeStub: SinonStub;
@@ -29,7 +30,7 @@ describe('contracts instantiate', () => {
   let metadataStub: SinonStub;
   let validWorkspaceStub: SinonStub;
   let validateSchemaStub: SinonStub;
-  let findStoreStub: SinonStub;
+  let findInstantiateStub: SinonStub;
   let signingClientStub: SinonStub;
   before(() => {
     readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
@@ -43,10 +44,12 @@ describe('contracts instantiate', () => {
     validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     validateSchemaStub = sinon.stub(Contracts.prototype, <any>'assertValidJSONSchema').callsFake(async () => {});
-    findStoreStub = sinon.stub(Contracts.prototype, 'findStoreDeployment').callsFake(async () => storeDeployment as StoreDeployment);
+    findInstantiateStub = sinon
+      .stub(Contracts.prototype, 'findInstantiateDeployment')
+      .callsFake(async () => instantiateDeployment as InstantiateDeployment);
     signingClientStub = sinon
       .stub(SigningArchwayClient, 'connectWithSigner')
-      .callsFake(async () => ({ instantiate: async () => dummyInstantiateTransaction } as any));
+      .callsFake(async () => ({ queryContractSmart: async () => dummyQueryResult } as any));
   });
   after(() => {
     readStub.restore();
@@ -58,30 +61,21 @@ describe('contracts instantiate', () => {
     metadataStub.restore();
     validWorkspaceStub.restore();
     validateSchemaStub.restore();
-    findStoreStub.restore();
+    findInstantiateStub.restore();
     signingClientStub.restore();
   });
-  describe('Instantiates the smart contract', () => {
+  describe('Queries a contract', () => {
     test
       .stdout()
-      .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`])
-      .it('Instantiates smart contract', ctx => {
-        expect(ctx.stdout).to.contain('instantiated');
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
-        expect(ctx.stdout).to.contain('Transaction:');
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
+      .command(['contracts query smart', contractName, '--args={}', `--from=${aliceAccountName}`])
+      .it('Sets smart contract premium', ctx => {
+        expect(ctx.stdout).to.contain(dummyQueryResult.msg);
       });
   });
-
-  describe('Prints json output', () => {
+  describe('Query result is JSON formatted', () => {
     test
       .stdout()
-      .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`, '--json'])
-      .it('Instantiates smart contract', ctx => {
-        expect(ctx.stdout).to.not.contain('uploaded');
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.gasUsed);
-      });
+      .command(['contracts query smart', contractName, '--args={}', `--from=${aliceAccountName}`])
+      .it('Sets smart contract premium', expectOutputJSON);
   });
 });

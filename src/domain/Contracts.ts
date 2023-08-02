@@ -9,7 +9,7 @@ import { readSubDirectories, getWorkspaceRoot, bold, green, red } from '@/utils'
 import { Contract } from '@/types';
 import { DEFAULT, REPOSITORIES } from '@/GlobalConfig';
 import { Cargo, Deployments } from '@/domain';
-import { ErrorCodes, ExecuteError, InstantiateError, NotFoundError } from '@/exceptions';
+import { ErrorCodes, ExecuteError, InstantiateError, NotFoundError, QueryError } from '@/exceptions';
 
 import { ConsoleError, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
 
@@ -252,7 +252,7 @@ export class Contracts {
     const schemaPath = path.join(contract.root, DEFAULT.InstantiateSchemaRelativePath);
 
     try {
-      this.assertValidJSONSchema(schemaPath, initArgs);
+      await this.assertValidJSONSchema(schemaPath, initArgs);
     } catch (error: Error | any) {
       throw new InstantiateError(`the message arguments does not match the schema: ${error.message}`);
     }
@@ -264,9 +264,21 @@ export class Contracts {
     const schemaPath = path.join(contract.root, DEFAULT.ExecuteSchemaRelativePath);
 
     try {
-      this.assertValidJSONSchema(schemaPath, executeArgs);
+      await this.assertValidJSONSchema(schemaPath, executeArgs);
     } catch (error: Error | any) {
       throw new ExecuteError(`the message arguments does not match the schema: ${error.message}`);
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async assertValidQueryArgs(contractName: string, queryArgs: any): Promise<void> {
+    const contract = this.assertGetContractByName(contractName);
+    const schemaPath = path.join(contract.root, DEFAULT.QuerySchemaRelativePath);
+
+    try {
+      await this.assertValidJSONSchema(schemaPath, queryArgs);
+    } catch (error: Error | any) {
+      throw new QueryError(`the message arguments does not match the schema: ${error.message}`);
     }
   }
 

@@ -18,6 +18,7 @@ export const DEFAULT = {
   GasPriceDenom: 'uarch',
   InstantiateSchemaRelativePath: './schema/instantiate_msg.json',
   ExecuteSchemaRelativePath: './schema/execute_msg.json',
+  QuerySchemaRelativePath: './schema/query_msg.json',
 };
 
 /**
