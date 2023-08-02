@@ -1,4 +1,5 @@
 import ow from 'ow';
+import { ContractMetadata } from '@archwayhq/arch3.js';
 
 import { Coin, coinValidator } from './Coin';
 
@@ -76,15 +77,7 @@ export interface InstantiatedContract extends BaseContract {
  */
 export interface MetadataDeployment extends DeploymentWithChain {
   contract: InstantiatedContract;
-  metadata: Metadata;
-}
-
-/**
- * Contract metadata information
- */
-export interface Metadata {
-  ownerAddress: string;
-  rewardsAddress: string;
+  metadata: ContractMetadata;
 }
 
 /**

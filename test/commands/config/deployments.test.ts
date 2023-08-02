@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import { expectOutputJSON } from '../../helpers/expect';
 import { noDeploymentsMessage } from '../../../src/domain/Deployments';
 import * as filesystem from '../../../src/utils/filesystem';
-import { deploymentFile, deploymentString } from '../../dummies/deploymentsFile';
+import { deploymentFile, deploymentString } from '../../dummies/deployments';
 
 describe('config deployments', () => {
   let readStub: SinonStub;

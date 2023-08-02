@@ -87,13 +87,13 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       {
         action: DeploymentAction.STORE,
         txhash: result!.transactionHash,
-        contract: {
-          name: contract.name,
-          version: contract.version,
-        },
         wasm: {
           codeId: result!.codeId,
           checksum: result!.originalChecksum,
+        },
+        contract: {
+          name: contract.name,
+          version: contract.version,
         },
       } as StoreDeployment,
       config.chainId

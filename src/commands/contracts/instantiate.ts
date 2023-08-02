@@ -1,6 +1,5 @@
 import { Args, Flags } from '@oclif/core';
 import fs from 'node:fs/promises';
-import path from 'node:path';
 import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 
 import { BaseCommand } from '@/lib/base';
@@ -85,7 +84,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     // If code id is not set as flag, try to get it from deployments history
     let codeId = this.flags.code;
     if (!codeId) {
-      codeId = await config.contractsInstance.findCodeId(this.args.contract!, config.chainId);
+      codeId = (await config.contractsInstance.findStoreDeployment(this.args.contract!, config.chainId))?.wasm.codeId;
 
       if (!codeId) throw new NotFoundError("Code id of contract's store deployment");
     }
@@ -121,14 +120,14 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       {
         action: DeploymentAction.INSTANTIATE,
         txhash: result!.transactionHash,
+        wasm: {
+          codeId,
+        },
         contract: {
           name: contract.name,
           version: contract.version,
           address: result!.contractAddress,
           admin: admin,
-        },
-        wasm: {
-          codeId,
         },
         msg: initArgs,
       } as InstantiateDeployment,
@@ -139,7 +138,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       this.logJson(result!);
     }
 
-    this.success(`${green('Contract')} ${blue(path.basename(label))} ${green('instantiated')}`);
+    this.success(`${green('Contract')} ${blue(label)} ${green('instantiated')}`);
     this.log(`  Address: ${blue(result!.contractAddress)}`);
     this.log(`  Transaction: ${await config.prettyPrintTxHash(result!.transactionHash)}`);
   }

@@ -16,7 +16,7 @@ import { NotFoundError } from '@/exceptions';
 import { Deployments } from './Deployments';
 import { InstantiateError } from '@/commands/contracts/instantiate';
 
-import { DeploymentAction, StoreDeployment } from '@/types/Deployment';
+import { DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types/Deployment';
 import { ConsoleError } from '@/types/ConsoleError';
 
 /**
@@ -293,18 +293,44 @@ export class Contracts {
     ) as StoreDeployment;
   }
 
-  async findCodeId(contractName: string, chainId: string): Promise<number | undefined> {
+  /**
+   * Find a past Store deployment of a contract
+   *
+   * @param contractName - Name of the contract to search by
+   * @param chainId - Chain id to search by
+   * @returns Promise containing an instance of {@link StoreDeployment} or undefined if not found
+   */
+  async findStoreDeployment(contractName: string, chainId: string): Promise<StoreDeployment | undefined> {
     const contract = this.assertGetContractByName(contractName);
 
-    const stored = contract.deployments.find(item => {
+    return contract.deployments.find(item => {
       const pastDeploy = item as StoreDeployment;
 
       return (
         pastDeploy.contract.version === contract.version && pastDeploy.action === DeploymentAction.STORE && pastDeploy.chainId === chainId
       );
-    });
+    }) as StoreDeployment | undefined;
+  }
 
-    return stored?.wasm.codeId;
+  /**
+   * Find a past Instantiate deployment of a contract
+   *
+   * @param contractName - Name of the contract to search by
+   * @param chainId - Chain id to search by
+   * @returns Promise containing an instance of {@link InstantiateDeployment} or undefined if not found
+   */
+  async findInstantiateDeployment(contractName: string, chainId: string): Promise<InstantiateDeployment | undefined> {
+    const contract = this.assertGetContractByName(contractName);
+
+    return contract.deployments.find(item => {
+      const pastDeploy = item as InstantiateDeployment;
+
+      return (
+        pastDeploy.contract.version === contract.version &&
+        pastDeploy.action === DeploymentAction.INSTANTIATE &&
+        pastDeploy.chainId === chainId
+      );
+    }) as InstantiateDeployment | undefined;
   }
 }
 

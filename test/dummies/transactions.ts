@@ -278,3 +278,150 @@ export const dummyInstantiateTransaction = {
   gasWanted: 219_176,
   gasUsed: 184_007,
 };
+
+export const dummyMetadataTransaction = {
+  logs: [
+    {
+      msg_index: 0,
+      log: '',
+      events: [
+        {
+          type: 'archway.rewards.v1.ContractMetadataSetEvent',
+          attributes: [
+            {
+              key: 'contract_address',
+              value: '"archway1l3n05jjyrku0my3ahyg66q95jvstpjnn2xfkyw9xemz5zvl5rssqmnlr0q"',
+            },
+            {
+              key: 'metadata',
+              value:
+                '{"contract_address":"archway1l3n05jjyrku0my3ahyg66q95jvstpjnn2xfkyw9xemz5zvl5rssqmnlr0q","owner_address":"archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv","rewards_address":""}',
+            },
+          ],
+        },
+        {
+          type: 'message',
+          attributes: [
+            {
+              key: 'action',
+              value: '/archway.rewards.v1.MsgSetContractMetadata',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  height: 271_847,
+  transactionHash: '94C10853F3E3685456409C88F238650EDD62DF88F330907CE67BB33DC3E0D545',
+  events: [
+    {
+      type: 'coin_spent',
+      attributes: [
+        {
+          key: 'spender',
+          value: 'archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv',
+        },
+        {
+          key: 'amount',
+          value: '74738700000000000aconst',
+        },
+      ],
+    },
+    {
+      type: 'coin_received',
+      attributes: [
+        {
+          key: 'receiver',
+          value: 'archway17xpfvakm2amg962yls6f84z3kell8c5l9jlyp2',
+        },
+        {
+          key: 'amount',
+          value: '74738700000000000aconst',
+        },
+      ],
+    },
+    {
+      type: 'transfer',
+      attributes: [
+        {
+          key: 'recipient',
+          value: 'archway17xpfvakm2amg962yls6f84z3kell8c5l9jlyp2',
+        },
+        {
+          key: 'sender',
+          value: 'archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv',
+        },
+        {
+          key: 'amount',
+          value: '74738700000000000aconst',
+        },
+      ],
+    },
+    {
+      type: 'message',
+      attributes: [
+        {
+          key: 'sender',
+          value: 'archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv',
+        },
+      ],
+    },
+    {
+      type: 'tx',
+      attributes: [
+        {
+          key: 'fee',
+          value: '74738700000000000aconst',
+        },
+      ],
+    },
+    {
+      type: 'tx',
+      attributes: [
+        {
+          key: 'acc_seq',
+          value: 'archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv/8',
+        },
+      ],
+    },
+    {
+      type: 'tx',
+      attributes: [
+        {
+          key: 'signature',
+          value: 'z8iCF63ggvs+cNrhCTnLxF9ilFFLW6NF/QCp4UZPgr8R/g5qwGxky0Ieq2GvksHnq9aDyIGCKgCE/nwRTCheLw==',
+        },
+      ],
+    },
+    {
+      type: 'message',
+      attributes: [
+        {
+          key: 'action',
+          value: '/archway.rewards.v1.MsgSetContractMetadata',
+        },
+      ],
+    },
+    {
+      type: 'archway.rewards.v1.ContractMetadataSetEvent',
+      attributes: [
+        {
+          key: 'contract_address',
+          value: '"archway1l3n05jjyrku0my3ahyg66q95jvstpjnn2xfkyw9xemz5zvl5rssqmnlr0q"',
+        },
+        {
+          key: 'metadata',
+          value:
+            '{"contract_address":"archway1l3n05jjyrku0my3ahyg66q95jvstpjnn2xfkyw9xemz5zvl5rssqmnlr0q","owner_address":"archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv","rewards_address":""}',
+        },
+      ],
+    },
+  ],
+  gasWanted: 83_043,
+  gasUsed: 79_249,
+  metadata: {
+    contractAddress: 'archway1l3n05jjyrku0my3ahyg66q95jvstpjnn2xfkyw9xemz5zvl5rssqmnlr0q',
+    ownerAddress: 'archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv',
+    rewardsAddress: '',
+  },
+};
