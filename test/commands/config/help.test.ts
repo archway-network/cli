@@ -1,4 +1,5 @@
 import { expect, test } from '@oclif/test';
+
 import Config from '../../../src/commands/config';
 
 const expectHelp = (ctx: any) => {

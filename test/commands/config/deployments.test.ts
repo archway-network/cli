@@ -1,6 +1,7 @@
 import { expect, test } from '@oclif/test';
 import sinon, { SinonStub } from 'sinon';
 import fs from 'node:fs/promises';
+
 import { expectOutputJSON } from '../../helpers/expect';
 import { noDeploymentsMessage } from '../../../src/domain/Deployments';
 import * as filesystem from '../../../src/utils/filesystem';
@@ -60,5 +61,17 @@ describe('config deployments', () => {
       .it('shows no deployments', ctx => {
         expect(ctx.stdout).to.contain(noDeploymentsMessage);
       });
+
+    test
+      .stderr()
+      .command(['config deployments', '--chain=fake'])
+      .catch(/(Chain).*(not found)/)
+      .it('fails on chain flag not found');
+
+    test
+      .stderr()
+      .command(['config deployments', '--contract=fake'])
+      .catch(/(Contract).*(not found)/)
+      .it('fails on contract flag not found');
   });
 });

@@ -6,4 +6,5 @@ export enum ErrorCodes {
   CONTRACT_NAME_NOT_FOUND = 4,
   ONLY_ONE_IMPORT = 5,
   FILE_REQUIRED = 6,
+  INVALID_FORMAT = 7,
 }

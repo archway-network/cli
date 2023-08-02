@@ -2,6 +2,7 @@ import { expect, test } from '@oclif/test';
 import prompts from 'prompts';
 import sinon, { SinonStub, SinonSpy } from 'sinon';
 import fs from 'node:fs/promises';
+
 import { MESSAGES } from '../../../src/config';
 
 describe('config init', () => {

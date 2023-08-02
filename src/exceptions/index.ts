@@ -1,3 +1,3 @@
 export * from './BaseError';
 export * from './FileAlreadyExistsError';
-export * from './FileRequiredError';
+export * from './InvalidFormatError';

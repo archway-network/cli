@@ -1,13 +1,15 @@
 import { expect, test } from '@oclif/test';
 import sinon, { SinonStub } from 'sinon';
 import fs from 'node:fs/promises';
+
 import { expectOutputJSON } from '../../helpers/expect';
+import { configString } from '../../mocks/configFile';
 
 describe('config show', () => {
   let readStub: SinonStub;
 
   before(() => {
-    readStub = sinon.stub(fs, 'readFile').callsFake(async () => '{}');
+    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
   });
 
   after(() => {

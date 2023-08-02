@@ -1,7 +1,8 @@
 import { Choice, PromptObject } from 'prompts';
+
 import { DEFAULT } from '../config';
 import { ChainRegistry } from '../domain/ChainRegistry';
-import { CosmosChain } from '../types/CosmosSchema';
+import { CosmosChain } from '../types/Chain';
 
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
   'constantine-1': { description: 'Stable testnet - recommended for dApp development' },
@@ -15,12 +16,17 @@ const BaseChainPrompt: PromptObject = {
   warn: 'This network is unavailable for now',
 };
 
+/**
+ * Builds the terminal prompt to ask the user to select a chain
+ *
+ * @returns Promise containing the {@link PromptObject} to be used with the 'prompts' library
+ */
 export const getChainPrompt = async (): Promise<PromptObject> => {
   const chainRegistry = await ChainRegistry.init();
 
   const choices = chainRegistry.data.map((item: CosmosChain) => {
     return {
-      title: item?.pretty_name || '',
+      title: item?.pretty_name || item?.chain_name || '',
       description: ChainPromptDetails[item.chain_id]?.description,
       value: item?.chain_id,
       disabled: ChainPromptDetails[item.chain_id]?.disabled,

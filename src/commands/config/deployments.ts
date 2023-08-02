@@ -1,18 +1,28 @@
 import { Flags } from '@oclif/core';
+
 import { BaseCommand } from '../../lib/base';
 import { DeploymentAction } from '../../types/Deployment';
 import { Deployments } from '../../domain/Deployments';
 import { Contracts } from '../../domain/Contracts';
 import { chainOptional } from '../../flags/chain';
 
+/**
+ * Command 'config deployments'
+ * Displays the list of deployments, allows filtering by chain, action and contract
+ */
 export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployments> {
-  static summary = 'Lists deployments for the currently selected network or others, depending on the criteria';
+  static summary = 'Displays the list of deployments, allows filtering by chain, action and contract.';
   static flags = {
     chain: chainOptional(),
     action: Flags.string({ options: Object.values(DeploymentAction) }),
     contract: Flags.string({ aliases: ['c'] }),
   };
 
+  /**
+   * Runs the command.
+   *
+   * @returns Empty promise
+   */
   public async run(): Promise<void> {
     const deployments = await Deployments.open();
 

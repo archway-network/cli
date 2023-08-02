@@ -1,16 +1,26 @@
-import { DEFAULT } from '../config';
-import { Deployment, DeploymentAction, DeploymentFile } from '../types/Deployment';
-import path from 'node:path';
+import ow from 'ow';
 import fs from 'node:fs/promises';
-import { getWokspaceRoot } from '../utils/paths';
-import { blue, bold, green } from '../utils/style';
+import path from 'node:path';
 import _ from 'lodash';
 import terminalLink from 'terminal-link';
 
+import { DEFAULT } from '../config';
+import { Deployment, DeploymentAction, DeploymentFile, deploymentValidator } from '../types/Deployment';
+import { getWokspaceRoot } from '../utils/paths';
+import { blue, bold, green } from '../utils/style';
+import { InvalidFormatError } from '../exceptions';
+
+/**
+ * Manage the deployments of a specific chain, represented in a deployment file by chain id
+ */
 export class DeploymentsByChain {
   private _chainId: string;
   private _data: DeploymentFile;
 
+  /**
+   * @param chainId - Chain id of the chain where the deployments belong
+   * @param data - Instance of {@link DeploymentFile} that contains the related deployments
+   */
   constructor(chainId: string, data: DeploymentFile) {
     this._chainId = chainId;
     this._data = data;
@@ -24,23 +34,71 @@ export class DeploymentsByChain {
     return this._data;
   }
 
+  /**
+   * Initializes a {@link DeploymentsByChain} instance, by receiving the chain id and deployments
+   *
+   * @param chainId - Chain id associated with the deployments
+   * @param deployments - Array of {@link Deployment}
+   * @returns Instance of {@link DeploymentsByChain}
+   */
   static init(chainId: string, deployments: Deployment[]): DeploymentsByChain {
     return new DeploymentsByChain(chainId, { deployments });
   }
 
+  /**
+   * Reads a deployments file, finding it by its chain id
+   *
+   * @param chainId - Chain id of the deployment file to be read
+   * @returns Promise containing an instance of {@link DeploymentsByChain}
+   */
   static async open(chainId: string): Promise<DeploymentsByChain> {
     const configPath = await this.getFilePath(chainId);
     const data: DeploymentFile = JSON.parse(await fs.readFile(configPath, 'utf8'));
 
+    this.assertIsValidDeployment(data, configPath);
+
     return new DeploymentsByChain(chainId, data);
   }
 
+  /**
+   * Get the absolute path of a deployment file, by its associated chain id
+   *
+   * @param chainId - Chain id of the deployment file
+   * @returns Promise containing the absolute path of the deployment file
+   */
   static async getFilePath(chainId: string): Promise<string> {
     const workspaceRoot = await getWokspaceRoot();
 
     return path.join(workspaceRoot, DEFAULT.DeploymentsRelativePath, `./${chainId}.json`);
   }
 
+  /**
+   * Verify if an object has the valid format of a {@link Deployment}, throws error if not
+   *
+   * @param data - Object instance to validate
+   * @param name - Optional - Name of the file, will be used in the possible error
+   * @returns void
+   */
+  static assertIsValidDeployment = (data: unknown, name?: string): void => {
+    if (this.isValidDeployment(data)) throw new InvalidFormatError(name || 'Deployment ');
+  };
+
+  /**
+   * Verify if an object has the valid format of a {@link Deployment}
+   *
+   * @param data - Object instance to validate
+   * @returns Boolean, whether it is valid or not
+   */
+  static isValidDeployment = (data: unknown): boolean => {
+    return ow.isValid(data, deploymentValidator);
+  };
+
+  /**
+   * Get a formatted version of the deployment file
+   *
+   * @param explorerTxUrl - Optional - URL of the explorer, that will be used to pretty print a link to the transaction
+   * @returns Formatted data of the deployment file, with clickable tx links when available
+   */
   prettyPrint(explorerTxUrl?: string): string {
     // Group by deployments of same contract name and version
     const mappedVersions: Record<string, Deployment[]> = {};
@@ -76,6 +134,13 @@ export class DeploymentsByChain {
     return result;
   }
 
+  /**
+   * Get a formatted version of a transaction, with clickable link when possible
+   *
+   * @param txHash - Hash of the transaction
+   * @param explorerTxUrl - Optional - URL of the explorer, that will be used to pretty print a link to the transaction
+   * @returns Transaction hash, with clickable tx link when available
+   */
   private prettyPrintTransaction(txHash: string, explorerTxUrl?: string): string {
     if (!explorerTxUrl) {
       return txHash;

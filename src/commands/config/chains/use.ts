@@ -5,12 +5,21 @@ import { ChainRegistry } from '../../../domain/ChainRegistry';
 import { ConfigFile } from '../../../domain/ConfigFile';
 import { chainRequired } from '../../../flags/chain';
 
+/**
+ * Command 'config chains use'
+ * Switches the current chain in use and updates the config file
+ */
 export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse> {
   static summary = `Switches the current chain in use and updates the ${bold(DEFAULT.ConfigFileName)} config file with his information.`;
   static flags = {
     chain: chainRequired(),
   };
 
+  /**
+   * Runs the command.
+   *
+   * @returns Empty promise
+   */
   public async run(): Promise<void> {
     const configFile = await ConfigFile.open();
     const chainRegistry = await ChainRegistry.init();

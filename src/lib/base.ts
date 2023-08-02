@@ -13,6 +13,11 @@ enum LogLevel {
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<typeof BaseCommand['baseFlags'] & T['flags']>;
 export type Args<T extends typeof Command> = Interfaces.InferredArgs<T['args']>;
 
+/**
+ * Base command that will be used across the CLI
+ *
+ * @public
+ */
 export abstract class BaseCommand<T extends typeof Command> extends Command {
   // add the --json flag
   static enableJsonFlag = true;
@@ -32,6 +37,11 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   protected flags!: Flags<T>;
   protected args!: Args<T>;
 
+  /**
+   * Initialize class, loading config and parsing arguments and flags
+   *
+   * @returns Empty promise
+   */
   public async init(): Promise<void> {
     await super.init();
     const { args, flags } = await this.parse({
@@ -44,6 +54,12 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     this.args = args as Args<T>;
   }
 
+  /**
+   * Log one or more warnings to console
+   *
+   * @param message - One or more messages to be displayed as warnings in the console
+   * @returns void
+   */
   protected warning(message: string | string[]): void {
     if (typeof message !== 'string') {
       for (const item of message) this.warning(item);
@@ -53,19 +69,33 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     this.log(`${yellow(MESSAGES.WarningPrefix)}${message}`);
   }
 
+  /**
+   * Logs a success message to console
+   *
+   * @param message - Success message to be printed
+   */
   protected success(message: string): void {
     this.log(`${MESSAGES.SuccessPrefix}${message}`);
   }
 
-  protected async catch(err: Error & { exitCode?: number }): Promise<any> {
-    // add any custom logic to handle errors from the command
-    // or simply return the parent class error handling
+  /**
+   * Catches errors from commands, if they are an instance of {@link ConsoleError}, apply the formatting defined in the class.
+   *
+   * @param err - Error caught
+   * @returns - Promise containing updated error object
+   */
+  protected async catch(err: Error & { exitCode?: number }): Promise<Error & { exitCode?: number }> {
     err.message = `${MESSAGES.ErrorPrefix}${err instanceof ConsoleError ? err.toConsoleString() : red(err.message)}`;
     return super.catch(err);
   }
 
+  /**
+   * Called after run and catch regardless of whether or not the command errored
+   *
+   * @param _ - Error found, if no error found it is undefined
+   * @returns - Promise containing any result
+   */
   protected async finally(_: Error | undefined): Promise<any> {
-    // called after run and catch regardless of whether or not the command errored
     return super.finally(_);
   }
 }

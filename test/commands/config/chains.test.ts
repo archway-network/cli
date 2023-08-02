@@ -1,13 +1,15 @@
 import { expect, test } from '@oclif/test';
 import sinon, { SinonStub, SinonSpy } from 'sinon';
 import fs from 'node:fs/promises';
+
 import ConfigChains from '../../../src/commands/config/chains';
+import { configString } from '../../mocks/configFile';
 
 const expectHelp = (ctx: any) => {
   expect(ctx.stdout).to.contain('Description:');
   expect(ctx.stdout).to.contain('USAGE');
   expect(ctx.stdout).to.contain('Available commands:');
-  expect(ctx.stdout).to.contain(ConfigChains.summary);
+  expect(ctx.stdout).to.contain(ConfigChains.summary.split('.')[0]);
 };
 
 describe('config chains', () => {
@@ -20,7 +22,7 @@ describe('config chains', () => {
   before(() => {
     accessStub = sinon.stub(fs, 'access').rejects();
     writeStub = sinon.stub(fs, 'writeFile');
-    readStub = sinon.stub(fs, 'readFile').callsFake(async () => '{}');
+    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
     mkdirStub = sinon.stub(fs, 'mkdir');
     readdirStub = sinon.stub(fs, 'readdir');
   });

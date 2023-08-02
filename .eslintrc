@@ -1,4 +1,5 @@
 {
+  "plugins": ["eslint-plugin-tsdoc"],
   "extends": ["oclif", "oclif-typescript"],
   "rules": {
     "object-curly-spacing": "off",
@@ -14,6 +15,8 @@
         }
       }
     ],
+    "tsdoc/syntax": "warn",
+    "valid-jsdoc": "off",
     "indent": ["error", 2, { "MemberExpression": 1 }]
   }
 }
