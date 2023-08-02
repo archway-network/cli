@@ -646,3 +646,9 @@ export const dummyMigrateTransaction = {
 export const dummyQueryResult = {
   msg: 'Hello, Archway!',
 };
+
+export const dummyRewardsQueryResult = {
+  rewardsAddress: 'archway1l3n05jjyrku0my3ahyg66q95jvstpjnn2xfkyw9xemz5zvl5rssqmnlr0q',
+  totalRewards: [{ denom: 'aconst', amount: '2' }],
+  totalRecords: 1,
+};

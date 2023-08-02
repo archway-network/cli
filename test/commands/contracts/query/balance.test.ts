@@ -28,7 +28,6 @@ describe('contracts query balance', () => {
   let keyringListStub: SinonStub;
   let metadataStub: SinonStub;
   let validWorkspaceStub: SinonStub;
-  let validateSchemaStub: SinonStub;
   let findInstantiateStub: SinonStub;
   let stargateClientStub: SinonStub;
   before(() => {
@@ -41,8 +40,6 @@ describe('contracts query balance', () => {
     metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    validateSchemaStub = sinon.stub(Contracts.prototype, <any>'assertValidJSONSchema').callsFake(async () => {});
     findInstantiateStub = sinon
       .stub(Contracts.prototype, 'findInstantiateDeployment')
       .callsFake(() => instantiateDeployment as InstantiateDeployment);
@@ -59,7 +56,6 @@ describe('contracts query balance', () => {
     keyringListStub.restore();
     metadataStub.restore();
     validWorkspaceStub.restore();
-    validateSchemaStub.restore();
     findInstantiateStub.restore();
     stargateClientStub.restore();
   });

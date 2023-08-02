@@ -3,7 +3,7 @@ import path from 'node:path';
 import _ from 'lodash';
 import ow from 'ow';
 import { StargateClient } from '@cosmjs/stargate';
-import { SigningArchwayClient } from '@archwayhq/arch3.js';
+import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { getWorkspaceRoot, mergeCustomizer, writeFileWithDir, sanitizeDirName, prettyPrintTransaction, bold } from '@/utils';
@@ -291,6 +291,17 @@ export class Config {
     const rpcEndpoint = await this.activeChainRpcEndpoint();
 
     return StargateClient.connect(rpcEndpoint);
+  }
+
+  /**
+   * Get an Archway client of the currently active chain in the project
+   *
+   * @returns Promise containing the {@link ArchwayClient}
+   */
+  async getArchwayClient(): Promise<ArchwayClient> {
+    const rpcEndpoint = await this.activeChainRpcEndpoint();
+
+    return ArchwayClient.connect(rpcEndpoint);
   }
 
   /**
