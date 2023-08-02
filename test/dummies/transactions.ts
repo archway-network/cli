@@ -425,3 +425,150 @@ export const dummyMetadataTransaction = {
     rewardsAddress: '',
   },
 };
+
+export const dummyPremiumTransaction = {
+  logs: [
+    {
+      msg_index: 0,
+      log: '',
+      events: [
+        {
+          type: 'archway.rewards.v1.ContractFlatFeeSetEvent',
+          attributes: [
+            {
+              key: 'contract_address',
+              value: '"archway1l3n05jjyrku0my3ahyg66q95jvstpjnn2xfkyw9xemz5zvl5rssqmnlr0q"',
+            },
+            {
+              key: 'flat_fee',
+              value: '{"denom":"aconst","amount":"2"}',
+            },
+          ],
+        },
+        {
+          type: 'message',
+          attributes: [
+            {
+              key: 'action',
+              value: '/archway.rewards.v1.MsgSetFlatFee',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  height: 271_962,
+  transactionHash: '390DD4050068EFBCF719BD35B0516BFA89DF526E6C94D624191B1A7E8B7BA43E',
+  events: [
+    {
+      type: 'coin_spent',
+      attributes: [
+        {
+          key: 'spender',
+          value: 'archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv',
+        },
+        {
+          key: 'amount',
+          value: '69805800000000000aconst',
+        },
+      ],
+    },
+    {
+      type: 'coin_received',
+      attributes: [
+        {
+          key: 'receiver',
+          value: 'archway17xpfvakm2amg962yls6f84z3kell8c5l9jlyp2',
+        },
+        {
+          key: 'amount',
+          value: '69805800000000000aconst',
+        },
+      ],
+    },
+    {
+      type: 'transfer',
+      attributes: [
+        {
+          key: 'recipient',
+          value: 'archway17xpfvakm2amg962yls6f84z3kell8c5l9jlyp2',
+        },
+        {
+          key: 'sender',
+          value: 'archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv',
+        },
+        {
+          key: 'amount',
+          value: '69805800000000000aconst',
+        },
+      ],
+    },
+    {
+      type: 'message',
+      attributes: [
+        {
+          key: 'sender',
+          value: 'archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv',
+        },
+      ],
+    },
+    {
+      type: 'tx',
+      attributes: [
+        {
+          key: 'fee',
+          value: '69805800000000000aconst',
+        },
+      ],
+    },
+    {
+      type: 'tx',
+      attributes: [
+        {
+          key: 'acc_seq',
+          value: 'archway1w8uad5ddvadfv3vdjrt3d8f3famnrg4msd43zv/9',
+        },
+      ],
+    },
+    {
+      type: 'tx',
+      attributes: [
+        {
+          key: 'signature',
+          value: 'soyyIzk1RhDSinjQClNjVznw3Tsb0jJJ7T32/95yfYx7uP/3iGj+CfoGZZX98NXqsBQJ/ErhDNJiEnVYzqggcw==',
+        },
+      ],
+    },
+    {
+      type: 'message',
+      attributes: [
+        {
+          key: 'action',
+          value: '/archway.rewards.v1.MsgSetFlatFee',
+        },
+      ],
+    },
+    {
+      type: 'archway.rewards.v1.ContractFlatFeeSetEvent',
+      attributes: [
+        {
+          key: 'contract_address',
+          value: '"archway1l3n05jjyrku0my3ahyg66q95jvstpjnn2xfkyw9xemz5zvl5rssqmnlr0q"',
+        },
+        {
+          key: 'flat_fee',
+          value: '{"denom":"aconst","amount":"2"}',
+        },
+      ],
+    },
+  ],
+  gasWanted: 77_562,
+  gasUsed: 75_033,
+  premium: {
+    contractAddress: 'archway1l3n05jjyrku0my3ahyg66q95jvstpjnn2xfkyw9xemz5zvl5rssqmnlr0q',
+    flatFee: {
+      denom: 'aconst',
+      amount: '2',
+    },
+  },
+};

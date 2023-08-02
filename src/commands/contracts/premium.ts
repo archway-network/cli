@@ -1,5 +1,4 @@
-import { Flags } from '@oclif/core';
-import { SetContractMetadataResult } from '@archwayhq/arch3.js';
+import { SetContractPremiumResult } from '@archwayhq/arch3.js';
 
 import { BaseCommand } from '@/lib/base';
 import { contractNameRequired } from '@/arguments/contract';
@@ -11,23 +10,23 @@ import { TransactionFlags } from '@/flags/transaction';
 import { Accounts } from '@/domain/Accounts';
 import { KeyringFlags } from '@/flags/keyring';
 import { NotFoundError } from '@/exceptions';
+import { amountRequired } from '@/flags/amount';
 
 import { AccountWithMnemonic, BackendType } from '@/types/Account';
-import { DeploymentAction, MetadataDeployment } from '@/types/Deployment';
+import { DeploymentAction, PremiumDeployment } from '@/types/Deployment';
 
 /**
- * Command 'contracts metadata'
- * Sets a contract rewards metadata
+ * Command 'contracts premium'
+ * Sets a contract premium flat fee for a contract
  */
-export default class ContractsMetadata extends BaseCommand<typeof ContractsMetadata> {
-  static summary = 'Sets a contract rewards metadata';
+export default class ContractsPremium extends BaseCommand<typeof ContractsPremium> {
+  static summary = 'Sets a contract premium flat fee for a contract';
   static args = {
     contract: contractNameRequired,
   };
 
   static flags = {
-    'owner-address': Flags.string({ description: 'Owner of the contract metadata' }),
-    'rewards-address': Flags.string({ description: 'Rewards destination address' }),
+    'premium-fee': amountRequired(),
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -51,40 +50,29 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
 
     const contractAddress = instantiated.contract.address;
 
-    const ownerAddress = this.flags['owner-address'] ?
-      (await accountsDomain.accountBaseFromAddress(this.flags['owner-address'])).address :
-      undefined;
-    const rewardsAddress = this.flags['rewards-address'] ?
-      (await accountsDomain.accountBaseFromAddress(this.flags['rewards-address'])).address :
-      undefined;
-
     // Log message that we are starting the transaction
-    this.log(`Setting metadata for contract ${blue(contract.name)}`);
+    this.log(`Setting premium for contract ${blue(contract.name)}`);
     this.log(`  Chain: ${blue(config.chainId)}`);
     this.log(`  Contract: ${blue(contractAddress)}`);
-    this.log(`  Rewards: ${blue(rewardsAddress)}`);
-    this.log(`  Owner: ${blue(ownerAddress)}`);
+    this.log(`  Premium: ${blue(this.flags['premium-fee']!.plainText)}`);
     this.log(`  Signer: ${blue(fromAccount.name)}\n`);
 
-    let result: SetContractMetadataResult;
+    let result: SetContractPremiumResult;
 
     await showSpinner(async () => {
       const signingClient = await config.getSigningArchwayClient(fromAccount);
 
-      result = await signingClient.setContractMetadata(
+      result = await signingClient.setContractPremium(
         fromAccount.address,
-        {
-          contractAddress,
-          ownerAddress,
-          rewardsAddress,
-        },
+        contractAddress,
+        this.flags['premium-fee']!.coin,
         buildStdFee(this.flags.fee?.coin)
       );
     }, 'Waiting for tx to confirm...');
 
     await config.deploymentsInstance.addDeployment(
       {
-        action: DeploymentAction.METADATA,
+        action: DeploymentAction.PREMIUM,
         txhash: result!.transactionHash,
         wasm: {
           codeId: instantiated.wasm.codeId,
@@ -95,8 +83,8 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
           address: contractAddress,
           admin: instantiated.contract.admin,
         },
-        metadata: result!.metadata,
-      } as MetadataDeployment,
+        flatFee: result!.premium.flatFee,
+      } as PremiumDeployment,
       config.chainId
     );
 
@@ -104,7 +92,7 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
       this.logJson(result!);
     }
 
-    this.success(`${green('Metadata for the contract')} ${blue(contract.label)} ${green('updated')}`);
+    this.success(`${green('Premium for the contract')} ${blue(contract.label)} ${green('updated')}`);
     this.log(`  Transaction: ${await config.prettyPrintTxHash(result!.transactionHash)}`);
   }
 }

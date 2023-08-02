@@ -9,14 +9,15 @@ import { contractProjectMetadata } from '../../dummies/contracts';
 import { Contracts } from '../../../src/domain/Contracts';
 import { configString } from '../../dummies/configFile';
 import * as FilesystemUtils from '../../../src/utils/filesystem';
-import { dummyMetadataTransaction } from '../../dummies/transactions';
-import { aliceAccountName, aliceAddress, aliceStoreEntry, aliceStoredAccount } from '../../dummies/accounts';
+import { dummyPremiumTransaction } from '../../dummies/transactions';
+import { aliceAccountName, aliceStoreEntry, aliceStoredAccount } from '../../dummies/accounts';
 import { instantiateDeployment } from '../../dummies/deployments';
 
 import { InstantiateDeployment } from '../../../src/types/Deployment';
 
-describe('contracts metadata', () => {
+describe('contracts premium', () => {
   const contractName = contractProjectMetadata.name;
+  const newFee = '3aconst';
   let readStub: SinonStub;
   let writeStub: SinonStub;
   let mkdirStub: SinonStub;
@@ -42,7 +43,7 @@ describe('contracts metadata', () => {
       .callsFake(async () => instantiateDeployment as InstantiateDeployment);
     signingClientStub = sinon
       .stub(SigningArchwayClient, 'connectWithSigner')
-      .callsFake(async () => ({ setContractMetadata: async () => dummyMetadataTransaction } as any));
+      .callsFake(async () => ({ setContractPremium: async () => dummyPremiumTransaction } as any));
   });
   after(() => {
     readStub.restore();
@@ -56,29 +57,30 @@ describe('contracts metadata', () => {
     findInstantiateStub.restore();
     signingClientStub.restore();
   });
-  describe('Sets the metadata for a smart contract', () => {
+  describe('Sets the premium fee for a smart contract', () => {
     test
       .stdout()
-      .command(['contracts metadata', contractName, `--rewards-address=${aliceAddress}`, `--from=${aliceAccountName}`])
-      .it('Sets smart contract metadata', ctx => {
-        expect(ctx.stdout).to.contain('Metadata for the contract');
+      .command(['contracts premium', contractName, `--premium-fee=${newFee}`, `--from=${aliceAccountName}`])
+      .it('Sets smart contract premium', ctx => {
+        expect(ctx.stdout).to.contain('Premium for the contract');
         expect(ctx.stdout).to.contain('updated');
-        expect(ctx.stdout).to.contain(aliceAddress);
+        expect(ctx.stdout).to.contain(newFee);
         expect(ctx.stdout).to.contain('Transaction:');
-        expect(ctx.stdout).to.contain(dummyMetadataTransaction.transactionHash);
+        expect(ctx.stdout).to.contain(dummyPremiumTransaction.transactionHash);
       });
   });
 
   describe('Prints json output', () => {
     test
       .stdout()
-      .command(['contracts metadata', contractName, `--rewards-address=${aliceAddress}`, `--from=${aliceAccountName}`, '--json'])
-      .it('Sets smart contract metadata', ctx => {
+      .command(['contracts premium', contractName, `--premium-fee=${newFee}`, `--from=${aliceAccountName}`, '--json'])
+      .it('Sets smart contract premium', ctx => {
         expect(ctx.stdout).to.not.contain('uploaded');
-        expect(ctx.stdout).to.contain(dummyMetadataTransaction.transactionHash);
-        expect(ctx.stdout).to.contain(dummyMetadataTransaction.metadata.contractAddress);
-        expect(ctx.stdout).to.contain(dummyMetadataTransaction.metadata.ownerAddress);
-        expect(ctx.stdout).to.contain(dummyMetadataTransaction.gasUsed);
+        expect(ctx.stdout).to.contain(dummyPremiumTransaction.transactionHash);
+        expect(ctx.stdout).to.contain(dummyPremiumTransaction.premium.contractAddress);
+        expect(ctx.stdout).to.contain(dummyPremiumTransaction.premium.flatFee.denom);
+        expect(ctx.stdout).to.contain(dummyPremiumTransaction.premium.flatFee.amount);
+        expect(ctx.stdout).to.contain(dummyPremiumTransaction.gasUsed);
       });
   });
 });

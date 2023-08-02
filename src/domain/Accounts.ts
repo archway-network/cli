@@ -194,7 +194,7 @@ export class Accounts {
   async accountBaseFromAddress(address: string): Promise<AccountBase> {
     const found = await this.keystore.findNameAndAddressInList(address);
 
-    if (!found) assertIsValidAddress(address);
+    if (!found) assertIsValidAddress(address, ACCOUNTS.AddressBech32Prefix);
 
     return {
       name: found?.name || '',
