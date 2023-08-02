@@ -2,11 +2,11 @@ import { Flags } from '@oclif/core';
 import { AlphabetLowercase } from '@oclif/core/lib/interfaces';
 import { CustomOptions, DefaultContext } from '@oclif/core/lib/interfaces/parser';
 
-import { showPrompt } from '@/ui/Prompt';
-import { FromAccountPrompt } from '@/services/Prompts';
-import { parseAmount } from '@/utils/coin';
+import { showPrompt } from '@/ui';
+import { FromAccountPrompt } from '@/services';
+import { parseAmount } from '@/utils';
 
-import { Amount } from '@/types/Coin';
+import { Amount } from '@/types';
 
 const FromDescription = 'Signer of the tx';
 const FeeDescription = 'Extra fees to pay along with the transaction';

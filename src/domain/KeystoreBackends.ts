@@ -2,14 +2,14 @@ import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import keyring from '@archwayhq/keyring-go';
 import path from 'node:path';
 
-import { ACCOUNTS } from '@/config';
+import { ACCOUNTS } from '@/GlobalConfig';
 import { AlreadyExistsError, InvalidPasswordError, NotFoundError } from '@/exceptions';
-import { getAccountPasswordPrompt } from '@/services/Prompts';
-import { showPrompt } from '@/ui/Prompt';
-import { Accounts } from './Accounts';
-import { parsePublicKey } from '@/utils/accounts';
+import { getAccountPasswordPrompt } from '@/services';
+import { showPrompt } from '@/ui';
+import { Accounts } from '@/domain';
+import { parsePublicKey } from '@/utils';
 
-import { Account, AccountBase, AccountWithMnemonic } from '@/types/Account';
+import { Account, AccountBase, AccountWithMnemonic } from '@/types';
 
 /**
  * Abstract definition to be used on different KeystoreBackend implementations

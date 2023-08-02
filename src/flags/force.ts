@@ -1,8 +1,8 @@
 import { Flags } from '@oclif/core';
 import { AlphabetLowercase } from '@oclif/core/lib/interfaces';
 
-import { ConfirmationPrompt } from '@/services/Prompts';
-import { PromptCanceledError, showPrompt } from '@/ui/Prompt';
+import { ConfirmationPrompt } from '@/services';
+import { PromptCanceledError, showPrompt } from '@/ui';
 
 const ForceFlagDescription = "Forces execution (don't show confirmation prompt)";
 

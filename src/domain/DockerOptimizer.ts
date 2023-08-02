@@ -5,7 +5,7 @@ import Docker from 'dockerode';
 import debugInstance from 'debug';
 
 import { BaseError } from '@/exceptions';
-import { cyan, dim } from '@/utils/style';
+import { cyan, dim } from '@/utils';
 
 const debug = debugInstance('docker-optimizer');
 

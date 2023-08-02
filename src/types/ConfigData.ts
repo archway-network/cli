@@ -1,6 +1,6 @@
 import ow from 'ow';
 
-import { Contract } from './Contract';
+import { Contract } from '@/types';
 
 /**
  * Config data information

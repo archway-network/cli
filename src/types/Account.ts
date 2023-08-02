@@ -1,6 +1,6 @@
 import ow from 'ow';
 
-import { Coin } from './Coin';
+import { Coin } from '@/types';
 
 /**
  * Account base information

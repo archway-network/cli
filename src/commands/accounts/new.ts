@@ -1,12 +1,12 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { bold, darkGreen, green, yellow } from '@/utils/style';
-import { accountRequired } from '@/arguments/account';
-import { Accounts } from '@/domain/Accounts';
-import { KeyringFlags } from '@/flags/keyring';
+import { bold, darkGreen, green, yellow } from '@/utils';
+import { accountRequired } from '@/arguments';
+import { Accounts } from '@/domain';
+import { KeyringFlags } from '@/flags';
 
-import { BackendType } from '@/types/Account';
+import { BackendType } from '@/types';
 
 /**
  * Command 'accounts new'

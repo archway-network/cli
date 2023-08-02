@@ -1,9 +1,9 @@
 import { Flags } from '@oclif/core';
 import { CustomOptions, DefaultContext } from '@oclif/core/lib/interfaces/parser';
 
-import { TemplatePrompt } from '@/services/Prompts';
-import { showPrompt } from '@/ui/Prompt';
-import { ContractTemplates } from '@/domain/ContractTemplates';
+import { TemplatePrompt } from '@/services';
+import { showPrompt } from '@/ui';
+import { ContractTemplates } from '@/domain';
 
 const TemplateFlagDescription = 'Template name';
 

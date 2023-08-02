@@ -1,8 +1,9 @@
 import { Choice } from 'prompts';
 
-import { ContractTemplate } from '@/types/ContractTemplate';
-import { REPOSITORIES } from '@/config';
+import { REPOSITORIES } from '@/GlobalConfig';
 import { InvalidValueError } from '@/exceptions';
+
+import { ContractTemplate } from '@/types';
 
 /**
  * Contract templates to be used in generated projects

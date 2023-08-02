@@ -4,13 +4,16 @@ import sinon, { SinonStub } from 'sinon';
 import { SigningArchwayClient } from '@archwayhq/arch3.js';
 import keyring from '@archwayhq/keyring-go';
 
-import { Cargo } from '../../../src/domain/Cargo';
-import { contractProjectMetadata } from '../../dummies/contracts';
-import { Contracts } from '../../../src/domain/Contracts';
-import { configString } from '../../dummies/configFile';
+import { Cargo, Contracts } from '../../../src/domain';
+import {
+  aliceAccountName,
+  aliceStoreEntry,
+  aliceStoredAccount,
+  configString,
+  contractProjectMetadata,
+  dummyStoreTransaction,
+} from '../../dummies';
 import * as FilesystemUtils from '../../../src/utils/filesystem';
-import { dummyStoreTransaction } from '../../dummies/transactions';
-import { aliceAccountName, aliceStoreEntry, aliceStoredAccount } from '../../dummies/accounts';
 
 describe('contracts store', () => {
   const contractName = contractProjectMetadata.name;

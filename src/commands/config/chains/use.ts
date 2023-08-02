@@ -1,9 +1,8 @@
 import { BaseCommand } from '@/lib/base';
-import { DEFAULT } from '@/config';
-import { bold, green } from '@/utils/style';
-import { ChainRegistry } from '@/domain/ChainRegistry';
-import { Config } from '@/domain/Config';
-import { chainRequired } from '@/flags/chain';
+import { DEFAULT } from '@/GlobalConfig';
+import { bold, green } from '@/utils';
+import { ChainRegistry, Config } from '@/domain';
+import { chainRequired } from '@/flags';
 
 /**
  * Command 'config chains use'

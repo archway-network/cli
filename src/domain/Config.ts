@@ -2,29 +2,25 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import _ from 'lodash';
 import ow from 'ow';
-import { GasPrice, StargateClient } from '@cosmjs/stargate';
+import { StargateClient } from '@cosmjs/stargate';
 import { SigningArchwayClient } from '@archwayhq/arch3.js';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
-import { getWorkspaceRoot } from '@/utils/paths';
-import { mergeCustomizer } from '@/utils';
-import { ACCOUNTS, DEFAULT } from '@/config';
-import { bold } from '@/utils/style';
-import { Contracts } from './Contracts';
-import { AlreadyExistsError, NotFoundError } from '@/exceptions';
-import { writeFileWithDir } from '@/utils/filesystem';
-import { InvalidFormatError } from '@/exceptions';
-import { Deployments } from './Deployments';
-import { sanitizeDirName } from '@/utils/sanitize';
-import { ChainRegistry } from './ChainRegistry';
+import { getWorkspaceRoot, mergeCustomizer, writeFileWithDir, sanitizeDirName, prettyPrintTransaction, bold } from '@/utils';
+import { ACCOUNTS, DEFAULT } from '@/GlobalConfig';
+import { ChainRegistry, Contracts, Deployments } from '@/domain';
+import { AlreadyExistsError, NotFoundError, InvalidFormatError } from '@/exceptions';
 
-import { MergeMode } from '@/types/utils';
-import { CosmosChain } from '@/types/Chain';
-import { Deployment } from '@/types/Deployment';
-import { Contract } from '@/types/Contract';
-import { ConfigData, ConfigDataWithContracts, configDataValidator } from '@/types/ConfigData';
-import { AccountWithMnemonic } from '@/types/Account';
-import { prettyPrintTransaction } from '@/utils/transactions';
+import {
+  MergeMode,
+  CosmosChain,
+  Deployment,
+  Contract,
+  ConfigData,
+  ConfigDataWithContracts,
+  configDataValidator,
+  AccountWithMnemonic,
+} from '@/types';
 
 /**
  * Manages the config file of the project and creates instances of ChainRegistry and Contracts
@@ -307,11 +303,8 @@ export class Config {
     const rpcEndpoint = await this.activeChainRpcEndpoint(chainInfo);
 
     const offlineSigner = await DirectSecp256k1HdWallet.fromMnemonic(account!.mnemonic, { prefix: ACCOUNTS.AddressBech32Prefix });
-    const gasPrice = GasPrice.fromString(`${DEFAULT.GasPriceAmount}${chainInfo?.fees?.fee_tokens?.[0]?.denom || DEFAULT.GasPriceDenom}`);
 
-    return SigningArchwayClient.connectWithSigner(rpcEndpoint, offlineSigner, {
-      gasPrice,
-    });
+    return SigningArchwayClient.connectWithSigner(rpcEndpoint, offlineSigner);
   }
 
   /**

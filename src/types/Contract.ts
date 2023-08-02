@@ -1,5 +1,4 @@
-import { CargoProjectMetadata } from './Cargo';
-import { DeploymentWithChain } from './Deployment';
+import { CargoProjectMetadata, DeploymentWithChain } from '@/types';
 
 /**
  * Contract information

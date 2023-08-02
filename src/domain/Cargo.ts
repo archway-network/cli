@@ -5,13 +5,11 @@ import { ChildProcessPromise, PromisifySpawnOptions, spawn } from 'promisify-chi
 import { shrinkPaddedLEB128 } from '@webassemblyjs/wasm-opt';
 import debugInstance from 'debug';
 
-import { BuildParams, CargoProjectMetadata, GenerateParams, Metadata } from '@/types/Cargo';
-import { ConsoleError } from '@/types/ConsoleError';
-import { ErrorCodes } from '@/exceptions/ErrorCodes';
-import { bold, red } from '@/utils/style';
-import { writeFileWithDir } from '@/utils/filesystem';
-import { DockerOptimizer } from './DockerOptimizer';
-import { BaseError } from '@/exceptions';
+import { writeFileWithDir, bold, red } from '@/utils';
+import { DockerOptimizer } from '@/domain';
+import { ErrorCodes, BaseError } from '@/exceptions';
+
+import { ConsoleError, BuildParams, CargoProjectMetadata, GenerateParams, Metadata } from '@/types';
 
 const debug = debugInstance('cargo');
 
@@ -148,7 +146,7 @@ export class Cargo {
 
     if (useDocker) {
       const optimizer = new DockerOptimizer();
-      const isPackageInsideWorkspace = root === workspaceRoot
+      const isPackageInsideWorkspace = root === workspaceRoot;
       const { error, statusCode } = await optimizer.run(workspaceRoot, isPackageInsideWorkspace);
       if (statusCode !== 0) {
         throw error instanceof Error ? error : new BaseError(error);
@@ -186,7 +184,7 @@ export class Cargo {
 /**
  * Error when project metadata can't be resolved
  */
-export class CargoMetadataError extends ConsoleError {
+class CargoMetadataError extends ConsoleError {
   /**
    * @param workingDir - Optional - Path from where the project metadata was attempted to load
    */

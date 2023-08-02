@@ -3,14 +3,13 @@ import { Args } from '@oclif/core';
 import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
-import { DEFAULT } from '@/config';
-import { bold, green, red } from '@/utils/style';
-import { ChainRegistry } from '@/domain/ChainRegistry';
-import { ErrorCodes } from '@/exceptions/ErrorCodes';
-import { stdinInput } from '@/arguments/stdinInput';
+import { DEFAULT } from '@/GlobalConfig';
+import { bold, green, red } from '@/utils';
+import { ChainRegistry } from '@/domain';
+import { ErrorCodes } from '@/exceptions';
+import { stdinInput } from '@/arguments';
 
-import { CosmosChain } from '@/types/Chain';
-import { ConsoleError } from '@/types/ConsoleError';
+import { ConsoleError, CosmosChain } from '@/types';
 
 /**
  * Command 'config chains import'

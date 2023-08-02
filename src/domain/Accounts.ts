@@ -2,10 +2,9 @@ import ow from 'ow';
 import { Coin, StargateClient } from '@cosmjs/stargate';
 
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
-import { KeystoreBackend, OsKeystore } from './KeystoreBackends';
-import { ACCOUNTS } from '@/config';
-import { bold } from '@/utils/style';
-import { assertIsValidAddress } from '@/utils/accounts';
+import { KeystoreBackend, OsKeystore } from '@/domain';
+import { ACCOUNTS } from '@/GlobalConfig';
+import { assertIsValidAddress, bold } from '@/utils';
 
 import {
   Account,
@@ -16,7 +15,7 @@ import {
   BackendType,
   PublicKey,
   accountWithMnemonicValidator,
-} from '@/types/Account';
+} from '@/types';
 
 /**
  * Accounts manager

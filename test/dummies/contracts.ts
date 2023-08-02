@@ -1,4 +1,4 @@
-import { CargoProjectMetadata } from '../../src/types/Cargo';
+import { CargoProjectMetadata } from '../../src/types';
 
 export const contractProjectMetadata: CargoProjectMetadata = {
   name: 'test',

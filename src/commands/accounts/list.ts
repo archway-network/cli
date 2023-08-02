@@ -1,9 +1,9 @@
 import { BaseCommand } from '@/lib/base';
-import { Accounts } from '@/domain/Accounts';
-import { KeyringFlags } from '@/flags/keyring';
-import { yellow } from '@/utils/style';
+import { Accounts } from '@/domain';
+import { KeyringFlags } from '@/flags';
+import { yellow } from '@/utils';
 
-import { BackendType } from '@/types/Account';
+import { BackendType } from '@/types';
 
 /**
  * Command 'accounts list'

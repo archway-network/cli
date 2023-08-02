@@ -1,7 +1,7 @@
-import { red } from '@/utils/style';
-import { ErrorCodes } from './ErrorCodes';
+import { red } from '@/utils';
+import { ErrorCodes } from '@/exceptions';
 
-import { ConsoleError } from '@/types/ConsoleError';
+import { ConsoleError } from '@/types';
 
 /**
  * Error when a password is not valid

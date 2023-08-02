@@ -3,9 +3,9 @@ import { StdFee } from '@cosmjs/stargate';
 import BigNumber from 'bignumber.js';
 
 import { InvalidFormatError } from '@/exceptions';
-import { DEFAULT } from '@/config';
+import { DEFAULT } from '@/GlobalConfig';
 
-import { Amount } from '@/types/Coin';
+import { Amount } from '@/types';
 
 /**
  * Converts a string with an amount info into an instance of {@link Amount}

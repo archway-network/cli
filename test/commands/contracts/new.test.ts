@@ -4,10 +4,8 @@ import spawk from 'spawk';
 import fs from 'node:fs/promises';
 import sinon, { SinonSpy, SinonStub } from 'sinon';
 
-import { Cargo } from '../../../src/domain/Cargo';
-import { contractProjectMetadata } from '../../dummies/contracts';
-import { Contracts } from '../../../src/domain/Contracts';
-import { configString } from '../../dummies/configFile';
+import { Cargo, Contracts } from '../../../src/domain';
+import { configString, contractProjectMetadata } from '../../dummies';
 
 describe('contracts new', () => {
   const contractName = 'test-name';

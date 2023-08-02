@@ -1,10 +1,9 @@
 import { BaseCommand } from '@/lib/base';
-import { accountRequired } from '@/arguments/account';
-import { Accounts } from '@/domain/Accounts';
-import { KeyringFlags } from '@/flags/keyring';
-import { Config } from '@/domain/Config';
-import { bold, darkGreen, green, yellow } from '@/utils/style';
-import { showSpinner } from '@/ui/Spinner';
+import { accountRequired } from '@/arguments';
+import { KeyringFlags } from '@/flags';
+import { Accounts, Config } from '@/domain';
+import { bold, darkGreen, green, yellow } from '@/utils';
+import { showSpinner } from '@/ui';
 
 import { BackendType } from '@/types/Account';
 

@@ -1,8 +1,8 @@
 import { Args } from '@oclif/core';
 
-import { parseAmount } from '@/utils/coin';
+import { parseAmount } from '@/utils';
 
-import { Amount } from '@/types/Coin';
+import { Amount } from '@/types';
 
 const AmountArgumentDescription = 'Token amount';
 

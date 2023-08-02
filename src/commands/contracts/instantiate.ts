@@ -3,23 +3,14 @@ import fs from 'node:fs/promises';
 import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 
 import { BaseCommand } from '@/lib/base';
-import { definitionContractNameRequired } from '@/arguments/contract';
-import { Config } from '@/domain/Config';
-import { blue, green, red } from '@/utils/style';
-import { buildStdFee } from '@/utils/coin';
-import { showSpinner } from '@/ui/Spinner';
-import { TransactionFlags } from '@/flags/transaction';
-import { Accounts } from '@/domain/Accounts';
-import { KeyringFlags } from '@/flags/keyring';
-import { definitionAmountOptional } from '@/flags/amount';
-import { stdinInput } from '@/arguments/stdinInput';
-import { ConsoleError } from '@/types/ConsoleError';
-import { ErrorCodes } from '@/exceptions/ErrorCodes';
-import { NotFoundError } from '@/exceptions';
+import { definitionContractNameRequired, stdinInput } from '@/arguments';
+import { Accounts, Config } from '@/domain';
+import { buildStdFee, blue, green, red } from '@/utils';
+import { showSpinner } from '@/ui';
+import { KeyringFlags, TransactionFlags, definitionAmountOptional } from '@/flags';
+import { ErrorCodes, InstantiateError, NotFoundError } from '@/exceptions';
 
-import { AccountWithMnemonic, BackendType } from '@/types/Account';
-import { DeploymentAction, InstantiateDeployment } from '@/types/Deployment';
-import { Amount } from '@/types/Coin';
+import { AccountWithMnemonic, Amount, BackendType, ConsoleError, DeploymentAction, InstantiateDeployment } from '@/types';
 
 /**
  * Command 'contracts instantiate'
@@ -99,7 +90,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
 
     // Validate init args schema
     const initArgs = JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
-    await config.contractsInstance.validateInstantiateSchema(contract.name, initArgs);
+    await config.contractsInstance.assertValidInstantiateArgs(contract.name, initArgs);
 
     let result: InstantiateResult;
 
@@ -157,21 +148,5 @@ export class OnlyOneInitArgsError extends ConsoleError {
    */
   toConsoleString(): string {
     return `${red('Please specify only one init args input')}`;
-  }
-}
-
-/**
- * Error when instantiate contract fails
- */
-export class InstantiateError extends ConsoleError {
-  constructor(public description: string) {
-    super(ErrorCodes.INSTANTIATE_FAILED);
-  }
-
-  /**
-   * {@inheritDoc ConsoleError.toConsoleString}
-   */
-  toConsoleString(): string {
-    return red(`Failed to instantiate contract: ${this.description}`);
   }
 }

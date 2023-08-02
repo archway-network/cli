@@ -1,11 +1,10 @@
 import { BaseCommand } from '@/lib/base';
-import { bold, darkGreen, yellow } from '@/utils/style';
-import { accountRequired } from '@/arguments/account';
-import { Accounts } from '@/domain/Accounts';
-import { askForConfirmation, forceFlag } from '@/flags/force';
-import { KeyringFlags } from '@/flags/keyring';
+import { bold, darkGreen, yellow } from '@/utils';
+import { accountRequired } from '@/arguments';
+import { Accounts } from '@/domain';
+import { askForConfirmation, forceFlag, KeyringFlags } from '@/flags';
 
-import { BackendType } from '@/types/Account';
+import { BackendType } from '@/types';
 
 /**
  * Command 'accounts remove'

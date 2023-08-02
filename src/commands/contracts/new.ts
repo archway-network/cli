@@ -1,11 +1,11 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { darkGreen, green } from '@/utils/style';
-import { contractNameRequired } from '@/arguments/contract';
-import { templateWithPrompt } from '@/flags/template';
-import { Config } from '@/domain/Config';
-import { DEFAULT } from '@/config';
+import { darkGreen, green } from '@/utils';
+import { contractNameRequired } from '@/arguments';
+import { templateWithPrompt } from '@/flags';
+import { Config } from '@/domain';
+import { DEFAULT } from '@/GlobalConfig';
 
 /**
  * Command 'contracts new'

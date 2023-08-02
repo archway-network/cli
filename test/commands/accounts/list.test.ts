@@ -2,7 +2,7 @@ import { expect, test } from '@oclif/test';
 import sinon, { SinonStub } from 'sinon';
 import keyring from '@archwayhq/keyring-go';
 
-import { aliceAddress, aliceStoreEntry, aliceAccountName, bobStoreEntry, bobAccountName, bobAddress } from '../../dummies/accounts';
+import { aliceAddress, aliceStoreEntry, aliceAccountName, bobStoreEntry, bobAccountName, bobAddress } from '../../dummies';
 
 describe('accounts list', () => {
   let keyringListStub: SinonStub;

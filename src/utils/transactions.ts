@@ -1,6 +1,6 @@
 import terminalLink from 'terminal-link';
 
-import { blue } from './style';
+import { blue } from '@/utils';
 
 /**
  * Get a formatted version of a transaction, with clickable link when possible

@@ -1,7 +1,7 @@
 import ow from 'ow';
 import { ContractMetadata } from '@archwayhq/arch3.js';
 
-import { Coin, coinValidator } from './Coin';
+import { Coin, coinValidator } from '@/types';
 
 /**
  * Deployment file information

@@ -1,10 +1,10 @@
 import { Command, Flags, Interfaces } from '@oclif/core';
 
-import { red, yellow } from '@/utils/style';
-import { MESSAGES } from '@/config';
-import { PromptCanceledError } from '@/ui/Prompt';
+import { red, yellow } from '@/utils';
+import { MESSAGES } from '@/GlobalConfig';
+import { PromptCanceledError } from '@/ui';
 
-import { ConsoleError } from '@/types/ConsoleError';
+import { ConsoleError } from '@/types';
 
 enum LogLevel {
   debug = 'debug',

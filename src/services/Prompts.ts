@@ -1,9 +1,9 @@
 import { Choice, PromptObject } from 'prompts';
 
-import { DEFAULT } from '@/config';
-import { ChainRegistry } from '@/domain/ChainRegistry';
-import { CosmosChain } from '@/types/Chain';
-import { ContractTemplates } from '@/domain/ContractTemplates';
+import { DEFAULT } from '@/GlobalConfig';
+import { ChainRegistry, ContractTemplates } from '@/domain';
+
+import { CosmosChain } from '@/types';
 
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
   'constantine-3': { description: 'Stable testnet - recommended for dApp development' },
@@ -67,7 +67,7 @@ export const TemplatePrompt: PromptObject[] = [
     type: prev => (prev ? 'select' : null),
     name: 'template',
     message: 'Choose a template',
-    choices: ContractTemplates.getTemplateChoices(),
+    choices: ContractTemplates?.getTemplateChoices?.() || [],
   },
 ];
 

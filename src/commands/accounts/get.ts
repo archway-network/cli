@@ -1,11 +1,11 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { accountRequired } from '@/arguments/account';
-import { Accounts } from '@/domain/Accounts';
-import { KeyringFlags } from '@/flags/keyring';
+import { accountRequired } from '@/arguments';
+import { Accounts } from '@/domain';
+import { KeyringFlags } from '@/flags';
 
-import { BackendType } from '@/types/Account';
+import { BackendType } from '@/types';
 
 /**
  * Command 'accounts get'

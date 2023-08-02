@@ -2,7 +2,7 @@ import { expect, test } from '@oclif/test';
 import sinon, { SinonStub } from 'sinon';
 import fs from 'node:fs/promises';
 
-import { expectOutputJSON } from '../../helpers/expect';
+import { expectOutputJSON } from '../../helpers';
 import { configString } from '../../dummies/configFile';
 
 describe('config show', () => {

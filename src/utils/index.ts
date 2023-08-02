@@ -1,6 +1,14 @@
 import _ from 'lodash';
 
-import { MergeMode } from '@/types/utils';
+import { MergeMode } from '@/types';
+
+export * from './accounts';
+export * from './coin';
+export * from './filesystem';
+export * from './paths';
+export * from './sanitize';
+export * from './style';
+export * from './transactions';
 
 /**
  * Util function that customizes merging of objects, used as parameter of lodash's 'mergeWith' function

@@ -2,7 +2,7 @@ import { expect, test } from '@oclif/test';
 import sinon, { SinonStub } from 'sinon';
 import keyring from '@archwayhq/keyring-go';
 
-import { aliceAccountName, aliceMnemonic } from '../../dummies/accounts';
+import { aliceAccountName, aliceMnemonic } from '../../dummies';
 
 describe('accounts new', () => {
   let keyringSetStub: SinonStub;

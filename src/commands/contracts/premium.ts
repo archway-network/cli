@@ -1,19 +1,14 @@
 import { SetContractPremiumResult } from '@archwayhq/arch3.js';
 
 import { BaseCommand } from '@/lib/base';
-import { contractNameRequired } from '@/arguments/contract';
-import { Config } from '@/domain/Config';
-import { blue, green } from '@/utils/style';
-import { buildStdFee } from '@/utils/coin';
-import { showSpinner } from '@/ui/Spinner';
-import { TransactionFlags } from '@/flags/transaction';
-import { Accounts } from '@/domain/Accounts';
-import { KeyringFlags } from '@/flags/keyring';
+import { contractNameRequired } from '@/arguments';
+import { Accounts, Config } from '@/domain';
+import { buildStdFee, blue, green } from '@/utils';
+import { showSpinner } from '@/ui';
+import { KeyringFlags, TransactionFlags, amountRequired } from '@/flags';
 import { NotFoundError } from '@/exceptions';
-import { amountRequired } from '@/flags/amount';
 
-import { AccountWithMnemonic, BackendType } from '@/types/Account';
-import { DeploymentAction, PremiumDeployment } from '@/types/Deployment';
+import { AccountWithMnemonic, BackendType, DeploymentAction, PremiumDeployment } from '@/types';
 
 /**
  * Command 'contracts premium'

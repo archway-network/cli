@@ -1,15 +1,12 @@
 import ow from 'ow';
 import path from 'node:path';
 
-import { getWorkspaceRoot } from '@/utils/paths';
-import { DEFAULT } from '@/config';
-import { ChainRegistrySpec, CosmosChain, cosmosChainValidator } from '@/types/Chain';
-import { BuiltInChains } from '@/services/BuiltInChains';
-import { fileExists, readFilesFromDirectory, writeFileWithDir } from '@/utils/filesystem';
-import { AlreadyExistsError, InvalidFormatError } from '@/exceptions';
-import { bold, red, yellow } from '@/utils/style';
-import { ConsoleError } from '@/types/ConsoleError';
-import { ErrorCodes } from '@/exceptions/ErrorCodes';
+import { DEFAULT } from '@/GlobalConfig';
+import { BuiltInChains } from '@/services';
+import { bold, red, yellow, getWorkspaceRoot, fileExists, readFilesFromDirectory, writeFileWithDir } from '@/utils';
+import { AlreadyExistsError, ErrorCodes, InvalidFormatError } from '@/exceptions';
+
+import { ConsoleError, ChainRegistrySpec, CosmosChain, cosmosChainValidator } from '@/types';
 
 /**
  * Manages the chains in the project, including the built-in and the imported ones.
@@ -260,7 +257,7 @@ export interface ChainWarning {
 /**
  * Error when chain id is not found
  */
-export class ChainIdNotFoundError extends ConsoleError {
+class ChainIdNotFoundError extends ConsoleError {
   /**
    * @param chainId - Chain Id that triggered the error
    */

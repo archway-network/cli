@@ -3,12 +3,10 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import _ from 'lodash';
 
-import { blue, bold, green } from '@/utils/style';
+import { prettyPrintTransaction, writeFileWithDir, blue, bold, green } from '@/utils';
 import { InvalidFormatError } from '@/exceptions';
-import { writeFileWithDir } from '@/utils/filesystem';
-import { prettyPrintTransaction } from '@/utils/transactions';
 
-import { DeploymentAction, Deployment, DeploymentFile, deploymentValidator } from '@/types/Deployment';
+import { DeploymentAction, Deployment, DeploymentFile, deploymentValidator } from '@/types';
 
 /**
  * Manage the deployments of a specific chain, represented in a deployment file by chain id

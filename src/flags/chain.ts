@@ -1,9 +1,9 @@
 import { Flags } from '@oclif/core';
 import { CustomOptions, DefaultContext } from '@oclif/core/lib/interfaces/parser';
 
-import { getChainPrompt } from '@/services/Prompts';
-import { showPrompt } from '@/ui/Prompt';
-import { ChainRegistry } from '@/domain/ChainRegistry';
+import { getChainPrompt } from '@/services';
+import { showPrompt } from '@/ui';
+import { ChainRegistry } from '@/domain';
 
 const ChainFlagDescription = 'ID of the chain';
 

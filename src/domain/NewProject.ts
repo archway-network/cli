@@ -1,10 +1,9 @@
 /* eslint-disable unicorn/no-static-only-class */
 import path from 'node:path';
 
-import { Cargo } from './Cargo';
-import { Config } from './Config';
-import { DEFAULT, REPOSITORIES } from '@/config';
-import { sanitizeDirName } from '@/utils/sanitize';
+import { Cargo, Config } from '@/domain';
+import { DEFAULT, REPOSITORIES } from '@/GlobalConfig';
+import { sanitizeDirName } from '@/utils';
 
 /**
  * Type of project

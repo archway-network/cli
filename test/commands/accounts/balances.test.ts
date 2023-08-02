@@ -4,10 +4,9 @@ import fs from 'node:fs/promises';
 import sinon, { SinonStub } from 'sinon';
 import keyring from '@archwayhq/keyring-go';
 import { StargateClient } from '@cosmjs/stargate';
-
-import { aliceStoreEntry, aliceAccountName, aliceStoredAccount, dummyAmount, dummyAmmountString, bobAddress } from '../../dummies/accounts';
-import { configString } from '../../dummies/configFile';
 import { SigningArchwayClient } from '@archwayhq/arch3.js';
+
+import { configString, aliceStoreEntry, aliceAccountName, aliceStoredAccount, dummyAmount, dummyAmmountString, bobAddress } from '../../dummies';
 
 describe('accounts balances', () => {
   let readStub: SinonStub;

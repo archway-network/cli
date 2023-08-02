@@ -1,9 +1,9 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { contractNameRequired } from '@/arguments/contract';
-import { Config } from '@/domain/Config';
-import { cyan } from '@/utils/style';
+import { contractNameRequired } from '@/arguments';
+import { Config } from '@/domain';
+import { cyan } from '@/utils';
 
 /**
  * Command 'contracts build'

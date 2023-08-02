@@ -1,5 +1,6 @@
 import { Coin } from '@cosmjs/proto-signing';
-import { ACCOUNTS } from '../../src/config';
+
+import { ACCOUNTS } from '../../src/GlobalConfig';
 
 export const aliceAccountName = 'Alice';
 export const bobAccountName = 'Bob';

@@ -14,4 +14,5 @@ export enum ErrorCodes {
   INVALID_PASSWORD = 12,
   ONLY_ONE_INIT_ARGS = 13,
   INSTANTIATE_FAILED = 13,
+  EXECUTE_FAILED = 14,
 }

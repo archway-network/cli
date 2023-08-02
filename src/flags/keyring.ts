@@ -1,6 +1,6 @@
 import { Flags } from '@oclif/core';
 
-import { BackendType } from '@/types/Account';
+import { BackendType } from '@/types';
 
 const KeyringBackendDescription = 'Backend for the keyring';
 const KeyringPathDescription = 'File-based keyring path';

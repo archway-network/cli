@@ -1,6 +1,6 @@
 import { Args } from '@oclif/core';
 
-import { sanitizeDirName } from '@/utils/sanitize';
+import { sanitizeDirName } from '@/utils';
 
 const ContractArgumentDescription = 'Name of the contract';
 

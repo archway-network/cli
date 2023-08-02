@@ -1,6 +1,7 @@
 import { Command, Help as BaseHelp } from '@oclif/core';
+
 import RootHelp from './root';
-import { brand, yellow } from '@/utils/style';
+import { brand, yellow } from '@/utils';
 
 export default class Help extends BaseHelp {
   protected async showRootHelp(): Promise<void> {

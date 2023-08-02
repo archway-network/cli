@@ -3,11 +3,8 @@ import spawk from 'spawk';
 import fs from 'node:fs/promises';
 import sinon, { SinonStub } from 'sinon';
 
-import { Cargo } from '../../../src/domain/Cargo';
-import { contractProjectMetadata } from '../../dummies/contracts';
-import { Contracts } from '../../../src/domain/Contracts';
-import { configString } from '../../dummies/configFile';
-import { DockerOptimizer } from '../../../src/domain/DockerOptimizer';
+import { Cargo, Contracts, DockerOptimizer } from '../../../src/domain';
+import { configString, contractProjectMetadata } from '../../dummies';
 import * as FilesystemUtils from '../../../src/utils/filesystem';
 
 describe('contracts build', () => {

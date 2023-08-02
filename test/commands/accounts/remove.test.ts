@@ -3,7 +3,7 @@ import prompts from 'prompts';
 import sinon, { SinonStub } from 'sinon';
 import keyring from '@archwayhq/keyring-go';
 
-import { aliceStoreEntry, aliceAccountName, aliceStoredAccount } from '../../dummies/accounts';
+import { aliceStoreEntry, aliceAccountName, aliceStoredAccount } from '../../dummies';
 
 describe('accounts remove', () => {
   let keyringGetStub: SinonStub;

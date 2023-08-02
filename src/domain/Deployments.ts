@@ -1,17 +1,20 @@
 import ow from 'ow';
 import path from 'node:path';
 
-import { bold } from '@/utils/style';
-import { ChainRegistry } from './ChainRegistry';
-import { DeploymentsByChain } from './DeploymentsByChain';
-import { getWorkspaceRoot } from '@/utils/paths';
-import { DEFAULT } from '@/config';
-import { readFilesFromDirectory } from '@/utils/filesystem';
+import { ChainRegistry, DeploymentsByChain } from '@/domain';
+import { DEFAULT } from '@/GlobalConfig';
+import { bold, getWorkspaceRoot, readFilesFromDirectory } from '@/utils';
 import { InvalidFormatError } from '@/exceptions';
 
-import { DeploymentWithChain, DeploymentAction, DeploymentFile, deploymentFileValidator, Deployment } from '@/types/Deployment';
-import { CargoProjectMetadata } from '@/types/Cargo';
-import { Contract } from '@/types/Contract';
+import {
+  CargoProjectMetadata,
+  Contract,
+  DeploymentWithChain,
+  DeploymentAction,
+  DeploymentFile,
+  deploymentFileValidator,
+  Deployment,
+} from '@/types';
 
 export const noDeploymentsMessage = 'No deployments found';
 
@@ -57,7 +60,9 @@ export class Deployments {
 
       // Only add to deployments if file has valid format
       if (this.isValidDeploymentFile(deployment)) {
-        allDeployments.push(DeploymentsByChain.init(deploymentsRoot, path.basename(fileName, DEFAULT.DeploymentFileExtension), deployment.deployments));
+        allDeployments.push(
+          DeploymentsByChain.init(deploymentsRoot, path.basename(fileName, DEFAULT.DeploymentFileExtension), deployment.deployments)
+        );
       }
     }
 

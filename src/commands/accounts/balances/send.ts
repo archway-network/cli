@@ -1,17 +1,13 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { Accounts } from '@/domain/Accounts';
-import { KeyringFlags } from '@/flags/keyring';
-import { Config } from '@/domain/Config';
-import { amountRequired } from '@/arguments/amount';
-import { showSpinner } from '@/ui/Spinner';
-import { bold, darkGreen, green, white } from '@/utils/style';
-import { askForConfirmation } from '@/flags/force';
-import { buildStdFee } from '@/utils/coin';
-import { TransactionFlags } from '@/flags/transaction';
+import { Accounts, Config } from '@/domain';
+import { askForConfirmation, KeyringFlags, TransactionFlags } from '@/flags';
+import { amountRequired } from '@/arguments';
+import { showSpinner } from '@/ui';
+import { buildStdFee, bold, darkGreen, green, white } from '@/utils';
 
-import { AccountWithMnemonic, BackendType } from '@/types/Account';
+import { AccountWithMnemonic, BackendType } from '@/types';
 
 /**
  * Command 'accounts balances send'

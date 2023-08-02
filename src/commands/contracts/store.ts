@@ -4,19 +4,13 @@ import path from 'node:path';
 import { UploadResult } from '@cosmjs/cosmwasm-stargate';
 
 import { BaseCommand } from '@/lib/base';
-import { contractNameRequired } from '@/arguments/contract';
-import { Config } from '@/domain/Config';
-import { blue, green, white, yellow } from '@/utils/style';
-import { askForConfirmation } from '@/flags/force';
-import { buildStdFee } from '@/utils/coin';
-import { showSpinner } from '@/ui/Spinner';
-import { TransactionFlags } from '@/flags/transaction';
-import { Accounts } from '@/domain/Accounts';
-import { KeyringFlags } from '@/flags/keyring';
+import { contractNameRequired } from '@/arguments';
+import { Accounts, Config } from '@/domain';
+import { buildStdFee, blue, green, white, yellow } from '@/utils';
+import { KeyringFlags, TransactionFlags, askForConfirmation } from '@/flags';
+import { showSpinner } from '@/ui';
 
-import { InstantiatePermission } from '@/types/Contract';
-import { AccountWithMnemonic, BackendType } from '@/types/Account';
-import { DeploymentAction, StoreDeployment } from '@/types/Deployment';
+import { AccountWithMnemonic, BackendType, InstantiatePermission, DeploymentAction, StoreDeployment } from '@/types';
 
 /**
  * Command 'contracts store'

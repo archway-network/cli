@@ -2,10 +2,10 @@ import { BaseCommand } from '@/lib/base';
 import path from 'node:path';
 import { Args } from '@oclif/core';
 
-import { DEFAULT } from '@/config';
-import { bold, green } from '@/utils/style';
-import { BuiltInChains } from '@/services/BuiltInChains';
-import { ChainRegistry } from '@/domain/ChainRegistry';
+import { DEFAULT } from '@/GlobalConfig';
+import { bold, green } from '@/utils';
+import { BuiltInChains } from '@/services';
+import { ChainRegistry } from '@/domain';
 
 /**
  * Command 'config chains export'

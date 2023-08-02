@@ -2,12 +2,12 @@ import { Args, Flags } from '@oclif/core';
 import { PromptObject } from 'prompts';
 
 import { BaseCommand } from '@/lib/base';
-import { chainWithPrompt } from '@/flags/chain';
-import { ContractNamePrompt, TemplatePrompt } from '@/services/Prompts';
-import { showPrompt } from '@/ui/Prompt';
-import { darkGreen, green } from '@/utils/style';
-import { NewProject as NewProjectDomain } from '@/domain/NewProject';
-import { DEFAULT } from '@/config';
+import { chainWithPrompt } from '@/flags';
+import { ContractNamePrompt, TemplatePrompt } from '@/services';
+import { showPrompt } from '@/ui';
+import { darkGreen, green } from '@/utils';
+import { NewProject as NewProjectDomain } from '@/domain';
+import { DEFAULT } from '@/GlobalConfig';
 
 /**
  * Command 'new'

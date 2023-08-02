@@ -1,10 +1,10 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { DeploymentAction } from '@/types/Deployment';
-import { Deployments } from '@/domain/Deployments';
-import { Contracts } from '@/domain/Contracts';
-import { chainOptional } from '@/flags/chain';
+import { Contracts, Deployments } from '@/domain';
+import { chainOptional } from '@/flags';
+
+import { DeploymentAction } from '@/types';
 
 /**
  * Command 'config deployments'

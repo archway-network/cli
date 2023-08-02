@@ -5,19 +5,13 @@ import toml from 'toml';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 
-import { bold, green, red } from '@/utils/style';
-import { Contract } from '@/types/Contract';
-import { getWorkspaceRoot } from '@/utils/paths';
-import { DEFAULT, REPOSITORIES } from '@/config';
-import { ErrorCodes } from '@/exceptions/ErrorCodes';
-import { Cargo } from './Cargo';
-import { readSubDirectories } from '@/utils/filesystem';
-import { NotFoundError } from '@/exceptions';
-import { Deployments } from './Deployments';
-import { InstantiateError } from '@/commands/contracts/instantiate';
+import { readSubDirectories, getWorkspaceRoot, bold, green, red } from '@/utils';
+import { Contract } from '@/types';
+import { DEFAULT, REPOSITORIES } from '@/GlobalConfig';
+import { Cargo, Deployments } from '@/domain';
+import { ErrorCodes, ExecuteError, InstantiateError, NotFoundError } from '@/exceptions';
 
-import { DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types/Deployment';
-import { ConsoleError } from '@/types/ConsoleError';
+import { ConsoleError, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
 
 /**
  * Manages the contracts' data in the project
@@ -242,22 +236,38 @@ export class Contracts {
     return `${bold('Available contracts: ')}${contractsList}`;
   }
 
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  async validateInstantiateSchema(contractName: string, initArgs: any): Promise<boolean> {
-    const contract = this.assertGetContractByName(contractName)
-    const schema = JSON.parse(await fs.readFile(path.join(contract.root, DEFAULT.InstantiateSchemaRelativePath), 'utf-8'));
+  private async assertValidJSONSchema(schemaPath: string, data: any): Promise<void> {
+    const schema = JSON.parse(await fs.readFile(path.resolve(schemaPath), 'utf-8'));
     const validator = addFormats(new Ajv()).compile(schema);
-    const isValid = validator(initArgs);
+    const isValid = validator(data);
 
     if (!isValid) {
-      throw new InstantiateError(
-        `the message arguments does not match the schema: ${validator.errors
-          ?.map(item => `${item.instancePath} ${item.message}`)
-          .join(', ')}`
-      );
+      throw new Error(`${validator.errors?.map(item => `${item.instancePath} ${item.message}`).join(', ')}`);
     }
+  }
 
-    return true;
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async assertValidInstantiateArgs(contractName: string, initArgs: any): Promise<void> {
+    const contract = this.assertGetContractByName(contractName);
+    const schemaPath = path.join(contract.root, DEFAULT.InstantiateSchemaRelativePath);
+
+    try {
+      this.assertValidJSONSchema(schemaPath, initArgs);
+    } catch (error: Error | any) {
+      throw new InstantiateError(`the message arguments does not match the schema: ${error.message}`);
+    }
+  }
+
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async assertValidExecuteArgs(contractName: string, executeArgs: any): Promise<void> {
+    const contract = this.assertGetContractByName(contractName);
+    const schemaPath = path.join(contract.root, DEFAULT.ExecuteSchemaRelativePath);
+
+    try {
+      this.assertValidJSONSchema(schemaPath, executeArgs);
+    } catch (error: Error | any) {
+      throw new ExecuteError(`the message arguments does not match the schema: ${error.message}`);
+    }
   }
 
   /**
@@ -337,7 +347,7 @@ export class Contracts {
 /**
  * Error when contract name is not found
  */
-export class ContractNameNotFoundError extends ConsoleError {
+class ContractNameNotFoundError extends ConsoleError {
   /**
    * @param contractName - Contract name that triggered the error
    */
@@ -356,7 +366,7 @@ export class ContractNameNotFoundError extends ConsoleError {
 /**
  * Error when project workspace is invalid
  */
-export class InvalidWorkspaceError extends ConsoleError {
+class InvalidWorkspaceError extends ConsoleError {
   /**
    * @param cargoFilePath - Path of the cargo file
    * @param requiredWorkspaceMember - Required value in workspace.members array

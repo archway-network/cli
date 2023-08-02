@@ -1,7 +1,8 @@
 import { expect, test } from '@oclif/test';
-import Accounts from '../../src/commands/accounts';
 
-describe('accounts', () => {
+import Accounts from '../../../src/commands/accounts';
+
+describe('accounts help', () => {
   test
     .stdout()
     .command(['accounts'])

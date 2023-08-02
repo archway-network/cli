@@ -1,4 +1,5 @@
 import { Command } from '@oclif/core';
+
 import Help from '@/plugins/help-plugin/help';
 
 export default class Contracts extends Command {

@@ -3,7 +3,7 @@ import prompts from 'prompts';
 import sinon, { SinonStub, SinonSpy } from 'sinon';
 import fs from 'node:fs/promises';
 
-import { MESSAGES } from '../../../src/config';
+import { MESSAGES } from '../../../src/GlobalConfig';
 
 describe('config init', () => {
   let writeStub: SinonStub;

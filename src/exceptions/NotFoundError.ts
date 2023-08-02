@@ -1,7 +1,7 @@
-import { bold, red } from '@/utils/style';
-import { ErrorCodes } from './ErrorCodes';
+import { bold, red } from '@/utils';
+import { ErrorCodes } from '@/exceptions';
 
-import { ConsoleError } from '@/types/ConsoleError';
+import { ConsoleError } from '@/types';
 
 /**
  * Error when something was not found

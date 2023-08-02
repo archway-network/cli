@@ -2,18 +2,14 @@ import { Flags } from '@oclif/core';
 import { SetContractMetadataResult } from '@archwayhq/arch3.js';
 
 import { BaseCommand } from '@/lib/base';
-import { contractNameRequired } from '@/arguments/contract';
-import { Config } from '@/domain/Config';
-import { blue, green } from '@/utils/style';
-import { buildStdFee } from '@/utils/coin';
-import { showSpinner } from '@/ui/Spinner';
-import { TransactionFlags } from '@/flags/transaction';
-import { Accounts } from '@/domain/Accounts';
-import { KeyringFlags } from '@/flags/keyring';
+import { contractNameRequired } from '@/arguments';
+import { Accounts, Config } from '@/domain';
+import { buildStdFee, blue, green } from '@/utils';
+import { showSpinner } from '@/ui';
+import { KeyringFlags, TransactionFlags } from '@/flags';
 import { NotFoundError } from '@/exceptions';
 
-import { AccountWithMnemonic, BackendType } from '@/types/Account';
-import { DeploymentAction, MetadataDeployment } from '@/types/Deployment';
+import { AccountWithMnemonic, BackendType, DeploymentAction, MetadataDeployment } from '@/types';
 
 /**
  * Command 'contracts metadata'
