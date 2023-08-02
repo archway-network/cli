@@ -3,12 +3,13 @@ import fs from 'node:fs/promises';
 import { ExecuteResult } from '@cosmjs/cosmwasm-stargate';
 
 import { BaseCommand } from '@/lib/base';
-import { definitionContractNameRequired, stdinInput } from '@/arguments';
+import { ParamsContractNameRequiredArg, StdinInputArg } from '@/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue, green } from '@/utils';
+import { buildStdFee, blue } from '@/utils';
 import { showSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, definitionAmountOptional } from '@/flags';
+import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/flags';
 import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
+import { SuccessMessages } from '@/services';
 
 import { AccountWithMnemonic, Amount, BackendType } from '@/types';
 
@@ -19,13 +20,13 @@ import { AccountWithMnemonic, Amount, BackendType } from '@/types';
 export default class ContractsExecute extends BaseCommand<typeof ContractsExecute> {
   static summary = 'Executes a transaction in a contract';
   static args = {
-    contract: Args.string({ ...definitionContractNameRequired, ignoreStdin: true }),
-    stdinInput,
+    contract: Args.string({ ...ParamsContractNameRequiredArg, ignoreStdin: true }),
+    stdinInput: StdinInputArg,
   };
 
   static flags = {
     amount: Flags.custom<Amount | undefined>({
-      ...definitionAmountOptional,
+      ...ParamsAmountOptionalFlag,
       description: 'Funds to send to the contract on the transaction',
     })(),
     args: Flags.string({
@@ -55,7 +56,7 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
     }
 
     // Load config and contract info
-    const config = await Config.open();
+    const config = await Config.init();
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
@@ -95,11 +96,6 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       }
     }, 'Waiting for tx to confirm...');
 
-    if (this.jsonEnabled()) {
-      this.logJson(result!);
-    }
-
-    this.success(`${green('Executed contract ')} ${blue(contract.label)}`);
-    this.log(`  Transaction: ${await config.prettyPrintTxHash(result!.transactionHash)}`);
+    await SuccessMessages.contracts.execute(this, result!, contract, config);
   }
 }

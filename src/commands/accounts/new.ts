@@ -1,10 +1,10 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { bold, darkGreen, green, yellow } from '@/utils';
-import { accountRequired } from '@/arguments';
+import { AccountRequiredArg } from '@/arguments';
 import { Accounts } from '@/domain';
 import { KeyringFlags } from '@/flags';
+import { SuccessMessages } from '@/services';
 
 import { BackendType } from '@/types';
 
@@ -15,7 +15,7 @@ import { BackendType } from '@/types';
 export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
   static summary = 'Adds a new wallet to the keystore';
   static args = {
-    account: accountRequired,
+    account: AccountRequiredArg,
   };
 
   static flags = {
@@ -33,18 +33,6 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const account = await accountsDomain.new(this.args.account!, this.flags.mnemonic);
 
-    this.success(`${darkGreen('Account')} ${green(account.name)} successfully created!`);
-    this.log(`\nAddress: ${green(account.address)}\n`);
-    this.log(Accounts.prettyPrintPublicKey(account.publicKey));
-    this.log(`\n${bold('Mnemonic:')} ${account.mnemonic}\n`);
-    this.warning(
-      `${yellow('Important:')} write this mnemonic phrase in a safe place. It is the ${bold(
-        'only'
-      )} way to recover your account if you forget your password.`
-    );
-
-    if (this.jsonEnabled()) {
-      this.logJson(account);
-    }
+    SuccessMessages.accounts.new(this, account);
   }
 }

@@ -7,13 +7,6 @@ import { ErrorCodes } from '@/exceptions';
 import { ConsoleError } from '@/types';
 
 /**
- * Handle user canceling the prompt
- */
-const onCancel = () => {
-  throw new PromptCanceledError();
-};
-
-/**
  * Display a prompt to the user to enter a value or select an option
  *
  * @param questions - A single {@link Prompt} or an array of it, that will be prompted to the user
@@ -22,6 +15,13 @@ const onCancel = () => {
  */
 export const showPrompt = async (questions: PromptObject | PromptObject[], options?: Options): Promise<Answers<any>> => {
   return prompt(questions, { onSubmit: options?.onSubmit || _.noop, onCancel: options?.onCancel || onCancel });
+};
+
+/**
+ * Handle user canceling the prompt
+ */
+const onCancel = () => {
+  throw new PromptCanceledError();
 };
 
 /**

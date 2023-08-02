@@ -9,7 +9,7 @@ const AmountFlagDescription = 'Token amount';
 /**
  * Definition of Amount optional flag
  */
-export const definitionAmountOptional = {
+export const ParamsAmountOptionalFlag = {
   description: AmountFlagDescription,
   parse: async (val: string): Promise<Amount> => parseAmount(val),
 };
@@ -17,17 +17,17 @@ export const definitionAmountOptional = {
 /**
  * Amount optional flag
  */
-export const amountOptional = Flags.custom<Amount>(definitionAmountOptional);
+export const AmountOptionalFlag = Flags.custom<Amount>(ParamsAmountOptionalFlag)();
 
 /**
  * Definition of Amount required flag
  */
-export const definitionAmountRequired = {
-  ...definitionAmountOptional,
+export const ParamsAmountRequiredFlag = {
+  ...ParamsAmountOptionalFlag,
   required: true,
 };
 
 /**
  * Amount required flag
  */
-export const amountRequired = Flags.custom<Amount>(definitionAmountRequired);
+export const AmountRequiredFlag = Flags.custom<Amount>(ParamsAmountRequiredFlag)();

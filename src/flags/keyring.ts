@@ -8,7 +8,7 @@ const KeyringPathDescription = 'File-based keyring path';
 /**
  * Definition of Keyring Backend flag
  */
-export const definitionKeyringBackend = {
+export const ParamsKeyringBackendFlag = {
   description: KeyringBackendDescription,
   default: 'os',
   options: Object.values(BackendType),
@@ -17,24 +17,24 @@ export const definitionKeyringBackend = {
 /**
  * Keyring Backend flag
  */
-export const keyringBackend = Flags.string(definitionKeyringBackend);
+export const KeyringBackendFlag = Flags.string(ParamsKeyringBackendFlag);
 
 /**
  * Definition of Keyring path flag
  */
-export const definitionKeyringPath = {
+export const ParamsKeyringPathFlag = {
   description: KeyringPathDescription,
 };
 
 /**
  * Keyring path flag
  */
-export const keyringPath = Flags.string(definitionKeyringPath);
+export const KeyringPathFlag = Flags.string(ParamsKeyringPathFlag);
 
 /**
  * All of the Keyring related flags
  */
 export const KeyringFlags = {
-  'keyring-backend': keyringBackend,
-  'keyring-path': keyringPath,
+  'keyring-backend': KeyringBackendFlag,
+  'keyring-path': KeyringPathFlag,
 };

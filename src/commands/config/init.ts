@@ -2,7 +2,7 @@ import { BaseCommand } from '@/lib/base';
 import { Config } from '@/domain';
 import { bold, green } from '@/utils';
 import { DEFAULT } from '@/GlobalConfig';
-import { chainWithPrompt } from '@/flags';
+import { ChainWithPromptFlag } from '@/flags';
 
 /**
  * Command 'config init'
@@ -11,7 +11,7 @@ import { chainWithPrompt } from '@/flags';
 export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
   static summary = 'Initializes a config file for the current project.';
   static flags = {
-    chain: chainWithPrompt,
+    chain: ChainWithPromptFlag,
   };
 
   /**

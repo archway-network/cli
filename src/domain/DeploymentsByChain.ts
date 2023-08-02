@@ -40,6 +40,22 @@ export class DeploymentsByChain {
   }
 
   /**
+   * Reads a deployments file, finding it by its chain id
+   *
+   * @param deploymentsPath - Path to the directory containing the deployments data
+   * @param chainId - Chain id of the deployment
+   * @returns Promise containing an instance of {@link DeploymentsByChain}
+   */
+  static async init(deploymentsPath: string, chainId: string): Promise<DeploymentsByChain> {
+    const path = this.getFilePath(deploymentsPath, chainId);
+    const data: DeploymentFile = JSON.parse(await fs.readFile(path, 'utf8'));
+
+    this.assertIsValidDeployment(data, path);
+
+    return new DeploymentsByChain(chainId, data, path);
+  }
+
+  /**
    * Initializes a {@link DeploymentsByChain} instance, by receiving the chain id, deployments and path
    *
    * @param deploymentsPath - Path to the directory containing the deployments data
@@ -47,26 +63,10 @@ export class DeploymentsByChain {
    * @param deployments - Array of {@link Deployment}
    * @returns Instance of {@link DeploymentsByChain}
    */
-  static init(deploymentsPath: string, chainId: string, deployments: Deployment[]): DeploymentsByChain {
+  static make(deploymentsPath: string, chainId: string, deployments: Deployment[]): DeploymentsByChain {
     const path = this.getFilePath(deploymentsPath, chainId);
 
     return new DeploymentsByChain(chainId, { deployments }, path);
-  }
-
-  /**
-   * Reads a deployments file, finding it by its chain id
-   *
-   * @param deploymentsPath - Path to the directory containing the deployments data
-   * @param chainId - Chain id of the deployment
-   * @returns Promise containing an instance of {@link DeploymentsByChain}
-   */
-  static async open(deploymentsPath: string, chainId: string): Promise<DeploymentsByChain> {
-    const path = this.getFilePath(deploymentsPath, chainId);
-    const data: DeploymentFile = JSON.parse(await fs.readFile(path, 'utf8'));
-
-    this.assertIsValidDeployment(data, path);
-
-    return new DeploymentsByChain(chainId, data, path);
   }
 
   /**

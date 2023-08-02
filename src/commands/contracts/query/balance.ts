@@ -1,10 +1,11 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { contractNameOptional } from '@/arguments';
+import { ContractNameOptionalArg } from '@/arguments';
 import { Config } from '@/domain';
 import { showSpinner } from '@/ui';
 import { NotFoundError } from '@/exceptions';
+import { SuccessMessages } from '@/services';
 
 import { InstantiateDeployment } from '@/types';
 
@@ -15,7 +16,7 @@ import { InstantiateDeployment } from '@/types';
 export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQuerySmart> {
   static summary = 'Access the bank module to query the balance of contracts';
   static args = {
-    contract: contractNameOptional,
+    contract: ContractNameOptionalArg,
   };
 
   static flags = {
@@ -36,7 +37,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     }
 
     // Load config and contract info
-    const config = await Config.open();
+    const config = await Config.init();
     await config.contractsInstance.assertValidWorkspace();
 
     let contractsToQuery: InstantiateDeployment[] = [];
@@ -57,12 +58,6 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
       return config.contractsInstance.queryAllBalances(client, contractsToQuery);
     }, 'Querying contract balances...');
 
-    if (this.jsonEnabled()) {
-      this.logJson({ contracts: result });
-    } else {
-      for (const item of result) {
-        this.log(`${config.contractsInstance.prettyPrintBalances(item)}`);
-      }
-    }
+    SuccessMessages.contracts.query.balance(this, result);
   }
 }

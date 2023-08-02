@@ -4,10 +4,11 @@ import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
 import { DEFAULT } from '@/GlobalConfig';
-import { bold, green, red } from '@/utils';
+import { bold, red } from '@/utils';
 import { ChainRegistry } from '@/domain';
 import { ErrorCodes } from '@/exceptions';
-import { stdinInput } from '@/arguments';
+import { StdinInputArg } from '@/arguments';
+import { SuccessMessages } from '@/services';
 
 import { ConsoleError, CosmosChain } from '@/types';
 
@@ -22,7 +23,7 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
 
   static args = {
     file: Args.string({ name: 'file', required: false, ignoreStdin: true, description: 'Path to file to be imported' }),
-    stdinInput
+    stdinInput: StdinInputArg,
   };
 
   /**
@@ -46,7 +47,7 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
 
     await chainRegistry.import(chainInfo);
 
-    this.success(`${green('Imported chain')} ${bold(chainInfo.chain_id)}`);
+    SuccessMessages.chains.import(this, chainInfo.chain_id);
   }
 }
 

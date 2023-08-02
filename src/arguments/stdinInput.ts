@@ -1,15 +1,15 @@
 import { Args } from '@oclif/core';
 
 /**
- * Definition of Contract name required argument
+ * Definition of Standard input argument
  */
-export const definitionStdinInput = {
+export const ParamsStdinInputArg = {
   name: 'piped',
   required: false,
   hidden: true,
 };
 
 /**
- * Contract name required argument
+ * Standard input argument
  */
-export const stdinInput = Args.string(definitionStdinInput);
+export const StdinInputArg = Args.string(ParamsStdinInputArg);

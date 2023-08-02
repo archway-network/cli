@@ -51,7 +51,7 @@ export class NewProject {
 
     // Create contract
     if (params.contractTemplate) {
-      await config.contractsInstance.new(sanitizedContractName, params.contractTemplate);
+      await config.contractsInstance.create(sanitizedContractName, params.contractTemplate);
     }
   }
 }

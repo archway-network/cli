@@ -1,8 +1,9 @@
 import { BaseCommand } from '@/lib/base';
-import { bold, darkGreen, yellow } from '@/utils';
-import { accountRequired } from '@/arguments';
+import { askForConfirmation, bold, darkGreen, yellow } from '@/utils';
+import { AccountRequiredArg } from '@/arguments';
 import { Accounts } from '@/domain';
-import { askForConfirmation, forceFlag, KeyringFlags } from '@/flags';
+import { ForceFlag, KeyringFlags } from '@/flags';
+import { SuccessMessages } from '@/services';
 
 import { BackendType } from '@/types';
 
@@ -13,11 +14,11 @@ import { BackendType } from '@/types';
 export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
   static summary = 'Removes an account from the keystore';
   static args = {
-    account: accountRequired,
+    account: AccountRequiredArg,
   };
 
   static flags = {
-    force: forceFlag,
+    force: ForceFlag,
     ...KeyringFlags,
   };
 
@@ -30,16 +31,18 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const accountInfo = await accountsDomain.keystore.assertAccountExists(this.args.account!);
 
-    this.warning(
-      `${yellow('Attention:')} this will permanently delete the account ${bold.green(accountInfo.name)} (${darkGreen(
-        accountInfo.address
-      )})\n`
-    );
+    if (!this.jsonEnabled()) {
+      this.warning(
+        `${yellow('Attention:')} this will permanently delete the account ${bold.green(accountInfo.name)} (${darkGreen(
+          accountInfo.address
+        )})\n`
+      );
+    }
+
     await askForConfirmation(this.flags.force);
 
     await accountsDomain.remove(accountInfo.address);
 
-    this.log();
-    this.success(`${darkGreen('Account')} ${bold.green(accountInfo.name)} ${darkGreen('deleted')}`);
+    SuccessMessages.accounts.remove(this, accountInfo);
   }
 }

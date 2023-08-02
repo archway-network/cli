@@ -48,7 +48,7 @@ export class Deployments {
    * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing and instance of {@link Deployments}
    */
-  static async open(workingDir?: string): Promise<Deployments> {
+  static async init(workingDir?: string): Promise<Deployments> {
     // Get all deployments of all chains
     const deploymentsRoot = await this.getDeploymentsRoot(workingDir);
     const filesRead = await readFilesFromDirectory(deploymentsRoot, DEFAULT.DeploymentFileExtension);
@@ -61,7 +61,7 @@ export class Deployments {
       // Only add to deployments if file has valid format
       if (this.isValidDeploymentFile(deployment)) {
         allDeployments.push(
-          DeploymentsByChain.init(deploymentsRoot, path.basename(fileName, DEFAULT.DeploymentFileExtension), deployment.deployments)
+          DeploymentsByChain.make(deploymentsRoot, path.basename(fileName, DEFAULT.DeploymentFileExtension), deployment.deployments)
         );
       }
     }
@@ -131,7 +131,7 @@ export class Deployments {
       existingDeployments.registerDeployment(deployment);
       await existingDeployments.write();
     } else {
-      const newFile = DeploymentsByChain.init(this._deploymentsRoot, chainId, [deployment]);
+      const newFile = DeploymentsByChain.make(this._deploymentsRoot, chainId, [deployment]);
       await newFile.write();
     }
   }
@@ -165,7 +165,7 @@ export class Deployments {
         );
 
         if (filtered?.length) {
-          result = [...result, DeploymentsByChain.init(this._deploymentsRoot, chainDeployments.chainId, filtered)];
+          result = [...result, DeploymentsByChain.make(this._deploymentsRoot, chainDeployments.chainId, filtered)];
         }
       }
     }

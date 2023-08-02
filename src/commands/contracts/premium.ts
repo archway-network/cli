@@ -1,12 +1,13 @@
 import { SetContractPremiumResult } from '@archwayhq/arch3.js';
 
 import { BaseCommand } from '@/lib/base';
-import { contractNameRequired } from '@/arguments';
+import { ContractNameRequiredArg } from '@/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue, green } from '@/utils';
+import { buildStdFee, blue } from '@/utils';
 import { showSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, amountRequired } from '@/flags';
+import { KeyringFlags, TransactionFlags, AmountRequiredFlag } from '@/flags';
 import { NotFoundError } from '@/exceptions';
+import { SuccessMessages } from '@/services';
 
 import { AccountWithMnemonic, BackendType, DeploymentAction, PremiumDeployment } from '@/types';
 
@@ -17,11 +18,11 @@ import { AccountWithMnemonic, BackendType, DeploymentAction, PremiumDeployment }
 export default class ContractsPremium extends BaseCommand<typeof ContractsPremium> {
   static summary = 'Sets a contract premium flat fee for a contract';
   static args = {
-    contract: contractNameRequired,
+    contract: ContractNameRequiredArg,
   };
 
   static flags = {
-    'premium-fee': amountRequired(),
+    'premium-fee': AmountRequiredFlag,
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -33,7 +34,7 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
    */
   public async run(): Promise<void> {
     // Load config and contract info
-    const config = await Config.open();
+    const config = await Config.init();
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
@@ -83,11 +84,6 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
       config.chainId
     );
 
-    if (this.jsonEnabled()) {
-      this.logJson(result!);
-    }
-
-    this.success(`${green('Premium for the contract')} ${blue(contract.label)} ${green('updated')}`);
-    this.log(`  Transaction: ${await config.prettyPrintTxHash(result!.transactionHash)}`);
+    await SuccessMessages.contracts.premium(this, result!, contract.label, config);
   }
 }

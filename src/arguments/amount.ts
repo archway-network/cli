@@ -9,7 +9,7 @@ const AmountArgumentDescription = 'Token amount';
 /**
  * Definition of Amount required argument
  */
-export const definitionAmountRequired = {
+export const ParamsAmountRequiredArg = {
   required: true,
   description: AmountArgumentDescription,
   parse: async (val: string): Promise<Amount> => parseAmount(val),
@@ -18,4 +18,4 @@ export const definitionAmountRequired = {
 /**
  * Amount required argument
  */
-export const amountRequired = Args.custom<Amount>(definitionAmountRequired);
+export const AmountRequiredArg = Args.custom<Amount>(ParamsAmountRequiredArg)();

@@ -3,13 +3,14 @@ import { JsonObject } from '@cosmjs/cosmwasm-stargate';
 import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
-import { definitionContractNameRequired, stdinInput } from '@/arguments';
+import { ParamsContractNameRequiredArg, StdinInputArg } from '@/arguments';
 import { Accounts, Config } from '@/domain';
 import { showSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags } from '@/flags';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 
 import { AccountWithMnemonic, BackendType } from '@/types';
+import { SuccessMessages } from '@/services';
 
 /**
  * Command 'contracts query smart'
@@ -18,8 +19,8 @@ import { AccountWithMnemonic, BackendType } from '@/types';
 export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQuerySmart> {
   static summary = 'Queries a single smart contract';
   static args = {
-    contract: Args.string({ ...definitionContractNameRequired, ignoreStdin: true }),
-    stdinInput,
+    contract: Args.string({ ...ParamsContractNameRequiredArg, ignoreStdin: true }),
+    stdinInput: StdinInputArg,
   };
 
   static flags = {
@@ -49,7 +50,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     }
 
     // Load config and contract info
-    const config = await Config.open();
+    const config = await Config.init();
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
@@ -73,6 +74,6 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
       result = await signingClient.queryContractSmart(contractAddress, queryMsg);
     }, 'Waiting for query response...');
 
-    this.logJson(result!);
+    SuccessMessages.contracts.query.smart(this, result);
   }
 }

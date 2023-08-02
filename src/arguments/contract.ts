@@ -7,7 +7,7 @@ const ContractArgumentDescription = 'Name of the contract';
 /**
  * Definition of Contract name optional argument
  */
-export const definitionContractNameOptional = {
+export const ParamsContractNameOptionalArg = {
   parse: async (val: string): Promise<string> => sanitizeDirName(val),
   description: ContractArgumentDescription,
 };
@@ -15,17 +15,17 @@ export const definitionContractNameOptional = {
 /**
  * Contract name optional argument
  */
-export const contractNameOptional = Args.string(definitionContractNameOptional);
+export const ContractNameOptionalArg = Args.string(ParamsContractNameOptionalArg);
 
 /**
  * Definition of Contract name required argument
  */
-export const definitionContractNameRequired = {
-  ...definitionContractNameOptional,
+export const ParamsContractNameRequiredArg = {
+  ...ParamsContractNameOptionalArg,
   required: true,
 };
 
 /**
  * Contract name required argument
  */
-export const contractNameRequired = Args.string(definitionContractNameRequired);
+export const ContractNameRequiredArg = Args.string(ParamsContractNameRequiredArg);

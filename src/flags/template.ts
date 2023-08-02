@@ -1,9 +1,7 @@
 import { Flags } from '@oclif/core';
 import { CustomOptions, DefaultContext } from '@oclif/core/lib/interfaces/parser';
 
-import { TemplatePrompt } from '@/services';
-import { showPrompt } from '@/ui';
-import { ContractTemplates } from '@/domain';
+import { ContractTemplates, Prompts } from '@/services';
 
 const TemplateFlagDescription = 'Template name';
 
@@ -14,10 +12,10 @@ const TemplateFlagDescription = 'Template name';
  * @param isWritingManifest - Optional - Sometimes Oclif tries to cache the default, to avoid it from triggering multiple prompts, we verify that this variable is undefined
  * @returns Promise containing the template value if prompted
  */
-const getTemplateName = async (_input: DefaultContext<CustomOptions>, isWritingManifest?: boolean): Promise<string | undefined> => {
+const inputTemplateName = async (_input: DefaultContext<CustomOptions>, isWritingManifest?: boolean): Promise<string | undefined> => {
   if (isWritingManifest === undefined) {
-    const response = await showPrompt(TemplatePrompt);
-    return response.template as string;
+    const promptedTemplate = await Prompts.template();
+    return promptedTemplate?.template as string;
   }
 };
 
@@ -35,13 +33,13 @@ const validateTemplateName = async (value: string): Promise<string> => {
 /**
  * Definition of Template value flag that displays a prompt if it is not found
  */
-export const definitionTemplateWithPrompt = {
+export const ParamsTemplateWithPromptFlag = {
   description: TemplateFlagDescription,
-  default: getTemplateName,
+  default: inputTemplateName,
   parse: validateTemplateName,
 };
 
 /**
  * Template value flag that displays a prompt if it is not found
  */
-export const templateWithPrompt = Flags.string(definitionTemplateWithPrompt);
+export const TemplateWithPromptFlag = Flags.string(ParamsTemplateWithPromptFlag);

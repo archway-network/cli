@@ -3,8 +3,8 @@ import path from 'node:path';
 import { Args } from '@oclif/core';
 
 import { DEFAULT } from '@/GlobalConfig';
-import { bold, green } from '@/utils';
-import { BuiltInChains } from '@/services';
+import { bold } from '@/utils';
+import { BuiltInChains, SuccessMessages } from '@/services';
 import { ChainRegistry } from '@/domain';
 
 /**
@@ -30,6 +30,6 @@ export default class ConfigChainsExport extends BaseCommand<typeof ConfigChainsE
 
     await chainRegistry.export(this.args.chain);
 
-    this.success(`${green('Exported chain to')} ${bold(path.join(chainRegistry.path, `./${this.args.chain}.json`))}`);
+    SuccessMessages.chains.export(this, chainRegistry, this.args.chain);
   }
 }

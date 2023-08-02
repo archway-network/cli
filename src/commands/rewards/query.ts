@@ -1,9 +1,9 @@
 import { BaseCommand } from '@/lib/base';
-import { accountRequired } from '@/arguments';
+import { AccountRequiredArg } from '@/arguments';
 import { Accounts, Config } from '@/domain';
 import { KeyringFlags } from '@/flags';
-import { bold, darkGreen, green, yellow } from '@/utils';
 import { showSpinner } from '@/ui';
+import { SuccessMessages } from '@/services';
 
 import { BackendType } from '@/types';
 
@@ -14,7 +14,7 @@ import { BackendType } from '@/types';
 export default class RewardsQuery extends BaseCommand<typeof RewardsQuery> {
   static summary = 'Queries the outstanding rewards for a specific account or address';
   static args = {
-    account: accountRequired,
+    account: AccountRequiredArg,
   };
 
   static flags = {
@@ -30,7 +30,7 @@ export default class RewardsQuery extends BaseCommand<typeof RewardsQuery> {
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const account = await accountsDomain.accountBaseFromAddress(this.args.account!);
 
-    const config = await Config.open();
+    const config = await Config.init();
 
     const result = await showSpinner(async () => {
       const client = await config.getArchwayClient();
@@ -38,12 +38,6 @@ export default class RewardsQuery extends BaseCommand<typeof RewardsQuery> {
       return client.getOutstandingRewards(account.address);
     }, 'Querying rewards...');
 
-    if (this.jsonEnabled()) {
-      this.logJson(result);
-    } else {
-      this.log(`Outstanding rewards for ${account.name ? `${green(account.name)} (${darkGreen(account.address)})` : green(account.address)}\n`);
-      if (result.totalRewards.length === 0) this.log(`- ${yellow('No outstanding rewards')}`);
-      for (const item of result.totalRewards) this.log(`- ${bold(item.amount)}${item.denom}`);
-    }
+    SuccessMessages.rewards.query(this, result, account);
   }
 }

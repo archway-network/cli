@@ -2,7 +2,7 @@ import ow from 'ow';
 import { Coin, StargateClient } from '@cosmjs/stargate';
 
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
-import { KeystoreBackend, OsKeystore } from '@/domain';
+import { FileKeystore, KeystoreBackend, OsKeystore, TestKeystore } from '@/domain';
 import { ACCOUNTS } from '@/GlobalConfig';
 import { assertIsValidAddress, bold } from '@/utils';
 
@@ -47,10 +47,10 @@ export class Accounts {
         keystore = new OsKeystore(params?.serviceName || ACCOUNTS.SecretServiceName);
         break;
       case BackendType.file:
-        keystore = new OsKeystore(params?.filesPath || ACCOUNTS.KeyFilesPath);
+        keystore = new FileKeystore(params?.filesPath || ACCOUNTS.KeyFilesPath);
         break;
       case BackendType.test:
-        keystore = new OsKeystore(params?.filesPath || ACCOUNTS.KeyFilesPath);
+        keystore = new TestKeystore(params?.filesPath || ACCOUNTS.KeyFilesPath);
         break;
     }
 

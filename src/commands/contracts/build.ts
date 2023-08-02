@@ -1,9 +1,9 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { contractNameRequired } from '@/arguments';
+import { ContractNameRequiredArg } from '@/arguments';
 import { Config } from '@/domain';
-import { cyan } from '@/utils';
+import { SuccessMessages } from '@/services';
 
 /**
  * Command 'contracts build'
@@ -12,7 +12,7 @@ import { cyan } from '@/utils';
 export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
   static summary = "Builds the contract's WASM file (or an optimized version of it), and its schemas";
   static args = {
-    contract: contractNameRequired,
+    contract: ContractNameRequiredArg,
   };
 
   static flags = {
@@ -26,7 +26,7 @@ export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const config = await Config.open();
+    const config = await Config.init();
 
     await config.contractsInstance.assertValidWorkspace();
 
@@ -34,16 +34,16 @@ export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
       this.log(`Building optimized wasm file for ${this.args.contract}...`);
 
       const resultPath = await config.contractsInstance.optimize(this.args.contract!);
-      this.success(`Optimized Wasm binary saved to ${cyan(resultPath)}}}`);
+      SuccessMessages.contracts.build.optimize(this, resultPath);
     } else {
       this.log(`Building the project ${this.args.contract}...`);
       const resultPath = await config.contractsInstance.build(this.args.contract!);
-      this.success(`Wasm binary saved to ${cyan(resultPath)}}}`);
+      SuccessMessages.contracts.build.default(this, resultPath);
     }
 
     if (this.flags.schemas) {
       await config.contractsInstance.schemas(this.args.contract!);
-      this.success('Schemas generated');
+      SuccessMessages.contracts.build.schemas(this);
     }
   }
 }

@@ -1,8 +1,9 @@
 import { BaseCommand } from '@/lib/base';
 import { Accounts, Config } from '@/domain';
 import { KeyringFlags, TransactionFlags } from '@/flags';
-import { bold, buildStdFee, darkGreen, green, yellow } from '@/utils';
+import { buildStdFee, darkGreen, green } from '@/utils';
 import { showSpinner } from '@/ui';
+import { SuccessMessages } from '@/services';
 
 import { AccountWithMnemonic, BackendType } from '@/types';
 
@@ -27,7 +28,7 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const account: AccountWithMnemonic = await accountsDomain.getWithMnemonic(this.flags.from!);
 
-    const config = await Config.open();
+    const config = await Config.init();
 
     this.log(`Withdrawing rewards from ${green(account.name)} (${darkGreen(account.address)})\n`);
 
@@ -37,11 +38,6 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
       return signingClient.withdrawContractRewards(account.address, 0, buildStdFee(this.flags.fee?.coin));
     }, 'Waiting for tx to confirm...');
 
-    if (result.rewards.length === 0) {
-      this.log(yellow('No outstanding rewards'));
-    } else {
-      this.success(darkGreen('Successfully claimed the following rewards:\n'));
-      for (const item of result.rewards) this.log(`- ${bold(item.amount)}${item.denom}`);
-    }
+    SuccessMessages.rewards.withdraw(this, result);
   }
 }

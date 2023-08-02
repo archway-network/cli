@@ -5,7 +5,7 @@ const AccountArgumentDescription = 'Name of the key/account OR a valid bech32 ad
 /**
  * Definition of Account required argument
  */
-export const definitionAccountRequired = {
+export const ParamsAccountRequiredArg = {
   required: true,
   description: AccountArgumentDescription,
 };
@@ -13,4 +13,4 @@ export const definitionAccountRequired = {
 /**
  * Account required argument
  */
-export const accountRequired = Args.string(definitionAccountRequired);
+export const AccountRequiredArg = Args.string(ParamsAccountRequiredArg);

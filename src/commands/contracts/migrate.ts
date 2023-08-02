@@ -3,12 +3,13 @@ import { MigrateResult } from '@cosmjs/cosmwasm-stargate';
 import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
-import { definitionContractNameRequired, stdinInput } from '@/arguments';
+import { ParamsContractNameRequiredArg, StdinInputArg } from '@/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue, green } from '@/utils';
+import { buildStdFee, blue } from '@/utils';
 import { showSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags } from '@/flags';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
+import { SuccessMessages } from '@/services';
 
 import { AccountWithMnemonic, BackendType, DeploymentAction, MigrateDeployment } from '@/types';
 
@@ -19,8 +20,8 @@ import { AccountWithMnemonic, BackendType, DeploymentAction, MigrateDeployment }
 export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrate> {
   static summary = 'Runs a contract migration';
   static args = {
-    contract: Args.string({ ...definitionContractNameRequired, ignoreStdin: true }),
-    stdinInput,
+    contract: Args.string({ ...ParamsContractNameRequiredArg, ignoreStdin: true }),
+    stdinInput: StdinInputArg,
   };
 
   static flags = {
@@ -49,7 +50,7 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
     }
 
     // Load config and contract info
-    const config = await Config.open();
+    const config = await Config.init();
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
@@ -101,16 +102,11 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
           address: contractAddress,
           admin: instantiated.contract.admin,
         },
-        msg: message
+        msg: message,
       } as MigrateDeployment,
       config.chainId
     );
 
-    if (this.jsonEnabled()) {
-      this.logJson(result!);
-    }
-
-    this.success(`${green('Contract')} ${blue(contract.label)} ${green('migrated')}`);
-    this.log(`  Transaction: ${await config.prettyPrintTxHash(result!.transactionHash)}`);
+    await SuccessMessages.contracts.migrate(this, result!, contract.label, config);
   }
 }

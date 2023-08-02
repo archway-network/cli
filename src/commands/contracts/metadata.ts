@@ -2,12 +2,13 @@ import { Flags } from '@oclif/core';
 import { SetContractMetadataResult } from '@archwayhq/arch3.js';
 
 import { BaseCommand } from '@/lib/base';
-import { contractNameRequired } from '@/arguments';
+import { ContractNameRequiredArg } from '@/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue, green } from '@/utils';
+import { buildStdFee, blue } from '@/utils';
 import { showSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags } from '@/flags';
 import { NotFoundError } from '@/exceptions';
+import { SuccessMessages } from '@/services';
 
 import { AccountWithMnemonic, BackendType, DeploymentAction, MetadataDeployment } from '@/types';
 
@@ -18,7 +19,7 @@ import { AccountWithMnemonic, BackendType, DeploymentAction, MetadataDeployment 
 export default class ContractsMetadata extends BaseCommand<typeof ContractsMetadata> {
   static summary = 'Sets a contract rewards metadata';
   static args = {
-    contract: contractNameRequired,
+    contract: ContractNameRequiredArg,
   };
 
   static flags = {
@@ -35,7 +36,7 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
    */
   public async run(): Promise<void> {
     // Load config and contract info
-    const config = await Config.open();
+    const config = await Config.init();
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
@@ -96,11 +97,6 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
       config.chainId
     );
 
-    if (this.jsonEnabled()) {
-      this.logJson(result!);
-    }
-
-    this.success(`${green('Metadata for the contract')} ${blue(contract.label)} ${green('updated')}`);
-    this.log(`  Transaction: ${await config.prettyPrintTxHash(result!.transactionHash)}`);
+    await SuccessMessages.contracts.metadata(this, result!, contract.label, config);
   }
 }

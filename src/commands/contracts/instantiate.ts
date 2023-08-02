@@ -3,12 +3,13 @@ import fs from 'node:fs/promises';
 import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 
 import { BaseCommand } from '@/lib/base';
-import { definitionContractNameRequired, stdinInput } from '@/arguments';
+import { ParamsContractNameRequiredArg, StdinInputArg } from '@/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue, green } from '@/utils';
+import { buildStdFee, blue } from '@/utils';
 import { showSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, definitionAmountOptional } from '@/flags';
+import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/flags';
 import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
+import { SuccessMessages } from '@/services';
 
 import { AccountWithMnemonic, Amount, BackendType, DeploymentAction, InstantiateDeployment } from '@/types';
 
@@ -19,8 +20,8 @@ import { AccountWithMnemonic, Amount, BackendType, DeploymentAction, Instantiate
 export default class ContractsInstantiate extends BaseCommand<typeof ContractsInstantiate> {
   static summary = 'Instantiates code stored on-chain with the given arguments';
   static args = {
-    contract: Args.string({ ...definitionContractNameRequired, ignoreStdin: true }),
-    stdinInput,
+    contract: Args.string({ ...ParamsContractNameRequiredArg, ignoreStdin: true }),
+    stdinInput: StdinInputArg,
   };
 
   static flags = {
@@ -29,7 +30,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     label: Flags.string({ description: 'A human-readable name for this contract, displayed on explorers' }),
     code: Flags.integer({ description: 'Code stored' }),
     amount: Flags.custom<Amount | undefined>({
-      ...definitionAmountOptional,
+      ...ParamsAmountOptionalFlag,
       description: 'Funds to send to the contract during instantiation',
     })(),
     args: Flags.string({
@@ -59,7 +60,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     }
 
     // Load config and contract info
-    const config = await Config.open();
+    const config = await Config.init();
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
@@ -75,7 +76,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     // If code id is not set as flag, try to get it from deployments history
     let codeId = this.flags.code;
     if (!codeId) {
-      codeId = (config.contractsInstance.findStoreDeployment(this.args.contract!, config.chainId))?.wasm.codeId;
+      codeId = config.contractsInstance.findStoreDeployment(this.args.contract!, config.chainId)?.wasm.codeId;
 
       if (!codeId) throw new NotFoundError("Code id of contract's store deployment");
     }
@@ -125,12 +126,6 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       config.chainId
     );
 
-    if (this.jsonEnabled()) {
-      this.logJson(result!);
-    }
-
-    this.success(`${green('Contract')} ${blue(label)} ${green('instantiated')}`);
-    this.log(`  Address: ${blue(result!.contractAddress)}`);
-    this.log(`  Transaction: ${await config.prettyPrintTxHash(result!.transactionHash)}`);
+    await SuccessMessages.contracts.instantiate(this, result!, label, config);
   }
 }

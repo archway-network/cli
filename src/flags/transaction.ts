@@ -2,8 +2,7 @@ import { Flags } from '@oclif/core';
 import { AlphabetLowercase } from '@oclif/core/lib/interfaces';
 import { CustomOptions, DefaultContext } from '@oclif/core/lib/interfaces/parser';
 
-import { showPrompt } from '@/ui';
-import { FromAccountPrompt } from '@/services';
+import { Prompts } from '@/services';
 import { parseAmount } from '@/utils';
 
 import { Amount } from '@/types';
@@ -20,31 +19,31 @@ const ConfirmDescription = 'Asks for confirmation before broadcasting the tx or 
  * @param isWritingManifest - Optional - Sometimes Oclif tries to cache the default, to avoid it from triggering multiple prompts, we verify that this variable is undefined
  * @returns Promise containing the chain id value if prompted
  */
-const getFromAccount = async (_input: DefaultContext<CustomOptions>, isWritingManifest?: boolean): Promise<string | undefined> => {
+const inputFromAccount = async (_input: DefaultContext<CustomOptions>, isWritingManifest?: boolean): Promise<string | undefined> => {
   if (isWritingManifest === undefined) {
-    const response = await showPrompt(FromAccountPrompt);
-    return response.from as string;
+    const promptedFromAccount = await Prompts.fromAccount();
+    return promptedFromAccount?.from as string;
   }
 };
 
 /**
  * Definition of Transaction From flag
  */
-export const definitionTransactionFrom = {
+export const ParamsTransactionFromFlag = {
   description: FromDescription,
   char: 'f' as AlphabetLowercase,
-  default: getFromAccount,
+  default: inputFromAccount,
 };
 
 /**
  * Transaction From flag
  */
-export const transactionFrom = Flags.string(definitionTransactionFrom);
+export const TransactionFromFlag = Flags.string(ParamsTransactionFromFlag);
 
 /**
  * Definition of Transaction Fee flag
  */
-export const definitionTransactionFee = {
+export const ParamsTransactionFeeFlag = {
   description: FeeDescription,
   parse: async (val: string): Promise<Amount> => parseAmount(val),
 };
@@ -52,24 +51,24 @@ export const definitionTransactionFee = {
 /**
  * Transaction Fee flag
  */
-export const transactionFee = Flags.custom<Amount>(definitionTransactionFee);
+export const TransactionFeeFlag = Flags.custom<Amount>(ParamsTransactionFeeFlag)();
 
 /**
  * Definition of Transaction Fee Account flag
  */
-export const definitionTransactionFeeAccount = {
+export const ParamsTransactionFeeAccountFlag = {
   description: FeeAccountDescription,
 };
 
 /**
  * Transaction Fee Account flag
  */
-export const transactionFeeAccount = Flags.string(definitionTransactionFeeAccount);
+export const TransactionFeeAccountFlag = Flags.string(ParamsTransactionFeeAccountFlag);
 
 /**
  * Definition of Transaction Confirm flag
  */
-export const definitionTransactionConfirm = {
+export const ParamsTransactionConfirmFlag = {
   default: true,
   description: ConfirmDescription,
   allowNo: true,
@@ -78,14 +77,14 @@ export const definitionTransactionConfirm = {
 /**
  * Transaction Confirm flag
  */
-export const transactionConfirm = Flags.boolean(definitionTransactionConfirm);
+export const TransactionConfirmFlag = Flags.boolean(ParamsTransactionConfirmFlag);
 
 /**
  * All of the Transaction related flags
  */
 export const TransactionFlags = {
-  from: transactionFrom,
-  fee: transactionFee(),
-  'fee-account': transactionFeeAccount,
-  confirm: transactionConfirm,
+  from: TransactionFromFlag,
+  fee: TransactionFeeFlag,
+  'fee-account': TransactionFeeAccountFlag,
+  confirm: TransactionConfirmFlag,
 };

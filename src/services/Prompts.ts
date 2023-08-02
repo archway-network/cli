@@ -1,7 +1,10 @@
-import { Choice, PromptObject } from 'prompts';
+/* eslint-disable unicorn/no-static-only-class */
+import { Answers, Choice } from 'prompts';
 
 import { DEFAULT } from '@/GlobalConfig';
-import { ChainRegistry, ContractTemplates } from '@/domain';
+import { ChainRegistry } from '@/domain';
+import { showPrompt } from '@/ui';
+import { ContractTemplates } from '@/services';
 
 import { CosmosChain } from '@/types';
 
@@ -10,94 +13,111 @@ const ChainPromptDetails: Record<string, Partial<Choice>> = {
   'titus-1': { description: 'Nightly releases - chain state can be cleared at any time' },
 };
 
-const BaseChainPrompt: PromptObject = {
-  type: 'select',
-  name: 'chain',
-  message: 'Select a chain to use',
-  warn: 'This network is unavailable for now',
-};
+export class Prompts {
+  /**
+   * Shows a terminal prompt asking the user to select a chain
+   *
+   * @returns Promise containing the {@link Answers} object containing the chain
+   */
+  static async chain(): Promise<Answers<'chain'>> {
+    const chainRegistry = await ChainRegistry.init();
 
-/**
- * Builds the terminal prompt to ask the user to select a chain
- *
- * @returns Promise containing the {@link PromptObject} to be used with the 'prompts' library
- */
-export const getChainPrompt = async (): Promise<PromptObject> => {
-  const chainRegistry = await ChainRegistry.init();
+    const choices = chainRegistry.listChains.map((item: CosmosChain) => {
+      return {
+        title: item?.pretty_name || item?.chain_name || '',
+        description: ChainPromptDetails[item.chain_id]?.description,
+        value: item?.chain_id,
+        disabled: ChainPromptDetails[item.chain_id]?.disabled,
+      };
+    });
 
-  const choices = chainRegistry.listChains.map((item: CosmosChain) => {
-    return {
-      title: item?.pretty_name || item?.chain_name || '',
-      description: ChainPromptDetails[item.chain_id]?.description,
-      value: item?.chain_id,
-      disabled: ChainPromptDetails[item.chain_id]?.disabled,
-    };
-  });
+    const defaultSelected = choices.findIndex(item => item.value === DEFAULT.ChainId);
 
-  const defaultSelected = choices.findIndex(item => item.value === DEFAULT.ChainId);
+    return showPrompt({
+      type: 'select',
+      name: 'chain',
+      message: 'Select a chain to use',
+      warn: 'This network is unavailable for now',
+      initial: defaultSelected === -1 ? undefined : defaultSelected,
+      choices,
+    });
+  }
 
-  return {
-    ...BaseChainPrompt,
-    initial: defaultSelected === -1 ? undefined : defaultSelected,
-    choices,
-  };
-};
+  /**
+   * Shows a terminal prompt asking the user to enter a contract name
+   *
+   * @returns Promise containing the {@link Answers} object containing the contract name
+   */
+  static async contractName(): Promise<Answers<'contract-name'>> {
+    return showPrompt({
+      type: 'text',
+      name: 'contract-name',
+      message: 'Choose a name for your contract',
+      validate: value => Boolean(value),
+    });
+  }
 
-/**
- * Terminal prompt to ask the user for a contract name
- */
-export const ContractNamePrompt: PromptObject = {
-  type: 'text',
-  name: 'contract-name',
-  message: 'Choose a name for your contract',
-  validate: value => Boolean(value),
-};
+  /**
+   * Shows a terminal prompt asking the user the user for a template after confirmation
+   *
+   * @returns Promise containing the {@link Answers} object containing the template name
+   */
+  static async template(): Promise<Answers<'use-template' | 'template'>> {
+    return showPrompt([
+      {
+        type: 'confirm',
+        name: 'use-template',
+        message: 'Do you want to use a starter template?',
+        initial: false,
+      },
+      {
+        type: prev => (prev ? 'select' : null),
+        name: 'template',
+        message: 'Choose a template',
+        choices: ContractTemplates?.getTemplateChoices?.() || [],
+      },
+    ]);
+  }
 
-/**
- * Terminal prompt to ask the user for a template after confirmation
- */
-export const TemplatePrompt: PromptObject[] = [
-  {
-    type: 'confirm',
-    name: 'use-template',
-    message: 'Do you want to use a starter template?',
-    initial: false,
-  },
-  {
-    type: prev => (prev ? 'select' : null),
-    name: 'template',
-    message: 'Choose a template',
-    choices: ContractTemplates?.getTemplateChoices?.() || [],
-  },
-];
+  /**
+   * Shows a terminal prompt asking the user the user for an account password
+   *
+   * @param nameOrAddress - Name or address of the account
+   * @returns Promise containing the {@link Answers} object containing the account password
+   */
+  static async accountPassword(nameOrAddress: string): Promise<Answers<'password'>> {
+    return showPrompt({
+      type: 'text',
+      name: 'password',
+      message: `Enter the password for the account ${nameOrAddress}`,
+    });
+  }
 
-/**
- * Terminal prompt to ask the user for an account password
- */
-export const getAccountPasswordPrompt = (nameOrAddress: string): PromptObject => {
-  return {
-    type: 'text',
-    name: 'password',
-    message: `Enter the password for the account ${nameOrAddress}`,
-  };
-};
+  /**
+   * Shows a terminal prompt asking the user the user for confirmation
+   *
+   * @returns Promise containing the {@link Answers} object containing confirmation
+   */
+  static async confirmation(): Promise<Answers<'confirm'>> {
+    return showPrompt({
+      type: 'confirm',
+      name: 'confirm',
+      message: 'Do you want to proceed?',
+      initial: false,
+    });
+  }
 
-/**
- * Terminal prompt to ask the user for an account password
- */
-export const ConfirmationPrompt: PromptObject = {
-  type: 'confirm',
-  name: 'confirm',
-  message: 'Do you want to proceed?',
-  initial: false,
-};
-
-/**
- * Terminal prompt to ask the user for a signer account for a transaction
- */
-export const FromAccountPrompt: PromptObject = {
-  type: 'text',
-  name: 'from',
-  message: 'Enter the name or address of the account that will send the transaction',
-  validate: value => Boolean(value),
-};
+  /**
+   * Shows a terminal prompt asking the user the user for a signer account for a transaction
+   *
+   * @returns Promise containing the {@link Answers} object containing the account name or address
+   */
+  static async fromAccount(): Promise<Answers<'from'>> {
+    return showPrompt({
+      type: 'text',
+      name: 'from',
+      message: 'Enter the name or address of the account that will send the transaction',
+      validate: value => Boolean(value),
+    });
+  }
+}

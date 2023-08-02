@@ -1,14 +1,14 @@
 import { Flags } from '@oclif/core';
 import fs from 'node:fs/promises';
-import path from 'node:path';
 import { UploadResult } from '@cosmjs/cosmwasm-stargate';
 
 import { BaseCommand } from '@/lib/base';
-import { contractNameRequired } from '@/arguments';
+import { ContractNameRequiredArg } from '@/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue, green, white, yellow } from '@/utils';
-import { KeyringFlags, TransactionFlags, askForConfirmation } from '@/flags';
+import { askForConfirmation, buildStdFee, blue, white, yellow } from '@/utils';
+import { KeyringFlags, TransactionFlags } from '@/flags';
 import { showSpinner } from '@/ui';
+import { SuccessMessages } from '@/services';
 
 import { AccountWithMnemonic, BackendType, InstantiatePermission, DeploymentAction, StoreDeployment } from '@/types';
 
@@ -19,7 +19,7 @@ import { AccountWithMnemonic, BackendType, InstantiatePermission, DeploymentActi
 export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
   static summary = 'Stores a WASM file on-chain';
   static args = {
-    contract: contractNameRequired,
+    contract: ContractNameRequiredArg,
   };
 
   static flags = {
@@ -43,7 +43,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const config = await Config.open();
+    const config = await Config.init();
 
     await config.contractsInstance.assertValidWorkspace();
     const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
@@ -93,12 +93,6 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       config.chainId
     );
 
-    if (this.jsonEnabled()) {
-      this.logJson(result!);
-    }
-
-    this.success(`${green('Contract')} ${blue(path.basename(contract.wasm.optimizedFilePath))} ${green('uploaded')}`);
-    this.log(`  Code Id: ${blue(result!.codeId)}`);
-    this.log(`  Transaction: ${await config.prettyPrintTxHash(result!.transactionHash)}`);
+    await SuccessMessages.contracts.store(this, result!, contract, config);
   }
 }

@@ -1,11 +1,8 @@
 import { Args, Flags } from '@oclif/core';
-import { PromptObject } from 'prompts';
 
 import { BaseCommand } from '@/lib/base';
-import { chainWithPrompt } from '@/flags';
-import { ContractNamePrompt, TemplatePrompt } from '@/services';
-import { showPrompt } from '@/ui';
-import { darkGreen, green } from '@/utils';
+import { ChainWithPromptFlag } from '@/flags';
+import { Prompts, SuccessMessages } from '@/services';
 import { NewProject as NewProjectDomain } from '@/domain';
 import { DEFAULT } from '@/GlobalConfig';
 
@@ -20,7 +17,7 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
   };
 
   static flags = {
-    chain: chainWithPrompt,
+    chain: ChainWithPromptFlag,
     'no-contract': Flags.boolean(),
     'contract-name': Flags.string(),
     template: Flags.string(),
@@ -51,26 +48,19 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
     // If no-contract flag then only copy the files
     if (this.flags['no-contract']) return;
 
-    let promptsToDisplay: PromptObject[] = [];
+    let promptedContractName: Record<string, string> = {};
+    let promptedTemplate: Record<string, string> = {};
 
-    if (!this.flags['contract-name']) promptsToDisplay.push(ContractNamePrompt);
-    if (!this.flags.template) {
-      promptsToDisplay = [...promptsToDisplay, ...TemplatePrompt];
-    }
-
-    const promptedFlags = promptsToDisplay.length > 0 ? await showPrompt(promptsToDisplay) : {};
+    if (!this.flags['contract-name']) promptedContractName = await Prompts.contractName();
+    if (!this.flags.template) promptedTemplate = await Prompts.template();
 
     await NewProjectDomain.create({
       name: this.args['project-name'],
-      contractTemplate: this.flags['no-contract'] ? undefined : this.flags.template || promptedFlags.template || DEFAULT.Template,
+      contractTemplate: this.flags['no-contract'] ? undefined : this.flags.template || promptedTemplate?.template || DEFAULT.Template,
       chainId: this.flags.chain as string,
-      contractName: (this.flags['contract-name'] || promptedFlags['contract-name']) as string,
+      contractName: (this.flags['contract-name'] || promptedContractName?.['contract-name']) as string,
     });
 
-    this.success(
-      `${darkGreen('Project')} ${green(this.args['project-name'])} ${darkGreen('created and configured for the chain')} ${green(
-        this.flags.chain
-      )}`
-    );
+    SuccessMessages.new(this, this.args['project-name'], this.flags.chain!);
   }
 }

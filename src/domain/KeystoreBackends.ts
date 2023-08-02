@@ -4,8 +4,7 @@ import path from 'node:path';
 
 import { ACCOUNTS } from '@/GlobalConfig';
 import { AlreadyExistsError, InvalidPasswordError, NotFoundError } from '@/exceptions';
-import { getAccountPasswordPrompt } from '@/services';
-import { showPrompt } from '@/ui';
+import { Prompts } from '@/services';
 import { Accounts } from '@/domain';
 import { parsePublicKey } from '@/utils';
 
@@ -364,10 +363,9 @@ export class FileKeystore extends KeystoreBackend {
    * @returns Promise containing the password entered by the user
    */
   async promptPassword(nameOrAddress: string): Promise<string> {
-    const chainPrompt = await getAccountPasswordPrompt(nameOrAddress);
-    const response = await showPrompt(chainPrompt);
+    const promptedPassword = await Prompts.accountPassword(nameOrAddress);
 
-    return response.password || '';
+    return promptedPassword?.password || '';
   }
 }
 

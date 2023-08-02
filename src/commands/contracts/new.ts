@@ -1,11 +1,11 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { darkGreen, green } from '@/utils';
-import { contractNameRequired } from '@/arguments';
-import { templateWithPrompt } from '@/flags';
+import { ContractNameRequiredArg } from '@/arguments';
+import { TemplateWithPromptFlag } from '@/flags';
 import { Config } from '@/domain';
 import { DEFAULT } from '@/GlobalConfig';
+import { SuccessMessages } from '@/services';
 
 /**
  * Command 'contracts new'
@@ -14,11 +14,11 @@ import { DEFAULT } from '@/GlobalConfig';
 export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
   static summary = 'Scaffolds a new Smart Contract from a template';
   static args = {
-    contract: contractNameRequired,
+    contract: ContractNameRequiredArg,
   };
 
   static flags = {
-    template: templateWithPrompt,
+    template: TemplateWithPromptFlag,
   };
 
   /**
@@ -43,16 +43,12 @@ export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const config = await Config.open();
+    const config = await Config.init();
 
     await config.contractsInstance.assertValidWorkspace();
 
-    await config.contractsInstance.new(this.args.contract!, this.flags.template || DEFAULT.Template);
+    await config.contractsInstance.create(this.args.contract!, this.flags.template || DEFAULT.Template);
 
-    this.success(
-      `${darkGreen('Contract')} ${green(this.args.contract)} ${darkGreen('created from template')} ${green(
-        this.flags.template || DEFAULT.Template
-      )}`
-    );
+    SuccessMessages.contracts.new(this, this.args.contract!, this.flags.template);
   }
 }

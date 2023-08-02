@@ -2,7 +2,7 @@ import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
 import { Contracts, Deployments } from '@/domain';
-import { chainOptional } from '@/flags';
+import { ChainOptionalFlag } from '@/flags';
 
 import { DeploymentAction } from '@/types';
 
@@ -13,7 +13,7 @@ import { DeploymentAction } from '@/types';
 export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployments> {
   static summary = 'Displays the list of deployments, allows filtering by chain, action and contract.';
   static flags = {
-    chain: chainOptional,
+    chain: ChainOptionalFlag,
     action: Flags.string({ options: Object.values(DeploymentAction), description: 'Deployment action to filter by' }),
     contract: Flags.string({ aliases: ['c'], description: 'Contract name to filter by' }),
   };
@@ -24,11 +24,11 @@ export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployme
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const deployments = await Deployments.open();
+    const deployments = await Deployments.init();
 
     // Should fail if contract flag is set and it doesn't exist in the registered Contracts
     if (this.flags.contract) {
-      const contracts = await Contracts.open();
+      const contracts = await Contracts.init();
       contracts.assertGetContractByName(this.flags.contract);
     }
 

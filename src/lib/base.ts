@@ -63,7 +63,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * @param message - One or more messages to be displayed as warnings in the console
    * @returns void
    */
-  protected warning(message: string | string[]): void {
+  public warning(message: string | string[]): void {
     if (typeof message !== 'string') {
       for (const item of message) this.warning(item);
       return;
@@ -77,8 +77,18 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    *
    * @param message - Success message to be printed
    */
-  protected success(message: string): void {
+  public success(message: string): void {
     this.log(`${MESSAGES.SuccessPrefix} ${message}`);
+  }
+
+  /**
+   * Log a JSON object
+   *
+   * @param message - One or more messages to be displayed as warnings in the console
+   * @returns void
+   */
+  public logJson(json: unknown): void {
+    super.logJson(json)
   }
 
   /**

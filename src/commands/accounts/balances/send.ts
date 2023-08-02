@@ -2,10 +2,11 @@ import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
 import { Accounts, Config } from '@/domain';
-import { askForConfirmation, KeyringFlags, TransactionFlags } from '@/flags';
-import { amountRequired } from '@/arguments';
+import { KeyringFlags, TransactionFlags } from '@/flags';
+import { AmountRequiredArg } from '@/arguments';
 import { showSpinner } from '@/ui';
-import { buildStdFee, bold, darkGreen, green, white } from '@/utils';
+import { buildStdFee, bold, darkGreen, green, white, askForConfirmation } from '@/utils';
+import { SuccessMessages } from '@/services';
 
 import { AccountWithMnemonic, BackendType } from '@/types';
 
@@ -16,7 +17,7 @@ import { AccountWithMnemonic, BackendType } from '@/types';
 export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBalancesSend> {
   static summary = 'Send tokens from an address or account to another';
   static args = {
-    amount: amountRequired(),
+    amount: AmountRequiredArg,
   };
 
   static flags = {
@@ -34,7 +35,7 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const fromAccount: AccountWithMnemonic = await accountsDomain.getWithMnemonic(this.flags.from!);
     const toAccount = await accountsDomain.accountBaseFromAddress(this.flags.to);
-    const config = await Config.open();
+    const config = await Config.init();
 
     this.log(`Sending ${bold(this.args.amount!.plainText)}`);
     this.log(`From ${green(fromAccount.name)} (${darkGreen(fromAccount.address)})`);
@@ -56,10 +57,6 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
         throw new Error(`Insufficient funds to send ${white.reset.bold(this.args.amount!.plainText)} from ${green(fromAccount.name)}`);
     }
 
-    this.success(
-      darkGreen(
-        `Sent ${white.reset.bold(this.args.amount!.plainText)} from ${green(fromAccount.name)} to ${green(toAccount.name || toAccount.address)}`
-      )
-    );
+    SuccessMessages.accounts.balances.send(this, this.args.amount!, fromAccount, toAccount);
   }
 }

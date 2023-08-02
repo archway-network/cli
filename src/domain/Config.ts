@@ -99,16 +99,31 @@ export class Config {
   }
 
   /**
-   * Initializes a {@link Config} instance, by receiving a {@link ConfigData} object
+   * Initializes a {@link Config} instance, opening the config file in the project
+   *
+   * @param workingDir - Optional - Path of the working directory
+   * @returns Promise containing an instance of {@link Config}
+   */
+  static async init(workingDir?: string): Promise<Config> {
+    const configPath = await this.getFilePath(workingDir);
+    const data: ConfigData = JSON.parse(await fs.readFile(configPath, 'utf8'));
+
+    this.assertIsValidConfigData(data, configPath);
+
+    return Config.make(data, workingDir);
+  }
+
+  /**
+   * Create a {@link Config} instance, by receiving a {@link ConfigData} object
    *
    * @param data - {@link ConfigData} representation of a config file
    * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing an instance of {@link Config}
    */
-  static async init(data: ConfigData, workingDir?: string): Promise<Config> {
+  static async make(data: ConfigData, workingDir?: string): Promise<Config> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
     const configPath = await this.getFilePath(workingDir);
-    const contracts = await Contracts.open(workingDir, data.contractsPath);
+    const contracts = await Contracts.init(workingDir, data.contractsPath);
     const chainRegistry = await ChainRegistry.init(workingDir);
 
     return new Config(
@@ -139,22 +154,7 @@ export class Config {
   }
 
   /**
-   * Open the config file in the project
-   *
-   * @param workingDir - Optional - Path of the working directory
-   * @returns Promise containing an instance of {@link Config}
-   */
-  static async open(workingDir?: string): Promise<Config> {
-    const configPath = await this.getFilePath(workingDir);
-    const data: ConfigData = JSON.parse(await fs.readFile(configPath, 'utf8'));
-
-    this.assertIsValidConfigData(data, configPath);
-
-    return Config.init(data);
-  }
-
-  /**
-   * Creates a config file if it doesn't exist
+   * Creates a new config file if it doesn't exist
    *
    * @param chainId - Chain id that will be the default chain in the project
    * @param workingDir - Optional - Path of the working directory
@@ -171,7 +171,7 @@ export class Config {
     const name = sanitizeDirName(path.basename(directory));
 
     // Create config file
-    const configFile = await Config.init(
+    const configFile = await Config.make(
       {
         name,
         chainId,

@@ -59,7 +59,7 @@ export class Contracts {
    * @param contractsPath - Optional - Path where the contracts are in the project
    * @returns Promise containing an instance of {@link Contracts}
    */
-  static async open(workingDir?: string, contractsPath?: string): Promise<Contracts> {
+  static async init(workingDir?: string, contractsPath?: string): Promise<Contracts> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
     const contractsRoot = await this.getContractsRoot(workingDir, contractsPath);
 
@@ -69,7 +69,7 @@ export class Contracts {
 
     const data = await Promise.all(cargoInstances.map(item => item.projectMetadata()));
 
-    const deployments = await Deployments.open(workingDir);
+    const deployments = await Deployments.init(workingDir);
 
     return new Contracts(
       data.map(item => deployments.makeContractFromMetadata(item)),
@@ -116,7 +116,7 @@ export class Contracts {
    * @param template - Name of the template to use
    * @returns Promise containing an instance of {@link Contract} that was created
    */
-  async new(name: string, template: string): Promise<Contract> {
+  async create(name: string, template: string): Promise<Contract> {
     const cargo = new Cargo();
     await cargo.generate({
       name,
@@ -404,7 +404,7 @@ export class Contracts {
    * @param balance - Contract balance data
    * @returns Formatted contract address balance
    */
-  prettyPrintBalances(balance: AccountBalancesJSON): string {
+  static prettyPrintBalances(balance: AccountBalancesJSON): string {
     let result = `Balances for contract ${green(balance.account.name)} (${darkGreen(balance.account.address)})\n\n`;
     if (balance.account.balances.length === 0) result += `- ${yellow('Empty balance')}\n`;
     for (const item of balance.account.balances) result += `- ${bold(item.amount)}${item.denom}\n`;
