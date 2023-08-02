@@ -172,7 +172,6 @@ export class Config {
     );
     await configFile.write();
 
-    console.log(configFile._contractsPath)
     return configFile;
   }
 

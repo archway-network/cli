@@ -1,11 +1,19 @@
 import _ from 'lodash';
 import path from 'node:path';
+import fs from 'node:fs/promises';
 import { ChildProcessPromise, PromisifySpawnOptions, spawn } from 'promisify-child-process';
+import { shrinkPaddedLEB128 } from '@webassemblyjs/wasm-opt';
+import debugInstance from 'debug';
 
 import { BuildParams, CargoProjectMetadata, GenerateParams, Metadata } from '@/types/Cargo';
 import { ConsoleError } from '@/types/ConsoleError';
 import { ErrorCodes } from '@/exceptions/ErrorCodes';
 import { bold, red } from '@/utils/style';
+import { writeFileWithDir } from '@/utils/filesystem';
+import { DockerOptimizer } from './DockerOptimizer';
+import { BaseError } from '@/exceptions';
+
+const debug = debugInstance('cargo');
 
 /**
  * Facade Class for the cargo shell command
@@ -45,27 +53,30 @@ export class Cargo {
   /**
    * Build a cargo project
    *
-   * @param params - Object of type {@link BuildParams}
+   * @param params - Optional -Object of type {@link BuildParams}
+   * @param options - Node child process options
    */
-  async build(params: BuildParams): Promise<void> {
+  async build(params?: BuildParams, options?: PromisifySpawnOptions): Promise<void> {
     const extraArgs = [
-      params.release ? ['--release'] : [],
-      params.locked ? ['--locked'] : [],
-      params.target ? ['--target', params.target] : [],
+      params?.release ? ['--release'] : [],
+      params?.locked ? ['--locked'] : [],
+      params?.target ? ['--target', params?.target] : [],
     ].flat();
-    await this.run(['build', ...extraArgs], params.options);
+    await this.run(['build', ...extraArgs], options);
   }
 
   /**
    * Build the project with a wasm target
    */
   async wasm(): Promise<void> {
-    await this.build({
-      release: true,
-      locked: true,
-      target: Cargo.WasmTarget,
-      options: { env: { ...process.env, RUSTFLAGS: '-C link-arg=-s' } },
-    });
+    await this.build(
+      {
+        release: true,
+        locked: true,
+        target: Cargo.WasmTarget,
+      },
+      { env: { ...process.env, RUSTFLAGS: '-C link-arg=-s' } }
+    );
   }
 
   /**
@@ -117,6 +128,42 @@ export class Cargo {
   }
 
   /**
+   * Generate the schema files of a project
+   *
+   * @param options - Node child process options
+   */
+  async schema(options?: PromisifySpawnOptions): Promise<void> {
+    const { name: contractName } = await this.projectMetadata();
+    await this.run(['schema', '--package', contractName], options);
+  }
+
+  /**
+   * Generate the optimized wasm version of a contract
+   *
+   * @param useDocker - Flag to use docker or not
+   * @returns - Promise containing the path where the optimized version was saved
+   */
+  async optimize(useDocker = true): Promise<string> {
+    const { wasm, root, workspaceRoot } = await this.projectMetadata();
+
+    if (useDocker) {
+      const optimizer = new DockerOptimizer();
+      const { error, statusCode } = await optimizer.run(workspaceRoot, root === workspaceRoot);
+      if (statusCode !== 0) {
+        throw error instanceof Error ? error : new BaseError(error);
+      }
+    } else {
+      const fileContent = await fs.readFile(wasm.filePath);
+
+      const optimized = shrinkPaddedLEB128(new Uint8Array(fileContent.buffer));
+
+      await writeFileWithDir(wasm.optimizedFilePath, Buffer.from(optimized));
+    }
+
+    return wasm.optimizedFilePath;
+  }
+
+  /**
    * Runs the cargo shell command
    *
    * @param args - Array of arguments to be passed to the cargo command
@@ -124,6 +171,7 @@ export class Cargo {
    * @returns - Output of command, with classs {@link ChildProcessPromise} that contains stdout, and stderr
    */
   private run(args: string[], options?: PromisifySpawnOptions): ChildProcessPromise {
+    debug('cargo', ...args);
     return spawn('cargo', args, {
       stdio: 'inherit',
       ...options,

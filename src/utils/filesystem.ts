@@ -1,6 +1,7 @@
 import { Dirent } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import { Stream } from 'node:stream';
 
 /**
  * Read all the files in a directory, allows filtering by extension
@@ -58,7 +59,7 @@ export const readSubDirectories = async (directoryPath: string): Promise<string[
  * @param data - Data to be written into the file
  * @returns Empty promise
  */
-export const writeFileWithDir = async (filePath: string, data: string): Promise<void> => {
+export const writeFileWithDir = async (filePath: string, data: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | Stream): Promise<void> => {
   const dirPath = path.dirname(filePath);
 
   let dirExists = true;

@@ -6,7 +6,7 @@ import { ErrorCodes } from './ErrorCodes';
  * Base Error with no additional details
  */
 export class BaseError extends ConsoleError {
-  constructor() {
+  constructor(public customMessage?: string) {
     super(ErrorCodes.BASE);
   }
 
@@ -14,6 +14,6 @@ export class BaseError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return red('An unexpected error happened');
+    return red(this.customMessage || 'An unexpected error happened');
   }
 }

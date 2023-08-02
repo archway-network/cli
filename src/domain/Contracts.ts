@@ -11,6 +11,7 @@ import { ErrorCodes } from '@/exceptions/ErrorCodes';
 import { Cargo } from './Cargo';
 import { readSubDirectories } from '@/utils/filesystem';
 import { CargoProjectMetadata } from '@/types/Cargo';
+import { NotFoundError } from '@/exceptions';
 
 /**
  * Manages the contracts' data in the project
@@ -52,7 +53,6 @@ export class Contracts {
    */
   static async open(workingDir?: string, contractsPath?: string): Promise<Contracts> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
-
     const contractsRoot = await this.getContractsRoot(workingDir, contractsPath);
 
     const contractDirectories = await readSubDirectories(contractsRoot);
@@ -106,8 +106,8 @@ export class Contracts {
     const relativeContracts = `${path.relative(this._workspaceRoot, this._contractsRoot)}/*`;
     const cargoFilePath = path.join(this._workspaceRoot, './Cargo.toml');
 
-    const fileContent = await fs.readFile(cargoFilePath);
-    const data = toml.parse(fileContent.toString());
+    const fileContent = await fs.readFile(cargoFilePath, 'utf-8');
+    const data = toml.parse(fileContent);
 
     if (!data?.workspace?.members?.some((item: string) => item === relativeContracts))
       throw new InvalidWorkspaceError(cargoFilePath, relativeContracts);
@@ -118,6 +118,7 @@ export class Contracts {
    *
    * @param name - Contract name
    * @param template - Name of the template to use
+   * @returns Promise containing an instance of {@link Contract} that was created
    */
   async new(name: string, template: string): Promise<Contract> {
     const cargo = new Cargo();
@@ -135,6 +136,60 @@ export class Contracts {
     this._data.push(result);
 
     return result;
+  }
+
+  /**
+   * Build a contract
+   *
+   * @param name - Contract name
+   * @returns Path of the output file
+   */
+  async build(name: string): Promise<string> {
+    const cargo = this.cargoByContractName(name);
+    const { wasm } = await cargo.projectMetadata();
+
+    await cargo.build();
+    await cargo.wasm();
+    return wasm.filePath;
+  }
+
+  /**
+   * Generate a contract's schema files
+   *
+   * @param name - Contract name
+   * @returns Empty Promise
+   */
+  async schemas(name: string): Promise<void> {
+    const cargo = this.cargoByContractName(name);
+    await cargo.schema();
+  }
+
+  /**
+   * Build the optimized version of a contract
+   *
+   * @param name - Contract name
+   * @returns Path of the optimized file
+   */
+  async optimize(name: string): Promise<string> {
+    const cargo = this.cargoByContractName(name);
+    const { wasm } = await cargo.projectMetadata();
+
+    await cargo.optimize();
+    return wasm.optimizedFilePath;
+  }
+
+  /**
+   * Creates a {@link Cargo} instance of a contract, by contract name
+   *
+   * @param name - Contract name
+   * @returns Empty Promise
+   */
+  private cargoByContractName(name: string): Cargo {
+    const contract = this._data.find(item => item.name === name);
+
+    if (!contract) throw new NotFoundError('Contract', name);
+
+    return new Cargo(contract.root);
   }
 
   /**

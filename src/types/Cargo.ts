@@ -1,5 +1,4 @@
 /* eslint-disable camelcase */
-import { PromisifySpawnOptions } from 'promisify-child-process';
 
 /**
  * Cargo metadata information
@@ -135,5 +134,4 @@ export interface BuildParams {
   release?: boolean;
   locked?: boolean;
   target?: string;
-  options?: PromisifySpawnOptions;
 }

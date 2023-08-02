@@ -10,4 +10,5 @@ export enum ErrorCodes {
   INVALID_VALUE = 8,
   CARGO_METADATA_ERROR = 9,
   INVALID_WORKSPACE_ERROR = 10,
+  NOT_FOUND = 11,
 }
