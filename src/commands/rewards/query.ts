@@ -5,7 +5,7 @@ import { KeyringFlags } from '@/flags';
 import { bold, darkGreen, green, yellow } from '@/utils';
 import { showSpinner } from '@/ui';
 
-import { BackendType } from '@/types/Account';
+import { BackendType } from '@/types';
 
 /**
  * Command 'rewards query'
@@ -36,7 +36,7 @@ export default class RewardsQuery extends BaseCommand<typeof RewardsQuery> {
       const client = await config.getArchwayClient();
 
       return client.getOutstandingRewards(account.address);
-    }, 'Querying rewards');
+    }, 'Querying rewards...');
 
     if (this.jsonEnabled()) {
       this.logJson(result);

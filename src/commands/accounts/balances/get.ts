@@ -5,7 +5,7 @@ import { Accounts, Config } from '@/domain';
 import { bold, darkGreen, green, yellow } from '@/utils';
 import { showSpinner } from '@/ui';
 
-import { BackendType } from '@/types/Account';
+import { BackendType } from '@/types';
 
 /**
  * Command 'accounts balances get'

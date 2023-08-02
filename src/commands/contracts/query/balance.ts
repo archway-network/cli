@@ -1,7 +1,7 @@
-import { Args, Flags } from '@oclif/core';
+import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { definitionContractNameOptional } from '@/arguments';
+import { contractNameOptional } from '@/arguments';
 import { Config } from '@/domain';
 import { showSpinner } from '@/ui';
 import { NotFoundError } from '@/exceptions';
@@ -15,7 +15,7 @@ import { InstantiateDeployment } from '@/types';
 export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQuerySmart> {
   static summary = 'Access the bank module to query the balance of contracts';
   static args = {
-    contract: Args.string({ ...definitionContractNameOptional }),
+    contract: contractNameOptional,
   };
 
   static flags = {

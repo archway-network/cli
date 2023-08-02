@@ -2,21 +2,20 @@ import { expect, test } from '@oclif/test';
 import fs from 'node:fs/promises';
 import sinon, { SinonStub } from 'sinon';
 import keyring from '@archwayhq/keyring-go';
-import { ArchwayClient } from '@archwayhq/arch3.js';
+import { SigningArchwayClient } from '@archwayhq/arch3.js';
 
 import { Cargo } from '../../../src/domain';
-import { expectOutputJSON } from '../../helpers/expect';
 import {
   aliceAddress,
   aliceStoreEntry,
   aliceStoredAccount,
   configString,
   contractProjectMetadata,
-  dummyRewardsQueryResult,
+  dummyRewardsWithdrawResult,
 } from '../../dummies';
 import * as FilesystemUtils from '../../../src/utils/filesystem';
 
-describe('rewards query', () => {
+describe('rewards withdraw', () => {
   let readStub: SinonStub;
   let writeStub: SinonStub;
   let mkdirStub: SinonStub;
@@ -34,8 +33,8 @@ describe('rewards query', () => {
     keyringListStub = sinon.stub(keyring.OsStore, 'list').callsFake(() => [aliceStoreEntry]);
     metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
     archwayClientStub = sinon
-      .stub(ArchwayClient, 'connect')
-      .callsFake(async () => ({ getOutstandingRewards: async () => dummyRewardsQueryResult } as any));
+      .stub(SigningArchwayClient, 'connectWithSigner')
+      .callsFake(async () => ({ withdrawContractRewards: async () => dummyRewardsWithdrawResult } as any));
   });
   after(() => {
     readStub.restore();
@@ -50,13 +49,10 @@ describe('rewards query', () => {
 
   test
     .stdout()
-    .command(['rewards query', aliceAddress])
+    .command(['rewards withdraw', `--from=${aliceAddress}`])
     .it('Query outstanding rewards balance of a contract', ctx => {
-      expect(ctx.stdout).to.contain('Outstanding rewards for');
-      expect(ctx.stdout).to.contain(aliceAddress);
-      expect(ctx.stdout).to.contain(dummyRewardsQueryResult.totalRewards[0].amount);
-      expect(ctx.stdout).to.contain(dummyRewardsQueryResult.totalRewards[0].denom);
+      expect(ctx.stdout).to.contain('Successfully claimed the following rewards');
+      expect(ctx.stdout).to.contain(dummyRewardsWithdrawResult.rewards[0].amount);
+      expect(ctx.stdout).to.contain(dummyRewardsWithdrawResult.rewards[0].denom);
     });
-
-  test.stdout().command(['rewards query', aliceAddress, '--json']).it('Prints json output', expectOutputJSON);
 });

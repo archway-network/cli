@@ -652,3 +652,8 @@ export const dummyRewardsQueryResult = {
   totalRewards: [{ denom: 'aconst', amount: '2' }],
   totalRecords: 1,
 };
+
+export const dummyRewardsWithdrawResult = {
+  rewardsAddress: 'archway1l3n05jjyrku0my3ahyg66q95jvstpjnn2xfkyw9xemz5zvl5rssqmnlr0q',
+  rewards: [{ denom: 'aconst', amount: '2' }],
+};
