@@ -144,7 +144,7 @@ export class Contracts {
     const { wasm } = await cargo.projectMetadata();
 
     await cargo.build();
-    await cargo.wasm();
+
     return wasm.filePath;
   }
 

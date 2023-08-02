@@ -5,12 +5,12 @@ import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 import { BaseCommand } from '@/lib/base';
 import { definitionContractNameRequired, stdinInput } from '@/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue, green, red } from '@/utils';
+import { buildStdFee, blue, green } from '@/utils';
 import { showSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags, definitionAmountOptional } from '@/flags';
-import { ErrorCodes, InstantiateError, NotFoundError } from '@/exceptions';
+import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 
-import { AccountWithMnemonic, Amount, BackendType, ConsoleError, DeploymentAction, InstantiateDeployment } from '@/types';
+import { AccountWithMnemonic, Amount, BackendType, DeploymentAction, InstantiateDeployment } from '@/types';
 
 /**
  * Command 'contracts instantiate'
@@ -53,7 +53,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       (this.flags['args-file'] && this.flags.args) ||
       (this.flags.args && this.args.stdinInput)
     ) {
-      throw new OnlyOneInitArgsError();
+      throw new OnlyOneArgSourceError('Init');
     } else if (!this.flags['args-file'] && !this.args.stdinInput && !this.flags.args) {
       throw new NotFoundError('Init args to instantiate the contract');
     }
@@ -132,21 +132,5 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     this.success(`${green('Contract')} ${blue(label)} ${green('instantiated')}`);
     this.log(`  Address: ${blue(result!.contractAddress)}`);
     this.log(`  Transaction: ${await config.prettyPrintTxHash(result!.transactionHash)}`);
-  }
-}
-
-/**
- * Error when user tries to input init args from many sources
- */
-export class OnlyOneInitArgsError extends ConsoleError {
-  constructor() {
-    super(ErrorCodes.ONLY_ONE_INIT_ARGS);
-  }
-
-  /**
-   * {@inheritDoc ConsoleError.toConsoleString}
-   */
-  toConsoleString(): string {
-    return `${red('Please specify only one init args input')}`;
   }
 }

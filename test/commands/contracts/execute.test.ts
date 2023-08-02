@@ -11,14 +11,14 @@ import {
   aliceStoredAccount,
   configString,
   contractProjectMetadata,
-  dummyInstantiateTransaction,
-  storeDeployment,
+  dummyExecuteTransaction,
+  instantiateDeployment,
 } from '../../dummies';
 import * as FilesystemUtils from '../../../src/utils/filesystem';
 
-import { StoreDeployment } from '../../../src/types';
+import { InstantiateDeployment } from '../../../src/types';
 
-describe('contracts instantiate', () => {
+describe('contracts execute', () => {
   const contractName = contractProjectMetadata.name;
   let readStub: SinonStub;
   let writeStub: SinonStub;
@@ -28,7 +28,7 @@ describe('contracts instantiate', () => {
   let keyringListStub: SinonStub;
   let metadataStub: SinonStub;
   let validWorkspaceStub: SinonStub;
-  let findStoreStub: SinonStub;
+  let findInstantiateStub: SinonStub;
   let signingClientStub: SinonStub;
   before(() => {
     readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
@@ -40,10 +40,12 @@ describe('contracts instantiate', () => {
     metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
-    findStoreStub = sinon.stub(Contracts.prototype, 'findStoreDeployment').callsFake(async () => storeDeployment as StoreDeployment);
+    findInstantiateStub = sinon
+      .stub(Contracts.prototype, 'findInstantiateDeployment')
+      .callsFake(async () => instantiateDeployment as InstantiateDeployment);
     signingClientStub = sinon
       .stub(SigningArchwayClient, 'connectWithSigner')
-      .callsFake(async () => ({ instantiate: async () => dummyInstantiateTransaction } as any));
+      .callsFake(async () => ({ execute: async () => dummyExecuteTransaction } as any));
   });
   after(() => {
     readStub.restore();
@@ -54,30 +56,30 @@ describe('contracts instantiate', () => {
     keyringListStub.restore();
     metadataStub.restore();
     validWorkspaceStub.restore();
-    findStoreStub.restore();
+    findInstantiateStub.restore();
     signingClientStub.restore();
   });
-  describe('Instantiates the smart contract', () => {
+  describe('Executes a transaction in a contract', () => {
     test
       .stdout()
-      .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`])
-      .it('Instantiates smart contract', ctx => {
-        expect(ctx.stdout).to.contain('instantiated');
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
+      .command(['contracts execute', contractName, '--args={}', `--from=${aliceAccountName}`])
+      .it('Sets smart contract premium', ctx => {
+        expect(ctx.stdout).to.contain('Executed contract');
+        expect(ctx.stdout).to.contain(contractName);
         expect(ctx.stdout).to.contain('Transaction:');
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
+        expect(ctx.stdout).to.contain(dummyExecuteTransaction.transactionHash);
       });
   });
 
   describe('Prints json output', () => {
     test
       .stdout()
-      .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`, '--json'])
-      .it('Instantiates smart contract', ctx => {
-        expect(ctx.stdout).to.not.contain('uploaded');
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
-        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.gasUsed);
+      .command(['contracts execute', contractName, '--args={}', `--from=${aliceAccountName}`, '--json'])
+      .it('Sets smart contract premium', ctx => {
+        expect(ctx.stdout).to.not.contain('Executed contract');
+        expect(ctx.stdout).to.contain(dummyExecuteTransaction.transactionHash);
+        expect(ctx.stdout).to.contain(dummyExecuteTransaction.gasWanted);
+        expect(ctx.stdout).to.contain(dummyExecuteTransaction.gasUsed);
       });
   });
 });

@@ -7,3 +7,4 @@ export * from './InvalidFormatError';
 export * from './InvalidPasswordError';
 export * from './InvalidValueError';
 export * from './NotFoundError';
+export * from './OnlyOneArgSourceError';
