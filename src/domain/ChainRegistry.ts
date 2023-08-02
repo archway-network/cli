@@ -6,7 +6,7 @@ import { DEFAULT } from '@/config';
 import { ChainRegistrySpec, CosmosChain, cosmosChainValidator } from '@/types/Chain';
 import { BuiltInChains } from '@/services/BuiltInChains';
 import { fileExists, readFilesFromDirectory, writeFileWithDir } from '@/utils/filesystem';
-import { FileAlreadyExistsError, InvalidFormatError } from '@/exceptions';
+import { AlreadyExistsError, InvalidFormatError } from '@/exceptions';
 import { bold, red, yellow } from '@/utils/style';
 import { ConsoleError } from '@/types/ConsoleError';
 import { ErrorCodes } from '@/exceptions/ErrorCodes';
@@ -182,7 +182,7 @@ export class ChainRegistry extends ChainRegistrySpec {
     const newChainId = chain.chain_id;
 
     if (await this.fileExists(newChainId)) {
-      throw new FileAlreadyExistsError(`${newChainId}${DEFAULT.ChainFileExtension}`);
+      throw new AlreadyExistsError('Chain info file', `${newChainId}${DEFAULT.ChainFileExtension}`);
     }
 
     return this.forceWriteChainFile(chain);

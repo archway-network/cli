@@ -1,6 +1,7 @@
-import { ConsoleError } from '@/types/ConsoleError';
 import { red } from '@/utils/style';
 import { ErrorCodes } from './ErrorCodes';
+
+import { ConsoleError } from '@/types/ConsoleError';
 
 /**
  * Base Error with no additional details

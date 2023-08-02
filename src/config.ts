@@ -20,9 +20,9 @@ export const DEFAULT = {
  * Prefixes and suffixes to be used in commands as a standardized part of the messages displayed
  */
 export const MESSAGES = {
-  SuccessPrefix: '✅ ',
-  ErrorPrefix: '❌ ',
-  WarningPrefix: '⚠️ ',
+  SuccessPrefix: '✅',
+  ErrorPrefix: '❌',
+  WarningPrefix: '⚠️',
 };
 
 /**
@@ -30,4 +30,15 @@ export const MESSAGES = {
  */
 export const REPOSITORIES = {
   Templates: 'https://github.com/archway-network/archway-templates',
+};
+
+/**
+ * Account and keys config
+ */
+export const ACCOUNTS = {
+  SecretServiceName: 'archway.modulor',
+  KeyFilesPath: `${process.env.HOME}/.archway`,
+  EntrySeparator: '<-<>->',
+  EntrySuffix: 'account',
+  TestEntrySuffix: 'test',
 };

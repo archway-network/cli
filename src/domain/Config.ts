@@ -10,7 +10,7 @@ import { mergeCustomizer } from '@/utils';
 import { DEFAULT } from '@/config';
 import { bold } from '@/utils/style';
 import { Contracts } from './Contracts';
-import { FileAlreadyExistsError } from '@/exceptions';
+import { AlreadyExistsError } from '@/exceptions';
 import { writeFileWithDir } from '@/utils/filesystem';
 import { InvalidFormatError } from '@/exceptions';
 import { DeploymentWithChain } from '@/types/Deployment';
@@ -154,7 +154,7 @@ export class Config {
    */
   static async create(chainId: string, workingDir?: string): Promise<Config> {
     if (await Config.exists(workingDir)) {
-      throw new FileAlreadyExistsError(DEFAULT.ConfigFileName);
+      throw new AlreadyExistsError('Config file', DEFAULT.ConfigFileName);
     }
 
     // Get Workspace root

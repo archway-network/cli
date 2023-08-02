@@ -67,7 +67,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       return;
     }
 
-    this.log(`${yellow(MESSAGES.WarningPrefix)}${message}`);
+    this.log(`${yellow(MESSAGES.WarningPrefix)} ${message}`);
   }
 
   /**
@@ -76,7 +76,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * @param message - Success message to be printed
    */
   protected success(message: string): void {
-    this.log(`${MESSAGES.SuccessPrefix}${message}`);
+    this.log(`${MESSAGES.SuccessPrefix} ${message}`);
   }
 
   /**
@@ -92,7 +92,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       return undefined;
     }
 
-    err.message = `${MESSAGES.ErrorPrefix}${err instanceof ConsoleError ? err.toConsoleString() : red((err as any)?.stderr || err.message)}`;
+    err.message = `${MESSAGES.ErrorPrefix} ${err instanceof ConsoleError ? err.toConsoleString() : red((err as any)?.stderr || err.message)}`;
     return super.catch(err);
   }
 

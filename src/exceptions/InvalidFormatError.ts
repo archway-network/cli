@@ -1,6 +1,7 @@
-import { ConsoleError } from '@/types/ConsoleError';
 import { bold, red } from '@/utils/style';
 import { ErrorCodes } from './ErrorCodes';
+
+import { ConsoleError } from '@/types/ConsoleError';
 
 /**
  * Error when the format of a file or object is not valid

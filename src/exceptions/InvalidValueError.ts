@@ -1,6 +1,7 @@
-import { ConsoleError } from '@/types/ConsoleError';
 import { bold, red } from '@/utils/style';
 import { ErrorCodes } from './ErrorCodes';
+
+import { ConsoleError } from '@/types/ConsoleError';
 
 /**
  * Error when a value is not valid

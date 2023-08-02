@@ -70,3 +70,14 @@ export const TemplatePrompt: PromptObject[] = [
     choices: ContractTemplates.getTemplateChoices(),
   },
 ];
+
+/**
+ * Terminal prompt to ask the user for an account password
+ */
+export const getAccountPasswordPrompt = (nameOrAddress: string): PromptObject => {
+  return {
+    type: 'text',
+    name: 'password',
+    message: `Enter the password for the account ${nameOrAddress}`,
+  };
+};
