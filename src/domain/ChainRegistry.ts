@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 
 import { getWokspaceRoot } from '@/utils/paths';
 import { DEFAULT } from '@/config';
-import { CosmosChain, cosmosChainValidator } from '@/types/Chain';
+import { ChainRegistrySpec, CosmosChain, cosmosChainValidator } from '@/types/Chain';
 import { BuiltInChains } from '@/services/BuiltInChains';
 import { readFilesFromDirectory, writeFileWithDir } from '@/utils/filesystem';
 import { FileAlreadyExistsError, InvalidFormatError } from '@/exceptions';
@@ -15,7 +15,7 @@ import { ErrorCodes } from '@/exceptions/ErrorCodes';
 /**
  * Manages the chains in the project, including the built-in and the imported ones.
  */
-export class ChainRegistry {
+export class ChainRegistry extends ChainRegistrySpec {
   private _data: CosmosChain[];
   private _path: string;
   private _warnings: ChainWarning[];
@@ -26,12 +26,13 @@ export class ChainRegistry {
    * @param warning - List of warnings related to the chain config files
    */
   constructor(data: CosmosChain[], path: string, warning: ChainWarning[]) {
+    super();
     this._data = data;
     this._path = path;
     this._warnings = warning;
   }
 
-  get data(): CosmosChain[] {
+  get listChains(): CosmosChain[] {
     return this._data;
   }
 
@@ -147,7 +148,7 @@ export class ChainRegistry {
    * @param chainId - Chain id of the file to verify
    * @returns Promise containing true or false
    */
-  async exists(chainId: string): Promise<boolean> {
+  async fileExists(chainId: string): Promise<boolean> {
     const chainPath = await this.getFilePath(chainId);
     try {
       await fs.access(chainPath);
@@ -178,17 +179,27 @@ export class ChainRegistry {
   }
 
   /**
-   * Write a {@link CosmosChain} object into a file in the chain directory
+   * Write a {@link CosmosChain} object into a file in the chain directory, throws an error if it already exists
    *
    * @param chain - {@link CosmosChain} object to write
-   * @param canOverride - Optional - Allows the function to override an existing file, otherwise throws error
    */
-  async writeChainFile(chain: CosmosChain, canOverride = false): Promise<void> {
+  async writeChainFile(chain: CosmosChain): Promise<void> {
     const newChainId = chain.chain_id;
 
-    if (!canOverride && (await this.exists(newChainId))) {
+    if (await this.fileExists(newChainId)) {
       throw new FileAlreadyExistsError(`${newChainId}${DEFAULT.ChainFileExtension}`);
     }
+
+    return this.forceWriteChainFile(chain);
+  }
+
+  /**
+   * Write a {@link CosmosChain} object into a file in the chain directory (overwrites if it already exists)
+   *
+   * @param chain - {@link CosmosChain} object to write
+   */
+  async forceWriteChainFile(chain: CosmosChain): Promise<void> {
+    const newChainId = chain.chain_id;
 
     const jsonData = JSON.stringify(chain, null, 2);
 
@@ -198,6 +209,31 @@ export class ChainRegistry {
 
     // Add to inner data
     this._data = this._data.map(item => (item.chain_id === newChainId ? chain : item));
+  }
+
+  /**
+   * Imports a chain info object, and saves it into a file
+   *
+   * @param chainInfo - Chain info object to be imported
+   */
+  async import(chainInfo: CosmosChain): Promise<void> {
+    console.error('222222', chainInfo)
+    ChainRegistry.assertIsValidChain(chainInfo);
+
+    await this.writeChainFile(chainInfo);
+  }
+
+  /**
+   * Exports a built-in chain info object into a file
+   *
+   * @param chainId - Chain id to be exported
+   */
+  async export(chainId: string): Promise<void> {
+    const chainInfo = BuiltInChains.getChainById(chainId);
+
+    if (!chainInfo) throw new ChainIdNotFoundError(chainId);
+
+    await this.writeChainFile(chainInfo);
   }
 
   /**

@@ -2,7 +2,7 @@ import ow from 'ow';
 import path from 'node:path';
 
 import { bold } from '@/utils/style';
-import { Deployment, DeploymentAction, DeploymentFile, deploymentFileValidator } from '@/types/Deployment';
+import { Deployment, DeploymentAction, DeploymentBase, DeploymentFile, deploymentFileValidator } from '@/types/Deployment';
 import { ChainRegistry } from './ChainRegistry';
 import { DeploymentsByChain } from './DeploymentsByChain';
 import { getWokspaceRoot } from '@/utils/paths';
@@ -86,6 +86,21 @@ export class Deployments {
   };
 
   /**
+   * Return the list of all deployments
+   *
+   * @returns Array containing all the deployments
+   */
+  listDeployments(): Deployment[] {
+    let result: Deployment[] = [];
+
+    for (const item of this._data) {
+      result = [...result, ...item.data.deployments.map(auxDeploy => ({ chainId: item.chainId, ...auxDeploy } as Deployment))];
+    }
+
+    return result;
+  }
+
+  /**
    * Filters the deployments by the arguments passed
    *
    * @param chainId - Optional - Chain id to filter by
@@ -154,7 +169,7 @@ export class Deployments {
   toSingleDeploymentFile(chainId?: string, action?: DeploymentAction, contractName?: string): DeploymentFile {
     const filtered = this.filter(chainId, action, contractName);
 
-    let allDeployments: Deployment[] = [];
+    let allDeployments: DeploymentBase[] = [];
 
     for (const item of filtered) {
       allDeployments = [...allDeployments, ...item.data.deployments];

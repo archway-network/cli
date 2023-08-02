@@ -2,7 +2,17 @@
 import ow from 'ow';
 
 /**
- * Cosmos Chain.json is a metadata file that contains information about a cosmos sdk based chain.
+ * Abstract definition to be used on ChainRegistry class
+ */
+export abstract class ChainRegistrySpec {
+  abstract get listChains(): CosmosChain[];
+
+  abstract import(chainInfo: CosmosChain): Promise<void>;
+  abstract export(chainId: string): Promise<void>;
+}
+
+/**
+ * Cosmos Chain contains meatadata information about a cosmos sdk based chain.
  */
 export interface CosmosChain {
   $schema?: string;
@@ -276,11 +286,9 @@ export const cosmosChainValidator = ow.object.partialShape({
   key_algos: ow.optional.array.ofType(ow.string.oneOf(['secp256k1', 'ethsecp256k1', 'ed25519', 'sr25519'])),
   slip44: ow.optional.number,
   alternative_slip44s: ow.optional.array.ofType(ow.number),
-  fees: ow.optional.array.ofType(
-    ow.object.exactShape({
-      fee_tokens: ow.array.ofType(feeTokenValidator),
-    })
-  ),
+  fees: ow.optional.object.exactShape({
+    fee_tokens: ow.array.ofType(feeTokenValidator),
+  }),
   staking: ow.optional.object.exactShape({
     staking_tokens: ow.array.ofType(stakingTokenValidator),
     lock_duration: ow.optional.object.exactShape({

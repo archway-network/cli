@@ -14,8 +14,8 @@ export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployme
   static summary = 'Displays the list of deployments, allows filtering by chain, action and contract.';
   static flags = {
     chain: chainOptional(),
-    action: Flags.string({ options: Object.values(DeploymentAction) }),
-    contract: Flags.string({ aliases: ['c'] }),
+    action: Flags.string({ options: Object.values(DeploymentAction), description: 'Deployment action to filter by' }),
+    contract: Flags.string({ aliases: ['c'], description: 'Contract name to filter by' }),
   };
 
   /**

@@ -15,6 +15,8 @@ export default class ConfigChains extends Command {
     })
   )}.`;
 
+  static hidden = true;
+
   /**
    * Runs the command.
    *

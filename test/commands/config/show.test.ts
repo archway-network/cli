@@ -7,13 +7,16 @@ import { configString } from '../../mocks/configFile';
 
 describe('config show', () => {
   let readStub: SinonStub;
+  let readdirStub: SinonStub;
 
   before(() => {
     readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
+    readdirStub = sinon.stub(fs, 'readdir').callsFake(async () => []);
   });
 
   after(() => {
     readStub.restore();
+    readdirStub.restore();
   });
 
   test

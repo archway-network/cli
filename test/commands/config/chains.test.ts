@@ -4,6 +4,7 @@ import fs from 'node:fs/promises';
 
 import ConfigChains from '../../../src/commands/config/chains';
 import { configString } from '../../mocks/configFile';
+import { chainString } from '../../mocks/chainFile';
 
 const expectHelp = (ctx: any) => {
   expect(ctx.stdout).to.contain('Description:');
@@ -36,6 +37,16 @@ describe('config chains', () => {
   });
 
   describe('import', () => {
+    before(() => {
+      readStub.restore();
+      readStub = sinon.stub(fs, 'readFile').callsFake(async () => chainString);
+    });
+
+    after(() => {
+      readStub.restore();
+      readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
+    });
+
     test
       .stdout()
       .command(['config chains import', 'constantine-1'])

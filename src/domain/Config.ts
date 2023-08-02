@@ -13,41 +13,77 @@ import { Contracts } from './Contracts';
 import { FileAlreadyExistsError } from '@/exceptions';
 import { writeFileWithDir } from '@/utils/filesystem';
 import { InvalidFormatError } from '@/exceptions';
+import { Deployment } from '@/types/Deployment';
+import { Contract } from '@/types/Contract';
+import { Deployments } from './Deployments';
 
 /**
- * Manages the config file of the project
+ * Manages the config file of the project and creates instances of ChainRegistry, Deployments and Contracts
  */
-export class ConfigFile {
-  private _data: ConfigData;
-  private _path: string;
+export class Config {
+  private _name: string;
+  private _chainId: string;
+  private _contractsPath: string;
+  private _contracts: Contracts;
+  private _deployments: Deployments;
+  private _configPath: string;
 
   /**
-   * @param data - {@link ConfigData} representation of the config file
-   * @param path - Absolute path of the project's config file
+   * @param name - Name of the project
+   * @param chainId - Active/selected chain id in the project
+   * @param contractsPath - Absolute path of the contract files in the project
+   * @param contracts - Array containing all the contracts
+   * @param deployments - Array containing all the deployments
+   * @param configPath - Absolute path of the project's config file
    */
-  constructor(data: ConfigData, path: string) {
-    this._data = data;
-    this._path = path;
+  // eslint-disable-next-line max-params
+  constructor(name: string, chainId: string, contractsPath: string, contracts: Contracts, deployments: Deployments, configPath: string) {
+    this._name = name;
+    this._chainId = chainId;
+    this._contractsPath = contractsPath;
+    this._contracts = contracts;
+    this._deployments = deployments;
+    this._configPath = configPath;
   }
 
-  get data(): ConfigData {
-    return this._data;
+  get name(): string {
+    return this._name;
   }
 
-  get path(): string {
-    return this._path;
+  get chainId(): string {
+    return this._chainId;
+  }
+
+  get contractsPath(): string {
+    return this._contractsPath;
+  }
+
+  get contracts(): Contract[] {
+    return this._contracts.listContracts();
+  }
+
+  get deployments(): Deployment[] {
+    return this._deployments.listDeployments();
   }
 
   /**
-   * Initializes a {@link ConfigFile} instance, by receiving a {@link ConfigData} object
+   * Initializes a {@link Config} instance, by receiving a {@link ConfigData} object
    *
    * @param data - {@link ConfigData} representation of a config file
-   * @returns Promise containing an instance of {@link ConfigFile}
+   * @returns Promise containing an instance of {@link Config}
    */
-  static async init(data: ConfigData): Promise<ConfigFile> {
-    const configData = _.defaultsDeep(data, { contractsPath: DEFAULT.ContractsRelativePath });
+  static async init(data: ConfigData): Promise<Config> {
     const configPath = await this.getFilePath();
-    return new ConfigFile(configData, configPath);
+    const contracts = await Contracts.open();
+    const deployments = await Deployments.open();
+    return new Config(
+      data.name,
+      data.chainId,
+      data.contractsPath || DEFAULT.ContractsRelativePath,
+      contracts,
+      deployments,
+      configPath
+    );
   }
 
   /**
@@ -68,25 +104,25 @@ export class ConfigFile {
   /**
    * Open the config file in the project
    *
-   * @returns Promise containing an instance of {@link ConfigFile}
+   * @returns Promise containing an instance of {@link Config}
    */
-  static async open(): Promise<ConfigFile> {
+  static async open(): Promise<Config> {
     const configPath = await this.getFilePath();
     const data: ConfigData = JSON.parse(await fs.readFile(configPath, 'utf8'));
 
     this.assertIsValidConfigData(data, configPath);
 
-    return new ConfigFile(data, configPath);
+    return Config.init(data);
   }
 
   /**
    * Creates a config file if it doesn't exist
    *
    * @param chainId - Chain id that will be the default chain in the project
-   * @returns Promise containing an instance of {@link ConfigFile}
+   * @returns Promise containing an instance of {@link Config}
    */
-  static async create(chainId: string): Promise<ConfigFile> {
-    if (await ConfigFile.exists()) {
+  static async create(chainId: string): Promise<Config> {
+    if (await Config.exists()) {
       throw new FileAlreadyExistsError(DEFAULT.ConfigFileName);
     }
 
@@ -96,7 +132,7 @@ export class ConfigFile {
     const name = path.basename(workingDir).replace(' ', '-');
 
     // Create config file
-    const configFile = await ConfigFile.init({
+    const configFile = await Config.init({
       name,
       chainId,
     });
@@ -138,24 +174,38 @@ export class ConfigFile {
   };
 
   /**
-   * Write the data of the {@link ConfigFile} instance into the config file
+   * Returns the attributes of {@link Config} as {@link ConfigData}
+   *
+   * @param data - Object instance to validate
+   * @returns Boolean, whether it is valid or not
+   */
+  toConfigData = (): ConfigData => {
+    return { name: this._name, chainId: this._chainId, contractsPath: this._contractsPath } as ConfigData;
+  };
+
+  /**
+   * Write the data of the {@link Config} instance into the config file
    *
    * @returns Empty promise
    */
   async write(): Promise<void> {
-    const json = JSON.stringify(this._data, null, 2);
-    await writeFileWithDir(this._path, json);
+    const json = JSON.stringify(this.toConfigData(), null, 2);
+    await writeFileWithDir(this._configPath, json);
   }
 
   /**
-   * Updates the data of the {@link ConfigFile} instance, overwriting the passed values
+   * Updates the data of the {@link Config} instance, overwriting the passed values
    *
    * @param newData - Partial object of {@link ConfigData} that will be updated
    * @param writeAfterUpdate - Optional - Allows the function to write to the file after updating the object's data
    * @param arrayMergeMode - Optional - Different merge modes, can be OVERWRITE, APPEND, or PREPEND
    */
   async update(newData: Partial<ConfigData>, writeAfterUpdate = false, arrayMergeMode = MergeMode.OVERWRITE): Promise<void> {
-    _.mergeWith(this.data, newData, mergeCustomizer(arrayMergeMode));
+    const mergeResult = _.mergeWith(this.toConfigData(), newData, mergeCustomizer(arrayMergeMode));
+
+    this._name = mergeResult.name;
+    this._chainId = mergeResult.chainId;
+    this._contractsPath = mergeResult.contractsPath;
 
     if (writeAfterUpdate) {
       await this.write();
@@ -172,11 +222,11 @@ export class ConfigFile {
     let contractsStatus = '';
 
     if (withContracts) {
-      const contracts = await Contracts.open(this._data.contractsPath);
+      const contracts = await Contracts.open(this._contractsPath);
       contractsStatus = `\n\n${await contracts.prettyPrint()}`;
     }
 
-    return `${bold('Project: ')}${this._data.name}\n${bold('Selected chain: ')}${this._data.chainId}` + contractsStatus;
+    return `${bold('Project: ')}${this._name}\n${bold('Selected chain: ')}${this._chainId}` + contractsStatus;
   }
 
   /**
@@ -185,11 +235,11 @@ export class ConfigFile {
    * @returns Instance of {@link ConfigDataWithContracts}
    */
   async dataWithContracts(): Promise<ConfigDataWithContracts> {
-    const contracts = await Contracts.open(this._data.contractsPath);
+    const contracts = await Contracts.open(this._contractsPath);
 
     return {
-      ...this._data,
-      contracts: contracts.data,
+      ...this.toConfigData(),
+      contracts: contracts.listContracts(),
     };
   }
 }

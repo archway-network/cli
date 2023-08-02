@@ -8,17 +8,20 @@ import { MESSAGES } from '../../../src/config';
 describe('config init', () => {
   let writeStub: SinonStub;
   let accessStub: SinonStub;
+  let readdirStub: SinonStub;
   let promptsSpy: SinonSpy;
 
   before(() => {
     prompts.inject(['constantine-1']);
     writeStub = sinon.stub(fs, 'writeFile');
+    readdirStub = sinon.stub(fs, 'readdir').callsFake(async () => []);
     accessStub = sinon.stub(fs, 'access').rejects();
     promptsSpy = sinon.spy(prompts, 'prompt');
   });
 
   after(() => {
     accessStub.restore();
+    readdirStub.restore();
     writeStub.restore();
     prompts.prompt.restore();
   });

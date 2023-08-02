@@ -2,7 +2,7 @@ import { BaseCommand } from '@/lib/base';
 import { DEFAULT } from '@/config';
 import { bold, green } from '@/utils/style';
 import { ChainRegistry } from '@/domain/ChainRegistry';
-import { ConfigFile } from '@/domain/ConfigFile';
+import { Config } from '@/domain/Config';
 import { chainRequired } from '@/flags/chain';
 
 /**
@@ -21,7 +21,7 @@ export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse>
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const configFile = await ConfigFile.open();
+    const configFile = await Config.open();
     const chainRegistry = await ChainRegistry.init();
 
     if (chainRegistry.warnings) this.warning(chainRegistry.prettyPrintWarnings(this.flags.chain));

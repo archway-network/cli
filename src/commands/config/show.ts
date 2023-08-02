@@ -1,5 +1,5 @@
 import { BaseCommand } from '@/lib/base';
-import { ConfigFile } from '@/domain/ConfigFile';
+import { Config } from '@/domain/Config';
 
 /**
  * Command 'config show'
@@ -14,7 +14,7 @@ export default class ConfigShow extends BaseCommand<typeof ConfigShow> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const configFile = await ConfigFile.open();
+    const configFile = await Config.open();
 
     this.log(await configFile.prettyPrint());
 

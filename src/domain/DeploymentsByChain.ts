@@ -5,7 +5,7 @@ import _ from 'lodash';
 import terminalLink from 'terminal-link';
 
 import { DEFAULT } from '@/config';
-import { Deployment, DeploymentAction, DeploymentFile, deploymentValidator } from '@/types/Deployment';
+import { DeploymentAction, DeploymentBase, DeploymentFile, deploymentValidator } from '@/types/Deployment';
 import { getWokspaceRoot } from '@/utils/paths';
 import { blue, bold, green } from '@/utils/style';
 import { InvalidFormatError } from '@/exceptions';
@@ -41,7 +41,7 @@ export class DeploymentsByChain {
    * @param deployments - Array of {@link Deployment}
    * @returns Instance of {@link DeploymentsByChain}
    */
-  static init(chainId: string, deployments: Deployment[]): DeploymentsByChain {
+  static init(chainId: string, deployments: DeploymentBase[]): DeploymentsByChain {
     return new DeploymentsByChain(chainId, { deployments });
   }
 
@@ -101,7 +101,7 @@ export class DeploymentsByChain {
    */
   prettyPrint(explorerTxUrl?: string): string {
     // Group by deployments of same contract name and version
-    const mappedVersions: Record<string, Deployment[]> = {};
+    const mappedVersions: Record<string, DeploymentBase[]> = {};
 
     for (const item of this._data.deployments) {
       const id = `${item.contract.name}-${item.contract.version}`;
@@ -116,7 +116,7 @@ export class DeploymentsByChain {
     // Loop through deployments of a contract version
     for (const version of Object.values(mappedVersions)) {
       result += `\n\n${green(version[0].contract.name)} (${version[0].contract.version})`;
-      for (const auxDeploy of version) {
+      for (const auxDeploy of version as Array<any>) {
         result +=
           `\n\n${bold(_.capitalize(auxDeploy.action))}` +
           (auxDeploy.action === DeploymentAction.STORE ?

@@ -20,7 +20,7 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
   )}.`;
 
   static args = {
-    file: Args.string({ name: 'file', required: false, ignoreStdin: true }),
+    file: Args.string({ name: 'file', required: false, ignoreStdin: true, description: 'Path to file to be imported' }),
     piped: Args.string({ name: 'piped', required: false, hidden: true }),
   };
 
@@ -43,7 +43,7 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
 
     const chainRegistry = await ChainRegistry.init();
 
-    await chainRegistry.writeChainFile(chainInfo);
+    await chainRegistry.import(chainInfo);
 
     this.success(`${green('Imported chain')} ${bold(chainInfo.chain_id)}`);
   }

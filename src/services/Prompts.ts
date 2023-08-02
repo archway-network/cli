@@ -24,7 +24,7 @@ const BaseChainPrompt: PromptObject = {
 export const getChainPrompt = async (): Promise<PromptObject> => {
   const chainRegistry = await ChainRegistry.init();
 
-  const choices = chainRegistry.data.map((item: CosmosChain) => {
+  const choices = chainRegistry.listChains.map((item: CosmosChain) => {
     return {
       title: item?.pretty_name || item?.chain_name || '',
       description: ChainPromptDetails[item.chain_id]?.description,

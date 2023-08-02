@@ -6,38 +6,77 @@ import { Coin, coinValidator } from './Coin';
  * Deployment file information
  */
 export interface DeploymentFile {
-  deployments: Deployment[];
+  deployments: DeploymentBase[];
 }
 
 /**
- * Deployment information
+ * Deployment information with chain id included
  */
-export interface Deployment {
+export interface Deployment extends DeploymentBase {
+  chainId: string;
+}
+
+/**
+ * Base Deployment information
+ */
+export interface DeploymentBase {
   action: DeploymentAction;
   txhash: string;
-  wasm: Wasm;
-  contract: DeploymentContract;
-  metadata?: Metadata;
-  msg?: any;
-  flatFee?: Coin;
-}
-
-/**
- * Wasm contract information
- */
-export interface Wasm {
-  codeId: number;
-  checksum?: string;
+  contract: BaseContract;
+  wasm: BaseWasm
 }
 
 /**
  * Deployment Contract information
  */
-export interface DeploymentContract {
+export interface BaseContract {
   name: string;
   version: string;
-  address?: string;
-  admin?: string;
+}
+
+/**
+ * Store Deployment information
+ */
+export interface StoreDeployment extends Deployment {
+  wasm: StoreWasm;
+}
+
+/**
+ * Wasm contract information
+ */
+export interface BaseWasm {
+  codeId: number;
+}
+
+/**
+ * Wasm contract information
+ */
+export interface StoreWasm extends BaseWasm {
+  checksum: string;
+}
+
+/**
+ * Instantiate Deployment information
+ */
+export interface InstantiateDeployment extends Deployment {
+  contract: InstantiatedContract;
+  msg: string;
+}
+
+/**
+ * Instantiate Contract information
+ */
+export interface InstantiatedContract extends BaseContract {
+  address: string;
+  admin: string;
+}
+
+/**
+ * Metadata Deployment information
+ */
+export interface MetadataDeployment extends Deployment {
+  contract: InstantiatedContract;
+  metadata: Metadata;
 }
 
 /**
@@ -46,6 +85,14 @@ export interface DeploymentContract {
 export interface Metadata {
   ownerAddress: string;
   rewardsAddress: string;
+}
+
+/**
+ * Premium Deployment information
+ */
+export interface PremiumDeployment extends Deployment {
+  contract: InstantiatedContract;
+  flatFee: Coin;
 }
 
 /**
@@ -61,7 +108,7 @@ export enum DeploymentAction {
 /**
  * Format validator for the {@link Wasm} interface
  */
-export const wasmValidator = ow.object.exactShape({
+export const wasmValidator = ow.optional.object.exactShape({
   codeId: ow.number,
   checksum: ow.optional.string,
 });
@@ -88,6 +135,7 @@ export const metadataValidator = ow.optional.object.exactShape({
  * Format validator for the {@link Deployment} interface
  */
 export const deploymentValidator = ow.object.exactShape({
+  chainId: ow.optional.string,
   action: ow.string.oneOf(Object.values(DeploymentAction)),
   txhash: ow.string,
   wasm: wasmValidator,

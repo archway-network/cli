@@ -72,6 +72,15 @@ export class Contracts {
   }
 
   /**
+   * Return the list of all contracts
+   *
+   * @returns Array containing all the contracts
+   */
+  listContracts(): Contract[] {
+    return this._data;
+  }
+
+  /**
    * Check if a contract exists by name, if not found throws an error
    *
    * @param contractName - Name of the contract to get
