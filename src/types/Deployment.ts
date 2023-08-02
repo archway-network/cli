@@ -89,6 +89,14 @@ export interface PremiumDeployment extends DeploymentWithChain {
 }
 
 /**
+ * Migrate Deployment information
+ */
+export interface MigrateDeployment extends DeploymentWithChain {
+  contract: InstantiatedContract;
+  msg: any;
+}
+
+/**
  * Deployment action types
  */
 export enum DeploymentAction {
@@ -96,6 +104,7 @@ export enum DeploymentAction {
   INSTANTIATE = 'instantiate',
   METADATA = 'metadata',
   PREMIUM = 'premium',
+  MIGRATE = 'migrate',
 }
 
 /**

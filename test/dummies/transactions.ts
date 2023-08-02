@@ -607,3 +607,38 @@ export const dummyExecuteTransaction = {
   gasWanted: 77_562,
   gasUsed: 75_033,
 };
+
+export const dummyMigrateTransaction = {
+  logs: [
+    {
+      msg_index: 0,
+      log: '',
+      events: [
+        {
+          type: 'message',
+          attributes: [
+            {
+              key: 'action',
+              value: '/cosmwasm.wasm.v1.MsgMigrateContract',
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  height: 271_962,
+  transactionHash: '390DD4050068EFBCF719BD35B0516BFA89DF526E6C94D624191B1A7E8B7BADEF',
+  events: [
+    {
+      type: 'message',
+      attributes: [
+        {
+          key: 'action',
+          value: '/cosmwasm.wasm.v1.MsgMigrateContract',
+        },
+      ],
+    },
+  ],
+  gasWanted: 77_562,
+  gasUsed: 75_033,
+};
