@@ -7,8 +7,9 @@ import { AlreadyExistsError, InvalidPasswordError, NotFoundError } from '@/excep
 import { getAccountPasswordPrompt } from '@/services/Prompts';
 import { showPrompt } from '@/ui/Prompt';
 import { Accounts } from './Accounts';
+import { parsePublicKey } from '@/utils/accounts';
 
-import { AccountBase, AccountWithMnemonic } from '@/types/Account';
+import { Account, AccountBase, AccountWithMnemonic } from '@/types/Account';
 
 /**
  * Abstract definition to be used on different KeystoreBackend implementations
@@ -24,13 +25,13 @@ export abstract class KeystoreBackend {
   abstract add(name: string, data?: AccountWithMnemonic): Promise<AccountWithMnemonic>;
 
   /**
-   * Get a list of the accounts in the keystore
+   * Get a list of the accounts in the keystore, only by name and address
    * @returns Promise containing an array with all the accounts in the keystore
    */
-  abstract list(): Promise<AccountBase[]>;
+  abstract listNameAndAddress(): Promise<AccountBase[]>;
 
   /**
-   * Get a single account by name or address
+   * Get a single account by name or address, including mnemonic
    *
    * @param nameOrAddress - Account name or account address to search by
    * @returns Promise containing the account's data, or undefined if it doesn't exist
@@ -38,12 +39,54 @@ export abstract class KeystoreBackend {
   abstract get(nameOrAddress: string): Promise<AccountWithMnemonic | undefined>;
 
   /**
-   * Delete an account by name or address
+   * Remove an account by name or address
    *
-   * @param nameOrAddress - Account name or account address to delete by
+   * @param nameOrAddress - Account name or account address to remove by
    * @returns Empty promise
    */
-  abstract delete(nameOrAddress: string): Promise<void>;
+  abstract remove(nameOrAddress: string): Promise<void>;
+
+  /**
+   * Get a list of the accounts in the keystore
+   * @returns Promise containing an array with all the accounts in the keystore
+   */
+  async list(): Promise<Account[]> {
+    const result: Account[] = [];
+    const baseAccounts = await this.listNameAndAddress();
+
+    for (const item of baseAccounts) {
+      // Making the await happen inside the loop so the user does not see
+      // a lot of OS password inputs popup at the same time, but one by one
+      /* eslint-disable no-await-in-loop */
+      const auxAccount = await this.getPublicInfo(item.address);
+
+      if (auxAccount) result.push(auxAccount);
+    }
+
+    return result;
+  }
+
+  /**
+   * Get a single account by name or address, without mnemonic
+   *
+   * @param nameOrAddress - Account name or account address to search by
+   * @returns Promise containing the account's data, or undefined if it doesn't exist
+   */
+  async getPublicInfo(nameOrAddress: string): Promise<Account | undefined> {
+    let found = await this.get(nameOrAddress);
+
+    if (found) {
+      const result: Account = {
+        name: found.name,
+        address: found.address,
+        publicKey: found.publicKey,
+      };
+
+      found = undefined;
+
+      return result;
+    }
+  }
 
   /**
    * Create a new {@link AccountWithMnemonic}, or validate an existing one, checking that it doesn't already exist
@@ -84,11 +127,10 @@ export abstract class KeystoreBackend {
    * Check if an account exists by name or address, if not found throws an error
    *
    * @param nameOrAddress - Account name or address to search by
-   * @param suffix - Optional - Suffix at the end of the tag
-   * @returns Promise containing the entry tag found
+   * @returns Instance of {@link AccountBase} with the found account name and address
    */
-  protected async assertAccountExists(nameOrAddress: string, suffix = ACCOUNTS.EntrySuffix): Promise<string> {
-    const result = await this.findEntryTagInList(nameOrAddress, suffix);
+  async assertAccountExists(nameOrAddress: string): Promise<AccountBase> {
+    const result = await this.findNameAndAddressInList(nameOrAddress);
 
     if (!result) throw new NotFoundError('Account', nameOrAddress);
 
@@ -99,28 +141,39 @@ export abstract class KeystoreBackend {
    * Check if an account doesn't exist by name or address, if it exists throws an error
    *
    * @param nameOrAddress - Account name or address to search by
-   * @param suffix - Optional - Suffix at the end of the tag
    * @returns Empty promise
    */
-  protected async assertAccountDoesNotExist(nameOrAddress: string, suffix = ACCOUNTS.EntrySuffix): Promise<void> {
-    if (await this.findEntryTagInList(nameOrAddress, suffix)) throw new AlreadyExistsError('Account', nameOrAddress);
+  async assertAccountDoesNotExist(nameOrAddress: string): Promise<void> {
+    if (await this.findNameAndAddressInList(nameOrAddress)) throw new AlreadyExistsError('Account', nameOrAddress);
   }
 
   /**
    * Search an account entry in the list by name or address
    *
    * @param nameOrAddress - Account name or address to search by
-   * @param suffix - Optional - Suffix at the end of the tag
-   * @returns Promise containing the entry tag or undefined if not found
+   * @returns Promise containing the name and address, or undefined if not found
    */
-  protected async findEntryTagInList(nameOrAddress: string, suffix = ACCOUNTS.EntrySuffix): Promise<string | undefined> {
-    const list = await this.list();
+  protected async findNameAndAddressInList(nameOrAddress: string): Promise<AccountBase | undefined> {
+    const list = await this.listNameAndAddress();
 
     for (const item of list) {
       if (item.name === nameOrAddress || item.address === nameOrAddress) {
-        return this.createEntryTag(item.name, item.address, suffix);
+        return item;
       }
     }
+  }
+
+  /**
+   * Check if an account exists by name or address, if not found throws an error
+   *
+   * @param nameOrAddress - Account name or address to search by
+   * @param suffix - Optional - Suffix at the end of the tag
+   * @returns Promise containing the entry tag found
+   */
+  protected async findAccountTag(nameOrAddress: string, suffix = ACCOUNTS.EntrySuffix): Promise<string> {
+    const account = await this.assertAccountExists(nameOrAddress);
+
+    return this.createEntryTag(account.name, account.address, suffix);
   }
 
   /**
@@ -185,9 +238,9 @@ export class OsKeystore extends KeystoreBackend {
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.list}
+   * {@inheritDoc KeystoreBackend.listNameAndAddress}
    */
-  async list(): Promise<AccountBase[]> {
+  async listNameAndAddress(): Promise<AccountBase[]> {
     const found: string[] = keyring.OsStore.list(this.serviceName);
     const result: AccountBase[] = [];
 
@@ -203,7 +256,7 @@ export class OsKeystore extends KeystoreBackend {
    * {@inheritDoc KeystoreBackend.get}
    */
   async get(nameOrAddress: string): Promise<AccountWithMnemonic | undefined> {
-    const tag = await this.assertAccountExists(nameOrAddress);
+    const tag = await this.findAccountTag(nameOrAddress);
     let stored = '';
 
     try {
@@ -214,19 +267,21 @@ export class OsKeystore extends KeystoreBackend {
 
     if (stored) {
       const result = JSON.parse(stored);
+
       Accounts.assertIsValidAccountWithMnemonic(result);
+      result.publicKey.key = parsePublicKey(result.publicKey.key);
 
       return result;
     }
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.delete}
+   * {@inheritDoc KeystoreBackend.remove}
    */
-  async delete(nameOrAddress: string): Promise<void> {
-    const tag = await this.assertAccountExists(nameOrAddress);
+  async remove(nameOrAddress: string): Promise<void> {
+    const tag = await this.findAccountTag(nameOrAddress);
 
-    keyring.OsKeystore.remove(this.serviceName, tag);
+    keyring.OsStore.remove(this.serviceName, tag);
   }
 }
 
@@ -257,9 +312,9 @@ export class FileKeystore extends KeystoreBackend {
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.list}
+   * {@inheritDoc KeystoreBackend.listNameAndAddress}
    */
-  async list(): Promise<AccountBase[]> {
+  async listNameAndAddress(): Promise<AccountBase[]> {
     const found: string[] = keyring.FileStore.list(this.filesPath);
     const result: AccountBase[] = [];
 
@@ -276,7 +331,7 @@ export class FileKeystore extends KeystoreBackend {
    */
   async get(nameOrAddress: string): Promise<AccountWithMnemonic | undefined> {
     const password = await this.promptPassword(nameOrAddress);
-    const tag = await this.assertAccountExists(nameOrAddress);
+    const tag = await this.findAccountTag(nameOrAddress);
     let stored = '';
 
     try {
@@ -287,17 +342,19 @@ export class FileKeystore extends KeystoreBackend {
 
     if (stored) {
       const result = JSON.parse(stored);
+
       Accounts.assertIsValidAccountWithMnemonic(result);
+      result.publicKey.key = parsePublicKey(result.publicKey.key);
 
       return result;
     }
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.delete}
+   * {@inheritDoc KeystoreBackend.remove}
    */
-  async delete(nameOrAddress: string): Promise<void> {
-    const tag = await this.assertAccountExists(nameOrAddress);
+  async remove(nameOrAddress: string): Promise<void> {
+    const tag = await this.findAccountTag(nameOrAddress);
 
     keyring.FileStore.remove(this.filesPath, tag);
   }
@@ -346,9 +403,9 @@ export class TestKeystore extends KeystoreBackend {
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.list}
+   * {@inheritDoc KeystoreBackend.listNameAndAddress}
    */
-  async list(): Promise<AccountBase[]> {
+  async listNameAndAddress(): Promise<AccountBase[]> {
     const found: string[] = keyring.UnencryptedFileStore.list(this.filesPath);
     const result: AccountBase[] = [];
 
@@ -364,7 +421,7 @@ export class TestKeystore extends KeystoreBackend {
    * {@inheritDoc KeystoreBackend.get}
    */
   async get(nameOrAddress: string): Promise<AccountWithMnemonic | undefined> {
-    const tag = await this.assertAccountExists(nameOrAddress);
+    const tag = await this.findAccountTag(nameOrAddress, ACCOUNTS.TestEntrySuffix);
     let stored = '';
 
     try {
@@ -373,17 +430,19 @@ export class TestKeystore extends KeystoreBackend {
 
     if (stored) {
       const result = JSON.parse(stored);
+
       Accounts.assertIsValidAccountWithMnemonic(result);
+      result.publicKey.key = parsePublicKey(result.publicKey.key);
 
       return result;
     }
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.delete}
+   * {@inheritDoc KeystoreBackend.remove}
    */
-  async delete(nameOrAddress: string): Promise<void> {
-    const tag = await this.assertAccountExists(nameOrAddress);
+  async remove(nameOrAddress: string): Promise<void> {
+    const tag = await this.findAccountTag(nameOrAddress, ACCOUNTS.TestEntrySuffix);
 
     keyring.UnencryptedFileStore.remove(this.filesPath, tag);
   }

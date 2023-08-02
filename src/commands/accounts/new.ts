@@ -30,7 +30,7 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType);
+    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const account = await accountsDomain.new(this.args.account);
 
     this.success(`${darkGreen('Account')} ${green(account.name)} successfully created!`);

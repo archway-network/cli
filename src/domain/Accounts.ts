@@ -3,18 +3,10 @@ import ow from 'ow';
 import { InvalidFormatError } from '@/exceptions';
 import { KeystoreBackend, OsKeystore } from './KeystoreBackends';
 import { ACCOUNTS } from '@/config';
-
-import { AccountWithMnemonic, BackendType, PublicKey, accountWithMnemonicValidator } from '@/types/Account';
 import { bold } from '@/utils/style';
-import { parsePublicKey } from '@/utils/accounts';
 
-/**
- * Params to be used when creating an instance of {@link Accounts} that will be used in the keyring
- */
-export interface AccountsParams {
-  serviceName?: string;
-  filesPath?: string;
-}
+import { AccountBase, AccountWithMnemonic, AccountsParams, BackendType, PublicKey, accountWithMnemonicValidator } from '@/types/Account';
+import { parsePublicKey } from '@/utils/accounts';
 
 /**
  * Accounts manager
@@ -77,8 +69,24 @@ export class Accounts {
     return ow.isValid(data, accountWithMnemonicValidator);
   };
 
+  /**
+   * Get a formatted version of the public key
+   *
+   * @param publicKey - Instance of {@link PublicKey} to be printed
+   * @returns Pretty formatted string
+   */
   static prettyPrintPublicKey(publicKey: PublicKey): string {
-    return `${bold('Public Key')}\n  ${bold('Type:')} ${publicKey['@type']}\n  ${bold('Key:')} ${parsePublicKey(publicKey.key)}`;
+    return `${bold('Public Key')}\n  ${bold('Type:')} ${publicKey['@type']}\n  ${bold('Key:')} ${publicKey.key}`;
+  }
+
+  /**
+   * Get a formatted version of the name and address
+   *
+   * @param publicKey - Instance of {@link AccountBase} to be printed
+   * @returns Pretty formatted string
+   */
+  static prettyPrintNameAndAddress(account: AccountBase): string {
+    return `${bold('Name:')} ${account.name}\n${bold('Address:')} ${account.address}`;
   }
 
   /**
@@ -89,6 +97,8 @@ export class Accounts {
    */
   async new(name: string): Promise<AccountWithMnemonic> {
     const result = await this._keystore.add(name);
+
+    result.publicKey.key = parsePublicKey(result.publicKey.key);
 
     return result;
   }

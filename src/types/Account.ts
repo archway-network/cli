@@ -40,6 +40,14 @@ export enum BackendType {
 }
 
 /**
+ * Params to be used when creating an instance of {@link Accounts} that will be used in the keyring
+ */
+export interface AccountsParams {
+  serviceName?: string;
+  filesPath?: string;
+}
+
+/**
  * Format validator for the {@link PublicKey} interface
  */
 export const publicKeyValidator = ow.object.exactShape({

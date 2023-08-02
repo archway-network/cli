@@ -81,3 +81,13 @@ export const getAccountPasswordPrompt = (nameOrAddress: string): PromptObject =>
     message: `Enter the password for the account ${nameOrAddress}`,
   };
 };
+
+/**
+ * Terminal prompt to ask the user for an account password
+ */
+export const confirmationPrompt: PromptObject = {
+  type: 'confirm',
+  name: 'confirm',
+  message: 'Do you want to proceed?',
+  initial: false,
+};
