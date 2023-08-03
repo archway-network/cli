@@ -1,5 +1,5 @@
 export * from './accounts';
-export * from './chainFile';
+export * from './chainRegistry';
 export * from './configFile';
 export * from './contracts';
 export * from './deployments';

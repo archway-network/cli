@@ -4,7 +4,7 @@ import _ from 'lodash';
 import ow from 'ow';
 import { StargateClient } from '@cosmjs/stargate';
 import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
-import { DirectSecp256k1HdWallet, OfflineSigner } from '@cosmjs/proto-signing';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { getWorkspaceRoot, mergeCustomizer, writeFileWithDir, sanitizeDirName, prettyPrintTransaction, bold } from '@/utils';
 import { ACCOUNTS, DEFAULT } from '@/GlobalConfig';
@@ -107,7 +107,15 @@ export class Config {
    */
   static async init(workingDir?: string): Promise<Config> {
     const configPath = await this.getFilePath(workingDir);
-    const data: ConfigData = JSON.parse(await fs.readFile(configPath, 'utf8'));
+    let data: ConfigData;
+
+    try {
+      data = JSON.parse(await fs.readFile(configPath, 'utf8'));
+    } catch {
+      throw new Error(
+        `Failed to open the config file (expected to be on ${configPath}). Make sure you have initialized the project repository with the 'modulor init' command`
+      );
+    }
 
     this.assertIsValidConfigData(data, configPath);
 
@@ -146,6 +154,7 @@ export class Config {
    */
   static async exists(workingDir?: string): Promise<boolean> {
     const configPath = await this.getFilePath(workingDir);
+
     try {
       await fs.access(configPath);
       return true;
@@ -306,7 +315,7 @@ export class Config {
   }
 
   /**
-   * Get a Stargate client of the currently active chain in the project
+   * Get a Signing Archway client of the currently active chain in the project
    *
    * @returns Promise containing the {@link StargateClient}
    */
@@ -314,7 +323,9 @@ export class Config {
     const chainInfo = await this.activeChainInfo();
     const rpcEndpoint = await this.activeChainRpcEndpoint(chainInfo);
 
-    const signer = await (account.type === AccountType.LEDGER ? Ledger.getLedgerSigner() : DirectSecp256k1HdWallet.fromMnemonic(account.mnemonic!, { prefix: ACCOUNTS.AddressBech32Prefix }));
+    const signer = await (account.type === AccountType.LEDGER ?
+      Ledger.getLedgerSigner() :
+      DirectSecp256k1HdWallet.fromMnemonic(account.mnemonic!, { prefix: ACCOUNTS.AddressBech32Prefix }));
 
     return SigningArchwayClient.connectWithSigner(rpcEndpoint, signer);
   }
@@ -357,5 +368,12 @@ export class Config {
       ...this.toConfigData(),
       contracts: this.contractsInstance.listContracts(),
     };
+  }
+
+  /**
+   * {@inheritDoc Contracts.assertIsValidWorkspace}
+   */
+  async assertIsValidWorkspace(): Promise<void> {
+    return this.contractsInstance.assertIsValidWorkspace();
   }
 }

@@ -45,7 +45,7 @@ export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
   public async run(): Promise<void> {
     const config = await Config.init();
 
-    await config.contractsInstance.assertValidWorkspace();
+    await config.assertIsValidWorkspace();
 
     await config.contractsInstance.create(this.args.contract!, this.flags.template || DEFAULT.Template);
 

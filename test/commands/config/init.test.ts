@@ -1,28 +1,24 @@
 import { expect, test } from '@oclif/test';
 import prompts from 'prompts';
-import sinon, { SinonStub, SinonSpy } from 'sinon';
-import fs from 'node:fs/promises';
+import sinon, { SinonSpy } from 'sinon';
 
 import { MESSAGES } from '../../../src/GlobalConfig';
+import { FilesystemStubs } from '../../stubs';
 
 describe('config init', () => {
-  let writeStub: SinonStub;
-  let accessStub: SinonStub;
-  let readdirStub: SinonStub;
+  const filesystemStubs = new FilesystemStubs();
   let promptsSpy: SinonSpy;
 
   before(() => {
     prompts.inject(['constantine-3']);
-    writeStub = sinon.stub(fs, 'writeFile');
-    readdirStub = sinon.stub(fs, 'readdir').callsFake(async () => []);
-    accessStub = sinon.stub(fs, 'access').rejects();
+    filesystemStubs.writeFile();
+    filesystemStubs.readdir();
+    filesystemStubs.accessFail();
     promptsSpy = sinon.spy(prompts, 'prompt');
   });
 
   after(() => {
-    accessStub.restore();
-    readdirStub.restore();
-    writeStub.restore();
+    filesystemStubs.restoreAll();
     promptsSpy.restore();
   });
 
@@ -36,13 +32,14 @@ describe('config init', () => {
 
   test
     .stdout()
-    .command(['config:init'])
+    .command(['config init'])
     .it('creates config file with prompt input', ctx => {
       expect(ctx.stdout).to.contain(MESSAGES.SuccessPrefix);
       expect(promptsSpy.calledOnce).to.be.true;
     });
 
   test
+    .stdout()
     .stderr()
     .command(['config init', '--chain=fail'])
     .catch(/(Chain id).*(not)/)

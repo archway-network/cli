@@ -1,70 +1,40 @@
 import { expect, test } from '@oclif/test';
-import fs from 'node:fs/promises';
-import sinon, { SinonStub } from 'sinon';
-import { SigningArchwayClient } from '@archwayhq/arch3.js';
-import keyring from '@archwayhq/keyring-go';
 
-import { Cargo, Contracts } from '../../../src/domain';
 import {
   aliceAccountName,
-  aliceStoreEntry,
-  aliceStoredAccount,
-  configString,
+  contractArgument,
+  contractArgumentSchema,
   contractProjectMetadata,
   dummyInstantiateTransaction,
-  storeDeployment,
 } from '../../dummies';
-import * as FilesystemUtils from '../../../src/utils/filesystem';
-
-import { StoreDeployment } from '../../../src/types';
+import { AccountsStubs, ConfigStubs, FilesystemStubs, SigningArchwayClientStubs } from '../../stubs';
 
 describe('contracts instantiate', () => {
   const contractName = contractProjectMetadata.name;
-  let readStub: SinonStub;
-  let writeStub: SinonStub;
-  let mkdirStub: SinonStub;
-  let readSubDirStub: SinonStub;
-  let keyringGetStub: SinonStub;
-  let keyringListStub: SinonStub;
-  let metadataStub: SinonStub;
-  let validWorkspaceStub: SinonStub;
-  let validateSchemaStub: SinonStub;
-  let findStoreStub: SinonStub;
-  let signingClientStub: SinonStub;
+
+  const accountsStubs = new AccountsStubs();
+  const configStubs = new ConfigStubs();
+  const filesystemStubs = new FilesystemStubs();
+  const signingArchwayClientStubs = new SigningArchwayClientStubs();
+
   before(() => {
-    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
-    writeStub = sinon.stub(fs, 'writeFile');
-    mkdirStub = sinon.stub(fs, 'mkdir');
-    readSubDirStub = sinon.stub(FilesystemUtils, 'readSubDirectories').callsFake(async () => [contractProjectMetadata.name]);
-    keyringGetStub = sinon.stub(keyring.OsStore, 'get').callsFake(() => aliceStoredAccount);
-    keyringListStub = sinon.stub(keyring.OsStore, 'list').callsFake(() => [aliceStoreEntry]);
-    metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    validateSchemaStub = sinon.stub(Contracts.prototype, <any>'assertValidJSONSchema').callsFake(async () => {});
-    findStoreStub = sinon.stub(Contracts.prototype, 'findStoreDeployment').callsFake(() => storeDeployment as StoreDeployment);
-    signingClientStub = sinon
-      .stub(SigningArchwayClient, 'connectWithSigner')
-      .callsFake(async () => ({ instantiate: async () => dummyInstantiateTransaction } as any));
+    accountsStubs.init();
+    configStubs.init();
+    configStubs.assertIsValidWorkspace();
+    filesystemStubs.readFile(contractArgumentSchema);
+    signingArchwayClientStubs.connectWithSigner();
   });
+
   after(() => {
-    readStub.restore();
-    writeStub.restore();
-    mkdirStub.restore();
-    readSubDirStub.restore();
-    keyringGetStub.restore();
-    keyringListStub.restore();
-    metadataStub.restore();
-    validWorkspaceStub.restore();
-    validateSchemaStub.restore();
-    findStoreStub.restore();
-    signingClientStub.restore();
+    accountsStubs.restoreAll();
+    configStubs.restoreAll();
+    filesystemStubs.restoreAll();
+    signingArchwayClientStubs.restoreAll();
   });
 
   test
     .stdout()
-    .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`])
+    .command(['contracts instantiate', contractName, `--args=${contractArgument}`, `--from=${aliceAccountName}`])
     .it('Instantiates the smart contract', ctx => {
       expect(ctx.stdout).to.contain('instantiated');
       expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
@@ -74,11 +44,25 @@ describe('contracts instantiate', () => {
 
   test
     .stdout()
-    .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`, '--json'])
+    .command(['contracts instantiate', contractName, `--args=${contractArgument}`, `--from=${aliceAccountName}`, '--json'])
     .it('Prints json outputt', ctx => {
       expect(ctx.stdout).to.not.contain('uploaded');
       expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
       expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
       expect(ctx.stdout).to.contain(dummyInstantiateTransaction.gasUsed);
     });
+
+  test
+    .stdout()
+    .stderr()
+    .command(['contracts instantiate', 'thisDoesntExist', `--args=${contractArgument}`, `--from=${aliceAccountName}`])
+    .catch(/(Contract).*(not found)/)
+    .it('fails on invalid contract');
+
+  test
+    .stdout()
+    .stderr()
+    .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`])
+    .catch(/(Failed to instantiate).*(does not match the schema)/)
+    .it('fails on invalid arguments');
 });

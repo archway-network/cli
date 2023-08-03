@@ -1,50 +1,23 @@
 import { expect, test } from '@oclif/test';
-import fs from 'node:fs/promises';
-import sinon, { SinonStub } from 'sinon';
-import keyring from '@archwayhq/keyring-go';
-import { SigningArchwayClient } from '@archwayhq/arch3.js';
 
-import { Cargo } from '../../../src/domain';
-import {
-  aliceAddress,
-  aliceStoreEntry,
-  aliceStoredAccount,
-  configString,
-  contractProjectMetadata,
-  dummyRewardsWithdrawResult,
-} from '../../dummies';
-import * as FilesystemUtils from '../../../src/utils/filesystem';
+import { aliceAddress, dummyRewardsWithdrawResult } from '../../dummies';
+import { AccountsStubs, ConfigStubs, SigningArchwayClientStubs } from '../../stubs';
 
 describe('rewards withdraw', () => {
-  let readStub: SinonStub;
-  let writeStub: SinonStub;
-  let mkdirStub: SinonStub;
-  let readSubDirStub: SinonStub;
-  let keyringGetStub: SinonStub;
-  let keyringListStub: SinonStub;
-  let metadataStub: SinonStub;
-  let archwayClientStub: SinonStub;
+  const accountsStubs = new AccountsStubs();
+  const configStubs = new ConfigStubs();
+  const signingArchwayClientStubs = new SigningArchwayClientStubs();
+
   before(() => {
-    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
-    writeStub = sinon.stub(fs, 'writeFile');
-    mkdirStub = sinon.stub(fs, 'mkdir');
-    readSubDirStub = sinon.stub(FilesystemUtils, 'readSubDirectories').callsFake(async () => [contractProjectMetadata.name]);
-    keyringGetStub = sinon.stub(keyring.OsStore, 'get').callsFake(() => aliceStoredAccount);
-    keyringListStub = sinon.stub(keyring.OsStore, 'list').callsFake(() => [aliceStoreEntry]);
-    metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
-    archwayClientStub = sinon
-      .stub(SigningArchwayClient, 'connectWithSigner')
-      .callsFake(async () => ({ withdrawContractRewards: async () => dummyRewardsWithdrawResult } as any));
+    accountsStubs.init();
+    configStubs.init();
+    signingArchwayClientStubs.connectWithSigner();
   });
+
   after(() => {
-    readStub.restore();
-    writeStub.restore();
-    mkdirStub.restore();
-    readSubDirStub.restore();
-    keyringGetStub.restore();
-    keyringListStub.restore();
-    metadataStub.restore();
-    archwayClientStub.restore();
+    accountsStubs.restoreAll();
+    configStubs.restoreAll();
+    signingArchwayClientStubs.restoreAll();
   });
 
   test
@@ -55,4 +28,11 @@ describe('rewards withdraw', () => {
       expect(ctx.stdout).to.contain(dummyRewardsWithdrawResult.rewards[0].amount);
       expect(ctx.stdout).to.contain(dummyRewardsWithdrawResult.rewards[0].denom);
     });
+
+  test
+    .stdout()
+    .stderr()
+    .command(['rewards withdraw', '--from=invalidAddress'])
+    .catch(/(Account).*(not found)/)
+    .it('fails on invalid contract');
 });

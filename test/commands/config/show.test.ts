@@ -1,22 +1,17 @@
 import { expect, test } from '@oclif/test';
-import sinon, { SinonStub } from 'sinon';
-import fs from 'node:fs/promises';
 
 import { expectOutputJSON } from '../../helpers';
-import { configString } from '../../dummies/configFile';
+import { ConfigStubs } from '../../stubs';
 
 describe('config show', () => {
-  let readStub: SinonStub;
-  let readdirStub: SinonStub;
+  const configStubs = new ConfigStubs();
 
   before(() => {
-    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
-    readdirStub = sinon.stub(fs, 'readdir').callsFake(async () => []);
+    configStubs.init();
   });
 
   after(() => {
-    readStub.restore();
-    readdirStub.restore();
+    configStubs.restoreAll();
   });
 
   test

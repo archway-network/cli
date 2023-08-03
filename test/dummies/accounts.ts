@@ -2,6 +2,8 @@ import { Coin } from '@cosmjs/proto-signing';
 
 import { ACCOUNTS } from '../../src/GlobalConfig';
 
+import { AccountType } from '../../src/types';
+
 export const aliceAccountName = 'Alice';
 export const bobAccountName = 'Bob';
 
@@ -22,13 +24,18 @@ export const bobPublicKey = {
   key: 'AlOxi1K6OPtTlqroA9aJcKWfI3u2YCduektBXnRk963b',
 };
 
+export const aliceAccountType = AccountType.LOCAL
+export const bobAccountType = AccountType.LOCAL
+
 export const aliceAccountBase = {
   name: aliceAccountName,
   address: aliceAddress,
+  type: aliceAccountType
 };
 export const bobAccountBase = {
   name: bobAccountName,
   address: bobAddress,
+  type: bobAccountType
 };
 
 export const aliceAccountInstance = {
@@ -52,11 +59,11 @@ export const bobAccountWithMnemonic = {
 export const aliceStoredAccount = JSON.stringify(aliceAccountWithMnemonic);
 export const bobStoredAccount = JSON.stringify(bobAccountWithMnemonic);
 
-export const aliceStoreEntry = `${aliceAccountName}${ACCOUNTS.EntrySeparator}${aliceAddress}.${ACCOUNTS.EntrySuffix}`;
-export const bobStoreEntry = `${bobAccountName}${ACCOUNTS.EntrySeparator}${bobAddress}.${ACCOUNTS.EntrySuffix}`;
+export const aliceStoreEntry = `${aliceAccountName}${ACCOUNTS.EntrySeparator}${aliceAccountType}${ACCOUNTS.EntrySeparator}${aliceAddress}.${ACCOUNTS.EntrySuffix}`;
+export const bobStoreEntry = `${bobAccountName}${ACCOUNTS.EntrySeparator}${bobAccountType}${ACCOUNTS.EntrySeparator}${bobAddress}.${ACCOUNTS.EntrySuffix}`;
 
 export const dummyAmount: Coin = {
   amount: '10',
   denom: 'uarch',
 };
-export const dummyAmmountString = '10uarch';
+export const dummyAmountString = '10uarch';

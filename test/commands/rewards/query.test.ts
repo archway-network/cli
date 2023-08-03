@@ -1,51 +1,24 @@
 import { expect, test } from '@oclif/test';
-import fs from 'node:fs/promises';
-import sinon, { SinonStub } from 'sinon';
-import keyring from '@archwayhq/keyring-go';
-import { ArchwayClient } from '@archwayhq/arch3.js';
 
-import { Cargo } from '../../../src/domain';
 import { expectOutputJSON } from '../../helpers/expect';
-import {
-  aliceAddress,
-  aliceStoreEntry,
-  aliceStoredAccount,
-  configString,
-  contractProjectMetadata,
-  dummyRewardsQueryResult,
-} from '../../dummies';
-import * as FilesystemUtils from '../../../src/utils/filesystem';
+import { aliceAddress, dummyRewardsQueryResult } from '../../dummies';
+import { AccountsStubs, ArchwayClientStubs, ConfigStubs } from '../../stubs';
 
 describe('rewards query', () => {
-  let readStub: SinonStub;
-  let writeStub: SinonStub;
-  let mkdirStub: SinonStub;
-  let readSubDirStub: SinonStub;
-  let keyringGetStub: SinonStub;
-  let keyringListStub: SinonStub;
-  let metadataStub: SinonStub;
-  let archwayClientStub: SinonStub;
+  const accountsStubs = new AccountsStubs();
+  const configStubs = new ConfigStubs();
+  const archwayClientStubs = new ArchwayClientStubs();
+
   before(() => {
-    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
-    writeStub = sinon.stub(fs, 'writeFile');
-    mkdirStub = sinon.stub(fs, 'mkdir');
-    readSubDirStub = sinon.stub(FilesystemUtils, 'readSubDirectories').callsFake(async () => [contractProjectMetadata.name]);
-    keyringGetStub = sinon.stub(keyring.OsStore, 'get').callsFake(() => aliceStoredAccount);
-    keyringListStub = sinon.stub(keyring.OsStore, 'list').callsFake(() => [aliceStoreEntry]);
-    metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
-    archwayClientStub = sinon
-      .stub(ArchwayClient, 'connect')
-      .callsFake(async () => ({ getOutstandingRewards: async () => dummyRewardsQueryResult } as any));
+    accountsStubs.init();
+    configStubs.init();
+    archwayClientStubs.connect();
   });
+
   after(() => {
-    readStub.restore();
-    writeStub.restore();
-    mkdirStub.restore();
-    readSubDirStub.restore();
-    keyringGetStub.restore();
-    keyringListStub.restore();
-    metadataStub.restore();
-    archwayClientStub.restore();
+    accountsStubs.restoreAll();
+    configStubs.restoreAll();
+    archwayClientStubs.restoreAll();
   });
 
   test
@@ -59,4 +32,11 @@ describe('rewards query', () => {
     });
 
   test.stdout().command(['rewards query', aliceAddress, '--json']).it('Prints json output', expectOutputJSON);
+
+  test
+    .stdout()
+    .stderr()
+    .command(['rewards query', 'thisDoesntExist'])
+    .catch(/(Address).*(doesn't have a valid format)/)
+    .it('fails on invalid contract');
 });

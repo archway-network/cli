@@ -1,64 +1,27 @@
 import { expect, test } from '@oclif/test';
-import fs from 'node:fs/promises';
-import sinon, { SinonStub } from 'sinon';
-import { SigningArchwayClient } from '@archwayhq/arch3.js';
-import keyring from '@archwayhq/keyring-go';
 
-import { Cargo, Contracts } from '../../../src/domain';
-import {
-  aliceAccountName,
-  aliceStoreEntry,
-  aliceStoredAccount,
-  configString,
-  contractProjectMetadata,
-  dummyPremiumTransaction,
-  instantiateDeployment,
-} from '../../dummies';
-import * as FilesystemUtils from '../../../src/utils/filesystem';
-
-import { InstantiateDeployment } from '../../../src/types';
+import { aliceAccountName, contractProjectMetadata, dummyPremiumTransaction } from '../../dummies';
+import { AccountsStubs, ConfigStubs, SigningArchwayClientStubs } from '../../stubs';
 
 describe('contracts premium', () => {
   const contractName = contractProjectMetadata.name;
   const newFee = '3aconst';
-  let readStub: SinonStub;
-  let writeStub: SinonStub;
-  let mkdirStub: SinonStub;
-  let readSubDirStub: SinonStub;
-  let keyringGetStub: SinonStub;
-  let keyringListStub: SinonStub;
-  let metadataStub: SinonStub;
-  let validWorkspaceStub: SinonStub;
-  let findInstantiateStub: SinonStub;
-  let signingClientStub: SinonStub;
+
+  const accountsStubs = new AccountsStubs();
+  const configStubs = new ConfigStubs();
+  const signingArchwayClientStubs = new SigningArchwayClientStubs();
+
   before(() => {
-    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
-    writeStub = sinon.stub(fs, 'writeFile');
-    mkdirStub = sinon.stub(fs, 'mkdir');
-    readSubDirStub = sinon.stub(FilesystemUtils, 'readSubDirectories').callsFake(async () => [contractProjectMetadata.name]);
-    keyringGetStub = sinon.stub(keyring.OsStore, 'get').callsFake(() => aliceStoredAccount);
-    keyringListStub = sinon.stub(keyring.OsStore, 'list').callsFake(() => [aliceStoreEntry]);
-    metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
-    findInstantiateStub = sinon
-      .stub(Contracts.prototype, 'findInstantiateDeployment')
-      .callsFake(() => instantiateDeployment as InstantiateDeployment);
-    signingClientStub = sinon
-      .stub(SigningArchwayClient, 'connectWithSigner')
-      .callsFake(async () => ({ setContractPremium: async () => dummyPremiumTransaction } as any));
+    accountsStubs.init();
+    configStubs.init();
+    configStubs.assertIsValidWorkspace();
+    signingArchwayClientStubs.connectWithSigner();
   });
+
   after(() => {
-    readStub.restore();
-    writeStub.restore();
-    mkdirStub.restore();
-    readSubDirStub.restore();
-    keyringGetStub.restore();
-    keyringListStub.restore();
-    metadataStub.restore();
-    validWorkspaceStub.restore();
-    findInstantiateStub.restore();
-    signingClientStub.restore();
+    accountsStubs.restoreAll();
+    configStubs.restoreAll();
+    signingArchwayClientStubs.restoreAll();
   });
 
   test
@@ -83,4 +46,11 @@ describe('contracts premium', () => {
       expect(ctx.stdout).to.contain(dummyPremiumTransaction.premium.flatFee.amount);
       expect(ctx.stdout).to.contain(dummyPremiumTransaction.gasUsed);
     });
+
+  test
+    .stdout()
+    .stderr()
+    .command(['contracts premium', 'thisDoesntExist', `--premium-fee=${newFee}`, `--from=${aliceAccountName}`])
+    .catch(/(Contract).*(not found)/)
+    .it('fails on invalid contract');
 });

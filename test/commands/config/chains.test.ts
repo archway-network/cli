@@ -1,9 +1,8 @@
 import { expect, test } from '@oclif/test';
-import sinon, { SinonStub, SinonSpy } from 'sinon';
-import fs from 'node:fs/promises';
 
 import ConfigChains from '../../../src/commands/config/chains';
-import { chainString, configString } from '../../dummies';
+import { chainString } from '../../dummies';
+import { ConfigStubs, FilesystemStubs } from '../../stubs';
 
 const expectHelp = (ctx: any) => {
   expect(ctx.stdout).to.contain('Description:');
@@ -13,54 +12,39 @@ const expectHelp = (ctx: any) => {
 };
 
 describe('config chains', () => {
-  let accessStub: SinonStub;
-  let writeStub: SinonStub;
-  let readStub: SinonStub;
-  let mkdirStub: SinonSpy;
-  let readdirStub: SinonSpy;
+  const configStubs = new ConfigStubs();
+  const filesystemStubs = new FilesystemStubs();
 
   before(() => {
-    accessStub = sinon.stub(fs, 'access').rejects();
-    writeStub = sinon.stub(fs, 'writeFile');
-    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
-    mkdirStub = sinon.stub(fs, 'mkdir');
-    readdirStub = sinon.stub(fs, 'readdir');
+    configStubs.init();
+    filesystemStubs.writeFile();
+    filesystemStubs.readFile(chainString);
+    filesystemStubs.mkdir();
   });
 
   after(() => {
-    accessStub.restore();
-    writeStub.restore();
-    readStub.restore();
-    mkdirStub.restore();
-    readdirStub.restore();
+    configStubs.restoreAll();
+    filesystemStubs.restoreAll();
   });
 
   describe('import', () => {
-    before(() => {
-      readStub.restore();
-      readStub = sinon.stub(fs, 'readFile').callsFake(async () => chainString);
-    });
-
-    after(() => {
-      readStub.restore();
-      readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
-    });
-
     test
       .stdout()
       .command(['config chains import', 'constantine-3'])
       .it('imports chain and writes file', ctx => {
         expect(ctx.stdout).to.contain('Imported chain');
-        expect(writeStub.called).to.be.true;
+        expect(filesystemStubs.stubbedWriteFile?.called).to.be.true;
       });
 
     test
+      .stdout()
       .stderr()
       .command(['config chains import'])
       .catch(/(Please specify the file)/)
       .it('fails on missing filename');
 
     test
+      .stdout()
       .stderr()
       .command(['config chains import', 'constantine-3', '"{}"'])
       .catch(/(Please specify only one file to import)/)
@@ -73,7 +57,7 @@ describe('config chains', () => {
       .command(['config chains export', 'constantine-3'])
       .it('exports chain to file', ctx => {
         expect(ctx.stdout).to.contain('Exported chain to');
-        expect(writeStub.called).to.be.true;
+        expect(filesystemStubs.stubbedWriteFile?.called).to.be.true;
       });
   });
 
@@ -83,7 +67,7 @@ describe('config chains', () => {
       .command(['config chains use', '--chain=constantine-3'])
       .it('updates config file to use chain', ctx => {
         expect(ctx.stdout).to.contain('Switched chain to');
-        expect(writeStub.called).to.be.true;
+        expect(filesystemStubs.stubbedWriteFile?.called).to.be.true;
       });
   });
 

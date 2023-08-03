@@ -1,39 +1,28 @@
 import { expect, test } from '@oclif/test';
 import spawk from 'spawk';
-import fs from 'node:fs/promises';
-import sinon, { SinonStub } from 'sinon';
 
-import { Cargo, Contracts, DockerOptimizer } from '../../../src/domain';
-import { configString, contractProjectMetadata } from '../../dummies';
-import * as FilesystemUtils from '../../../src/utils/filesystem';
+import { contractProjectMetadata } from '../../dummies';
+import { CargoStubs, ConfigStubs, OptimizerStubs } from '../../stubs';
 
 describe('contracts build', () => {
   const contractName = contractProjectMetadata.name;
-  let readStub: SinonStub;
-  let writeStub: SinonStub;
-  let mkdirStub: SinonStub;
-  let readSubDirStub: SinonStub;
-  let metadataStub: SinonStub;
-  let validWorkspaceStub: SinonStub;
-  let optimizerStub: SinonStub;
+
+  const configStubs = new ConfigStubs();
+  const optimizerStubs = new OptimizerStubs();
+  const cargoStubs = new CargoStubs();
+
   before(() => {
     spawk.preventUnmatched();
-    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
-    writeStub = sinon.stub(fs, 'writeFile');
-    mkdirStub = sinon.stub(fs, 'mkdir');
-    readSubDirStub = sinon.stub(FilesystemUtils, 'readSubDirectories').callsFake(async () => [contractProjectMetadata.name]);
-    metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
+    configStubs.init();
+    configStubs.assertIsValidWorkspace();
+    cargoStubs.projectMetadata();
   });
+
   after(() => {
-    readStub.restore();
-    writeStub.restore();
-    mkdirStub.restore();
-    readSubDirStub.restore();
-    metadataStub.restore();
-    validWorkspaceStub.restore();
+    configStubs.restoreAll();
+    cargoStubs.restoreAll();
   });
+
   describe('Build only', () => {
     before(() => {
       // Cargo build call
@@ -41,6 +30,7 @@ describe('contracts build', () => {
       // Cargo generate wasm call
       spawk.spawn('cargo');
     });
+
     test
       .stdout()
       .command(['contracts build', contractName])
@@ -52,11 +42,13 @@ describe('contracts build', () => {
 
   describe('Build optimized', () => {
     before(() => {
-      optimizerStub = sinon.stub(DockerOptimizer.prototype, 'run').callsFake(async () => ({ statusCode: 0 }));
+      optimizerStubs.optimizerSuccess();
     });
+
     after(() => {
-      optimizerStub.restore();
+      optimizerStubs.restoreAll();
     });
+
     test
       .stdout()
       .command(['contracts build', '--optimize', contractName])
@@ -68,13 +60,17 @@ describe('contracts build', () => {
 
   describe('Docker optimizer', () => {
     const expectedError = 'Docker run failed';
+
     before(() => {
-      optimizerStub = sinon.stub(DockerOptimizer.prototype, 'run').callsFake(async () => ({ error: expectedError, statusCode: 1 }));
+      optimizerStubs.optimizerFail(expectedError);
     });
+
     after(() => {
-      optimizerStub.restore();
+      optimizerStubs.restoreAll();
     });
+
     test
+      .stdout()
       .stderr()
       .command(['contracts build', '--optimize', contractName])
       .catch(new RegExp(expectedError))
@@ -90,6 +86,7 @@ describe('contracts build', () => {
       // Cargo generate schemas call
       spawk.spawn('cargo');
     });
+
     test
       .stdout()
       .command(['contracts build', '--schemas', contractName])

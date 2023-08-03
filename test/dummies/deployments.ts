@@ -1,5 +1,13 @@
+import path from 'node:path';
+
+import { Deployments, DeploymentsByChain } from '../../src/domain';
+import { DEFAULT } from '../../src/GlobalConfig';
+import { chainNames } from './chainRegistry';
+
+import { DeploymentAction } from '../../src/types';
+
 export const storeDeployment = {
-  action: 'store',
+  action: 'store' as DeploymentAction,
   txhash: '76B73AC422665CBAD3F796B78ED952E392538F668798377470D95999F2A74724',
   wasm: {
     codeId: 207,
@@ -12,14 +20,14 @@ export const storeDeployment = {
 };
 
 export const instantiateDeployment = {
-  action: 'instantiate',
+  action: 'instantiate' as DeploymentAction,
   txhash: 'A1F9F208C12B939E8F34FA8FE950EAD07E16FB6AFCBEE638384C60846339D86C',
   wasm: {
     codeId: 207,
   },
   contract: {
-    name: 'my-contract-2',
-    version: '0.1.1',
+    name: 'my-contract',
+    version: '0.1.0',
     address: 'archway17kan46qvsvz0j4jyy52scywwcer5vr5mwyd653jfvvqgxs9ghets9nekqh',
     admin: 'archway1ef8r7lwu6xtxkzhkmeufpcv7m3xy4gm5l2mazd',
   },
@@ -29,7 +37,7 @@ export const instantiateDeployment = {
 };
 
 export const metadataDeployment = {
-  action: 'metadata',
+  action: 'metadata' as DeploymentAction,
   txhash: 'EEA49C46AAECBF8B8F0F8A67F601A1265A40A5778B19867C75AD6087A84D8A2E',
   wasm: {
     codeId: 207,
@@ -48,7 +56,7 @@ export const metadataDeployment = {
 };
 
 export const premiumDeployment = {
-  action: 'premium',
+  action: 'premium' as DeploymentAction,
   txhash: 'EEA49C46AAECBF8B8F0F8A67F601A1265A40A5778B19867C75AD6087A84D8A2E',
   wasm: {
     codeId: 207,
@@ -70,3 +78,19 @@ export const deploymentFile = {
 };
 
 export const deploymentString = JSON.stringify(deploymentFile);
+
+export const deploymentsInstance = new Deployments(
+  [
+    DeploymentsByChain.make(
+      DEFAULT.DeploymentsRelativePath,
+      path.basename(chainNames[0], DEFAULT.DeploymentFileExtension),
+      deploymentFile.deployments
+    ),
+  ],
+  DEFAULT.DeploymentsRelativePath
+);
+
+export const deploymentsEmptyInstance = new Deployments(
+  [DeploymentsByChain.make(DEFAULT.DeploymentsRelativePath, path.basename(chainNames[0], DEFAULT.DeploymentFileExtension), [])],
+  DEFAULT.DeploymentsRelativePath
+);

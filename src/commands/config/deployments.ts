@@ -29,7 +29,7 @@ export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployme
     // Should fail if contract flag is set and it doesn't exist in the registered Contracts
     if (this.flags.contract) {
       const contracts = await Contracts.init();
-      contracts.assertGetContractByName(this.flags.contract);
+      contracts.getContractByName(this.flags.contract);
     }
 
     this.log(await deployments.prettyPrint(this.flags.chain, this.flags.action as DeploymentAction, this.flags.contract));

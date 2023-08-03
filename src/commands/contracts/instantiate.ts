@@ -61,8 +61,8 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
 
     // Load config and contract info
     const config = await Config.init();
-    await config.contractsInstance.assertValidWorkspace();
-    const contract = config.contractsInstance.assertGetContractByName(this.args.contract!);
+    await config.assertIsValidWorkspace();
+    const contract = config.contractsInstance.getContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
 

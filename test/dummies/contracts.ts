@@ -1,14 +1,30 @@
-import { CargoProjectMetadata } from '../../src/types';
+import { Contracts } from '../../src/domain';
+import { deploymentFile, deploymentsInstance } from './deployments';
+import { DEFAULT } from '../../src/GlobalConfig';
+
+import { CargoProjectMetadata, Contract } from '../../src/types';
 
 export const contractProjectMetadata: CargoProjectMetadata = {
-  name: 'test',
+  name: 'my-contract',
   version: '0.1.0',
-  label: 'test-0.1.0',
+  label: 'my-contract-0.1.0',
   wasm: {
-    fileName: 'test.wasm',
-    filePath: '/Users/eliasmpw/Projects/Archway/archway-cli-v2/target/wasm32-unknown-unknown/release/yyy.wasm',
-    optimizedFilePath: '/Users/eliasmpw/Projects/Archway/archway-cli-v2/artifacts/yyy.wasm',
+    fileName: 'my-contract.wasm',
+    filePath: './target/wasm32-unknown-unknown/release/my-contract.wasm',
+    optimizedFilePath: './artifacts/my-contract.wasm',
   },
-  root: '/Users/eliasmpw/Projects/Archway/archway-cli-v2/contracts/test',
-  workspaceRoot: '/Users/eliasmpw/Projects/Archway/archway-cli-v2',
+  root: './contracts/my-contract',
+  workspaceRoot: '.',
 };
+
+export const contractData: Contract = {
+  deployments: deploymentFile.deployments.map(item => ({ ...item, chainId: 'constantine-3' })),
+  ...contractProjectMetadata,
+};
+
+export const contractsInstance = new Contracts([contractData], '.', DEFAULT.ContractsRelativePath, deploymentsInstance);
+
+export const contractArgument = '{"count": 1}';
+
+export const contractArgumentSchema =
+  '{"$schema": "http://json-schema.org/draft-07/schema#","title": "QueryMsg","oneOf": [{"type": "object","required": ["count"],"properties": {"count": {"type": "number"}},"additionalProperties": false}]}';

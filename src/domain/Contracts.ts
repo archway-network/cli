@@ -94,11 +94,11 @@ export class Contracts {
   }
 
   /**
-   * Verifies that a project has a valid workspace
+   * Verifies that a project has a valid workspace, throws an error if not
    *
    * @returns Empty promise
    */
-  async assertValidWorkspace(): Promise<void> {
+  async assertIsValidWorkspace(): Promise<void> {
     const relativeContracts = `${path.relative(this._workspaceRoot, this._contractsRoot)}/*`;
     const cargoFilePath = path.join(this._workspaceRoot, './Cargo.toml');
 
@@ -203,22 +203,12 @@ export class Contracts {
    * @param contractName - Name of the contract to get
    * @returns The contract matching the name
    */
-  assertGetContractByName(contractName: string): Contract {
-    const result = this.getContractByName(contractName);
+  getContractByName(contractName: string): Contract {
+    const result = this._data.find(item => item.name === contractName)
 
     if (!result) throw new ContractNameNotFoundError(contractName);
 
     return result;
-  }
-
-  /**
-   * Get a contract by its name
-   *
-   * @param contractName - Name of the contract to get
-   * @returns Instance of {@link Contract} that matches the name, or undefined if not found
-   */
-  getContractByName(contractName: string): Contract | undefined {
-    return this._data.find(item => item.name === contractName);
   }
 
   /**
@@ -249,7 +239,7 @@ export class Contracts {
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async assertValidInstantiateArgs(contractName: string, initArgs: any): Promise<void> {
-    const contract = this.assertGetContractByName(contractName);
+    const contract = this.getContractByName(contractName);
     const schemaPath = path.join(contract.root, DEFAULT.InstantiateSchemaRelativePath);
 
     try {
@@ -261,7 +251,7 @@ export class Contracts {
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async assertValidExecuteArgs(contractName: string, executeArgs: any): Promise<void> {
-    const contract = this.assertGetContractByName(contractName);
+    const contract = this.getContractByName(contractName);
     const schemaPath = path.join(contract.root, DEFAULT.ExecuteSchemaRelativePath);
 
     try {
@@ -273,7 +263,7 @@ export class Contracts {
 
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async assertValidQueryArgs(contractName: string, queryArgs: any): Promise<void> {
-    const contract = this.assertGetContractByName(contractName);
+    const contract = this.getContractByName(contractName);
     const schemaPath = path.join(contract.root, DEFAULT.QuerySchemaRelativePath);
 
     try {
@@ -290,7 +280,7 @@ export class Contracts {
    * @returns Promise containing the checksum
    */
   async generateChecksum(contractName: string): Promise<string> {
-    const contract = this.assertGetContractByName(contractName);
+    const contract = this.getContractByName(contractName);
 
     const fileBuffer = await fs.readFile(contract.wasm.optimizedFilePath);
     const hashSum = crypto.createHash('sha256');
@@ -324,7 +314,7 @@ export class Contracts {
    * @returns An instance of {@link StoreDeployment} or undefined if not found
    */
   findStoreDeployment(contractName: string, chainId: string): StoreDeployment | undefined {
-    const contract = this.assertGetContractByName(contractName);
+    const contract = this.getContractByName(contractName);
 
     return contract.deployments.find(item => {
       const pastDeploy = item as StoreDeployment;
@@ -343,7 +333,7 @@ export class Contracts {
    * @returns An instance of {@link InstantiateDeployment} or undefined if not found
    */
   findInstantiateDeployment(contractName: string, chainId: string): InstantiateDeployment | undefined {
-    const contract = this.assertGetContractByName(contractName);
+    const contract = this.getContractByName(contractName);
 
     return contract.deployments.find(item => {
       const pastDeploy = item as InstantiateDeployment;

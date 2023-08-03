@@ -1,23 +1,18 @@
 import { expect, test } from '@oclif/test';
 import prompts from 'prompts';
-import sinon, { SinonStub } from 'sinon';
-import keyring from '@archwayhq/keyring-go';
 
-import { aliceStoreEntry, aliceAccountName, aliceStoredAccount } from '../../dummies';
+import { aliceAccountName } from '../../dummies';
+import { AccountsStubs } from '../../stubs';
 
 describe('accounts remove', () => {
-  let keyringGetStub: SinonStub;
-  let keyringListStub: SinonStub;
-  let keyringRemoveStub: SinonStub;
+  const accountsStubs = new AccountsStubs();
+
   before(() => {
-    keyringGetStub = sinon.stub(keyring.OsStore, 'get').callsFake(() => aliceStoredAccount);
-    keyringListStub = sinon.stub(keyring.OsStore, 'list').callsFake(() => [aliceStoreEntry]);
-    keyringRemoveStub = sinon.stub(keyring.OsStore, 'remove');
+    accountsStubs.init();
   });
+
   after(() => {
-    keyringGetStub.restore();
-    keyringListStub.restore();
-    keyringRemoveStub.restore();
+    accountsStubs.restoreAll();
   });
 
   describe('confirm deletion prompt', () => {
@@ -45,4 +40,11 @@ describe('accounts remove', () => {
         expect(ctx.stdout).to.not.contain('deleted');
       });
   });
+
+  test
+    .stdout()
+    .stderr()
+    .command(['accounts remove', 'notExistentAccount'])
+    .catch(/(Account).*(not found)/)
+    .it('fails on invalid account to delete');
 });

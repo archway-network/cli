@@ -1,19 +1,16 @@
 import { expect, test } from '@oclif/test';
-import sinon, { SinonStub } from 'sinon';
-import keyring from '@archwayhq/keyring-go';
 
-import { aliceAddress, aliceStoreEntry, aliceAccountName, alicePublicKey, aliceStoredAccount } from '../../dummies';
+import { aliceAddress, aliceAccountName, alicePublicKey } from '../../dummies';
+import { AccountsStubs } from '../../stubs';
 
 describe('accounts get', () => {
-  let keyringGetStub: SinonStub;
-  let keyringListStub: SinonStub;
+  const accountsStubs = new AccountsStubs();
+
   before(() => {
-    keyringGetStub = sinon.stub(keyring.OsStore, 'get').callsFake(() => aliceStoredAccount);
-    keyringListStub = sinon.stub(keyring.OsStore, 'list').callsFake(() => [aliceStoreEntry]);
+    accountsStubs.init();
   });
   after(() => {
-    keyringGetStub.restore();
-    keyringListStub.restore();
+    accountsStubs.restoreAll();
   });
 
   test
@@ -35,4 +32,11 @@ describe('accounts get', () => {
       expect(ctx.stdout).to.not.contain(alicePublicKey['@type']);
       expect(ctx.stdout).to.not.contain(alicePublicKey.key);
     });
+
+  test
+    .stdout()
+    .stderr()
+    .command(['accounts get', 'thisDoesntExist'])
+    .catch(/(Account).*(not found)/)
+    .it('fails on invalid account');
 });

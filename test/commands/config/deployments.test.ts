@@ -1,29 +1,20 @@
 import { expect, test } from '@oclif/test';
-import sinon, { SinonStub } from 'sinon';
-import fs from 'node:fs/promises';
 
 import { expectOutputJSON } from '../../helpers/expect';
 import { noDeploymentsMessage } from '../../../src/domain';
-import { deploymentFile, deploymentString } from '../../dummies';
-import * as filesystem from '../../../src/utils/filesystem';
+import { deploymentFile } from '../../dummies';
+import DeploymentsStubs from '../../stubs/deployments';
 
 describe('config deployments', () => {
-  let readStub: SinonStub;
-  let readdirStub: SinonStub;
+  const deploymentsStubs = new DeploymentsStubs();
 
   describe('successful', () => {
-    let readFilesStub: SinonStub;
-
     before(() => {
-      readStub = sinon.stub(fs, 'readFile').callsFake(async () => '{}');
-      readdirStub = sinon.stub(fs, 'readdir');
-      readFilesStub = sinon.stub(filesystem, 'readFilesFromDirectory').callsFake(async () => ({ foo: deploymentString }));
+      deploymentsStubs.init();
     });
 
     after(() => {
-      readStub.restore();
-      readdirStub.restore();
-      readFilesStub.restore();
+      deploymentsStubs.restoreAll();
     });
 
     test
@@ -47,13 +38,11 @@ describe('config deployments', () => {
 
   describe('no deployments', () => {
     before(() => {
-      readStub = sinon.stub(fs, 'readFile').callsFake(async () => '{}');
-      readdirStub = sinon.stub(fs, 'readdir');
+      deploymentsStubs.initZeroDeployments();
     });
 
     after(() => {
-      readStub.restore();
-      readdirStub.restore();
+      deploymentsStubs.restoreAll();
     });
     test
       .stdout()
@@ -63,12 +52,14 @@ describe('config deployments', () => {
       });
 
     test
+      .stdout()
       .stderr()
       .command(['config deployments', '--chain=fake'])
       .catch(/(Chain).*(not found)/)
       .it('fails on chain flag not found');
 
     test
+      .stdout()
       .stderr()
       .command(['config deployments', '--contract=fake'])
       .catch(/(Contract).*(not found)/)

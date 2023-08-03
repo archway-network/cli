@@ -28,8 +28,7 @@ export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
   public async run(): Promise<void> {
     const config = await Config.init();
 
-    await config.contractsInstance.assertValidWorkspace();
-
+    await config.assertIsValidWorkspace();
     if (this.flags.optimize) {
       this.log(`Building optimized wasm file for ${this.args.contract}...`);
 

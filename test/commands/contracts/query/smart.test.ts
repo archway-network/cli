@@ -1,78 +1,55 @@
 import { expect, test } from '@oclif/test';
-import fs from 'node:fs/promises';
-import sinon, { SinonStub } from 'sinon';
-import { SigningArchwayClient } from '@archwayhq/arch3.js';
-import keyring from '@archwayhq/keyring-go';
 
-import { Cargo, Contracts } from '../../../../src/domain';
-import {
-  aliceAccountName,
-  aliceStoreEntry,
-  aliceStoredAccount,
-  configString,
-  contractProjectMetadata,
-  dummyQueryResult,
-  instantiateDeployment,
-} from '../../../dummies';
+import { aliceAccountName, contractProjectMetadata, dummyQueryResult, contractArgument, contractArgumentSchema } from '../../../dummies';
 import { expectOutputJSON } from '../../../helpers/expect';
-import * as FilesystemUtils from '../../../../src/utils/filesystem';
-
-import { InstantiateDeployment } from '../../../../src/types';
+import { AccountsStubs, ConfigStubs, FilesystemStubs, SigningArchwayClientStubs } from '../../../stubs';
 
 describe('contracts query smart', () => {
   const contractName = contractProjectMetadata.name;
-  let readStub: SinonStub;
-  let writeStub: SinonStub;
-  let mkdirStub: SinonStub;
-  let readSubDirStub: SinonStub;
-  let keyringGetStub: SinonStub;
-  let keyringListStub: SinonStub;
-  let metadataStub: SinonStub;
-  let validWorkspaceStub: SinonStub;
-  let validateSchemaStub: SinonStub;
-  let findInstantiateStub: SinonStub;
-  let signingClientStub: SinonStub;
+
+  const accountsStubs = new AccountsStubs();
+  const configStubs = new ConfigStubs();
+  const signingArchwayClientStubs = new SigningArchwayClientStubs();
+  const filesystemStubs = new FilesystemStubs();
+
   before(() => {
-    readStub = sinon.stub(fs, 'readFile').callsFake(async () => configString);
-    writeStub = sinon.stub(fs, 'writeFile');
-    mkdirStub = sinon.stub(fs, 'mkdir');
-    readSubDirStub = sinon.stub(FilesystemUtils, 'readSubDirectories').callsFake(async () => [contractProjectMetadata.name]);
-    keyringGetStub = sinon.stub(keyring.OsStore, 'get').callsFake(() => aliceStoredAccount);
-    keyringListStub = sinon.stub(keyring.OsStore, 'list').callsFake(() => [aliceStoreEntry]);
-    metadataStub = sinon.stub(Cargo.prototype, 'projectMetadata').callsFake(async () => contractProjectMetadata);
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    validWorkspaceStub = sinon.stub(Contracts.prototype, 'assertValidWorkspace').callsFake(async () => {});
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    validateSchemaStub = sinon.stub(Contracts.prototype, <any>'assertValidJSONSchema').callsFake(async () => {});
-    findInstantiateStub = sinon
-      .stub(Contracts.prototype, 'findInstantiateDeployment')
-      .callsFake(() => instantiateDeployment as InstantiateDeployment);
-    signingClientStub = sinon
-      .stub(SigningArchwayClient, 'connectWithSigner')
-      .callsFake(async () => ({ queryContractSmart: async () => dummyQueryResult } as any));
+    accountsStubs.init();
+    configStubs.init();
+    configStubs.assertIsValidWorkspace();
+    signingArchwayClientStubs.connectWithSigner();
+    filesystemStubs.readFile(contractArgumentSchema);
   });
+
   after(() => {
-    readStub.restore();
-    writeStub.restore();
-    mkdirStub.restore();
-    readSubDirStub.restore();
-    keyringGetStub.restore();
-    keyringListStub.restore();
-    metadataStub.restore();
-    validWorkspaceStub.restore();
-    validateSchemaStub.restore();
-    findInstantiateStub.restore();
-    signingClientStub.restore();
+    accountsStubs.restoreAll();
+    configStubs.restoreAll();
+    signingArchwayClientStubs.restoreAll();
+    filesystemStubs.restoreAll();
   });
+
   test
     .stdout()
-    .command(['contracts query smart', contractName, '--args={}', `--from=${aliceAccountName}`])
+    .command(['contracts query smart', contractName, `--args=${contractArgument}`, `--from=${aliceAccountName}`])
     .it('Queries a contract', ctx => {
       expect(ctx.stdout).to.contain(dummyQueryResult.msg);
     });
 
   test
     .stdout()
-    .command(['contracts query smart', contractName, '--args={}', `--from=${aliceAccountName}`])
+    .command(['contracts query smart', contractName, `--args=${contractArgument}`, `--from=${aliceAccountName}`])
     .it('Query result is JSON formatted', expectOutputJSON);
+
+  test
+    .stdout()
+    .stderr()
+    .command(['contracts query smart', 'thisDoesntExist', `--args=${contractArgument}`, `--from=${aliceAccountName}`])
+    .catch(/(Contract).*(not found)/)
+    .it('fails on invalid contract');
+
+  test
+    .stdout()
+    .stderr()
+    .command(['contracts query smart', contractName, '--args={}', `--from=${aliceAccountName}`])
+    .catch(/(Failed to query).*(does not match the schema)/)
+    .it('fails on invalid arguments');
 });

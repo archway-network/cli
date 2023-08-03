@@ -38,7 +38,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
 
     // Load config and contract info
     const config = await Config.init();
-    await config.contractsInstance.assertValidWorkspace();
+    await config.assertIsValidWorkspace();
 
     let contractsToQuery: InstantiateDeployment[] = [];
 
