@@ -83,7 +83,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
         txhash: result!.transactionHash,
         wasm: {
           codeId: result!.codeId,
-          checksum: result!.originalChecksum,
+          checksum: result!.checksum,
         },
         contract: {
           name: contract.name,
