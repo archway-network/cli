@@ -74,7 +74,7 @@
     "ts-node": "^10.9.1",
     "tsc-alias": "^1.8.5",
     "tsconfig-paths": "^4.2.0",
-    "tslib": "^2.5.0",
+    "tslib": "^2.6.1",
     "typescript": "^5.0.4"
   },
   "oclif": {
