@@ -20,7 +20,7 @@
     "@archwayhq/arch3.js": "^0.3.0",
     "@archwayhq/keyring-go": "https://github.com/archway-network/keyring-go.git",
     "@cosmjs/cosmwasm-stargate": "^0.30.1",
-    "@cosmjs/crypto": "^0.30.1",
+    "@cosmjs/crypto": "^0.31.0",
     "@cosmjs/encoding": "^0.30.1",
     "@cosmjs/ledger-amino": "^0.30.1",
     "@cosmjs/proto-signing": "^0.31.0",
