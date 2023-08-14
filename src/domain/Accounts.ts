@@ -3,7 +3,6 @@ import { Coin, StargateClient } from '@cosmjs/stargate';
 
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
 import { FileKeystore, KeystoreBackend, OsKeystore, TestKeystore } from '@/domain';
-import { ACCOUNTS } from '@/GlobalConfig';
 import { assertIsValidAddress, bold, yellow } from '@/utils';
 
 import {
@@ -17,6 +16,13 @@ import {
   accountValidator,
   accountWithMnemonicValidator,
 } from '@/types';
+
+export const SECRET_SERVICE_NAME = 'io.archway.modulor';
+export const KEY_FILES_PATH = `${process.env.HOME}/.archway`;
+export const ENTRY_TAG_SEPARATOR = '<-_>';
+export const ENTRY_SUFFIX = 'account';
+export const TEST_ENTRY_SUFFIX = 'test';
+export const DEFAULT_ADDRESS_BECH_32_PREFIX = 'archway';
 
 /**
  * Accounts manager
@@ -45,13 +51,13 @@ export class Accounts {
     let keystore: KeystoreBackend;
     switch (type) {
       case BackendType.os:
-        keystore = new OsKeystore(params?.serviceName || ACCOUNTS.SecretServiceName);
+        keystore = new OsKeystore(params?.serviceName || SECRET_SERVICE_NAME);
         break;
       case BackendType.file:
-        keystore = new FileKeystore(params?.filesPath || ACCOUNTS.KeyFilesPath);
+        keystore = new FileKeystore(params?.filesPath || KEY_FILES_PATH);
         break;
       case BackendType.test:
-        keystore = new TestKeystore(params?.filesPath || ACCOUNTS.KeyFilesPath);
+        keystore = new TestKeystore(params?.filesPath || KEY_FILES_PATH);
         break;
     }
 
@@ -197,7 +203,7 @@ export class Accounts {
   async accountBaseFromAddress(address: string): Promise<AccountBase> {
     const found = await this.keystore.findNameAndAddressInList(address);
 
-    if (!found) assertIsValidAddress(address, ACCOUNTS.AddressBech32Prefix);
+    if (!found) assertIsValidAddress(address, DEFAULT_ADDRESS_BECH_32_PREFIX);
 
     return {
       name: found?.name || '',

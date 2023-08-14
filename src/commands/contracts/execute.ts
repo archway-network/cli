@@ -3,15 +3,14 @@ import fs from 'node:fs/promises';
 import { ExecuteResult } from '@cosmjs/cosmwasm-stargate';
 
 import { BaseCommand } from '@/lib/base';
-import { ParamsContractNameRequiredArg, StdinInputArg } from '@/arguments';
+import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue } from '@/utils';
-import { showSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/flags';
+import { buildStdFee, blue, green } from '@/utils';
+import { showDisappearingSpinner } from '@/ui';
+import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/parameters/flags';
 import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
-import { SuccessMessages } from '@/services';
 
-import { Account, Amount, BackendType } from '@/types';
+import { Account, Amount, BackendType, Contract } from '@/types';
 
 /**
  * Command 'contracts execute'
@@ -30,7 +29,6 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       description: 'Funds to send to the contract on the transaction',
     })(),
     args: Flags.string({
-      required: true,
       description: 'JSON string with a valid execute schema for the contract',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a valid execute schema for the contract' }),
@@ -68,22 +66,17 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
 
     const contractAddress = instantiated.contract.address;
 
-    // Log message that we are starting the execution
-    this.log(`Executing contract ${blue(contract.name)}`);
-    this.log(`  Chain: ${blue(config.chainId)}`);
-    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+    await this.logTransactionDetails(config, contract, fromAccount);
 
     // Validate init args schema
     const executeArgs = JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
     await config.contractsInstance.assertValidExecuteArgs(contract.name, executeArgs);
 
-    let result: ExecuteResult;
-
-    await showSpinner(async () => {
+    const result = await showDisappearingSpinner(async () => {
       try {
         const signingClient = await config.getSigningArchwayClient(fromAccount);
 
-        result = await signingClient.execute(
+        return signingClient.execute(
           fromAccount.address,
           contractAddress,
           executeArgs,
@@ -96,6 +89,21 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       }
     }, 'Waiting for tx to confirm...');
 
-    await SuccessMessages.contracts.execute(this, result!, contract, config);
+    await this.successMessage(result!, contract, config);
+  }
+
+  protected async logTransactionDetails(config: Config, contract: Contract, fromAccount: Account): Promise<void> {
+    this.log(`Executing contract ${blue(contract.name)}`);
+    this.log(`  Chain: ${blue(config.chainId)}`);
+    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+  }
+
+  protected async successMessage(result: ExecuteResult, contractInstance: Contract, configInstance: Config): Promise<void> {
+    if (this.jsonEnabled()) {
+      this.logJson(result);
+    } else {
+      this.success(`${green('Executed contract ')} ${blue(contractInstance.label)}`);
+      this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
+    }
   }
 }

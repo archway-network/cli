@@ -3,15 +3,14 @@ import fs from 'node:fs/promises';
 import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 
 import { BaseCommand } from '@/lib/base';
-import { ParamsContractNameRequiredArg, StdinInputArg } from '@/arguments';
+import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue } from '@/utils';
-import { showSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/flags';
+import { buildStdFee, blue, green } from '@/utils';
+import { showDisappearingSpinner } from '@/ui';
+import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/parameters/flags';
 import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
-import { SuccessMessages } from '@/services';
 
-import { Account, Amount, BackendType, DeploymentAction, InstantiateDeployment } from '@/types';
+import { Account, Amount, BackendType, Contract, DeploymentAction, InstantiateDeployment } from '@/types';
 
 /**
  * Command 'contracts instantiate'
@@ -81,25 +80,17 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       if (!codeId) throw new NotFoundError("Code id of contract's store deployment");
     }
 
-    // Log message that we are starting the instantiation
-    this.log(`Instantiating contract ${blue(contract.name)}`);
-    this.log(`  Chain: ${blue(config.chainId)}`);
-    this.log(`  Code: ${blue(codeId)}`);
-    this.log(`  Label: ${blue(label)}`);
-    this.log(`  Admin: ${blue(admin)}`);
-    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+    await this.logTransactionDetails(config, contract, codeId, label, admin!, fromAccount);
 
     // Validate init args schema
     const initArgs = JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
     await config.contractsInstance.assertValidInstantiateArgs(contract.name, initArgs);
 
-    let result: InstantiateResult;
-
-    await showSpinner(async () => {
+    const result = await showDisappearingSpinner(async () => {
       try {
         const signingClient = await config.getSigningArchwayClient(fromAccount);
 
-        result = await signingClient.instantiate(fromAccount.address, codeId!, initArgs, label, buildStdFee(this.flags.fee?.coin), {
+        return signingClient.instantiate(fromAccount.address, codeId!, initArgs, label, buildStdFee(this.flags.fee?.coin), {
           funds: this.flags.amount?.coin ? [this.flags.amount.coin] : undefined,
           admin,
         });
@@ -126,6 +117,33 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       config.chainId
     );
 
-    await SuccessMessages.contracts.instantiate(this, result!, label, config);
+    await this.successMessage(result!, label, config);
+  }
+
+  // eslint-disable-next-line max-params
+  protected async logTransactionDetails(
+    config: Config,
+    contract: Contract,
+    codeId: number,
+    label: string,
+    admin: string,
+    fromAccount: Account
+  ): Promise<void> {
+    this.log(`Instantiating contract ${blue(contract.name)}`);
+    this.log(`  Chain: ${blue(config.chainId)}`);
+    this.log(`  Code: ${blue(codeId)}`);
+    this.log(`  Label: ${blue(label)}`);
+    this.log(`  Admin: ${blue(admin)}`);
+    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+  }
+
+  protected async successMessage(result: InstantiateResult, label: string, configInstance: Config): Promise<void> {
+    if (this.jsonEnabled()) {
+      this.logJson(result);
+    } else {
+      this.success(`${green('Contract')} ${blue(label)} ${green('instantiated')}`);
+      this.log(`  Address: ${blue(result.contractAddress)}`);
+      this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
+    }
   }
 }

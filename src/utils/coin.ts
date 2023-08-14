@@ -3,9 +3,11 @@ import { StdFee } from '@cosmjs/stargate';
 import BigNumber from 'bignumber.js';
 
 import { InvalidFormatError } from '@/exceptions';
-import { DEFAULT } from '@/GlobalConfig';
 
 import { Amount } from '@/types';
+
+export const DEFAULT_GAS_PRICE_AMOUNT = '0.005'
+export const DEFAULT_GAS_PRICE_DENOM = 'aarch'
 
 /**
  * Converts a string with an amount info into an instance of {@link Amount}
@@ -34,7 +36,7 @@ export const parseAmount = (value: string): Amount => {
  * @param gasPrice - Optional - Gas Price to calculate the limit (just amount, without denom)
  * @returns Instance of {@link StdFee} to be used as a transaction fee
  */
-export const buildStdFee = (coin?: Coin, gasPrice: string | number = DEFAULT.GasPriceAmount): StdFee | 'auto' => {
+export const buildStdFee = (coin?: Coin, gasPrice: string | number = DEFAULT_GAS_PRICE_AMOUNT): StdFee | 'auto' => {
   if (!coin) return 'auto';
 
   // eslint-disable-next-line new-cap

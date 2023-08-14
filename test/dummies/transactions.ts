@@ -3,9 +3,8 @@ import { UploadResult } from '@cosmjs/cosmwasm-stargate';
 
 export const dummyStoreTransaction: UploadResult = {
   originalSize: 126_797,
-  originalChecksum: '7994a044ed70c1fad224af08e910dc893643ee6f5069e0eb124bdd4f92759dca',
+  checksum: '7994a044ed70c1fad224af08e910dc893643ee6f5069e0eb124bdd4f92759dca',
   compressedSize: 47_022,
-  compressedChecksum: '6beb49c19c9c5d35aef4e8c4995acf436ff495295e73a64793ab872c0835d888',
   codeId: 975,
   logs: [
     {

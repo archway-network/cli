@@ -1,15 +1,14 @@
 import { SetContractPremiumResult } from '@archwayhq/arch3.js';
 
 import { BaseCommand } from '@/lib/base';
-import { ContractNameRequiredArg } from '@/arguments';
+import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue } from '@/utils';
-import { showSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, AmountRequiredFlag } from '@/flags';
+import { buildStdFee, blue, green } from '@/utils';
+import { showDisappearingSpinner } from '@/ui';
+import { KeyringFlags, TransactionFlags, AmountRequiredFlag } from '@/parameters/flags';
 import { NotFoundError } from '@/exceptions';
-import { SuccessMessages } from '@/services';
 
-import { Account, BackendType, DeploymentAction, PremiumDeployment } from '@/types';
+import { Account, BackendType, Contract, DeploymentAction, PremiumDeployment } from '@/types';
 
 /**
  * Command 'contracts premium'
@@ -46,19 +45,12 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
 
     const contractAddress = instantiated.contract.address;
 
-    // Log message that we are starting the transaction
-    this.log(`Setting premium for contract ${blue(contract.name)}`);
-    this.log(`  Chain: ${blue(config.chainId)}`);
-    this.log(`  Contract: ${blue(contractAddress)}`);
-    this.log(`  Premium: ${blue(this.flags['premium-fee']!.plainText)}`);
-    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+    await this.logTransactionDetails(config, contract, contractAddress, fromAccount);
 
-    let result: SetContractPremiumResult;
-
-    await showSpinner(async () => {
+    const result = await showDisappearingSpinner(async () => {
       const signingClient = await config.getSigningArchwayClient(fromAccount);
 
-      result = await signingClient.setContractPremium(
+      return signingClient.setContractPremium(
         fromAccount.address,
         contractAddress,
         this.flags['premium-fee']!.coin,
@@ -84,6 +76,23 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
       config.chainId
     );
 
-    await SuccessMessages.contracts.premium(this, result!, contract.label, config);
+    await this.successMessage(result!, contract.label, config);
+  }
+
+  protected async logTransactionDetails(config: Config, contract: Contract, contractAddress: string, fromAccount: Account): Promise<void> {
+    this.log(`Setting premium for contract ${blue(contract.name)}`);
+    this.log(`  Chain: ${blue(config.chainId)}`);
+    this.log(`  Contract: ${blue(contractAddress)}`);
+    this.log(`  Premium: ${blue(this.flags['premium-fee']!.plainText)}`);
+    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+  }
+
+  protected async successMessage(result: SetContractPremiumResult, label: string, configInstance: Config): Promise<void> {
+    if (this.jsonEnabled()) {
+      this.logJson(result);
+    } else {
+      this.success(`${green('Premium for the contract')} ${blue(label)} ${green('updated')}`);
+      this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
+    }
   }
 }

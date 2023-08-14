@@ -1,11 +1,13 @@
-import { BaseCommand } from '@/lib/base';
-import { AccountRequiredArg } from '@/arguments';
-import { Accounts, Config } from '@/domain';
-import { KeyringFlags } from '@/flags';
-import { showSpinner } from '@/ui';
-import { SuccessMessages } from '@/services';
+import { OutstandingRewards } from '@archwayhq/arch3.js/build';
 
-import { BackendType } from '@/types';
+import { bold, darkGreen, green, yellow } from '@/utils';
+import { BaseCommand } from '@/lib/base';
+import { AccountRequiredArg } from '@/parameters/arguments';
+import { Accounts, Config } from '@/domain';
+import { KeyringFlags } from '@/parameters/flags';
+import { showDisappearingSpinner } from '@/ui';
+
+import { AccountBase, BackendType } from '@/types';
 
 /**
  * Command 'rewards query'
@@ -32,12 +34,24 @@ export default class RewardsQuery extends BaseCommand<typeof RewardsQuery> {
 
     const config = await Config.init();
 
-    const result = await showSpinner(async () => {
+    const result = await showDisappearingSpinner(async () => {
       const client = await config.getArchwayClient();
 
       return client.getOutstandingRewards(account.address);
     }, 'Querying rewards...');
 
-    SuccessMessages.rewards.query(this, result, account);
+    await this.successMessage(result, account);
+  }
+
+  protected async successMessage(result: OutstandingRewards, account: AccountBase): Promise<void> {
+    if (this.jsonEnabled()) {
+      this.logJson(result);
+    } else {
+      this.log(
+        `Outstanding rewards for ${account.name ? `${green(account.name)} (${darkGreen(account.address)})` : green(account.address)}\n`
+      );
+      if (result.totalRewards.length === 0) this.log(`- ${yellow('No outstanding rewards')}`);
+      for (const item of result.totalRewards) this.log(`- ${bold(item.amount)}${item.denom}`);
+    }
   }
 }

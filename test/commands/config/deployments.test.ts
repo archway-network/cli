@@ -1,7 +1,7 @@
 import { expect, test } from '@oclif/test';
 
 import { expectOutputJSON } from '../../helpers/expect';
-import { noDeploymentsMessage } from '../../../src/domain';
+import { NO_DEPLOYMENTS_MESSAGE } from '../../../src/domain';
 import { deploymentFile } from '../../dummies';
 import DeploymentsStubs from '../../stubs/deployments';
 
@@ -30,7 +30,7 @@ describe('config deployments', () => {
       .stdout()
       .command(['config deployments', '--action=premium'])
       .it('filters out deployments by action', ctx => {
-        expect(ctx.stdout).to.contain(noDeploymentsMessage);
+        expect(ctx.stdout).to.contain(NO_DEPLOYMENTS_MESSAGE);
       });
 
     test.stdout().command(['config deployments', '--json']).it('shows a JSON representation of the deployments', expectOutputJSON);
@@ -48,7 +48,7 @@ describe('config deployments', () => {
       .stdout()
       .command(['config deployments'])
       .it('shows no deployments', ctx => {
-        expect(ctx.stdout).to.contain(noDeploymentsMessage);
+        expect(ctx.stdout).to.contain(NO_DEPLOYMENTS_MESSAGE);
       });
 
     test

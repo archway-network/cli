@@ -1,10 +1,12 @@
 import { Command, Flags, Interfaces } from '@oclif/core';
+import debugInstance from 'debug';
 
 import { red, yellow } from '@/utils';
-import { MESSAGES } from '@/GlobalConfig';
 import { PromptCanceledError } from '@/ui';
 
 import { ConsoleError } from '@/types';
+
+const debug = debugInstance('base-command');
 
 enum LogLevel {
   debug = 'debug',
@@ -13,8 +15,12 @@ enum LogLevel {
   error = 'error',
 }
 
-export type Flags<T extends typeof Command> = Interfaces.InferredFlags<typeof BaseCommand['baseFlags'] & T['flags']>;
+export type Flags<T extends typeof Command> = Interfaces.InferredFlags<(typeof BaseCommand)['baseFlags'] & T['flags']>;
 export type Args<T extends typeof Command> = Interfaces.InferredArgs<T['args']>;
+
+export const SUCCESS_PREFIX = '✅';
+export const ERROR_PREFIX = '❌';
+export const WARNING_PREFIX = '⚠️';
 
 /**
  * Base command that will be used across the CLI
@@ -69,7 +75,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       return;
     }
 
-    this.log(`${yellow(MESSAGES.WarningPrefix)} ${message}`);
+    this.log(`${yellow(WARNING_PREFIX)} ${message}`);
   }
 
   /**
@@ -78,7 +84,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * @param message - Success message to be printed
    */
   public success(message: string): void {
-    this.log(`${MESSAGES.SuccessPrefix} ${message}`);
+    this.log(`${SUCCESS_PREFIX} ${message}`);
   }
 
   /**
@@ -88,7 +94,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * @returns void
    */
   public logJson(json: unknown): void {
-    super.logJson(json)
+    super.logJson(json);
   }
 
   /**
@@ -97,14 +103,16 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * @param err - Error caught
    * @returns - Promise containing updated error object
    */
-  protected async catch(err: Error & { exitCode?: number }): Promise<Error & { exitCode?: number } | undefined> {
+  protected async catch(err: Error & { exitCode?: number }): Promise<(Error & { exitCode?: number }) | undefined> {
     // Special case, if it is PromptCancelledError, display as a warning instead
     if (err instanceof PromptCanceledError) {
       this.warning(err.toConsoleString());
       return undefined;
     }
 
-    err.message = `${MESSAGES.ErrorPrefix} ${err instanceof ConsoleError ? err.toConsoleString() : red((err as any)?.stderr || err.message)}`;
+    debug('Original error message: ', err.message);
+    err.message = `${ERROR_PREFIX} ${err instanceof ConsoleError ? err.toConsoleString() : red((err as any)?.stderr || err.message)}`;
+
     return super.catch(err);
   }
 
@@ -117,4 +125,14 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   protected async finally(_: Error | undefined): Promise<any> {
     return super.finally(_);
   }
+
+  /**
+   * Optional function to log information of the transaction triggered by the command
+   **/
+  protected logTransactionDetails?(...args: any[]): Promise<void>;
+
+  /**
+   * Optional success message function
+   */
+  protected successMessage?(...args: any[]): Promise<void>;
 }

@@ -8,11 +8,24 @@ import { Coin, StargateClient } from '@cosmjs/stargate';
 
 import { readSubDirectories, getWorkspaceRoot, bold, green, red, darkGreen, yellow } from '@/utils';
 import { AccountBalancesJSON, Contract } from '@/types';
-import { DEFAULT, REPOSITORIES } from '@/GlobalConfig';
 import { Cargo, Deployments } from '@/domain';
 import { ErrorCodes, ExecuteError, InstantiateError, NotFoundError, QueryError } from '@/exceptions';
 
 import { ConsoleError, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
+
+/** Contracts file constants */
+export const DEFAULT_CONTRACTS_RELATIVE_PATH = './contracts';
+
+/** Contract Templates constants */
+export const TEMPLATES_REPOSITORY = 'https://github.com/archway-network/archway-templates'
+export const DEFAULT_TEMPLATE_NAME = 'default';
+export const DEFAULT_TEMPLATE_BRANCH = 'feature/workspace-template';
+export const DEFAULT_WORKSPACE_TEMPLATE = 'base-workspace';
+
+/** Message schema validation constants */
+export const INSTANTIATE_SCHEMA_RELATIVE_PATH = './schema/raw/instantiate.json';
+export const EXECUTE_SCHEMA_RELATIVE_PATH = './schema/raw/execute.json';
+export const QUERY_SCHEMA_RELATIVE_PATH = './schema/raw/query.json';
 
 /**
  * Manages the contracts' data in the project
@@ -88,7 +101,7 @@ export class Contracts {
    */
   static async getContractsRoot(workingDir?: string, contractsPath?: string): Promise<string> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
-    const contracts = contractsPath || DEFAULT.ContractsRelativePath;
+    const contracts = contractsPath || DEFAULT_CONTRACTS_RELATIVE_PATH;
 
     return path.isAbsolute(contracts) ? contracts : path.join(workspaceRoot, contracts);
   }
@@ -120,8 +133,8 @@ export class Contracts {
     const cargo = new Cargo();
     await cargo.generate({
       name,
-      repository: REPOSITORIES.Templates,
-      branch: DEFAULT.TemplateBranch,
+      repository: TEMPLATES_REPOSITORY,
+      branch: DEFAULT_TEMPLATE_BRANCH,
       template: template,
       destinationDir: this.contractsRoot,
     });
@@ -240,7 +253,7 @@ export class Contracts {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async assertValidInstantiateArgs(contractName: string, initArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);
-    const schemaPath = path.join(contract.root, DEFAULT.InstantiateSchemaRelativePath);
+    const schemaPath = path.join(contract.root, INSTANTIATE_SCHEMA_RELATIVE_PATH);
 
     try {
       await this.assertValidJSONSchema(schemaPath, initArgs);
@@ -252,7 +265,7 @@ export class Contracts {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async assertValidExecuteArgs(contractName: string, executeArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);
-    const schemaPath = path.join(contract.root, DEFAULT.ExecuteSchemaRelativePath);
+    const schemaPath = path.join(contract.root, EXECUTE_SCHEMA_RELATIVE_PATH);
 
     try {
       await this.assertValidJSONSchema(schemaPath, executeArgs);
@@ -264,7 +277,7 @@ export class Contracts {
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async assertValidQueryArgs(contractName: string, queryArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);
-    const schemaPath = path.join(contract.root, DEFAULT.QuerySchemaRelativePath);
+    const schemaPath = path.join(contract.root, QUERY_SCHEMA_RELATIVE_PATH);
 
     try {
       await this.assertValidJSONSchema(schemaPath, queryArgs);

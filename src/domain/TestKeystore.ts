@@ -1,8 +1,7 @@
 import keyring from '@archwayhq/keyring-go';
 import path from 'node:path';
 
-import { ACCOUNTS } from '@/GlobalConfig';
-import { Accounts } from '@/domain/Accounts';
+import { Accounts, TEST_ENTRY_SUFFIX } from '@/domain/Accounts';
 import { KeystoreBackend } from '@/domain/KeystoreBackend';
 
 import { Account, AccountBase, AccountType } from '@/types';
@@ -29,7 +28,7 @@ export class TestKeystore extends KeystoreBackend {
 
     keyring.UnencryptedFileStore.set(
       this.filesPath,
-      this.createEntryTag(account.name, account.type, account.address, ACCOUNTS.TestEntrySuffix),
+      this.createEntryTag(account.name, account.type, account.address, TEST_ENTRY_SUFFIX),
       JSON.stringify(account, undefined, 2)
     );
 
@@ -44,7 +43,7 @@ export class TestKeystore extends KeystoreBackend {
     const result: AccountBase[] = [];
 
     for (const item of found) {
-      const auxAccount = this.parseEntryTag(item, ACCOUNTS.TestEntrySuffix);
+      const auxAccount = this.parseEntryTag(item, TEST_ENTRY_SUFFIX);
       if (auxAccount) result.push(auxAccount);
     }
 
@@ -55,7 +54,7 @@ export class TestKeystore extends KeystoreBackend {
    * {@inheritDoc KeystoreBackend.get}
    */
   async get(nameOrAddress: string): Promise<Account | undefined> {
-    const tag = await this.findAccountTag(nameOrAddress, ACCOUNTS.TestEntrySuffix);
+    const tag = await this.findAccountTag(nameOrAddress, TEST_ENTRY_SUFFIX);
     let stored = '';
 
     try {
@@ -75,7 +74,7 @@ export class TestKeystore extends KeystoreBackend {
    * {@inheritDoc KeystoreBackend.remove}
    */
   async remove(nameOrAddress: string): Promise<void> {
-    const tag = await this.findAccountTag(nameOrAddress, ACCOUNTS.TestEntrySuffix);
+    const tag = await this.findAccountTag(nameOrAddress, TEST_ENTRY_SUFFIX);
 
     keyring.UnencryptedFileStore.remove(this.filesPath, tag);
   }

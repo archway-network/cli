@@ -2,13 +2,12 @@ import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
 import { Accounts, Config } from '@/domain';
-import { KeyringFlags, TransactionFlags } from '@/flags';
-import { AmountRequiredArg } from '@/arguments';
-import { showSpinner } from '@/ui';
+import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
+import { AmountRequiredArg } from '@/parameters/arguments';
+import { showDisappearingSpinner } from '@/ui';
 import { buildStdFee, bold, darkGreen, green, white, askForConfirmation } from '@/utils';
-import { SuccessMessages } from '@/services';
 
-import { Account, BackendType } from '@/types';
+import { Account, AccountBase, Amount, BackendType } from '@/types';
 
 /**
  * Command 'accounts balances send'
@@ -34,18 +33,16 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
   public async run(): Promise<void> {
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
-    const toAccount = await accountsDomain.accountBaseFromAddress(this.flags.to);
+    const toAccount: AccountBase = await accountsDomain.accountBaseFromAddress(this.flags.to);
     const config = await Config.init();
 
-    this.log(`Sending ${bold(this.args.amount!.plainText)}`);
-    this.log(`From ${green(fromAccount.name)} (${darkGreen(fromAccount.address)})`);
-    this.log(`To ${toAccount.name ? `${green(toAccount.name)} (${darkGreen(toAccount.address)})` : green(toAccount.address)}\n`);
+    await this.logTransactionDetails(fromAccount, toAccount);
 
     if (this.flags.confirm) await askForConfirmation();
     this.log();
 
     try {
-      await showSpinner(async () => {
+      await showDisappearingSpinner(async () => {
         const signingClient = await config.getSigningArchwayClient(fromAccount);
 
         fromAccount.mnemonic = '';
@@ -58,6 +55,16 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
         error;
     }
 
-    SuccessMessages.accounts.balances.send(this, this.args.amount!, fromAccount, toAccount);
+    await this.successMessage(this.args.amount!, fromAccount, toAccount);
+  }
+
+  protected async logTransactionDetails(fromAccount: Account, toAccount: AccountBase): Promise<void> {
+    this.log(`Sending ${bold(this.args.amount!.plainText)}`);
+    this.log(`From ${green(fromAccount.name)} (${darkGreen(fromAccount.address)})`);
+    this.log(`To ${toAccount.name ? `${green(toAccount.name)} (${darkGreen(toAccount.address)})` : green(toAccount.address)}\n`);
+  }
+
+  protected async successMessage(amount: Amount, from: Account, to: AccountBase): Promise<void> {
+    this.success(darkGreen(`Sent ${white.reset.bold(amount.plainText)} from ${green(from.name)} to ${green(to.name || to.address)}`));
   }
 }

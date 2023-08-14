@@ -1,6 +1,6 @@
 import { Coin } from '@cosmjs/proto-signing';
 
-import { ACCOUNTS } from '../../src/GlobalConfig';
+import { ENTRY_SUFFIX, ENTRY_TAG_SEPARATOR } from '../../src/domain';
 
 import { AccountType } from '../../src/types';
 
@@ -59,11 +59,11 @@ export const bobAccountWithMnemonic = {
 export const aliceStoredAccount = JSON.stringify(aliceAccountWithMnemonic);
 export const bobStoredAccount = JSON.stringify(bobAccountWithMnemonic);
 
-export const aliceStoreEntry = `${aliceAccountName}${ACCOUNTS.EntrySeparator}${aliceAccountType}${ACCOUNTS.EntrySeparator}${aliceAddress}.${ACCOUNTS.EntrySuffix}`;
-export const bobStoreEntry = `${bobAccountName}${ACCOUNTS.EntrySeparator}${bobAccountType}${ACCOUNTS.EntrySeparator}${bobAddress}.${ACCOUNTS.EntrySuffix}`;
+export const aliceStoreEntry = `${aliceAccountName}${ENTRY_TAG_SEPARATOR}${aliceAccountType}${ENTRY_TAG_SEPARATOR}${aliceAddress}.${ENTRY_SUFFIX}`;
+export const bobStoreEntry = `${bobAccountName}${ENTRY_TAG_SEPARATOR}${bobAccountType}${ENTRY_TAG_SEPARATOR}${bobAddress}.${ENTRY_SUFFIX}`;
 
 export const dummyAmount: Coin = {
   amount: '10',
-  denom: 'uarch',
+  denom: 'aarch',
 };
-export const dummyAmountString = '10uarch';
+export const dummyAmountString = `${dummyAmount.amount}${dummyAmount.denom}`;

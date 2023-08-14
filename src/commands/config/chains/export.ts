@@ -2,10 +2,9 @@ import { BaseCommand } from '@/lib/base';
 import path from 'node:path';
 import { Args } from '@oclif/core';
 
-import { DEFAULT } from '@/GlobalConfig';
-import { bold } from '@/utils';
-import { BuiltInChains, SuccessMessages } from '@/services';
-import { ChainRegistry } from '@/domain';
+import { bold, green } from '@/utils';
+import { BuiltInChains } from '@/services';
+import { CHAIN_FILE_EXTENSION, ChainRegistry, DEFAULT_CHAINS_RELATIVE_PATH } from '@/domain';
 
 /**
  * Command 'config chains export'
@@ -13,7 +12,7 @@ import { ChainRegistry } from '@/domain';
  */
 export default class ConfigChainsExport extends BaseCommand<typeof ConfigChainsExport> {
   static summary = `Exports a built-in chain registry file to ${bold(
-    path.join('{project-root}', DEFAULT.ChainsRelativePath, `./{chain-id}${DEFAULT.ChainFileExtension}`)
+    path.join('{project-root}', DEFAULT_CHAINS_RELATIVE_PATH, `./{chain-id}${CHAIN_FILE_EXTENSION}`)
   )}.`;
 
   static args = {
@@ -30,6 +29,10 @@ export default class ConfigChainsExport extends BaseCommand<typeof ConfigChainsE
 
     await chainRegistry.export(this.args.chain);
 
-    SuccessMessages.chains.export(this, chainRegistry, this.args.chain);
+    await this.successMessage(chainRegistry, this.args.chain);
+  }
+
+  protected async successMessage(chainRegistry: ChainRegistry, chainId: string): Promise<void> {
+    this.success(`${green('Exported chain to')} ${bold(path.join(chainRegistry.path, `./${chainId}.json`))}`);
   }
 }

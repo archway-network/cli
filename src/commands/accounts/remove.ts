@@ -1,11 +1,10 @@
 import { BaseCommand } from '@/lib/base';
 import { askForConfirmation, bold, darkGreen, yellow } from '@/utils';
-import { AccountRequiredArg } from '@/arguments';
+import { AccountRequiredArg } from '@/parameters/arguments';
 import { Accounts } from '@/domain';
-import { ForceFlag, KeyringFlags } from '@/flags';
-import { SuccessMessages } from '@/services';
+import { ForceFlag, KeyringFlags } from '@/parameters/flags';
 
-import { BackendType } from '@/types';
+import { AccountBase, BackendType } from '@/types';
 
 /**
  * Command 'accounts remove'
@@ -43,6 +42,10 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
 
     await accountsDomain.remove(accountInfo.address);
 
-    SuccessMessages.accounts.remove(this, accountInfo);
+    await this.successMessage(accountInfo);
+  }
+
+  protected async successMessage(account: AccountBase): Promise<void> {
+    this.success(`${darkGreen('Account')} ${bold.green(account.name)} ${darkGreen('deleted')}`);
   }
 }

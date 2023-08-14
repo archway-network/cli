@@ -1,21 +1,47 @@
 {
   "name": "archway-cli",
   "version": "0.0.0",
-  "description": "Modulor - Archway CLI",
-  "author": "PhiLabs",
+  "description": "Modulor - Develop WASM smart contracts with the Archway network's developer CLI",
+  "homepage": "https://docs.archway.io",
+  "repository": "archway-network/archway-cli-v2",
+  "keywords": [
+    "cli",
+    "terminal",
+    "archway",
+    "cosmos",
+    "cosmosjs",
+    "cosmwasm",
+    "tendermint",
+    "atom",
+    "wasm",
+    "smart-contracts",
+    "blockchain",
+    "dapp",
+    "dapps",
+    "nft",
+    "tooling",
+    "web3"
+  ],
+  "author": "Archway Network (https://archway.io)",
+  "contributors": [
+    "Drew Taylor (https://github.com/drewstaylor)",
+    "Augusto Elesbão (https://github.com/aelesbao)"
+  ],
+  "license": "Apache-2.0",
+  "bugs": "https://github.com/archway-network/archway-cli-v2/issues",
   "bin": {
     "mod": "./bin/run"
   },
-  "homepage": "https://github.com/archway-network/archway-cli-v2",
-  "license": "MIT",
-  "main": "dist/index.js",
-  "repository": "archway-network/archway-cli-v2",
-  "files": [
-    "/bin",
-    "/dist",
-    "/npm-shrinkwrap.json",
-    "/oclif.manifest.json"
-  ],
+  "scripts": {
+    "build": "shx rm -rf dist && tsc -b && tsc-alias -p tsconfig.json",
+    "lint": "eslint . --ext .ts --config .eslintrc",
+    "postpack": "shx rm -f oclif.manifest.json",
+    "posttest": "yarn lint",
+    "prepack": "yarn build && oclif manifest && oclif readme",
+    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
+    "test:coverage": "nyc --reporter=text mocha --forbid-only \"test/**/*.test.ts\"",
+    "version": "oclif readme && git add README.md"
+  },
   "dependencies": {
     "@archwayhq/arch3.js": "^0.4.0",
     "@archwayhq/keyring-go": "https://github.com/archway-network/keyring-go.git",
@@ -79,6 +105,12 @@
     "tslib": "^2.6.1",
     "typescript": "^5.0.4"
   },
+  "files": [
+    "/bin",
+    "/dist",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
   "oclif": {
     "bin": "mod",
     "dirname": "mod",
@@ -87,25 +119,11 @@
     "plugins": [],
     "topicSeparator": " ",
     "macos": {
-      "identifier": "com.archway.modulor"
+      "identifier": "io.archway.modulor"
     }
   },
-  "scripts": {
-    "build": "shx rm -rf dist && tsc -b && tsc-alias -p tsconfig.json",
-    "lint": "eslint . --ext .ts --config .eslintrc",
-    "postpack": "shx rm -f oclif.manifest.json",
-    "posttest": "yarn lint",
-    "prepack": "yarn build && oclif manifest && oclif readme",
-    "test": "mocha --forbid-only \"test/**/*.test.ts\"",
-    "test:coverage": "nyc --reporter=text mocha --forbid-only \"test/**/*.test.ts\"",
-    "version": "oclif readme && git add README.md"
-  },
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=16.0.0"
   },
-  "bugs": "https://github.com/archway-network/archway-cli-v2/issues",
-  "keywords": [
-    "archway-cli"
-  ],
   "types": "dist/index.d.ts"
 }

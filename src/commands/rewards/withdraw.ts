@@ -1,11 +1,11 @@
 import { BaseCommand } from '@/lib/base';
 import { Accounts, Config } from '@/domain';
-import { KeyringFlags, TransactionFlags } from '@/flags';
-import { buildStdFee, darkGreen, green } from '@/utils';
-import { showSpinner } from '@/ui';
-import { SuccessMessages } from '@/services';
+import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
+import { bold, buildStdFee, darkGreen, green, yellow } from '@/utils';
+import { showDisappearingSpinner } from '@/ui';
 
 import { Account, BackendType } from '@/types';
+import { WithdrawContractRewardsResult } from '@archwayhq/arch3.js/build';
 
 /**
  * Command 'rewards withdraw'
@@ -30,14 +30,27 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
 
     const config = await Config.init();
 
-    this.log(`Withdrawing rewards from ${green(account.name)} (${darkGreen(account.address)})\n`);
+    await this.logTransactionDetails(account);
 
-    const result = await showSpinner(async () => {
+    const result = await showDisappearingSpinner(async () => {
       const signingClient = await config.getSigningArchwayClient(account);
 
       return signingClient.withdrawContractRewards(account.address, 0, buildStdFee(this.flags.fee?.coin));
     }, 'Waiting for tx to confirm...');
 
-    SuccessMessages.rewards.withdraw(this, result);
+    await this.successMessage(result);
+  }
+
+  protected async logTransactionDetails(account: Account): Promise<void> {
+    this.log(`Withdrawing rewards from ${green(account.name)} (${darkGreen(account.address)})\n`);
+  }
+
+  protected async successMessage(result: WithdrawContractRewardsResult): Promise<void> {
+    if (result.rewards.length === 0) {
+      this.log(yellow('No outstanding rewards'));
+    } else {
+      this.success(darkGreen('Successfully claimed the following rewards:\n'));
+      for (const item of result.rewards) this.log(`- ${bold(item.amount)}${item.denom}`);
+    }
   }
 }

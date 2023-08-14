@@ -3,14 +3,13 @@ import { JsonObject } from '@cosmjs/cosmwasm-stargate';
 import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
-import { ParamsContractNameRequiredArg, StdinInputArg } from '@/arguments';
+import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { showSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags } from '@/flags';
+import { showDisappearingSpinner } from '@/ui';
+import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 
 import { Account, BackendType } from '@/types';
-import { SuccessMessages } from '@/services';
 
 /**
  * Command 'contracts query smart'
@@ -66,14 +65,16 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     const queryMsg = JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
     await config.contractsInstance.assertValidQueryArgs(contract.name, queryMsg);
 
-    let result: JsonObject;
-
-    await showSpinner(async () => {
+    const result = await showDisappearingSpinner(async () => {
       const signingClient = await config.getSigningArchwayClient(fromAccount);
 
-      result = await signingClient.queryContractSmart(contractAddress, queryMsg);
+      return signingClient.queryContractSmart(contractAddress, queryMsg);
     }, 'Waiting for query response...');
 
-    SuccessMessages.contracts.query.smart(this, result);
+    await this.successMessage(result);
+  }
+
+  protected async successMessage(result: JsonObject): Promise<void> {
+    this.logJson(result);
   }
 }

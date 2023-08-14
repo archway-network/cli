@@ -1,6 +1,5 @@
-import { Contracts } from '../../src/domain';
+import { Contracts, DEFAULT_CONTRACTS_RELATIVE_PATH } from '../../src/domain';
 import { deploymentFile, deploymentsInstance } from './deployments';
-import { DEFAULT } from '../../src/GlobalConfig';
 
 import { CargoProjectMetadata, Contract } from '../../src/types';
 
@@ -22,7 +21,7 @@ export const contractData: Contract = {
   ...contractProjectMetadata,
 };
 
-export const contractsInstance = new Contracts([contractData], '.', DEFAULT.ContractsRelativePath, deploymentsInstance);
+export const contractsInstance = new Contracts([contractData], '.', DEFAULT_CONTRACTS_RELATIVE_PATH, deploymentsInstance);
 
 export const contractArgument = '{"count": 1}';
 

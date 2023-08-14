@@ -1,11 +1,11 @@
 import { BaseCommand } from '@/lib/base';
-import { AccountRequiredArg } from '@/arguments';
-import { KeyringFlags } from '@/flags';
+import { AccountRequiredArg } from '@/parameters/arguments';
+import { KeyringFlags } from '@/parameters/flags';
 import { Accounts, Config } from '@/domain';
-import { showSpinner } from '@/ui';
-import { SuccessMessages } from '@/services';
+import { showDisappearingSpinner } from '@/ui';
 
-import { BackendType } from '@/types';
+import { AccountBalancesJSON, BackendType } from '@/types';
+import { bold, darkGreen, green, yellow } from '@/utils';
 
 /**
  * Command 'accounts balances get'
@@ -30,12 +30,22 @@ export default class AccountsBalancesGet extends BaseCommand<typeof AccountsBala
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const config = await Config.init();
 
-    const result = await showSpinner(async () => {
+    const result = await showDisappearingSpinner(async () => {
       const client = await config.getStargateClient();
 
       return accountsDomain.queryBalance(client, this.args.account!);
     }, 'Querying balance');
 
-    SuccessMessages.accounts.balances.get(this, result)
+    await this.successMessage(result);
+  }
+
+  protected async successMessage(balance: AccountBalancesJSON): Promise<void> {
+    if (this.jsonEnabled()) {
+      this.logJson(balance);
+    } else {
+      this.log(`Balances for account ${green(balance.account.name)} (${darkGreen(balance.account.address)})\n`);
+      if (balance.account.balances.length === 0) this.log(`- ${yellow('Empty wallet')}`);
+      for (const item of balance.account.balances) this.log(`- ${bold(item.amount)}${item.denom}`);
+    }
   }
 }

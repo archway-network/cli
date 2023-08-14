@@ -2,15 +2,14 @@ import { Flags } from '@oclif/core';
 import { SetContractMetadataResult } from '@archwayhq/arch3.js';
 
 import { BaseCommand } from '@/lib/base';
-import { ContractNameRequiredArg } from '@/arguments';
+import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue } from '@/utils';
-import { showSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags } from '@/flags';
+import { buildStdFee, blue, green } from '@/utils';
+import { showDisappearingSpinner } from '@/ui';
+import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { NotFoundError } from '@/exceptions';
-import { SuccessMessages } from '@/services';
 
-import { Account, BackendType, DeploymentAction, MetadataDeployment } from '@/types';
+import { Account, BackendType, Contract, DeploymentAction, MetadataDeployment } from '@/types';
 
 /**
  * Command 'contracts metadata'
@@ -55,20 +54,12 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
       (await accountsDomain.accountBaseFromAddress(this.flags['rewards-address'])).address :
       undefined;
 
-    // Log message that we are starting the transaction
-    this.log(`Setting metadata for contract ${blue(contract.name)}`);
-    this.log(`  Chain: ${blue(config.chainId)}`);
-    this.log(`  Contract: ${blue(contractAddress)}`);
-    this.log(`  Rewards: ${blue(rewardsAddress)}`);
-    this.log(`  Owner: ${blue(ownerAddress)}`);
-    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+    await this.logTransactionDetails(config, contract, fromAccount, contractAddress, rewardsAddress, ownerAddress);
 
-    let result: SetContractMetadataResult;
-
-    await showSpinner(async () => {
+    const result = await showDisappearingSpinner(async () => {
       const signingClient = await config.getSigningArchwayClient(fromAccount);
 
-      result = await signingClient.setContractMetadata(
+      return signingClient.setContractMetadata(
         fromAccount.address,
         {
           contractAddress,
@@ -97,6 +88,32 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
       config.chainId
     );
 
-    await SuccessMessages.contracts.metadata(this, result!, contract.label, config);
+    await this.successMessage(result!, contract.label, config);
+  }
+
+  // eslint-disable-next-line max-params
+  protected async logTransactionDetails(
+    config: Config,
+    contract: Contract,
+    fromAccount: Account,
+    contractAddress: string,
+    rewardsAddress?: string,
+    ownerAddress?: string
+  ): Promise<void> {
+    this.log(`Setting metadata for contract ${blue(contract.name)}`);
+    this.log(`  Chain: ${blue(config.chainId)}`);
+    this.log(`  Contract: ${blue(contractAddress)}`);
+    if (rewardsAddress) this.log(`  Rewards: ${blue(rewardsAddress)}`);
+    if (ownerAddress) this.log(`  Owner: ${blue(ownerAddress)}`);
+    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+  }
+
+  protected async successMessage(result: SetContractMetadataResult, label: string, configInstance: Config): Promise<void> {
+    if (this.jsonEnabled()) {
+      this.logJson(result);
+    } else {
+      this.success(`${green('Metadata for the contract')} ${blue(label)} ${green('updated')}`);
+      this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
+    }
   }
 }

@@ -16,6 +16,10 @@ export default class ConfigShow extends BaseCommand<typeof ConfigShow> {
   public async run(): Promise<void> {
     const configFile = await Config.init();
 
+    await this.successMessage(configFile);
+  }
+
+  protected async successMessage(configFile: Config): Promise<void> {
     this.log(await configFile.prettyPrint());
 
     if (this.jsonEnabled()) {

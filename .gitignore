@@ -10,3 +10,4 @@ oclif.manifest.json
 modulor.json
 /.modulor
 .DS_Store
+.env

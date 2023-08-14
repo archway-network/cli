@@ -2,7 +2,7 @@ import { expect, test } from '@oclif/test';
 import prompts from 'prompts';
 import sinon, { SinonSpy } from 'sinon';
 
-import { MESSAGES } from '../../../src/GlobalConfig';
+import { SUCCESS_PREFIX } from '../../../src/lib/base';
 import { FilesystemStubs } from '../../stubs';
 
 describe('config init', () => {
@@ -26,7 +26,7 @@ describe('config init', () => {
     .stdout()
     .command(['config init', '--chain=constantine-3'])
     .it('creates config file with chain flag', ctx => {
-      expect(ctx.stdout).to.contain(MESSAGES.SuccessPrefix);
+      expect(ctx.stdout).to.contain(SUCCESS_PREFIX);
       expect(promptsSpy.called).to.be.false;
     });
 
@@ -34,7 +34,7 @@ describe('config init', () => {
     .stdout()
     .command(['config init'])
     .it('creates config file with prompt input', ctx => {
-      expect(ctx.stdout).to.contain(MESSAGES.SuccessPrefix);
+      expect(ctx.stdout).to.contain(SUCCESS_PREFIX);
       expect(promptsSpy.calledOnce).to.be.true;
     });
 

@@ -1,8 +1,7 @@
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { toBase64 } from '@cosmjs/encoding';
 
-import { Ledger } from '@/domain';
-import { ACCOUNTS } from '@/GlobalConfig';
+import { DEFAULT_ADDRESS_BECH_32_PREFIX, ENTRY_SUFFIX, ENTRY_TAG_SEPARATOR, Ledger } from '@/domain';
 import { AlreadyExistsError, NotFoundError } from '@/exceptions';
 
 import { Account, AccountBase, AccountType } from '@/types';
@@ -99,7 +98,7 @@ export abstract class KeystoreBackend {
     name: string,
     type: AccountType,
     mnemonic?: string,
-    prefix = ACCOUNTS.AddressBech32Prefix
+    prefix = DEFAULT_ADDRESS_BECH_32_PREFIX
   ): Promise<Account> {
     let result: Account;
 
@@ -177,7 +176,7 @@ export abstract class KeystoreBackend {
    * @param suffix - Optional - Suffix at the end of the tag
    * @returns Promise containing the entry tag found
    */
-  protected async findAccountTag(nameOrAddress: string, suffix = ACCOUNTS.EntrySuffix): Promise<string> {
+  protected async findAccountTag(nameOrAddress: string, suffix = ENTRY_SUFFIX): Promise<string> {
     const account = await this.assertAccountExists(nameOrAddress);
 
     return this.createEntryTag(account.name, account.type, account.address, suffix);
@@ -192,8 +191,8 @@ export abstract class KeystoreBackend {
    * @param suffix - Optional - Suffix at the end of the tag
    * @returns Tag with base64 encoded name and address, with an identifying suffix
    */
-  protected createEntryTag(name: string, type: AccountType, address: string, suffix = ACCOUNTS.EntrySuffix): string {
-    return `${name}${ACCOUNTS.EntrySeparator}${type}${ACCOUNTS.EntrySeparator}${address}.${suffix}`;
+  protected createEntryTag(name: string, type: AccountType, address: string, suffix = ENTRY_SUFFIX): string {
+    return `${name}${ENTRY_TAG_SEPARATOR}${type}${ENTRY_TAG_SEPARATOR}${address}.${suffix}`;
   }
 
   /**
@@ -203,14 +202,14 @@ export abstract class KeystoreBackend {
    * @param suffix - Optional - Suffix at the end of the tag
    * @returns Instance of {@link AccountBase} with the name and address, or undefined if invalid tag
    */
-  protected parseEntryTag(tag: string, suffix = ACCOUNTS.EntrySuffix): AccountBase | undefined {
+  protected parseEntryTag(tag: string, suffix = ENTRY_SUFFIX): AccountBase | undefined {
     try {
       // Validate suffix
       const splitBySuffix = tag.split('.');
 
       if (splitBySuffix.length !== 2 || splitBySuffix[1] !== suffix) return undefined;
 
-      const splitAccountBase = splitBySuffix[0].split(ACCOUNTS.EntrySeparator);
+      const splitAccountBase = splitBySuffix[0].split(ENTRY_TAG_SEPARATOR);
 
       if (splitAccountBase.length !== 3) return undefined;
 

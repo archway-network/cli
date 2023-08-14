@@ -1,7 +1,6 @@
 import { chainRegistryInstance } from '../dummies/chainRegistry';
 import { contractsInstance } from '../dummies/contracts';
-import { DEFAULT } from '../../src/GlobalConfig';
-import { Config } from '../../src/domain';
+import { Config, DEFAULT_CONFIG_FILENAME } from '../../src/domain';
 
 export const configFile = {
   name: 'foo',
@@ -18,5 +17,5 @@ export const configInstance = new Config(
   contractsInstance,
   chainRegistryInstance,
   '.',
-  DEFAULT.ConfigFileName
+  DEFAULT_CONFIG_FILENAME
 );

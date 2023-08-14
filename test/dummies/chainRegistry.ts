@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
-import { ChainRegistry } from '../../src/domain';
+import { ChainRegistry, DEFAULT_CHAINS_RELATIVE_PATH } from '../../src/domain';
 import { BuiltInChains } from '../../src/services';
-import { DEFAULT } from '../../src/GlobalConfig';
 
 export const chainFile = {
   $schema: 'https://raw.githubusercontent.com/cosmos/chain-registry/master/chain.schema.json',
@@ -115,4 +114,4 @@ export const chainString = JSON.stringify(chainFile);
 
 export const chainNames = ['constantine-3', 'titus-1'];
 
-export const chainRegistryInstance = new ChainRegistry([...Object.values({ ...BuiltInChains.chainMap })], DEFAULT.ChainsRelativePath, []);
+export const chainRegistryInstance = new ChainRegistry([...Object.values({ ...BuiltInChains.chainMap })], DEFAULT_CHAINS_RELATIVE_PATH, []);

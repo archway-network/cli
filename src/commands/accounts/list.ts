@@ -1,9 +1,9 @@
 import { BaseCommand } from '@/lib/base';
 import { Accounts } from '@/domain';
-import { KeyringFlags } from '@/flags';
+import { KeyringFlags } from '@/parameters/flags';
+import { yellow } from '@/utils';
 
 import { BackendType } from '@/types';
-import { SuccessMessages } from '@/services';
 
 /**
  * Command 'accounts list'
@@ -24,6 +24,22 @@ export default class AccountsList extends BaseCommand<typeof AccountsList> {
   public async run(): Promise<void> {
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
 
-    await SuccessMessages.accounts.list(this, accountsDomain);
+    await this.successMessage(accountsDomain);
+  }
+
+  protected async successMessage(accountsDomain: Accounts): Promise<void> {
+    if (this.jsonEnabled()) {
+      const list = await accountsDomain.list();
+
+      this.logJson({ accounts: list });
+    } else {
+      const list = await accountsDomain.listNameAndAddress();
+
+      for (const item of list) {
+        this.log(`${Accounts.prettyPrintNameAndAddress(item)}\n`);
+      }
+
+      if (list.length === 0) this.log(yellow('No accounts found'));
+    }
   }
 }

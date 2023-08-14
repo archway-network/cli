@@ -47,7 +47,7 @@ describe('contracts store', () => {
         expect(ctx.stdout).to.contain(dummyStoreTransaction.transactionHash);
         expect(ctx.stdout).to.contain(dummyStoreTransaction.codeId);
         expect(ctx.stdout).to.contain(dummyStoreTransaction.originalSize);
-        expect(ctx.stdout).to.contain(dummyStoreTransaction.originalChecksum);
+        expect(ctx.stdout).to.contain(dummyStoreTransaction.checksum);
         expect(ctx.stdout).to.contain(dummyStoreTransaction.gasUsed);
       });
   });

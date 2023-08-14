@@ -1,7 +1,6 @@
 import path from 'node:path';
 
-import { Deployments, DeploymentsByChain } from '../../src/domain';
-import { DEFAULT } from '../../src/GlobalConfig';
+import { DEFAULT_DEPLOYMENTS_RELATIVE_PATH, DEPLOYMENTS_FILE_EXTENSION, Deployments, DeploymentsByChain } from '../../src/domain';
 import { chainNames } from './chainRegistry';
 
 import { DeploymentAction } from '../../src/types';
@@ -68,7 +67,7 @@ export const premiumDeployment = {
     admin: 'archway1ef8r7lwu6xtxkzhkmeufpcv7m3xy4gm5l2mazd',
   },
   flatFee: {
-    denom: 'uarch',
+    denom: 'aarch',
     amount: '1000',
   },
 };
@@ -82,15 +81,15 @@ export const deploymentString = JSON.stringify(deploymentFile);
 export const deploymentsInstance = new Deployments(
   [
     DeploymentsByChain.make(
-      DEFAULT.DeploymentsRelativePath,
-      path.basename(chainNames[0], DEFAULT.DeploymentFileExtension),
+      DEFAULT_DEPLOYMENTS_RELATIVE_PATH,
+      path.basename(chainNames[0], DEPLOYMENTS_FILE_EXTENSION),
       deploymentFile.deployments
     ),
   ],
-  DEFAULT.DeploymentsRelativePath
+  DEFAULT_DEPLOYMENTS_RELATIVE_PATH
 );
 
 export const deploymentsEmptyInstance = new Deployments(
-  [DeploymentsByChain.make(DEFAULT.DeploymentsRelativePath, path.basename(chainNames[0], DEFAULT.DeploymentFileExtension), [])],
-  DEFAULT.DeploymentsRelativePath
+  [DeploymentsByChain.make(DEFAULT_DEPLOYMENTS_RELATIVE_PATH, path.basename(chainNames[0], DEPLOYMENTS_FILE_EXTENSION), [])],
+  DEFAULT_DEPLOYMENTS_RELATIVE_PATH
 );

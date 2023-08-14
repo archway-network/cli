@@ -2,7 +2,6 @@ import ow from 'ow';
 import path from 'node:path';
 
 import { ChainRegistry, DeploymentsByChain } from '@/domain';
-import { DEFAULT } from '@/GlobalConfig';
 import { bold, getWorkspaceRoot, readFilesFromDirectory } from '@/utils';
 import { InvalidFormatError } from '@/exceptions';
 
@@ -16,7 +15,9 @@ import {
   Deployment,
 } from '@/types';
 
-export const noDeploymentsMessage = 'No deployments found';
+export const DEFAULT_DEPLOYMENTS_RELATIVE_PATH = './.modulor/deployments';
+export const DEPLOYMENTS_FILE_EXTENSION = '.json';
+export const NO_DEPLOYMENTS_MESSAGE = 'No deployments found';
 
 /**
  * Manages the deployments in the project
@@ -51,7 +52,7 @@ export class Deployments {
   static async init(workingDir?: string): Promise<Deployments> {
     // Get all deployments of all chains
     const deploymentsRoot = await this.getDeploymentsRoot(workingDir);
-    const filesRead = await readFilesFromDirectory(deploymentsRoot, DEFAULT.DeploymentFileExtension);
+    const filesRead = await readFilesFromDirectory(deploymentsRoot, DEPLOYMENTS_FILE_EXTENSION);
 
     const allDeployments: DeploymentsByChain[] = [];
 
@@ -61,7 +62,7 @@ export class Deployments {
       // Only add to deployments if file has valid format
       if (this.isValidDeploymentFile(deployment)) {
         allDeployments.push(
-          DeploymentsByChain.make(deploymentsRoot, path.basename(fileName, DEFAULT.DeploymentFileExtension), deployment.deployments)
+          DeploymentsByChain.make(deploymentsRoot, path.basename(fileName, DEPLOYMENTS_FILE_EXTENSION), deployment.deployments)
         );
       }
     }
@@ -78,7 +79,7 @@ export class Deployments {
   static async getDeploymentsRoot(workingDir?: string): Promise<string> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
 
-    return path.join(workspaceRoot, DEFAULT.DeploymentsRelativePath);
+    return path.join(workspaceRoot, DEFAULT_DEPLOYMENTS_RELATIVE_PATH);
   }
 
   /**
@@ -205,7 +206,7 @@ export class Deployments {
     const filtered = this.filterGroupedByChain(chainId, action, contractName);
 
     if (!filtered?.length) {
-      return `${bold(noDeploymentsMessage)}`;
+      return `${bold(NO_DEPLOYMENTS_MESSAGE)}`;
     }
 
     // Create chain registry instance to get explorer url

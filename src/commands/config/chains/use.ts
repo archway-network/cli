@@ -1,16 +1,14 @@
 import { BaseCommand } from '@/lib/base';
-import { DEFAULT } from '@/GlobalConfig';
-import { bold } from '@/utils';
-import { ChainRegistry, Config } from '@/domain';
-import { ChainRequiredFlag } from '@/flags';
-import { SuccessMessages } from '@/services';
+import { bold, green } from '@/utils';
+import { ChainRegistry, Config, DEFAULT_CONFIG_FILENAME } from '@/domain';
+import { ChainRequiredFlag } from '@/parameters/flags';
 
 /**
  * Command 'config chains use'
  * Switches the current chain in use and updates the config file
  */
 export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse> {
-  static summary = `Switches the current chain in use and updates the ${bold(DEFAULT.ConfigFileName)} config file with his information.`;
+  static summary = `Switches the current chain in use and updates the ${bold(DEFAULT_CONFIG_FILENAME)} config file with his information.`;
   static flags = {
     chain: ChainRequiredFlag,
   };
@@ -28,6 +26,10 @@ export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse>
 
     configFile.update({ chainId: this.flags.chain }, true);
 
-    SuccessMessages.chains.use(this, this.flags.chain!);
+    await this.successMessage(this.flags.chain!);
+  }
+
+  protected async successMessage(chainId: string): Promise<void> {
+    this.success(`${green('Switched chain to')} ${bold(chainId)}`);
   }
 }

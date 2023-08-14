@@ -1,13 +1,12 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { ContractNameOptionalArg } from '@/arguments';
-import { Config } from '@/domain';
-import { showSpinner } from '@/ui';
+import { ContractNameOptionalArg } from '@/parameters/arguments';
+import { Config, Contracts } from '@/domain';
+import { showDisappearingSpinner } from '@/ui';
 import { NotFoundError } from '@/exceptions';
-import { SuccessMessages } from '@/services';
 
-import { InstantiateDeployment } from '@/types';
+import { AccountBalancesJSON, InstantiateDeployment } from '@/types';
 
 /**
  * Command 'contracts query balance'
@@ -52,12 +51,22 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
 
     if (contractsToQuery.length === 0) throw new NotFoundError('Instantiated contract with a contract address');
 
-    const result = await showSpinner(async () => {
+    const result = await showDisappearingSpinner(async () => {
       const client = await config.getStargateClient();
 
       return config.contractsInstance.queryAllBalances(client, contractsToQuery);
     }, 'Querying contract balances...');
 
-    SuccessMessages.contracts.query.balance(this, result);
+    await this.successMessage(result);
+  }
+
+  protected async successMessage(balances: AccountBalancesJSON[]): Promise<void> {
+    if (this.jsonEnabled()) {
+      this.logJson({ contracts: balances });
+    } else {
+      for (const item of balances) {
+        this.log(`${Contracts.prettyPrintBalances(item)}`);
+      }
+    }
   }
 }

@@ -4,7 +4,7 @@ import { LedgerSigner } from '@cosmjs/ledger-amino';
 import { HdPath, Slip10RawIndex } from '@cosmjs/crypto';
 import { toBase64 } from '@cosmjs/encoding';
 
-import { ACCOUNTS } from '@/GlobalConfig';
+import { DEFAULT_ADDRESS_BECH_32_PREFIX } from './Accounts';
 
 import { Account, AccountType } from '@/types';
 
@@ -40,7 +40,7 @@ export class Ledger {
    * @param prefix - Optional - Bech 32 prefix for the addresses, defaults to 'archway'
    * @returns Instance of {@link LedgerSigner}
    */
-  static async getLedgerSigner(prefix = ACCOUNTS.AddressBech32Prefix): Promise<LedgerSigner> {
+  static async getLedgerSigner(prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<LedgerSigner> {
     const ledgerTransport = await TransportNodeHid.create(OPEN_TIMEOUT, LISTEN_TIMEOUT);
     return new LedgerSigner(ledgerTransport, { hdPaths: [makeCosmosDerivationPath()], prefix });
   }
@@ -52,7 +52,7 @@ export class Ledger {
    * @param prefix - Optional - Bech 32 prefix for the address, defaults to 'archway'
    * @returns Instance of {@link Account}
    */
-  static async getAccount(name: string, prefix = ACCOUNTS.AddressBech32Prefix): Promise<Account> {
+  static async getAccount(name: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<Account> {
     const signer = await this.getLedgerSigner(prefix);
 
     const account = (await signer.getAccounts())[0];

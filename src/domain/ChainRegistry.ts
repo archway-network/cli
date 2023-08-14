@@ -1,12 +1,15 @@
 import ow from 'ow';
 import path from 'node:path';
 
-import { DEFAULT } from '@/GlobalConfig';
 import { BuiltInChains } from '@/services';
 import { bold, red, yellow, getWorkspaceRoot, fileExists, readFilesFromDirectory, writeFileWithDir } from '@/utils';
 import { AlreadyExistsError, ErrorCodes, InvalidFormatError } from '@/exceptions';
 
 import { ConsoleError, ChainRegistrySpec, CosmosChain, cosmosChainValidator } from '@/types';
+
+export const DEFAULT_CHAIN_ID = 'constantine-3';
+export const DEFAULT_CHAINS_RELATIVE_PATH = './.modulor/chains';
+export const CHAIN_FILE_EXTENSION = '.json';
 
 /**
  * Manages the chains in the project, including the built-in and the imported ones.
@@ -53,7 +56,7 @@ export class ChainRegistry extends ChainRegistrySpec {
     let filesRead: Record<string, string> = {};
 
     try {
-      filesRead = await readFilesFromDirectory(directoryPath, DEFAULT.ChainFileExtension);
+      filesRead = await readFilesFromDirectory(directoryPath, CHAIN_FILE_EXTENSION);
     } catch {}
 
     // List of built-in chains that could be added to final result
@@ -65,7 +68,7 @@ export class ChainRegistry extends ChainRegistrySpec {
     // Parse file contents, and check if they override built-in chain info
     const parsedList: CosmosChain[] = [];
     for (const [fileName, file] of Object.entries(filesRead)) {
-      const fileNameChainId = path.basename(fileName, DEFAULT.ChainFileExtension);
+      const fileNameChainId = path.basename(fileName, CHAIN_FILE_EXTENSION);
       const parsed: CosmosChain = JSON.parse(file);
 
       // If file has a valid format, continue
@@ -105,7 +108,7 @@ export class ChainRegistry extends ChainRegistrySpec {
    * @returns Promise containing the absolute path of the chains directory
    */
   static async getDirectoryPath(workingDir?: string): Promise<string> {
-    return path.join(await getWorkspaceRoot(workingDir), DEFAULT.ChainsRelativePath);
+    return path.join(await getWorkspaceRoot(workingDir), DEFAULT_CHAINS_RELATIVE_PATH);
   }
 
   /**
@@ -136,7 +139,7 @@ export class ChainRegistry extends ChainRegistrySpec {
    * @returns Promise containig the absolute path of the chain file
    */
   async getFilePath(chainId: string): Promise<string> {
-    return path.join(this._path, `./${chainId}${DEFAULT.ChainFileExtension}`);
+    return path.join(this._path, `./${chainId}${CHAIN_FILE_EXTENSION}`);
   }
 
   /**
@@ -179,7 +182,7 @@ export class ChainRegistry extends ChainRegistrySpec {
     const newChainId = chain.chain_id;
 
     if (await this.fileExists(newChainId)) {
-      throw new AlreadyExistsError('Chain info file', `${newChainId}${DEFAULT.ChainFileExtension}`);
+      throw new AlreadyExistsError('Chain info file', `${newChainId}${CHAIN_FILE_EXTENSION}`);
     }
 
     return this.forceWriteChainFile(chain);

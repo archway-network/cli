@@ -2,7 +2,7 @@ import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
 import { Contracts, Deployments } from '@/domain';
-import { ChainOptionalFlag } from '@/flags';
+import { ChainOptionalFlag } from '@/parameters/flags';
 
 import { DeploymentAction } from '@/types';
 
@@ -32,6 +32,10 @@ export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployme
       contracts.getContractByName(this.flags.contract);
     }
 
+    await this.successMessage(deployments);
+  }
+
+  protected async successMessage(deployments: Deployments): Promise<void> {
     this.log(await deployments.prettyPrint(this.flags.chain, this.flags.action as DeploymentAction, this.flags.contract));
 
     if (this.jsonEnabled()) {

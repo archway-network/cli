@@ -1,8 +1,7 @@
 /* eslint-disable unicorn/no-static-only-class */
 import path from 'node:path';
 
-import { Cargo, Config } from '@/domain';
-import { DEFAULT, REPOSITORIES } from '@/GlobalConfig';
+import { Cargo, Config, DEFAULT_TEMPLATE_BRANCH, DEFAULT_WORKSPACE_TEMPLATE, TEMPLATES_REPOSITORY } from '@/domain';
 import { sanitizeDirName } from '@/utils';
 
 /**
@@ -69,9 +68,9 @@ export class RustProject {
     const cargo = new Cargo();
     await cargo.generate({
       name,
-      repository: REPOSITORIES.Templates,
-      branch: DEFAULT.TemplateBranch,
-      template: DEFAULT.WorkspaceTemplate,
+      repository: TEMPLATES_REPOSITORY,
+      branch: DEFAULT_TEMPLATE_BRANCH,
+      template: DEFAULT_WORKSPACE_TEMPLATE,
     });
   }
 }

@@ -1,8 +1,7 @@
 /* eslint-disable unicorn/no-static-only-class */
 import { Answers, Choice } from 'prompts';
 
-import { DEFAULT } from '@/GlobalConfig';
-import { ChainRegistry } from '@/domain';
+import { ChainRegistry, DEFAULT_CHAIN_ID } from '@/domain';
 import { showPrompt } from '@/ui';
 import { ContractTemplates } from '@/services';
 
@@ -31,7 +30,7 @@ export class Prompts {
       };
     });
 
-    const defaultSelected = choices.findIndex(item => item.value === DEFAULT.ChainId);
+    const defaultSelected = choices.findIndex(item => item.value === DEFAULT_CHAIN_ID);
 
     return showPrompt({
       type: 'select',

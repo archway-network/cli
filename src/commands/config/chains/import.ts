@@ -3,12 +3,10 @@ import { Args } from '@oclif/core';
 import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
-import { DEFAULT } from '@/GlobalConfig';
-import { bold, red } from '@/utils';
-import { ChainRegistry } from '@/domain';
+import { bold, green, red } from '@/utils';
+import { ChainRegistry, DEFAULT_CHAINS_RELATIVE_PATH } from '@/domain';
 import { ErrorCodes } from '@/exceptions';
-import { StdinInputArg } from '@/arguments';
-import { SuccessMessages } from '@/services';
+import { StdinInputArg } from '@/parameters/arguments';
 
 import { ConsoleError, CosmosChain } from '@/types';
 
@@ -18,7 +16,7 @@ import { ConsoleError, CosmosChain } from '@/types';
  */
 export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsImport> {
   static summary = `Import a chain registry file and save it to ${bold(
-    path.join('{project-root}', DEFAULT.ChainsRelativePath, './{chain-id}.json')
+    path.join('{project-root}', DEFAULT_CHAINS_RELATIVE_PATH, './{chain-id}.json')
   )}.`;
 
   static args = {
@@ -47,7 +45,11 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
 
     await chainRegistry.import(chainInfo);
 
-    SuccessMessages.chains.import(this, chainInfo.chain_id);
+    await this.successMessage(chainInfo.chain_id);
+  }
+
+  protected async successMessage(chainId: string): Promise<void> {
+    this.success(`${green('Imported chain')} ${bold(chainId)}`);
   }
 }
 

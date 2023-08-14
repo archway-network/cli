@@ -1,7 +1,7 @@
 import { Choice } from 'prompts';
 
-import { REPOSITORIES } from '@/GlobalConfig';
 import { InvalidValueError } from '@/exceptions';
+import { TEMPLATES_REPOSITORY } from '@/domain';
 
 import { ContractTemplate } from '@/types';
 
@@ -28,7 +28,7 @@ export class ContractTemplates {
   static getTemplateChoices(): Choice[] {
     return this.allTemplates.map(item => ({
       ...item,
-      description: `[https://github.com/${REPOSITORIES.Templates}/tree/main/${item.value}]`,
+      description: `[https://github.com/${TEMPLATES_REPOSITORY}/tree/main/${item.value}]`,
     }));
   }
 

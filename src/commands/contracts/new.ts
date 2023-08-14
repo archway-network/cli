@@ -1,11 +1,10 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { ContractNameRequiredArg } from '@/arguments';
-import { TemplateWithPromptFlag } from '@/flags';
-import { Config } from '@/domain';
-import { DEFAULT } from '@/GlobalConfig';
-import { SuccessMessages } from '@/services';
+import { ContractNameRequiredArg } from '@/parameters/arguments';
+import { TemplateWithPromptFlag } from '@/parameters/flags';
+import { Config, DEFAULT_TEMPLATE_NAME } from '@/domain';
+import { darkGreen, green } from '@/utils';
 
 /**
  * Command 'contracts new'
@@ -47,8 +46,14 @@ export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
 
     await config.assertIsValidWorkspace();
 
-    await config.contractsInstance.create(this.args.contract!, this.flags.template || DEFAULT.Template);
+    await config.contractsInstance.create(this.args.contract!, this.flags.template || DEFAULT_TEMPLATE_NAME);
 
-    SuccessMessages.contracts.new(this, this.args.contract!, this.flags.template);
+    await this.successMessage(this.args.contract!, this.flags.template);
+  }
+
+  protected async successMessage(contractName: string, template?: string): Promise<void> {
+    this.success(
+      `${darkGreen('Contract')} ${green(contractName)} ${darkGreen('created from template')} ${green(template || DEFAULT_TEMPLATE_NAME)}`
+    );
   }
 }

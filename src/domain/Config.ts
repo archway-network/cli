@@ -7,8 +7,7 @@ import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { getWorkspaceRoot, mergeCustomizer, writeFileWithDir, sanitizeDirName, prettyPrintTransaction, bold } from '@/utils';
-import { ACCOUNTS, DEFAULT } from '@/GlobalConfig';
-import { ChainRegistry, Contracts, Deployments, Ledger } from '@/domain';
+import { ChainRegistry, Contracts, DEFAULT_ADDRESS_BECH_32_PREFIX, DEFAULT_CONTRACTS_RELATIVE_PATH, Deployments, Ledger } from '@/domain';
 import { AlreadyExistsError, NotFoundError, InvalidFormatError } from '@/exceptions';
 
 import {
@@ -22,6 +21,8 @@ import {
   Account,
   AccountType,
 } from '@/types';
+
+export const DEFAULT_CONFIG_FILENAME = 'modulor.json';
 
 /**
  * Manages the config file of the project and creates instances of ChainRegistry and Contracts
@@ -138,7 +139,7 @@ export class Config {
     return new Config(
       data.name,
       data.chainId,
-      data.contractsPath || DEFAULT.ContractsRelativePath,
+      data.contractsPath || DEFAULT_CONTRACTS_RELATIVE_PATH,
       contracts,
       chainRegistry,
       workspaceRoot,
@@ -172,7 +173,7 @@ export class Config {
    */
   static async create(chainId: string, workingDir?: string): Promise<Config> {
     if (await Config.exists(workingDir)) {
-      throw new AlreadyExistsError('Config file', DEFAULT.ConfigFileName);
+      throw new AlreadyExistsError('Config file', DEFAULT_CONFIG_FILENAME);
     }
 
     // Get Workspace root
@@ -202,7 +203,7 @@ export class Config {
   static async getFilePath(workingDir?: string): Promise<string> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
 
-    return path.join(workspaceRoot, DEFAULT.ConfigFileName);
+    return path.join(workspaceRoot, DEFAULT_CONFIG_FILENAME);
   }
 
   /**
@@ -325,7 +326,7 @@ export class Config {
 
     const signer = await (account.type === AccountType.LEDGER ?
       Ledger.getLedgerSigner() :
-      DirectSecp256k1HdWallet.fromMnemonic(account.mnemonic!, { prefix: ACCOUNTS.AddressBech32Prefix }));
+      DirectSecp256k1HdWallet.fromMnemonic(account.mnemonic!, { prefix: DEFAULT_ADDRESS_BECH_32_PREFIX }));
 
     return SigningArchwayClient.connectWithSigner(rpcEndpoint, signer);
   }

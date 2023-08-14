@@ -1,16 +1,16 @@
 import { Flags } from '@oclif/core';
 import fs from 'node:fs/promises';
 import { UploadResult } from '@cosmjs/cosmwasm-stargate';
+import path from 'node:path';
 
 import { BaseCommand } from '@/lib/base';
-import { ContractNameRequiredArg } from '@/arguments';
+import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { askForConfirmation, buildStdFee, blue, white, yellow } from '@/utils';
-import { KeyringFlags, TransactionFlags } from '@/flags';
-import { showSpinner } from '@/ui';
-import { SuccessMessages } from '@/services';
+import { askForConfirmation, buildStdFee, blue, white, yellow, green } from '@/utils';
+import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
+import { showDisappearingSpinner } from '@/ui';
 
-import { Account, BackendType, InstantiatePermission, DeploymentAction, StoreDeployment } from '@/types';
+import { Account, BackendType, InstantiatePermission, DeploymentAction, StoreDeployment, Contract } from '@/types';
 
 /**
  * Command 'contracts store'
@@ -65,16 +65,12 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
     const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
     const wasmCode = await fs.readFile(contract.wasm.optimizedFilePath);
 
-    this.log(`Uploading optimized wasm for contract ${blue(contract.name)}`);
-    this.log(`  Chain: ${blue(config.chainId)}`);
-    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+    await this.logTransactionDetails(config, contract, fromAccount);
 
-    let result: UploadResult;
-
-    await showSpinner(async () => {
+    const result = await showDisappearingSpinner(async () => {
       const signingClient = await config.getSigningArchwayClient(fromAccount);
 
-      result = await signingClient.upload(fromAccount.address, wasmCode, buildStdFee(this.flags.fee?.coin));
+      return signingClient.upload(fromAccount.address, wasmCode, buildStdFee(this.flags.fee?.coin));
     }, 'Waiting for tx to confirm...');
 
     await config.deploymentsInstance.addDeployment(
@@ -93,6 +89,22 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       config.chainId
     );
 
-    await SuccessMessages.contracts.store(this, result!, contract, config);
+    await this.successMessage(result!, contract, config);
+  }
+
+  protected async logTransactionDetails(config: Config, contract: Contract, fromAccount: Account): Promise<void> {
+    this.log(`Uploading optimized wasm for contract ${blue(contract.name)}`);
+    this.log(`  Chain: ${blue(config.chainId)}`);
+    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+  }
+
+  protected async successMessage(result: UploadResult, contractInstance: Contract, configInstance: Config): Promise<void> {
+    if (this.jsonEnabled()) {
+      this.logJson(result);
+    } else {
+      this.success(`${green('Contract')} ${blue(path.basename(contractInstance.wasm.optimizedFilePath))} ${green('uploaded')}`);
+      this.log(`  Code Id: ${blue(result.codeId)}`);
+      this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
+    }
   }
 }

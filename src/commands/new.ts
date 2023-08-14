@@ -1,10 +1,10 @@
 import { Args, Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { ChainWithPromptFlag } from '@/flags';
-import { Prompts, SuccessMessages } from '@/services';
-import { NewProject as NewProjectDomain } from '@/domain';
-import { DEFAULT } from '@/GlobalConfig';
+import { ChainWithPromptFlag } from '@/parameters/flags';
+import { Prompts } from '@/services';
+import { DEFAULT_TEMPLATE_NAME, NewProject as NewProjectDomain } from '@/domain';
+import { darkGreen, green } from '@/utils';
 
 /**
  * Command 'new'
@@ -56,11 +56,15 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
 
     await NewProjectDomain.create({
       name: this.args['project-name'],
-      contractTemplate: this.flags['no-contract'] ? undefined : this.flags.template || promptedTemplate?.template || DEFAULT.Template,
+      contractTemplate: this.flags['no-contract'] ? undefined : this.flags.template || promptedTemplate?.template || DEFAULT_TEMPLATE_NAME,
       chainId: this.flags.chain as string,
       contractName: (this.flags['contract-name'] || promptedContractName?.['contract-name']) as string,
     });
 
-    SuccessMessages.new(this, this.args['project-name'], this.flags.chain!);
+    await this.successMessage(this.args['project-name'], this.flags.chain!);
+  }
+
+  protected async successMessage(projectName: string, chainId: string): Promise<void> {
+    this.success(`${darkGreen('Project')} ${green(projectName)} ${darkGreen('created and configured for the chain')} ${green(chainId)}`);
   }
 }
