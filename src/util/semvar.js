@@ -10,7 +10,7 @@ async function checkSemanticVersion() {
   const lines = stdout.replace(/\r/g, '').split('\n');
   const remote = lines.find(semver.valid);
 
-  if (semver.gt(remote, version) && semver.prerelease(remote) === null) {
+  if (semver.satisfies(remote, `>${version}`)) {
     console.warn(chalk`{whiteBright A newer version of Archway CLI is available ({green.bold v${remote}}).}`);
     console.info(chalk`{whiteBright Install the latest version with {yellow.bold npm install -g @archwayhq/cli}}`);
     console.info(
