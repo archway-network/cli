@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.6.2](https://github.com/archway-network/archway-cli/compare/1.6.1...1.6.2) (2023-08-25)
+
+### Bug Fixes
+
+- **archwayd**: fix semantic version check for new releases ([#205](https://github.com/archway-network/archway-cli/pull/205))
+
+### Security Fixes
+
+* **deps**: bump word-wrap from 1.2.3 to 1.2.4 ([#204](https://github.com/archway-network/archway-cli/pull/204))
+
 ## [1.6.1](https://github.com/archway-network/archway-cli/compare/1.6.0...1.6.1) (2023-07-05)
 
 ### Bug Fixes
