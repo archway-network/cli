@@ -82,7 +82,7 @@
     "wasm-opt": "^1.4.0"
   },
   "devDependencies": {
-    "@oclif/test": "^2.4.2",
+    "@oclif/test": "^2.4.7",
     "@types/chai": "^4.3.4",
     "@types/debug": "^4.1.7",
     "@types/dockerode": "^3.3.16",
