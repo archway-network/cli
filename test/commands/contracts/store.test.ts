@@ -16,6 +16,7 @@ describe('contracts store', () => {
     configStubs.init();
     configStubs.assertIsValidWorkspace();
     filesystemStubs.readFile();
+    filesystemStubs.writeFile();
     signingArchwayClientStubs.connectWithSigner();
   });
 

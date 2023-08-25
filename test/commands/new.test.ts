@@ -17,6 +17,7 @@ describe('new', () => {
     spawk.preventUnmatched();
     fileSystemStubs.writeFile();
     fileSystemStubs.mkdir();
+    fileSystemStubs.chdir();
     cargoStubs.projectMetadata();
     promptsSpy = sinon.spy(prompts, 'prompt');
   });
@@ -35,6 +36,12 @@ describe('new', () => {
         spawk.spawn('cargo');
         // Cargo generate contract call
         spawk.spawn('cargo');
+        // Cargo build contract call
+        spawk.spawn('cargo');
+        // Cargo generate schemas call
+        spawk.spawn('cargo');
+        // Git init repository
+        spawk.spawn('git');
       });
 
       test
@@ -49,10 +56,16 @@ describe('new', () => {
 
     describe('with cli arguments', () => {
       before(() => {
-        // Cargo generate call
+        // Cargo generate workspace call
         spawk.spawn('cargo');
         // Cargo generate contract call
         spawk.spawn('cargo');
+        // Cargo build contract call
+        spawk.spawn('cargo');
+        // Cargo generate schemas call
+        spawk.spawn('cargo');
+        // Git init repository
+        spawk.spawn('git');
         promptsSpy.resetHistory();
       });
 

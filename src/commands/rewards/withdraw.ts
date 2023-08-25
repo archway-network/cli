@@ -1,7 +1,7 @@
 import { BaseCommand } from '@/lib/base';
 import { Accounts, Config } from '@/domain';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
-import { bold, buildStdFee, darkGreen, green, yellow } from '@/utils';
+import { bold, buildStdFee, green, greenBright, yellow } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
 
 import { Account, BackendType } from '@/types';
@@ -26,31 +26,33 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
    */
   public async run(): Promise<void> {
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const account: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const accountWithSigner = await accountsDomain.getWithSigner(this.flags.from!);
 
     const config = await Config.init();
 
-    await this.logTransactionDetails(account);
+    await this.logTransactionDetails(accountWithSigner.account);
 
     const result = await showDisappearingSpinner(async () => {
-      const signingClient = await config.getSigningArchwayClient(account);
+      const signingClient = await config.getSigningArchwayClient(accountWithSigner, this.flags['gas-adjustment']);
 
-      return signingClient.withdrawContractRewards(account.address, 0, buildStdFee(this.flags.fee?.coin));
+      return signingClient.withdrawContractRewards(accountWithSigner.account.address, 0, buildStdFee(this.flags.fee?.coin));
     }, 'Waiting for tx to confirm...');
 
     await this.successMessage(result);
   }
 
   protected async logTransactionDetails(account: Account): Promise<void> {
-    this.log(`Withdrawing rewards from ${green(account.name)} (${darkGreen(account.address)})\n`);
+    this.log(`Withdrawing rewards from ${greenBright(account.name)} (${green(account.address)})\n`);
   }
 
   protected async successMessage(result: WithdrawContractRewardsResult): Promise<void> {
     if (result.rewards.length === 0) {
       this.log(yellow('No outstanding rewards'));
     } else {
-      this.success(darkGreen('Successfully claimed the following rewards:\n'));
+      this.success(green('Successfully claimed the following rewards:\n'));
       for (const item of result.rewards) this.log(`- ${bold(item.amount)}${item.denom}`);
     }
+
+    if (this.jsonEnabled()) this.logJson(result);
   }
 }

@@ -1,7 +1,7 @@
 import { Command, Flags, Interfaces } from '@oclif/core';
 import debugInstance from 'debug';
 
-import { red, yellow } from '@/utils';
+import { redBright, yellow } from '@/utils';
 import { PromptCanceledError } from '@/ui';
 
 import { ConsoleError } from '@/types';
@@ -111,7 +111,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     }
 
     debug('Original error message: ', err.message);
-    err.message = `${ERROR_PREFIX} ${err instanceof ConsoleError ? err.toConsoleString() : red((err as any)?.stderr || err.message)}`;
+    err.message = `${ERROR_PREFIX} ${err instanceof ConsoleError ? err.toConsoleString() : redBright((err as any)?.stderr || err.message)}`;
 
     return super.catch(err);
   }

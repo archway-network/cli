@@ -1,7 +1,8 @@
 import { BaseCommand } from '@/lib/base';
 import { Config, DEFAULT_CONFIG_FILENAME } from '@/domain';
 import { bold, green } from '@/utils';
-import { ChainWithPromptFlag } from '@/parameters/flags';
+import { ChainOptionalFlag } from '@/parameters/flags';
+import { Prompts } from '@/services';
 
 /**
  * Command 'config init'
@@ -10,7 +11,7 @@ import { ChainWithPromptFlag } from '@/parameters/flags';
 export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
   static summary = 'Initializes a config file for the current project.';
   static flags = {
-    chain: ChainWithPromptFlag,
+    chain: ChainOptionalFlag,
   };
 
   /**
@@ -19,12 +20,14 @@ export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    await Config.create(this.flags.chain!);
+    const config = await Config.create(this.flags.chain || (await Prompts.chain()).chain);
 
-    await this.successMessage();
+    await this.successMessage(config);
   }
 
-  protected async successMessage(): Promise<void> {
+  protected async successMessage(config: Config): Promise<void> {
     this.success(`${green('Config file')} ${bold(DEFAULT_CONFIG_FILENAME)} ${green('created')}`);
+
+    if (this.jsonEnabled()) this.logJson(config.toConfigData());
   }
 }

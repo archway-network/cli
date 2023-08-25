@@ -5,7 +5,7 @@ import { ExecuteResult } from '@cosmjs/cosmwasm-stargate';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue, green } from '@/utils';
+import { buildStdFee, blueBright, greenBright } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/parameters/flags';
 import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
@@ -58,7 +58,7 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
     await config.assertIsValidWorkspace();
     const contract = config.contractsInstance.getContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const from = await accountsDomain.getWithSigner(this.flags.from!);
 
     const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
 
@@ -66,7 +66,7 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
 
     const contractAddress = instantiated.contract.address;
 
-    await this.logTransactionDetails(config, contract, fromAccount);
+    await this.logTransactionDetails(config, contract, from.account);
 
     // Validate init args schema
     const executeArgs = JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
@@ -74,10 +74,10 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
 
     const result = await showDisappearingSpinner(async () => {
       try {
-        const signingClient = await config.getSigningArchwayClient(fromAccount);
+        const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
 
         return signingClient.execute(
-          fromAccount.address,
+          from.account.address,
           contractAddress,
           executeArgs,
           buildStdFee(this.flags.fee?.coin),
@@ -93,16 +93,16 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
   }
 
   protected async logTransactionDetails(config: Config, contract: Contract, fromAccount: Account): Promise<void> {
-    this.log(`Executing contract ${blue(contract.name)}`);
-    this.log(`  Chain: ${blue(config.chainId)}`);
-    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+    this.log(`Executing contract ${blueBright(contract.name)}`);
+    this.log(`  Chain: ${blueBright(config.chainId)}`);
+    this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
   }
 
   protected async successMessage(result: ExecuteResult, contractInstance: Contract, configInstance: Config): Promise<void> {
     if (this.jsonEnabled()) {
       this.logJson(result);
     } else {
-      this.success(`${green('Executed contract ')} ${blue(contractInstance.label)}`);
+      this.success(`${greenBright('Executed contract ')} ${blueBright(contractInstance.label)}`);
       this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
     }
   }

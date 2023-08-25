@@ -1,10 +1,11 @@
 import { Args, Flags } from '@oclif/core';
+import { spawn } from 'promisify-child-process';
 
 import { BaseCommand } from '@/lib/base';
-import { ChainWithPromptFlag } from '@/parameters/flags';
+import { ChainOptionalFlag } from '@/parameters/flags';
 import { Prompts } from '@/services';
-import { DEFAULT_TEMPLATE_NAME, NewProject as NewProjectDomain } from '@/domain';
-import { darkGreen, green } from '@/utils';
+import { NewProject as NewProjectDomain, ProjectType } from '@/domain';
+import { green, greenBright } from '@/utils';
 
 /**
  * Command 'new'
@@ -13,31 +14,18 @@ import { darkGreen, green } from '@/utils';
 export default class NewProject extends BaseCommand<typeof NewProject> {
   static summary = 'Initializes a new project repository';
   static args = {
-    'project-name': Args.string({ required: true }),
+    'project-name': Args.string({ description: 'Name of the new repository' }),
   };
 
   static flags = {
-    chain: ChainWithPromptFlag,
-    'no-contract': Flags.boolean(),
-    'contract-name': Flags.string(),
-    template: Flags.string(),
+    chain: ChainOptionalFlag,
+    contract: Flags.boolean({
+      default: true,
+      description: 'Boolean flag to choose if you want to also create a contract with the project. Defaults to true',
+    }),
+    'contract-name': Flags.string({ description: 'Name of the contract' }),
+    template: Flags.string({ description: 'Template of the contract to be created with your project' }),
   };
-
-  /**
-   * Override init function to show message before prompts are displayed
-   */
-  public async init(): Promise<void> {
-    // Need to parse early to display the project name on the starting message
-    const { args } = await this.parse({
-      args: this.ctor.args,
-      // Override chain flag on this early parse, to avoid early prompting
-      flags: { ...this.ctor.flags, chain: Flags.string() },
-    });
-
-    this.log(`Creating Archway project ${args['project-name']}...\n`);
-
-    await super.init();
-  }
 
   /**
    * Runs the command.
@@ -45,26 +33,38 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    // If no-contract flag then only copy the files
-    if (this.flags['no-contract']) return;
+    const inputProjectName = this.args['project-name'] || (await Prompts.newProject())['project-name'];
+    const inputChain = this.flags.chain || (await Prompts.chain()).chain;
 
-    let promptedContractName: Record<string, string> = {};
-    let promptedTemplate: Record<string, string> = {};
+    this.log(`Creating Archway project ${inputProjectName}...\n`);
 
-    if (!this.flags['contract-name']) promptedContractName = await Prompts.contractName();
-    if (!this.flags.template) promptedTemplate = await Prompts.template();
+    const projectName = await NewProjectDomain.create(
+      {
+        name: inputProjectName,
+        chainId: inputChain,
+        contractName: this.flags.contract ? this.flags['contract-name'] || (await Prompts.contractName())['contract-name'] : undefined,
+        contractTemplate: this.flags.contract ? this.flags.template || (await Prompts.template()).template : undefined,
+      },
+      ProjectType.RUST,
+      this.jsonEnabled()
+    );
 
-    await NewProjectDomain.create({
-      name: this.args['project-name'],
-      contractTemplate: this.flags['no-contract'] ? undefined : this.flags.template || promptedTemplate?.template || DEFAULT_TEMPLATE_NAME,
-      chainId: this.flags.chain as string,
-      contractName: (this.flags['contract-name'] || promptedContractName?.['contract-name']) as string,
+    process.chdir(projectName);
+
+    await spawn('git', ['init', '--quiet'], {
+      stdio: 'inherit',
+      encoding: 'utf8',
+      maxBuffer: 1024 * 1024,
     });
 
-    await this.successMessage(this.args['project-name'], this.flags.chain!);
+    await this.successMessage(projectName, inputChain);
   }
 
   protected async successMessage(projectName: string, chainId: string): Promise<void> {
-    this.success(`${darkGreen('Project')} ${green(projectName)} ${darkGreen('created and configured for the chain')} ${green(chainId)}`);
+    this.success(
+      `${green('Project')} ${greenBright(projectName)} ${green('created and configured for the chain')} ${greenBright(chainId)}`
+    );
+
+    if (this.jsonEnabled()) this.logJson({ name: projectName, chainId });
   }
 }

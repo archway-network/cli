@@ -22,6 +22,7 @@ describe('contracts instantiate', () => {
     configStubs.init();
     configStubs.assertIsValidWorkspace();
     filesystemStubs.readFile(contractArgumentSchema);
+    filesystemStubs.writeFile();
     signingArchwayClientStubs.connectWithSigner();
   });
 

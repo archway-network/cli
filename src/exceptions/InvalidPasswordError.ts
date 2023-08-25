@@ -1,4 +1,4 @@
-import { red } from '@/utils';
+import { redBright } from '@/utils';
 import { ErrorCodes } from '@/exceptions';
 
 import { ConsoleError } from '@/types';
@@ -15,6 +15,6 @@ export class InvalidPasswordError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${red(`Invalid password${this.relatedName ? ` for ${this.relatedName}` : ''}`)}`;
+    return `${redBright(`Invalid password${this.relatedName ? ` for ${this.relatedName}` : ''}`)}`;
   }
 }

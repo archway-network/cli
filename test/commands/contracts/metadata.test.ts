@@ -2,25 +2,28 @@ import { expect, test } from '@oclif/test';
 
 import { aliceAccountName, aliceAddress, contractProjectMetadata, dummyMetadataTransaction } from '../../dummies';
 
-import { AccountsStubs, ConfigStubs, SigningArchwayClientStubs } from '../../stubs';
+import { AccountsStubs, ConfigStubs, FilesystemStubs, SigningArchwayClientStubs } from '../../stubs';
 
 describe('contracts metadata', () => {
   const contractName = contractProjectMetadata.name;
 
   const accountsStubs = new AccountsStubs();
   const configStubs = new ConfigStubs();
+  const filesystemStubs = new FilesystemStubs();
   const signingArchwayClientStubs = new SigningArchwayClientStubs();
 
   before(() => {
     accountsStubs.init();
     configStubs.init();
     configStubs.assertIsValidWorkspace();
+    filesystemStubs.writeFile();
     signingArchwayClientStubs.connectWithSigner();
   });
 
   after(() => {
     accountsStubs.restoreAll();
     configStubs.restoreAll();
+    filesystemStubs.restoreAll();
     signingArchwayClientStubs.restoreAll();
   });
 

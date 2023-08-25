@@ -1,7 +1,7 @@
 import sinon, { SinonStub } from 'sinon';
 import { ArchwayClient } from '@archwayhq/arch3.js';
 
-import { dummyRewardsQueryResult } from '../dummies';
+import { dummyQueryResult, dummyRewardsQueryResult } from '../dummies';
 
 export default class ArchwayClientStubs {
   public stubbedConnect: SinonStub | undefined;
@@ -13,6 +13,7 @@ export default class ArchwayClientStubs {
         async () =>
           ({
             getOutstandingRewards: async () => dummyRewardsQueryResult,
+            queryContractSmart: async () => dummyQueryResult,
           } as any)
       );
   }

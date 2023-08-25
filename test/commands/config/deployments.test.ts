@@ -33,7 +33,11 @@ describe('config deployments', () => {
         expect(ctx.stdout).to.contain(NO_DEPLOYMENTS_MESSAGE);
       });
 
-    test.stdout().command(['config deployments', '--json']).it('shows a JSON representation of the deployments', expectOutputJSON);
+    test
+      .stdout()
+      .env({ ARCHWAY_SKIP_VERSION_CHECK: 'true' })
+      .command(['config deployments', '--json'])
+      .it('shows a JSON representation of the deployments', expectOutputJSON);
   });
 
   describe('no deployments', () => {

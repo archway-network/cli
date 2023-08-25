@@ -1,4 +1,4 @@
-import { bold, red } from '@/utils';
+import { bold, redBright } from '@/utils';
 import { ErrorCodes } from '@/exceptions';
 
 import { ConsoleError } from '@/types';
@@ -15,6 +15,6 @@ export class AlreadyExistsError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${red(this.description)}${this.valueSearched ? bold(` ${this.valueSearched}`) : ''} ${red('already exists')}`;
+    return `${redBright(this.description)}${this.valueSearched ? bold(` ${this.valueSearched}`) : ''} ${redBright('already exists')}`;
   }
 }

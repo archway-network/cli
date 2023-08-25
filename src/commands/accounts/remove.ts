@@ -1,5 +1,5 @@
 import { BaseCommand } from '@/lib/base';
-import { askForConfirmation, bold, darkGreen, yellow } from '@/utils';
+import { askForConfirmation, bold, green, yellow } from '@/utils';
 import { AccountRequiredArg } from '@/parameters/arguments';
 import { Accounts } from '@/domain';
 import { ForceFlag, KeyringFlags } from '@/parameters/flags';
@@ -32,7 +32,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
 
     if (!this.jsonEnabled()) {
       this.warning(
-        `${yellow('Attention:')} this will permanently delete the account ${bold.green(accountInfo.name)} (${darkGreen(
+        `${yellow('Attention:')} this will permanently delete the account ${bold.green(accountInfo.name)} (${green(
           accountInfo.address
         )})\n`
       );
@@ -46,6 +46,8 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
   }
 
   protected async successMessage(account: AccountBase): Promise<void> {
-    this.success(`${darkGreen('Account')} ${bold.green(account.name)} ${darkGreen('deleted')}`);
+    this.success(`${green('Account')} ${bold.green(account.name)} ${green('deleted')}`);
+
+    if (this.jsonEnabled()) this.logJson(account);
   }
 }

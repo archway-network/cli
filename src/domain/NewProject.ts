@@ -18,7 +18,7 @@ export interface ProjectParams {
   name: string;
   contractTemplate?: string;
   chainId: string;
-  contractName: string;
+  contractName?: string;
 }
 
 /**
@@ -29,19 +29,22 @@ export class NewProject {
    * Creates a new project
    *
    * @param params - Parameters for new project
-   * @param type - Type of project
+   * @param type - Optional - Type of project
+   * @param quiet - Optional - Execute the cargo commands on quiet mode. Defaults to false
+   *
+   * @returns Sanitized name of the new project
    */
-  static async create(params: ProjectParams, type = ProjectType.RUST): Promise<void> {
+  static async create(params: ProjectParams, type = ProjectType.RUST, quiet = false): Promise<string> {
     // Sanitize names and build paths
     const workingDir = process.cwd();
     const sanitizedProjectName = sanitizeDirName(params.name);
-    const sanitizedContractName = sanitizeDirName(params.contractName);
+    const sanitizedContractName = sanitizeDirName(params.contractName || '');
     const projectDir = path.join(workingDir, sanitizedProjectName);
 
     // Create project depending on type
     switch (type) {
       case ProjectType.RUST:
-        await RustProject.create(sanitizedProjectName);
+        await RustProject.create(sanitizedProjectName, quiet);
         break;
     }
 
@@ -50,8 +53,10 @@ export class NewProject {
 
     // Create contract
     if (params.contractTemplate) {
-      await config.contractsInstance.create(sanitizedContractName, params.contractTemplate);
+      await config.contractsInstance.create(sanitizedContractName, params.contractTemplate, quiet);
     }
+
+    return sanitizedProjectName;
   }
 }
 
@@ -63,14 +68,16 @@ export class RustProject {
    * Creates a new rust project with a workspace for multiple contracts
    *
    * @param name - Name of the project
+   * @param quiet - Optional - Execute the cargo commands on quiet mode. Defaults to false
    */
-  static async create(name: string): Promise<void> {
+  static async create(name: string, quiet = false): Promise<void> {
     const cargo = new Cargo();
     await cargo.generate({
       name,
       repository: TEMPLATES_REPOSITORY,
       branch: DEFAULT_TEMPLATE_BRANCH,
       template: DEFAULT_WORKSPACE_TEMPLATE,
+      quiet,
     });
   }
 }

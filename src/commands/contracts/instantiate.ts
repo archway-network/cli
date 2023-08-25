@@ -5,7 +5,7 @@ import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue, green } from '@/utils';
+import { buildStdFee, blueBright, greenBright } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/parameters/flags';
 import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
@@ -63,14 +63,14 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     await config.assertIsValidWorkspace();
     const contract = config.contractsInstance.getContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const from = await accountsDomain.getWithSigner(this.flags.from!);
 
     const label = this.flags.label || contract.label;
     const admin = this.flags['no-admin'] ?
       undefined :
       (this.flags.admin ?
         (await accountsDomain.accountBaseFromAddress(this.flags.admin)).address :
-        fromAccount.address);
+        from.account.address);
 
     // If code id is not set as flag, try to get it from deployments history
     let codeId = this.flags.code;
@@ -80,7 +80,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       if (!codeId) throw new NotFoundError("Code id of contract's store deployment");
     }
 
-    await this.logTransactionDetails(config, contract, codeId, label, admin!, fromAccount);
+    await this.logTransactionDetails(config, contract, codeId, label, admin!, from.account);
 
     // Validate init args schema
     const initArgs = JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
@@ -88,9 +88,9 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
 
     const result = await showDisappearingSpinner(async () => {
       try {
-        const signingClient = await config.getSigningArchwayClient(fromAccount);
+        const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
 
-        return signingClient.instantiate(fromAccount.address, codeId!, initArgs, label, buildStdFee(this.flags.fee?.coin), {
+        return signingClient.instantiate(from.account.address, codeId!, initArgs, label, buildStdFee(this.flags.fee?.coin), {
           funds: this.flags.amount?.coin ? [this.flags.amount.coin] : undefined,
           admin,
         });
@@ -129,20 +129,20 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     admin: string,
     fromAccount: Account
   ): Promise<void> {
-    this.log(`Instantiating contract ${blue(contract.name)}`);
-    this.log(`  Chain: ${blue(config.chainId)}`);
-    this.log(`  Code: ${blue(codeId)}`);
-    this.log(`  Label: ${blue(label)}`);
-    this.log(`  Admin: ${blue(admin)}`);
-    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+    this.log(`Instantiating contract ${blueBright(contract.name)}`);
+    this.log(`  Chain: ${blueBright(config.chainId)}`);
+    this.log(`  Code: ${blueBright(codeId)}`);
+    this.log(`  Label: ${blueBright(label)}`);
+    this.log(`  Admin: ${blueBright(admin)}`);
+    this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
   }
 
   protected async successMessage(result: InstantiateResult, label: string, configInstance: Config): Promise<void> {
     if (this.jsonEnabled()) {
       this.logJson(result);
     } else {
-      this.success(`${green('Contract')} ${blue(label)} ${green('instantiated')}`);
-      this.log(`  Address: ${blue(result.contractAddress)}`);
+      this.success(`${greenBright('Contract')} ${blueBright(label)} ${greenBright('instantiated')}`);
+      this.log(`  Address: ${blueBright(result.contractAddress)}`);
       this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
     }
   }

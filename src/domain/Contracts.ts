@@ -6,7 +6,7 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import { Coin, StargateClient } from '@cosmjs/stargate';
 
-import { readSubDirectories, getWorkspaceRoot, bold, green, red, darkGreen, yellow } from '@/utils';
+import { readSubDirectories, getWorkspaceRoot, bold, greenBright, redBright, green, prettyPrintBalancesList } from '@/utils';
 import { AccountBalancesJSON, Contract } from '@/types';
 import { Cargo, Deployments } from '@/domain';
 import { ErrorCodes, ExecuteError, InstantiateError, NotFoundError, QueryError } from '@/exceptions';
@@ -17,9 +17,8 @@ import { ConsoleError, DeploymentAction, InstantiateDeployment, StoreDeployment 
 export const DEFAULT_CONTRACTS_RELATIVE_PATH = './contracts';
 
 /** Contract Templates constants */
-export const TEMPLATES_REPOSITORY = 'https://github.com/archway-network/archway-templates'
-export const DEFAULT_TEMPLATE_NAME = 'default';
-export const DEFAULT_TEMPLATE_BRANCH = 'feature/workspace-template';
+export const TEMPLATES_REPOSITORY = 'https://github.com/archway-network/archway-templates';
+export const DEFAULT_TEMPLATE_BRANCH = 'chore/update-templates';
 export const DEFAULT_WORKSPACE_TEMPLATE = 'base-workspace';
 
 /** Message schema validation constants */
@@ -127,9 +126,10 @@ export class Contracts {
    *
    * @param name - Contract name
    * @param template - Name of the template to use
+   * @param quiet - Optional - Execute the cargo commands on quiet mode. Defaults to false
    * @returns Promise containing an instance of {@link Contract} that was created
    */
-  async create(name: string, template: string): Promise<Contract> {
+  async create(name: string, template: string, quiet = false): Promise<Contract> {
     const cargo = new Cargo();
     await cargo.generate({
       name,
@@ -137,10 +137,15 @@ export class Contracts {
       branch: DEFAULT_TEMPLATE_BRANCH,
       template: template,
       destinationDir: this.contractsRoot,
+      quiet,
     });
     const generatedPath = path.join(this.contractsRoot, name);
     const generatedCrate = new Cargo(generatedPath);
     const metadata = await generatedCrate.projectMetadata();
+
+    await generatedCrate.build({ quiet });
+    await generatedCrate.schema({ quiet });
+
     const result = this._deployments.makeContractFromMetadata(metadata);
     this._data.push(result);
 
@@ -157,7 +162,7 @@ export class Contracts {
     const cargo = this.cargoByContractName(name);
     const { wasm } = await cargo.projectMetadata();
 
-    await cargo.build();
+    await cargo.wasm();
 
     return wasm.filePath;
   }
@@ -217,7 +222,7 @@ export class Contracts {
    * @returns The contract matching the name
    */
   getContractByName(contractName: string): Contract {
-    const result = this._data.find(item => item.name === contractName)
+    const result = this._data.find(item => item.name === contractName);
 
     if (!result) throw new ContractNameNotFoundError(contractName);
 
@@ -232,7 +237,7 @@ export class Contracts {
   async prettyPrint(): Promise<string> {
     let contractsList = '';
     for (const item of this._data) {
-      contractsList += `\n  ${green(item.name)} (${item.version})`;
+      contractsList += `\n  ${greenBright(item.name)} (${item.version})`;
     }
 
     if (!contractsList) contractsList = '(none)';
@@ -408,11 +413,9 @@ export class Contracts {
    * @returns Formatted contract address balance
    */
   static prettyPrintBalances(balance: AccountBalancesJSON): string {
-    let result = `Balances for contract ${green(balance.account.name)} (${darkGreen(balance.account.address)})\n\n`;
-    if (balance.account.balances.length === 0) result += `- ${yellow('Empty balance')}\n`;
-    for (const item of balance.account.balances) result += `- ${bold(item.amount)}${item.denom}\n`;
-
-    return result;
+    return `Balances for contract ${greenBright(balance.account.name)} (${green(balance.account.address)})\n\n${prettyPrintBalancesList(
+      balance.account.balances
+    )}`;
   }
 }
 
@@ -431,7 +434,7 @@ class ContractNameNotFoundError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${red('Contract with name')} ${bold(this.contractName)} ${red('not found')}`;
+    return `${redBright('Contract with name')} ${bold(this.contractName)} ${redBright('not found')}`;
   }
 }
 
@@ -451,8 +454,8 @@ class InvalidWorkspaceError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${red('Invalid cargo file')} ${bold(this.cargoFilePath)} ${red(' please make sure it is a workspace and has')} ${bold(
-      `"${this.requiredWorkspaceMember}"`
-    )} ${red('in the members array')}`;
+    return `${redBright('Invalid cargo file')} ${bold(this.cargoFilePath)} ${redBright(
+      ' please make sure it is a workspace and that'
+    )} ${bold(`"${this.requiredWorkspaceMember}"`)} ${redBright("is part of the members listed in the workspace's Cargo.toml file")}`;
   }
 }

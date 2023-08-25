@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import _ from 'lodash';
 
-import { prettyPrintTransaction, writeFileWithDir, blue, bold, green } from '@/utils';
+import { prettyPrintTransaction, writeFileWithDir, blueBright, bold, greenBright } from '@/utils';
 import { InvalidFormatError } from '@/exceptions';
 
 import { DeploymentAction, Deployment, DeploymentFile, deploymentValidator } from '@/types';
@@ -144,10 +144,10 @@ export class DeploymentsByChain {
       }
     }
 
-    let result = `Deployments on ${blue(this._chainId)}`;
+    let result = `Deployments on ${blueBright(this._chainId)}`;
     // Loop through deployments of a contract version
     for (const version of Object.values(mappedVersions)) {
-      result += `\n\n${green(version[0].contract.name)} (${version[0].contract.version})`;
+      result += `\n\n${greenBright(version[0].contract.name)} (${version[0].contract.version})`;
       for (const auxDeploy of version as Array<any>) {
         result +=
           `\n\n${bold(_.capitalize(auxDeploy.action))}` +

@@ -39,7 +39,7 @@ export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployme
     this.log(await deployments.prettyPrint(this.flags.chain, this.flags.action as DeploymentAction, this.flags.contract));
 
     if (this.jsonEnabled()) {
-      this.logJson(await deployments.toSingleDeploymentFile(this.flags.chain, this.flags.action as DeploymentAction, this.flags.contract));
+      this.logJson(deployments.toSingleDeploymentFile(this.flags.chain, this.flags.action as DeploymentAction, this.flags.contract));
     }
   }
 }

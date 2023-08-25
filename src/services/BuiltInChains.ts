@@ -1,5 +1,5 @@
-import ConstantineSchema from '@/repositories/ChainSchemas/constantine.json';
-import TitusSchema from '@/repositories/ChainSchemas/titus.json';
+import ArchwaySchema from '@/repositories/chainSchemas/archway-1.json';
+import ConstantineSchema from '@/repositories/chainSchemas/constantine-3.json';
 
 import { CosmosChain } from '@/types';
 
@@ -10,7 +10,7 @@ import { CosmosChain } from '@/types';
 export class BuiltInChains {
   static chainMap: Record<string, CosmosChain> = {
     'constantine-3': ConstantineSchema as CosmosChain,
-    'titus-1': TitusSchema as CosmosChain,
+    'archway-1': ArchwaySchema as CosmosChain,
   };
 
   /**

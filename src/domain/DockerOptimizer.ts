@@ -4,7 +4,6 @@ import path from 'node:path';
 import Docker from 'dockerode';
 import debugInstance from 'debug';
 
-import { BaseError } from '@/exceptions';
 import { cyan, dim } from '@/utils';
 
 const debug = debugInstance('docker-optimizer');
@@ -15,7 +14,7 @@ const debug = debugInstance('docker-optimizer');
 export class DockerOptimizer {
   static RustOptimizerImage = 'cosmwasm/rust-optimizer';
   static WorkspaceOptimizerImage = 'cosmwasm/workspace-optimizer';
-  static Version = '0.12.12';
+  static Version = '0.14.0';
 
   /**
    * Docker instance
@@ -39,8 +38,8 @@ export class DockerOptimizer {
   async run(workspaceRoot: string, isWorkspace = false): Promise<{ error?: Error | string; statusCode: number }> {
     try {
       await this._docker.ping();
-    } catch {
-      throw new BaseError('Docker is not running. Please start Docker and try again.');
+    } catch (error: any) {
+      throw new Error(error);
     }
 
     const image = await this.fetchImage(isWorkspace);

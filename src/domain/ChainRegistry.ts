@@ -2,13 +2,13 @@ import ow from 'ow';
 import path from 'node:path';
 
 import { BuiltInChains } from '@/services';
-import { bold, red, yellow, getWorkspaceRoot, fileExists, readFilesFromDirectory, writeFileWithDir } from '@/utils';
+import { bold, redBright, yellow, getWorkspaceRoot, fileExists, readFilesFromDirectory, writeFileWithDir } from '@/utils';
 import { AlreadyExistsError, ErrorCodes, InvalidFormatError } from '@/exceptions';
 
 import { ConsoleError, ChainRegistrySpec, CosmosChain, cosmosChainValidator } from '@/types';
 
 export const DEFAULT_CHAIN_ID = 'constantine-3';
-export const DEFAULT_CHAINS_RELATIVE_PATH = './.modulor/chains';
+export const DEFAULT_CHAINS_RELATIVE_PATH = './.archway-cli/chains';
 export const CHAIN_FILE_EXTENSION = '.json';
 
 /**
@@ -272,6 +272,6 @@ class ChainIdNotFoundError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${red('Chain id')} ${bold(this.chainId)} ${red('not found')}`;
+    return `${redBright('Chain id')} ${bold(this.chainId)} ${redBright('not found')}`;
   }
 }

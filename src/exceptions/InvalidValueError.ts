@@ -1,4 +1,4 @@
-import { bold, red } from '@/utils';
+import { bold, redBright } from '@/utils';
 import { ErrorCodes } from '@/exceptions';
 
 import { ConsoleError } from '@/types';
@@ -15,6 +15,6 @@ export class InvalidValueError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${bold(this.value)} ${red(`is not a valid${this.type ? ` ${this.type}` : ''} value`)}`;
+    return `${bold(this.value)} ${redBright(`is not a valid${this.type ? ` ${this.type}` : ''} value`)}`;
   }
 }

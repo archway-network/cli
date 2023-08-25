@@ -5,11 +5,11 @@ import { ChildProcessPromise, PromisifySpawnOptions, spawn } from 'promisify-chi
 import { shrinkPaddedLEB128 } from '@webassemblyjs/wasm-opt';
 import debugInstance from 'debug';
 
-import { writeFileWithDir, bold, red } from '@/utils';
+import { writeFileWithDir, bold, redBright } from '@/utils';
 import { DockerOptimizer } from '@/domain';
 import { ErrorCodes, BaseError } from '@/exceptions';
 
-import { ConsoleError, BuildParams, CargoProjectMetadata, GenerateParams, Metadata } from '@/types';
+import { ConsoleError, BuildParams, CargoProjectMetadata, GenerateParams, Metadata, SchemaParams } from '@/types';
 
 const debug = debugInstance('cargo');
 
@@ -45,13 +45,13 @@ export class Cargo {
       params.destinationDir ? ['--destination', params.destinationDir] : [],
       [params.template],
     ].flat();
-    await this.run(['generate', ...extraArgs]);
+    await this.run(['generate', ...extraArgs], { stdio: params.quiet ? 'ignore' : 'inherit' });
   }
 
   /**
    * Build a cargo project
    *
-   * @param params - Optional -Object of type {@link BuildParams}
+   * @param params - Optional - Object of type {@link BuildParams}
    * @param options - Node child process options
    */
   async build(params?: BuildParams, options?: PromisifySpawnOptions): Promise<void> {
@@ -59,22 +59,21 @@ export class Cargo {
       params?.release ? ['--release'] : [],
       params?.locked ? ['--locked'] : [],
       params?.target ? ['--target', params?.target] : [],
+      params?.lib ? ['--lib'] : [],
+      params?.quiet ? ['--quiet'] : [],
     ].flat();
     await this.run(['build', ...extraArgs], options);
   }
 
   /**
    * Build the project with a wasm target
+   *
+   * @param quiet - Optional - Hide output messages
    */
-  async wasm(): Promise<void> {
-    await this.build(
-      {
-        release: true,
-        locked: true,
-        target: Cargo.WasmTarget,
-      },
-      { env: { ...process.env, RUSTFLAGS: '-C link-arg=-s' } }
-    );
+  async wasm(quiet = false): Promise<void> {
+    const extraArgs = [quiet ? ['--quiet'] : []].flat();
+
+    await this.run(['wasm', ...extraArgs]);
   }
 
   /**
@@ -128,11 +127,15 @@ export class Cargo {
   /**
    * Generate the schema files of a project
    *
+   * @param params - Optional - Object of type {@link SchemaParams}
    * @param options - Node child process options
    */
-  async schema(options?: PromisifySpawnOptions): Promise<void> {
+  async schema(params?: SchemaParams, options?: PromisifySpawnOptions): Promise<void> {
     const { name: contractName } = await this.projectMetadata();
-    await this.run(['schema', '--package', contractName], options);
+
+    const extraArgs = [['--package', contractName]].flat();
+
+    await this.run(['schema', ...extraArgs], { stdio: params?.quiet ? 'ignore' : 'inherit', ...options });
   }
 
   /**
@@ -146,7 +149,7 @@ export class Cargo {
 
     if (useDocker) {
       const optimizer = new DockerOptimizer();
-      const isPackageInsideWorkspace = root === workspaceRoot;
+      const isPackageInsideWorkspace = root !== workspaceRoot;
       const { error, statusCode } = await optimizer.run(workspaceRoot, isPackageInsideWorkspace);
       if (statusCode !== 0) {
         throw error instanceof Error ? error : new BaseError(error);
@@ -196,6 +199,6 @@ class CargoMetadataError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${red('Failed to resolve project metadata')}${this.workingDir ? bold(` from ${this.workingDir}`) : ''}`;
+    return `${redBright('Failed to resolve project metadata')}${this.workingDir ? bold(` from ${this.workingDir}`) : ''}`;
   }
 }

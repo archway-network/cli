@@ -1,9 +1,21 @@
-name: tests
-on:
-  push:
-    branches-ignore: [main]
-  workflow_dispatch:
+name: Unit Test and Lint
+
+on: [pull_request]
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
 
 jobs:
-  unit-tests:
-    uses: oclif/github-workflows/.github/workflows/unitTest.yml@main
+  test:
+    name: Unit Test and Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+      - run: yarn install
+      - run: yarn build
+      - run: yarn test

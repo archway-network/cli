@@ -1,4 +1,4 @@
-import { red } from '@/utils';
+import { redBright } from '@/utils';
 import { ErrorCodes } from '@/exceptions';
 
 import { ConsoleError } from '@/types';
@@ -15,6 +15,6 @@ export class InstantiateError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return red(`Failed to instantiate contract: ${this.description}`);
+    return redBright(`Failed to instantiate contract: ${this.description}`);
   }
 }

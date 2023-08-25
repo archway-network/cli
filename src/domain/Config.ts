@@ -4,10 +4,9 @@ import _ from 'lodash';
 import ow from 'ow';
 import { StargateClient } from '@cosmjs/stargate';
 import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { getWorkspaceRoot, mergeCustomizer, writeFileWithDir, sanitizeDirName, prettyPrintTransaction, bold } from '@/utils';
-import { ChainRegistry, Contracts, DEFAULT_ADDRESS_BECH_32_PREFIX, DEFAULT_CONTRACTS_RELATIVE_PATH, Deployments, Ledger } from '@/domain';
+import { ChainRegistry, Contracts, DEFAULT_CONTRACTS_RELATIVE_PATH, Deployments, Ledger } from '@/domain';
 import { AlreadyExistsError, NotFoundError, InvalidFormatError } from '@/exceptions';
 
 import {
@@ -18,11 +17,12 @@ import {
   ConfigData,
   ConfigDataWithContracts,
   configDataValidator,
-  Account,
   AccountType,
+  AccountWithSigner,
 } from '@/types';
 
-export const DEFAULT_CONFIG_FILENAME = 'modulor.json';
+export const DEFAULT_CONFIG_FILENAME = 'archway-cli.json';
+export const DEFAULT_GAS_ADJUSTMENT = 1.3;
 
 /**
  * Manages the config file of the project and creates instances of ChainRegistry and Contracts
@@ -114,7 +114,7 @@ export class Config {
       data = JSON.parse(await fs.readFile(configPath, 'utf8'));
     } catch {
       throw new Error(
-        `Failed to open the config file (expected to be on ${configPath}). Make sure you have initialized the project repository with the 'modulor init' command`
+        `Failed to open the config file (expected to be found in ${configPath}). Pleaes check that you are inside a project that was created with 'mod new' or that you have used 'mod config init' in an existing project`
       );
     }
 
@@ -320,15 +320,15 @@ export class Config {
    *
    * @returns Promise containing the {@link StargateClient}
    */
-  async getSigningArchwayClient(account: Account): Promise<SigningArchwayClient> {
+  async getSigningArchwayClient(accountWithSigner: AccountWithSigner, gasAdjustment = DEFAULT_GAS_ADJUSTMENT): Promise<SigningArchwayClient> {
     const chainInfo = await this.activeChainInfo();
     const rpcEndpoint = await this.activeChainRpcEndpoint(chainInfo);
 
-    const signer = await (account.type === AccountType.LEDGER ?
-      Ledger.getLedgerSigner() :
-      DirectSecp256k1HdWallet.fromMnemonic(account.mnemonic!, { prefix: DEFAULT_ADDRESS_BECH_32_PREFIX }));
+    const signer = accountWithSigner.account.type === AccountType.LEDGER ?
+      (await Ledger.getLedgerSigner()) :
+      accountWithSigner.signer!;
 
-    return SigningArchwayClient.connectWithSigner(rpcEndpoint, signer);
+    return SigningArchwayClient.connectWithSigner(rpcEndpoint, signer, { gasAdjustment });
   }
 
   /**

@@ -15,7 +15,7 @@ import {
   Deployment,
 } from '@/types';
 
-export const DEFAULT_DEPLOYMENTS_RELATIVE_PATH = './.modulor/deployments';
+export const DEFAULT_DEPLOYMENTS_RELATIVE_PATH = './.archway-cli/deployments';
 export const DEPLOYMENTS_FILE_EXTENSION = '.json';
 export const NO_DEPLOYMENTS_MESSAGE = 'No deployments found';
 

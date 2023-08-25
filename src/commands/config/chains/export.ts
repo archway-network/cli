@@ -2,7 +2,7 @@ import { BaseCommand } from '@/lib/base';
 import path from 'node:path';
 import { Args } from '@oclif/core';
 
-import { bold, green } from '@/utils';
+import { bold, greenBright } from '@/utils';
 import { BuiltInChains } from '@/services';
 import { CHAIN_FILE_EXTENSION, ChainRegistry, DEFAULT_CHAINS_RELATIVE_PATH } from '@/domain';
 
@@ -33,6 +33,8 @@ export default class ConfigChainsExport extends BaseCommand<typeof ConfigChainsE
   }
 
   protected async successMessage(chainRegistry: ChainRegistry, chainId: string): Promise<void> {
-    this.success(`${green('Exported chain to')} ${bold(path.join(chainRegistry.path, `./${chainId}.json`))}`);
+    this.success(`${greenBright('Exported chain to')} ${bold(path.join(chainRegistry.path, `./${chainId}.json`))}`);
+
+    if (this.jsonEnabled()) this.logJson({ chainId });
   }
 }

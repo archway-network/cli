@@ -38,7 +38,7 @@ export class ContractTemplates {
    * @returns Array of strings, containing the values of the templates
    */
   static getTemplateValues(): string[] {
-    return ['default', ...this.allTemplates.map(item => item.value)];
+    return this.allTemplates.map(item => item.value);
   }
 
   /**

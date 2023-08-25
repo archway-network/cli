@@ -4,12 +4,9 @@ import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
-import { Accounts, Config } from '@/domain';
+import { Config } from '@/domain';
 import { showDisappearingSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
-
-import { Account, BackendType } from '@/types';
 
 /**
  * Command 'contracts query smart'
@@ -23,12 +20,10 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
   };
 
   static flags = {
-    ...KeyringFlags,
-    ...TransactionFlags,
     args: Flags.string({
-      description: 'JSON string with a message to be passed to the contract on migration',
+      description: 'JSON string with the query to run',
     }),
-    'args-file': Flags.string({ description: 'Path to a JSON file with a message to be passed to the contract on migration' }),
+    'args-file': Flags.string({ description: 'Path to a JSON file with a query for the smart contract' }),
   };
 
   /**
@@ -52,8 +47,6 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     const config = await Config.init();
     await config.assertIsValidWorkspace();
     const contract = config.contractsInstance.getContractByName(this.args.contract!);
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
 
     const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
 
@@ -66,9 +59,9 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     await config.contractsInstance.assertValidQueryArgs(contract.name, queryMsg);
 
     const result = await showDisappearingSpinner(async () => {
-      const signingClient = await config.getSigningArchwayClient(fromAccount);
+      const client = await config.getArchwayClient();
 
-      return signingClient.queryContractSmart(contractAddress, queryMsg);
+      return client.queryContractSmart(contractAddress, queryMsg);
     }, 'Waiting for query response...');
 
     await this.successMessage(result);

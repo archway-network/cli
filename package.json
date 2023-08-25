@@ -1,9 +1,9 @@
 {
-  "name": "archway-cli",
-  "version": "0.0.0",
-  "description": "Modulor - Develop WASM smart contracts with the Archway network's developer CLI",
+  "name": "@archwayhq/cli",
+  "version": "2.0.0-alpha",
+  "description": "Develop WASM smart contracts with the Archway network's developer CLI",
   "homepage": "https://docs.archway.io",
-  "repository": "archway-network/archway-cli-v2",
+  "repository": "archway-network/archway-cli",
   "keywords": [
     "cli",
     "terminal",
@@ -30,7 +30,7 @@
   "license": "Apache-2.0",
   "bugs": "https://github.com/archway-network/archway-cli-v2/issues",
   "bin": {
-    "mod": "./bin/run"
+    "archway": "./bin/run"
   },
   "scripts": {
     "build": "shx rm -rf dist && tsc -b && tsc-alias -p tsconfig.json",
@@ -40,11 +40,12 @@
     "prepack": "yarn build && oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "test:coverage": "nyc --reporter=text mocha --forbid-only \"test/**/*.test.ts\"",
+    "test:integration": "yarn build && scripts/start-local-node.sh && bash test/integration/config.sh && bash test/integration/accounts.sh && bash test/integration/contractsAndRewards.sh",
     "version": "oclif readme && git add README.md"
   },
   "dependencies": {
     "@archwayhq/arch3.js": "^0.4.0",
-    "@archwayhq/keyring-go": "https://github.com/archway-network/keyring-go.git",
+    "@archwayhq/keyring-go": "^0.1.0",
     "@cosmjs/cosmwasm-stargate": "^0.31.0",
     "@cosmjs/crypto": "^0.31.0",
     "@cosmjs/encoding": "^0.31.0",
@@ -56,6 +57,7 @@
     "@oclif/core": "^2.8.2",
     "@oclif/plugin-help": "^5.2.9",
     "@oclif/plugin-plugins": "^2.4.4",
+    "@oclif/plugin-warn-if-update-available": "^2.0.48",
     "@webassemblyjs/wasm-opt": "^1.11.5",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
@@ -63,13 +65,18 @@
     "bignumber.js": "^9.1.1",
     "bip39": "^3.1.0",
     "chalk": "^4.1.2",
+    "cosmjs-types": "^0.8.0",
     "debug": "^4.3.4",
     "dockerode": "^3.3.5",
     "lodash": "^4.17.21",
+    "node-gyp": "^9.4.0",
+    "node-gyp-build": "^4.6.0",
     "ora": "^5.4.1",
     "ow": "^0.28.2",
+    "prebuildify": "^5.0.1",
     "promisify-child-process": "^4.1.1",
     "prompts": "^2.4.2",
+    "semver": "^7.5.4",
     "terminal-link": "^2.1.1",
     "toml": "^3.0.0",
     "wasm-opt": "^1.4.0"
@@ -86,6 +93,7 @@
     "@types/node": "^18.15.11",
     "@types/node-hid": "^1.3.1",
     "@types/prompts": "^2.4.4",
+    "@types/semver": "^7.5.0",
     "chai": "^4.3.7",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^4.0.0",
@@ -94,7 +102,7 @@
     "fancy-test": "^2.0.18",
     "mocha": "^10.2.0",
     "nyc": "^15.1.0",
-    "oclif": "^3.11.2",
+    "oclif": "^3.11.3",
     "shx": "^0.3.4",
     "sinon": "^15.0.3",
     "spawk": "^1.8.0",
@@ -112,14 +120,17 @@
     "/oclif.manifest.json"
   ],
   "oclif": {
-    "bin": "mod",
-    "dirname": "mod",
+    "bin": "archway",
+    "dirname": "archway",
     "commands": "./dist/commands",
     "helpClass": "./dist/plugins/help-plugin/help",
     "plugins": [],
     "topicSeparator": " ",
     "macos": {
-      "identifier": "io.archway.modulor"
+      "identifier": "io.archway.cli"
+    },
+    "hooks": {
+      "postrun": "./dist/hooks/postrun/versionCheck"
     }
   },
   "engines": {

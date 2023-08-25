@@ -1,4 +1,4 @@
-import { bold, red } from '@/utils';
+import { bold, redBright } from '@/utils';
 import { ErrorCodes } from '@/exceptions';
 
 import { ConsoleError } from '@/types';
@@ -15,6 +15,6 @@ export class InvalidFormatError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${bold(this.name)} ${red("doesn't have a valid format")}`;
+    return `${bold(this.name)} ${redBright("doesn't have a valid format")}`;
   }
 }

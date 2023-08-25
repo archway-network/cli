@@ -31,7 +31,11 @@ describe('rewards query', () => {
       expect(ctx.stdout).to.contain(dummyRewardsQueryResult.totalRewards[0].denom);
     });
 
-  test.stdout().command(['rewards query', aliceAddress, '--json']).it('Prints json output', expectOutputJSON);
+  test
+    .stdout()
+    .env({ ARCHWAY_SKIP_VERSION_CHECK: 'true' })
+    .command(['rewards query', aliceAddress, '--json'])
+    .it('Prints json output', expectOutputJSON);
 
   test
     .stdout()

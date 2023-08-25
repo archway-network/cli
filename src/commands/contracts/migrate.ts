@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blue, green } from '@/utils';
+import { buildStdFee, blueBright, greenBright } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
@@ -53,7 +53,7 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
     await config.assertIsValidWorkspace();
     const contract = config.contractsInstance.getContractByName(this.args.contract!);
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const from = await accountsDomain.getWithSigner(this.flags.from!);
 
     const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
 
@@ -61,18 +61,18 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
 
     const contractAddress = instantiated.contract.address;
 
-    this.logTransactionDetails(config, contract, contractAddress, fromAccount);
+    this.logTransactionDetails(config, contract, contractAddress, from.account);
 
     // Parse migrate message (if exists)
     const message =
       this.flags.args || this.args.stdinInput || this.flags['args-file'] ?
         JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8'))) :
-        undefined;
+        {};
 
     const result = await showDisappearingSpinner(async () => {
-      const signingClient = await config.getSigningArchwayClient(fromAccount);
+      const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
 
-      return signingClient.migrate(fromAccount.address, contractAddress, this.flags.code!, message, buildStdFee(this.flags.fee?.coin));
+      return signingClient.migrate(from.account.address, contractAddress, this.flags.code!, message, buildStdFee(this.flags.fee?.coin));
     }, 'Waiting for tx to confirm...');
 
     await config.deploymentsInstance.addDeployment(
@@ -97,18 +97,18 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
   }
 
   protected async logTransactionDetails(config: Config, contract: Contract, contractAddress: string, fromAccount: Account): Promise<void> {
-    this.log(`Migrating contract ${blue(contract.name)}`);
-    this.log(`  Chain: ${blue(config.chainId)}`);
-    this.log(`  Contract: ${blue(contractAddress)}`);
-    this.log(`  Code: ${blue(this.flags.code)}`);
-    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+    this.log(`Migrating contract ${blueBright(contract.name)}`);
+    this.log(`  Chain: ${blueBright(config.chainId)}`);
+    this.log(`  Contract: ${blueBright(contractAddress)}`);
+    this.log(`  Code: ${blueBright(this.flags.code)}`);
+    this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
   }
 
   protected async successMessage(result: MigrateResult, label: string, configInstance: Config): Promise<void> {
     if (this.jsonEnabled()) {
       this.logJson(result);
     } else {
-      this.success(`${green('Contract')} ${blue(label)} ${green('migrated')}`);
+      this.success(`${greenBright('Contract')} ${blueBright(label)} ${greenBright('migrated')}`);
       this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
     }
   }

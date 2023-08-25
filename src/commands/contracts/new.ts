@@ -1,10 +1,9 @@
-import { Flags } from '@oclif/core';
-
 import { BaseCommand } from '@/lib/base';
-import { ContractNameRequiredArg } from '@/parameters/arguments';
-import { TemplateWithPromptFlag } from '@/parameters/flags';
-import { Config, DEFAULT_TEMPLATE_NAME } from '@/domain';
-import { darkGreen, green } from '@/utils';
+import { ContractNameOptionalArg } from '@/parameters/arguments';
+import { TemplateOptionalFlag } from '@/parameters/flags';
+import { Config } from '@/domain';
+import { green, greenBright } from '@/utils';
+import { Prompts } from '@/services';
 
 /**
  * Command 'contracts new'
@@ -13,28 +12,12 @@ import { darkGreen, green } from '@/utils';
 export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
   static summary = 'Scaffolds a new Smart Contract from a template';
   static args = {
-    contract: ContractNameRequiredArg,
+    'contract-name': ContractNameOptionalArg,
   };
 
   static flags = {
-    template: TemplateWithPromptFlag,
+    template: TemplateOptionalFlag,
   };
-
-  /**
-   * Override init function to show message before prompts are displayed
-   */
-  public async init(): Promise<void> {
-    // Need to parse early to display the contract name on the starting message
-    const { args } = await this.parse({
-      args: this.ctor.args,
-      // Override template flag on this early parse, to avoid early prompting
-      flags: { ...this.ctor.flags, template: Flags.string() },
-    });
-
-    this.log(`Creating new contract ${args.contract}...\n`);
-
-    await super.init();
-  }
 
   /**
    * Runs the command.
@@ -42,18 +25,24 @@ export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
+    const contractName = this.args['contract-name'] || (await Prompts.newContract())['contract-name'];
+
+    this.log(`Creating new contract ${contractName}...\n`);
+
     const config = await Config.init();
 
     await config.assertIsValidWorkspace();
 
-    await config.contractsInstance.create(this.args.contract!, this.flags.template || DEFAULT_TEMPLATE_NAME);
+    const templateName = this.flags.template || (await Prompts.template()).template;
 
-    await this.successMessage(this.args.contract!, this.flags.template);
+    await config.contractsInstance.create(contractName, templateName, this.jsonEnabled());
+
+    await this.successMessage(contractName, templateName);
   }
 
-  protected async successMessage(contractName: string, template?: string): Promise<void> {
-    this.success(
-      `${darkGreen('Contract')} ${green(contractName)} ${darkGreen('created from template')} ${green(template || DEFAULT_TEMPLATE_NAME)}`
-    );
+  protected async successMessage(contractName: string, template: string): Promise<void> {
+    this.success(`${green('Contract')} ${greenBright(contractName)} ${green('created from template')} ${greenBright(template)}`);
+
+    if (this.jsonEnabled()) this.logJson({ name: contractName, template });
   }
 }

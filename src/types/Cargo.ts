@@ -125,6 +125,7 @@ export interface GenerateParams {
   branch: string;
   template: string;
   destinationDir?: string;
+  quiet?: boolean;
 }
 
 /**
@@ -134,4 +135,13 @@ export interface BuildParams {
   release?: boolean;
   locked?: boolean;
   target?: string;
+  lib?: boolean;
+  quiet?: boolean;
+}
+
+/**
+ * Parameters for the {@link Cargo.schema} function
+ */
+export interface SchemaParams {
+  quiet?: boolean;
 }

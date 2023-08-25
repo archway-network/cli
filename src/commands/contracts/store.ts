@@ -1,13 +1,14 @@
 import { Flags } from '@oclif/core';
 import fs from 'node:fs/promises';
 import { UploadResult } from '@cosmjs/cosmwasm-stargate';
+import { AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
 import path from 'node:path';
 
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
-import { Accounts, Config } from '@/domain';
-import { askForConfirmation, buildStdFee, blue, white, yellow, green } from '@/utils';
-import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
+import { Accounts, Config, DEFAULT_ADDRESS_BECH_32_PREFIX } from '@/domain';
+import { askForConfirmation, buildStdFee, blueBright, white, yellow, greenBright, assertIsValidAddress } from '@/utils';
+import { ForceFlag, KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { showDisappearingSpinner } from '@/ui';
 
 import { Account, BackendType, InstantiatePermission, DeploymentAction, StoreDeployment, Contract } from '@/types';
@@ -24,8 +25,8 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
 
   static flags = {
     'instantiate-permission': Flags.string({
-      options: Object.values(InstantiatePermission),
-      default: InstantiatePermission.EVERYBODY,
+      options: Object.keys(InstantiatePermission),
+      default: 'everybody',
       description: 'Controls the instantiation permissions for the stored wasm file',
     }),
     'allowed-addresses': Flags.custom<string[]>({
@@ -33,6 +34,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       description:
         'List of addresses that can instantiate a contract from the code; works only if the instantiate permission is set to "any-of"',
     })(),
+    force: ForceFlag,
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -58,19 +60,31 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
           )} has already been deployed to ${white.reset(config.chainId)}`
         )
       );
-      await askForConfirmation();
+      await askForConfirmation(this.flags.force);
     }
 
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const fromAccount: Account = await accountsDomain.getWithMnemonic(this.flags.from!);
+    const from = await accountsDomain.getWithSigner(this.flags.from!);
     const wasmCode = await fs.readFile(contract.wasm.optimizedFilePath);
+    const allowedAddresses = this.flags['allowed-addresses'] || [];
 
-    await this.logTransactionDetails(config, contract, fromAccount);
+    for (const auxAddress of allowedAddresses) {
+      assertIsValidAddress(auxAddress, DEFAULT_ADDRESS_BECH_32_PREFIX);
+    }
+
+    await this.logTransactionDetails(config, contract, from.account);
 
     const result = await showDisappearingSpinner(async () => {
-      const signingClient = await config.getSigningArchwayClient(fromAccount);
+      const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
 
-      return signingClient.upload(fromAccount.address, wasmCode, buildStdFee(this.flags.fee?.coin));
+      return signingClient.upload(from.account.address, wasmCode, buildStdFee(this.flags.fee?.coin), undefined, {
+        permission:
+          AccessType[
+            InstantiatePermission[this.flags['instantiate-permission'] as keyof typeof InstantiatePermission] as keyof typeof AccessType
+          ],
+        address: '', // Deprecated param, replaced with addresses
+        addresses: allowedAddresses,
+      });
     }, 'Waiting for tx to confirm...');
 
     await config.deploymentsInstance.addDeployment(
@@ -93,17 +107,17 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
   }
 
   protected async logTransactionDetails(config: Config, contract: Contract, fromAccount: Account): Promise<void> {
-    this.log(`Uploading optimized wasm for contract ${blue(contract.name)}`);
-    this.log(`  Chain: ${blue(config.chainId)}`);
-    this.log(`  Signer: ${blue(fromAccount.name)}\n`);
+    this.log(`Uploading optimized wasm for contract ${blueBright(contract.name)}`);
+    this.log(`  Chain: ${blueBright(config.chainId)}`);
+    this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
   }
 
   protected async successMessage(result: UploadResult, contractInstance: Contract, configInstance: Config): Promise<void> {
     if (this.jsonEnabled()) {
       this.logJson(result);
     } else {
-      this.success(`${green('Contract')} ${blue(path.basename(contractInstance.wasm.optimizedFilePath))} ${green('uploaded')}`);
-      this.log(`  Code Id: ${blue(result.codeId)}`);
+      this.success(`${greenBright('Contract')} ${blueBright(path.basename(contractInstance.wasm.optimizedFilePath))} ${greenBright('uploaded')}`);
+      this.log(`  Code Id: ${blueBright(result.codeId)}`);
       this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
     }
   }

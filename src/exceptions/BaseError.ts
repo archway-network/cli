@@ -1,4 +1,4 @@
-import { red } from '@/utils';
+import { redBright } from '@/utils';
 import { ErrorCodes } from '@/exceptions';
 
 import { ConsoleError } from '@/types';
@@ -15,6 +15,6 @@ export class BaseError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return red(this.customMessage || 'An unexpected error happened');
+    return redBright(this.customMessage || 'An unexpected error happened');
   }
 }

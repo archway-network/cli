@@ -4,7 +4,7 @@ import { toBase64 } from '@cosmjs/encoding';
 import { DEFAULT_ADDRESS_BECH_32_PREFIX, ENTRY_SUFFIX, ENTRY_TAG_SEPARATOR, Ledger } from '@/domain';
 import { AlreadyExistsError, NotFoundError } from '@/exceptions';
 
-import { Account, AccountBase, AccountType } from '@/types';
+import { Account, AccountBase, AccountType, AccountWithSigner } from '@/types';
 
 /**
  * Abstract definition to be used on different KeystoreBackend implementations
@@ -30,9 +30,9 @@ export abstract class KeystoreBackend {
    * Get a single account by name or address, including mnemonic
    *
    * @param nameOrAddress - Account name or account address to search by
-   * @returns Promise containing the account's data, or undefined if it doesn't exist
+   * @returns Promise containing the account's data and signer, or undefined if it doesn't exist
    */
-  abstract get(nameOrAddress: string): Promise<Account | undefined>;
+  abstract getWithSigner(nameOrAddress: string): Promise<AccountWithSigner | undefined>;
 
   /**
    * Remove an account by name or address
@@ -54,7 +54,7 @@ export abstract class KeystoreBackend {
       // Making the await happen inside the loop so the user does not see
       // a lot of OS password inputs popup at the same time, but one by one
       /* eslint-disable no-await-in-loop */
-      const auxAccount = await this.getWithoutMnemonic(item.address);
+      const auxAccount = await this.get(item.address);
 
       if (auxAccount) result.push(auxAccount);
     }
@@ -63,20 +63,20 @@ export abstract class KeystoreBackend {
   }
 
   /**
-   * Get a single account by name or address, without mnemonic
+   * Get a single account by name or address
    *
    * @param nameOrAddress - Account name or account address to search by
    * @returns Promise containing the account's data, or undefined if it doesn't exist
    */
-  async getWithoutMnemonic(nameOrAddress: string): Promise<Account | undefined> {
-    let found = await this.get(nameOrAddress);
+  async get(nameOrAddress: string): Promise<Account | undefined> {
+    let found = await this.getWithSigner(nameOrAddress);
 
-    if (found) {
+    if (found?.account) {
       const result: Account = {
-        name: found.name,
-        address: found.address,
-        publicKey: found.publicKey,
-        type: found.type,
+        name: found.account.name,
+        address: found.account.address,
+        publicKey: found.account.publicKey,
+        type: found.account.type,
       };
 
       found = undefined;
@@ -91,13 +91,16 @@ export abstract class KeystoreBackend {
    * @param name - Account name
    * @param type - {@link AccountType} value
    * @param mnemonic - Optional - Existing {@link Account} to be validated
+   * @param password - Optional - Password for serialization of the mnemonic
    * @param prefix - Optional - Bech 32 prefix for the generated address, defaults to 'archway'
    * @returns Promise containing the {@link Account}
    */
+  // eslint-disable-next-line max-params
   protected async createAccountObject(
     name: string,
     type: AccountType,
     mnemonic?: string,
+    password?: string,
     prefix = DEFAULT_ADDRESS_BECH_32_PREFIX
   ): Promise<Account> {
     let result: Account;
@@ -119,7 +122,7 @@ export abstract class KeystoreBackend {
           key: toBase64(newAccount.pubkey),
         },
         type: AccountType.LOCAL,
-        mnemonic: wallet.mnemonic,
+        mnemonic: await wallet.serialize(password || newAccount.address),
       };
     }
 

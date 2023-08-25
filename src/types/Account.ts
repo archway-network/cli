@@ -1,4 +1,5 @@
 import ow from 'ow';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { Coin } from '@/types';
 
@@ -22,6 +23,14 @@ export interface AccountBase {
 export interface Account extends AccountBase {
   publicKey: PublicKey;
   mnemonic?: string;
+}
+
+/**
+ * Account with signer
+ */
+export interface AccountWithSigner {
+  account: Account,
+  signer?: DirectSecp256k1HdWallet;
 }
 
 /**

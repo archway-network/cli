@@ -8,6 +8,7 @@ export default class FilesystemStubs {
   public stubbedReadFile: SinonStub | undefined;
   public stubbedReaddir: SinonStub | undefined;
   public stubbedMkdir: SinonStub | undefined;
+  public stubbedChdir: SinonStub | undefined;
 
   access(): void {
     this.stubbedAccess = sinon.stub(fs, 'access');
@@ -33,6 +34,10 @@ export default class FilesystemStubs {
     this.stubbedMkdir = sinon.stub(fs, 'mkdir');
   }
 
+  chdir(): void {
+    this.stubbedChdir = sinon.stub(process, 'chdir');
+  }
+
   restoreAll(): void {
     this.stubbedAccess?.restore();
     this.stubbedAccessFail?.restore();
@@ -40,5 +45,6 @@ export default class FilesystemStubs {
     this.stubbedReadFile?.restore();
     this.stubbedReaddir?.restore();
     this.stubbedMkdir?.restore();
+    this.stubbedChdir?.restore();
   }
 }

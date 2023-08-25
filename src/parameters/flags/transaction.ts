@@ -11,6 +11,7 @@ const FromDescription = 'Signer of the tx';
 const FeeDescription = 'Extra fees to pay along with the transaction';
 const FeeAccountDescription = 'Account used to pays fees for the transaction instead of the signer';
 const ConfirmDescription = 'Asks for confirmation before broadcasting the tx or skips the prompt completely';
+const GasAdjustmentDescription = 'Asks for confirmation before broadcasting the tx or skips the prompt completely';
 
 /**
  * Util function to prompt the user for a chain id if it is not provided
@@ -80,6 +81,20 @@ export const ParamsTransactionConfirmFlag = {
 export const TransactionConfirmFlag = Flags.boolean(ParamsTransactionConfirmFlag);
 
 /**
+ * Definition of Transaction Gas Adjustment flag
+ */
+export const ParamsTransactionGasAdjustmentFlag = {
+  default: 1.3,
+  description: GasAdjustmentDescription,
+  parse: async (val: string): Promise<number> => Number(val),
+};
+
+/**
+ * Transaction Gas Adjustment flag
+ */
+export const TransactionGasAdjustmentFlag = Flags.custom<number>(ParamsTransactionGasAdjustmentFlag);
+
+/**
  * All of the Transaction related flags
  */
 export const TransactionFlags = {
@@ -87,4 +102,6 @@ export const TransactionFlags = {
   fee: TransactionFeeFlag,
   'fee-account': TransactionFeeAccountFlag,
   confirm: TransactionConfirmFlag,
+  // eslint-disable-next-line new-cap
+  'gas-adjustment': TransactionGasAdjustmentFlag(),
 };

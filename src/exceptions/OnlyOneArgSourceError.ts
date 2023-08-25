@@ -1,4 +1,4 @@
-import { red } from '@/utils';
+import { redBright } from '@/utils';
 import { ErrorCodes } from '@/exceptions';
 
 import { ConsoleError } from '@/types';
@@ -15,6 +15,6 @@ export class OnlyOneArgSourceError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${red(`Please specify only one ${this.name} args input`)}`;
+    return `${redBright(`Please specify only one ${this.name} args input`)}`;
   }
 }

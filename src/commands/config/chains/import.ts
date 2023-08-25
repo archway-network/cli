@@ -3,7 +3,7 @@ import { Args } from '@oclif/core';
 import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
-import { bold, green, red } from '@/utils';
+import { bold, greenBright, redBright } from '@/utils';
 import { ChainRegistry, DEFAULT_CHAINS_RELATIVE_PATH } from '@/domain';
 import { ErrorCodes } from '@/exceptions';
 import { StdinInputArg } from '@/parameters/arguments';
@@ -49,7 +49,9 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
   }
 
   protected async successMessage(chainId: string): Promise<void> {
-    this.success(`${green('Imported chain')} ${bold(chainId)}`);
+    this.success(`${greenBright('Imported chain')} ${bold(chainId)}`);
+
+    if (this.jsonEnabled()) this.logJson({ chainId });
   }
 }
 
@@ -65,7 +67,7 @@ export class OnlyOneImportError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${red('Please specify only one file to import')}`;
+    return `${redBright('Please specify only one file to import')}`;
   }
 }
 
@@ -82,6 +84,6 @@ export class ImportFileRequiredError extends ConsoleError {
    * {@inheritDoc ConsoleError.toConsoleString}
    */
   toConsoleString(): string {
-    return `${red('Please specify the file to be imported')}`;
+    return `${redBright('Please specify the file to be imported')}`;
   }
 }

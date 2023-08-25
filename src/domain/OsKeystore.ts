@@ -1,10 +1,11 @@
 import keyring from '@archwayhq/keyring-go';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { InvalidPasswordError } from '@/exceptions';
 import { Accounts } from '@/domain/Accounts';
 import { KeystoreBackend } from '@/domain/KeystoreBackend';
 
-import { Account, AccountBase, AccountType } from '@/types';
+import { Account, AccountBase, AccountType, AccountWithSigner } from '@/types';
 
 /**
  * Implementation of an OS based keystore
@@ -25,7 +26,10 @@ export class OsKeystore extends KeystoreBackend {
 
     keyring.OsStore.set(this.serviceName, this.createEntryTag(account.name, account.type, account.address), JSON.stringify(account));
 
-    return account;
+    return {
+      ...account,
+      mnemonic: account.mnemonic && (await DirectSecp256k1HdWallet.deserialize(account.mnemonic, account.address)).mnemonic,
+    };
   }
 
   /**
@@ -46,7 +50,7 @@ export class OsKeystore extends KeystoreBackend {
   /**
    * {@inheritDoc KeystoreBackend.get}
    */
-  async get(nameOrAddress: string): Promise<Account | undefined> {
+  async getWithSigner(nameOrAddress: string): Promise<AccountWithSigner | undefined> {
     const tag = await this.findAccountTag(nameOrAddress);
     let stored = '';
 
@@ -61,7 +65,13 @@ export class OsKeystore extends KeystoreBackend {
 
       Accounts.assertIsValidAccountWithMnemonic(result);
 
-      return result;
+      const signer =
+        result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1HdWallet.deserialize(result.mnemonic, result.address);
+
+      return {
+        account: result,
+        signer,
+      };
     }
   }
 

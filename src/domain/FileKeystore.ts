@@ -1,12 +1,13 @@
 import keyring from '@archwayhq/keyring-go';
 import path from 'node:path';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { InvalidPasswordError } from '@/exceptions';
 import { Prompts } from '@/services';
 import { Accounts } from '@/domain/Accounts';
 import { KeystoreBackend } from '@/domain/KeystoreBackend';
 
-import { Account, AccountBase, AccountType } from '@/types';
+import { Account, AccountBase, AccountType, AccountWithSigner } from '@/types';
 
 /**
  * Implementation of an encrypted file based keystore
@@ -27,11 +28,19 @@ export class FileKeystore extends KeystoreBackend {
    */
   async add(name: string, type: AccountType, mnemonic?: string): Promise<Account> {
     const password = await this.promptPassword(name);
-    const account = await this.createAccountObject(name, type, mnemonic);
+    const account = await this.createAccountObject(name, type, mnemonic, password);
 
-    keyring.FileStore.set(this.filesPath, this.createEntryTag(account.name, account.type, account.address), JSON.stringify(account), password);
+    keyring.FileStore.set(
+      this.filesPath,
+      this.createEntryTag(account.name, account.type, account.address),
+      JSON.stringify(account),
+      password
+    );
 
-    return account;
+    return {
+      ...account,
+      mnemonic: account.mnemonic && (await DirectSecp256k1HdWallet.deserialize(account.mnemonic, password)).mnemonic,
+    };
   }
 
   /**
@@ -52,7 +61,7 @@ export class FileKeystore extends KeystoreBackend {
   /**
    * {@inheritDoc KeystoreBackend.get}
    */
-  async get(nameOrAddress: string): Promise<Account | undefined> {
+  async getWithSigner(nameOrAddress: string): Promise<AccountWithSigner | undefined> {
     const password = await this.promptPassword(nameOrAddress);
     const tag = await this.findAccountTag(nameOrAddress);
     let stored = '';
@@ -68,7 +77,12 @@ export class FileKeystore extends KeystoreBackend {
 
       Accounts.assertIsValidAccountWithMnemonic(result);
 
-      return result;
+      const signer = result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1HdWallet.deserialize(result.mnemonic, password);
+
+      return {
+        account: result,
+        signer,
+      };
     }
   }
 

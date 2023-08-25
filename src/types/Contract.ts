@@ -11,7 +11,7 @@ export interface Contract extends CargoProjectMetadata {
  * Options for the instantiate-permission flag
  */
 export enum InstantiatePermission {
-  ANY_OF = 'any-of',
-  EVERYBODY = 'everybody',
-  NOBODY = 'nobody',
+  'any-of' = 'ACCESS_TYPE_ANY_OF_ADDRESSES',
+  'everybody' = 'ACCESS_TYPE_EVERYBODY',
+  'nobody' = 'ACCESS_TYPE_NOBODY',
 }

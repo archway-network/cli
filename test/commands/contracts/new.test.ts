@@ -7,7 +7,7 @@ import { CargoStubs, ConfigStubs } from '../../stubs';
 
 describe('contracts new', () => {
   const contractName = 'test-name';
-  const templateName = 'default';
+  const templateName = 'cw20/base';
 
   const configStubs = new ConfigStubs();
   const cargoStubs = new CargoStubs();
@@ -31,9 +31,11 @@ describe('contracts new', () => {
   describe('without template name', () => {
     before(() => {
       prompts.inject([templateName]);
-      // Cargo generate workspace call
-      spawk.spawn('cargo');
       // Cargo generate contract call
+      spawk.spawn('cargo');
+      // Cargo build contract call
+      spawk.spawn('cargo');
+      // // Cargo generate schemas call
       spawk.spawn('cargo');
     });
 
@@ -50,9 +52,11 @@ describe('contracts new', () => {
 
   describe('with template', () => {
     before(() => {
-      // Cargo generate call
-      spawk.spawn('cargo');
       // Cargo generate contract call
+      spawk.spawn('cargo');
+      // Cargo build contract call
+      spawk.spawn('cargo');
+      // // Cargo generate schemas call
       spawk.spawn('cargo');
       promptsSpy.resetHistory();
     });

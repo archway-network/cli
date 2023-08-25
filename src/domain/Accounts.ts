@@ -10,6 +10,7 @@ import {
   AccountBalancesJSON,
   AccountBase,
   AccountType,
+  AccountWithSigner,
   AccountsParams,
   BackendType,
   PublicKey,
@@ -17,8 +18,8 @@ import {
   accountWithMnemonicValidator,
 } from '@/types';
 
-export const SECRET_SERVICE_NAME = 'io.archway.modulor';
-export const KEY_FILES_PATH = `${process.env.HOME}/.archway`;
+export const SECRET_SERVICE_NAME = 'io.archway.cli';
+export const KEY_FILES_PATH = `${process.env.HOME}/atest`;
 export const ENTRY_TAG_SEPARATOR = '<-_>';
 export const ENTRY_SUFFIX = 'account';
 export const TEST_ENTRY_SUFFIX = 'test';
@@ -126,7 +127,7 @@ export class Accounts {
    * @returns Promise containing an instance of {@link Account}
    */
   async get(nameOrAddress: string): Promise<Account> {
-    const account = await this.keystore.getWithoutMnemonic(nameOrAddress);
+    const account = await this.keystore.get(nameOrAddress);
 
     if (!account) throw new NotFoundError('Account', nameOrAddress);
 
@@ -134,13 +135,13 @@ export class Accounts {
   }
 
   /**
-   * Get a single account by name or address with mnemonic, throws error if not found
+   * Get a single account by name or address with its signer, throws error if not found
    *
    * @param nameOrAddress - Account name or account address to search by
-   * @returns Promise containing an instance of {@link Account}
+   * @returns Promise containing an instance of {@link AccountWithSigner}
    */
-  async getWithMnemonic(nameOrAddress: string): Promise<Account> {
-    const account = await this.keystore.get(nameOrAddress);
+  async getWithSigner(nameOrAddress: string): Promise<AccountWithSigner> {
+    const account = await this.keystore.getWithSigner(nameOrAddress);
 
     if (!account) throw new NotFoundError('Account', nameOrAddress);
 

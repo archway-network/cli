@@ -1,12 +1,13 @@
 import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { AccountRequiredArg } from '@/parameters/arguments';
+import { AccountOptionalArg } from '@/parameters/arguments';
 import { Accounts } from '@/domain';
 import { KeyringFlags } from '@/parameters/flags';
+import { bold, green, greenBright, yellow } from '@/utils';
+import { Prompts } from '@/services';
 
 import { Account, AccountType, BackendType } from '@/types';
-import { bold, darkGreen, green, yellow } from '@/utils';
 
 /**
  * Command 'accounts new'
@@ -15,12 +16,12 @@ import { bold, darkGreen, green, yellow } from '@/utils';
 export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
   static summary = 'Adds a new wallet to the keystore';
   static args = {
-    account: AccountRequiredArg,
+    'account-name': AccountOptionalArg,
   };
 
   static flags = {
     mnemonic: Flags.string({ description: 'Wallet mnemonic (seed phrase)' }),
-    ledger: Flags.boolean(),
+    ledger: Flags.boolean({ description: 'Add an account from a ledger device' }),
     ...KeyringFlags,
   };
 
@@ -33,7 +34,11 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
     const type = this.flags.ledger ? AccountType.LEDGER : AccountType.LOCAL;
 
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const account = await accountsDomain.new(this.args.account!, type, this.flags.mnemonic);
+    const account = await accountsDomain.new(
+      this.args['account-name'] || (await Prompts.newAccount())['account-name'],
+      type,
+      this.flags.mnemonic
+    );
 
     await this.successMessage(account);
   }
@@ -42,8 +47,8 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
     if (this.jsonEnabled()) {
       this.logJson(account);
     } else {
-      this.success(`${darkGreen('Account')} ${green(account.name)} successfully created!`);
-      this.log(`\nAddress: ${green(account.address)}\n`);
+      this.success(`${green('Account')} ${greenBright(account.name)} successfully created!`);
+      this.log(`\nAddress: ${greenBright(account.address)}\n`);
       this.log(Accounts.prettyPrintPublicKey(account.publicKey));
       if (account.type === AccountType.LOCAL) {
         this.log(`\n${bold('Mnemonic:')} ${account.mnemonic}\n`);

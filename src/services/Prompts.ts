@@ -9,7 +9,7 @@ import { CosmosChain } from '@/types';
 
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
   'constantine-3': { description: 'Stable testnet - recommended for dApp development' },
-  'titus-1': { description: 'Nightly releases - chain state can be cleared at any time' },
+  'archway-1': { description: 'Production network' },
 };
 
 export class Prompts {
@@ -52,7 +52,7 @@ export class Prompts {
       type: 'text',
       name: 'contract-name',
       message: 'Choose a name for your contract',
-      validate: value => Boolean(value),
+      validate: value => Boolean(value.toString().trim()),
     });
   }
 
@@ -61,21 +61,13 @@ export class Prompts {
    *
    * @returns Promise containing the {@link Answers} object containing the template name
    */
-  static async template(): Promise<Answers<'use-template' | 'template'>> {
-    return showPrompt([
-      {
-        type: 'confirm',
-        name: 'use-template',
-        message: 'Do you want to use a starter template?',
-        initial: false,
-      },
-      {
-        type: prev => (prev ? 'select' : null),
-        name: 'template',
-        message: 'Choose a template',
-        choices: ContractTemplates?.getTemplateChoices?.() || [],
-      },
-    ]);
+  static async template(): Promise<Answers<'template'>> {
+    return showPrompt({
+      type: 'select',
+      name: 'template',
+      message: 'Choose a starter template',
+      choices: ContractTemplates?.getTemplateChoices?.() || [],
+    });
   }
 
   /**
@@ -116,7 +108,49 @@ export class Prompts {
       type: 'text',
       name: 'from',
       message: 'Enter the name or address of the account that will send the transaction',
-      validate: value => Boolean(value),
+      validate: value => Boolean(value.toString().trim()),
+    });
+  }
+
+  /**
+   * Shows a terminal prompt asking the user the user for a new account name
+   *
+   * @returns Promise containing the {@link Answers} object containing the new account name
+   */
+  static async newAccount(): Promise<Answers<'account-name'>> {
+    return showPrompt({
+      type: 'text',
+      name: 'account-name',
+      message: 'Enter the name of the new account',
+      validate: value => Boolean(value.toString().trim()),
+    });
+  }
+
+  /**
+   * Shows a terminal prompt asking the user the user for a new project name
+   *
+   * @returns Promise containing the {@link Answers} object containing the new project name
+   */
+  static async newProject(): Promise<Answers<'project-name'>> {
+    return showPrompt({
+      type: 'text',
+      name: 'project-name',
+      message: 'Enter the name of the new project',
+      validate: value => Boolean(value.toString().trim()),
+    });
+  }
+
+  /**
+   * Shows a terminal prompt asking the user the user for a new contract name
+   *
+   * @returns Promise containing the {@link Answers} object containing the new contract name
+   */
+  static async newContract(): Promise<Answers<'contract-name'>> {
+    return showPrompt({
+      type: 'text',
+      name: 'contract-name',
+      message: 'Enter the name of the new contract',
+      validate: value => Boolean(value.toString().trim()),
     });
   }
 }

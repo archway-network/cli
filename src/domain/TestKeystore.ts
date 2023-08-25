@@ -1,10 +1,11 @@
 import keyring from '@archwayhq/keyring-go';
 import path from 'node:path';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { Accounts, TEST_ENTRY_SUFFIX } from '@/domain/Accounts';
 import { KeystoreBackend } from '@/domain/KeystoreBackend';
 
-import { Account, AccountBase, AccountType } from '@/types';
+import { Account, AccountBase, AccountType, AccountWithSigner } from '@/types';
 
 /**
  * Implementation of a unencrypted file based keystore for testing purposes
@@ -32,14 +33,24 @@ export class TestKeystore extends KeystoreBackend {
       JSON.stringify(account, undefined, 2)
     );
 
-    return account;
+    return {
+      ...account,
+      mnemonic: account.mnemonic && (await DirectSecp256k1HdWallet.deserialize(account.mnemonic, account.address)).mnemonic,
+    };
   }
 
   /**
    * {@inheritDoc KeystoreBackend.listNameAndAddress}
    */
   async listNameAndAddress(): Promise<AccountBase[]> {
-    const found: string[] = keyring.UnencryptedFileStore.list(this.filesPath);
+    let found: string[];
+
+    try {
+      found = keyring.UnencryptedFileStore.list(this.filesPath);
+    } catch {
+      found = [];
+    }
+
     const result: AccountBase[] = [];
 
     for (const item of found) {
@@ -53,7 +64,7 @@ export class TestKeystore extends KeystoreBackend {
   /**
    * {@inheritDoc KeystoreBackend.get}
    */
-  async get(nameOrAddress: string): Promise<Account | undefined> {
+  async getWithSigner(nameOrAddress: string): Promise<AccountWithSigner | undefined> {
     const tag = await this.findAccountTag(nameOrAddress, TEST_ENTRY_SUFFIX);
     let stored = '';
 
@@ -66,7 +77,13 @@ export class TestKeystore extends KeystoreBackend {
 
       Accounts.assertIsValidAccountWithMnemonic(result);
 
-      return result;
+      const signer =
+        result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1HdWallet.deserialize(result.mnemonic, result.address);
+
+      return {
+        account: result,
+        signer,
+      };
     }
   }
 

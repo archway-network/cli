@@ -32,7 +32,11 @@ describe('contracts query balance', () => {
       expect(ctx.stdout).to.contain(dummyAmount.denom);
     });
 
-  test.stdout().command(['contracts query balance', contractName, '--json']).it('Prints json output', expectOutputJSON);
+  test
+    .stdout()
+    .env({ ARCHWAY_SKIP_VERSION_CHECK: 'true' })
+    .command(['contracts query balance', contractName, '--json'])
+    .it('Prints json output', expectOutputJSON);
 
   test
     .stdout()

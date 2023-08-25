@@ -22,5 +22,9 @@ describe('config show', () => {
       expect(ctx.stdout).to.contain('Selected chain: ');
     });
 
-  test.stdout().command(['config show', '--json']).it('shows a JSON representation of the config info', expectOutputJSON);
+  test
+    .stdout()
+    .env({ ARCHWAY_SKIP_VERSION_CHECK: 'true' })
+    .command(['config show', '--json'])
+    .it('shows a JSON representation of the config info', expectOutputJSON);
 });

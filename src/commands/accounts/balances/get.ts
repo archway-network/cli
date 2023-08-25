@@ -3,9 +3,9 @@ import { AccountRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags } from '@/parameters/flags';
 import { Accounts, Config } from '@/domain';
 import { showDisappearingSpinner } from '@/ui';
+import { green, greenBright, prettyPrintBalancesList } from '@/utils';
 
 import { AccountBalancesJSON, BackendType } from '@/types';
-import { bold, darkGreen, green, yellow } from '@/utils';
 
 /**
  * Command 'accounts balances get'
@@ -40,12 +40,9 @@ export default class AccountsBalancesGet extends BaseCommand<typeof AccountsBala
   }
 
   protected async successMessage(balance: AccountBalancesJSON): Promise<void> {
-    if (this.jsonEnabled()) {
-      this.logJson(balance);
-    } else {
-      this.log(`Balances for account ${green(balance.account.name)} (${darkGreen(balance.account.address)})\n`);
-      if (balance.account.balances.length === 0) this.log(`- ${yellow('Empty wallet')}`);
-      for (const item of balance.account.balances) this.log(`- ${bold(item.amount)}${item.denom}`);
-    }
+    this.log(`Balances for account ${greenBright(balance.account.name)} (${green(balance.account.address)})\n`);
+    this.log(prettyPrintBalancesList(balance.account.balances, 'Empty wallet'));
+
+    if (this.jsonEnabled()) this.logJson(balance);
   }
 }

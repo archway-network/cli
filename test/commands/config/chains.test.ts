@@ -6,7 +6,7 @@ import { ConfigStubs, FilesystemStubs } from '../../stubs';
 
 const expectHelp = (ctx: any) => {
   expect(ctx.stdout).to.contain('Description:');
-  expect(ctx.stdout).to.contain('USAGE');
+  expect(ctx.stdout).to.contain('Usage');
   expect(ctx.stdout).to.contain('Available commands:');
   expect(ctx.stdout).to.contain(ConfigChains.summary.split('.')[0]);
 };
@@ -20,6 +20,7 @@ describe('config chains', () => {
     filesystemStubs.writeFile();
     filesystemStubs.readFile(chainString);
     filesystemStubs.mkdir();
+    filesystemStubs.accessFail();
   });
 
   after(() => {
@@ -64,7 +65,7 @@ describe('config chains', () => {
   describe('use', () => {
     test
       .stdout()
-      .command(['config chains use', '--chain=constantine-3'])
+      .command(['config chains use', 'constantine-3'])
       .it('updates config file to use chain', ctx => {
         expect(ctx.stdout).to.contain('Switched chain to');
         expect(filesystemStubs.stubbedWriteFile?.called).to.be.true;

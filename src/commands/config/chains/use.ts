@@ -1,7 +1,7 @@
 import { BaseCommand } from '@/lib/base';
-import { bold, green } from '@/utils';
+import { bold, greenBright } from '@/utils';
 import { ChainRegistry, Config, DEFAULT_CONFIG_FILENAME } from '@/domain';
-import { ChainRequiredFlag } from '@/parameters/flags';
+import { ChainRequiredArg } from '@/parameters/arguments';
 
 /**
  * Command 'config chains use'
@@ -9,8 +9,8 @@ import { ChainRequiredFlag } from '@/parameters/flags';
  */
 export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse> {
   static summary = `Switches the current chain in use and updates the ${bold(DEFAULT_CONFIG_FILENAME)} config file with his information.`;
-  static flags = {
-    chain: ChainRequiredFlag,
+  static args = {
+    chain: ChainRequiredArg,
   };
 
   /**
@@ -22,14 +22,16 @@ export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse>
     const configFile = await Config.init();
     const chainRegistry = await ChainRegistry.init();
 
-    if (chainRegistry.warnings) this.warning(chainRegistry.prettyPrintWarnings(this.flags.chain));
+    if (chainRegistry.warnings) this.warning(chainRegistry.prettyPrintWarnings(this.args.chain));
 
-    configFile.update({ chainId: this.flags.chain }, true);
+    configFile.update({ chainId: this.args.chain }, true);
 
-    await this.successMessage(this.flags.chain!);
+    await this.successMessage(this.args.chain!);
   }
 
   protected async successMessage(chainId: string): Promise<void> {
-    this.success(`${green('Switched chain to')} ${bold(chainId)}`);
+    this.success(`${greenBright('Switched chain to')} ${bold(chainId)}`);
+
+    if (this.jsonEnabled()) this.logJson({ chainId });
   }
 }

@@ -1,89 +1,56 @@
-import { Command, HelpBase, Interfaces, ux } from '@oclif/core';
+import { CommandHelp, HelpSection, HelpSectionRenderer } from '@oclif/core';
+import { compact } from 'lodash';
 
 import { yellow } from '@/utils';
 
-function toArray<T>(input?: T | T[]): T[] {
-  if (input === undefined) return [];
-  return Array.isArray(input) ? input : [input];
-}
+export default class CustomCommandHelp extends CommandHelp {
+  protected sections(): Array<{ header: string; generate: HelpSectionRenderer }> {
+    return [
+      {
+        header: this.opts.usageHeader || yellow('Usage:'),
+        generate: () => this.usage(),
+      },
+      {
+        header: yellow('Arguments:'),
+        generate: ({ args }, header) => [{ header, body: this.args(args) }],
+      },
+      {
+        header: yellow('Flags:'),
+        generate: ({ flags }, header) => {
+          const { mainFlags, flagGroups } = this.groupFlags(flags);
 
-export default class CommandHelp extends HelpBase {
-  constructor(
-    public command: Command.Class | Command.Loadable | Command.Cached,
-    public config: Interfaces.Config,
-    public opts: Interfaces.HelpOptions
-  ) {
-    super(config, opts);
-  }
+          const flagSections: HelpSection[] = [];
+          const mainFlagBody = this.flags(mainFlags);
 
-  public show(): string {
-    return [this.usage(), this.arguments(), this.flags(), this.examples()].join('\n\n');
-  }
+          if (mainFlagBody) flagSections.push({ header, body: mainFlagBody });
 
-  protected usage(): string {
-    const args = Object.values(this.command.args ?? {})
-      ?.filter(a => !a.hidden)
-      .map(a => this.arg(a));
+          for (const [name, flags] of Object.entries(flagGroups)) {
+            const body = this.flags(flags);
+            if (body) flagSections.push({ header: `${yellow(name)} ${header}`, body });
+          }
 
-    const defaultUsage = toArray([this.command.id, args.join(' ')].join(' '));
-
-    const usage = (this.command.usage ? toArray(this.command.usage) : defaultUsage)
-      .map(u => {
-        const allowedSpacing = this.opts.maxWidth - this.indentSpacing;
-        const line = `$ ${this.config.bin} ${u}`.trim();
-        if (line.length > allowedSpacing) {
-          const splitIndex = line.slice(0, Math.max(0, allowedSpacing)).lastIndexOf(' ');
-          return (
-            line.slice(0, Math.max(0, splitIndex)) +
-            '\n' +
-            this.indent(this.wrap(line.slice(Math.max(0, splitIndex)), this.indentSpacing * 2))
-          );
-        }
-
-        return this.wrap(line);
-      })
-      .join('\n');
-
-    return this.section(yellow('Usage:'), usage);
-  }
-
-  protected arguments(): string {
-    // if (this.command.args.filter(a => a.description).length === 0) return '';
-
-    // return args.map(a => {
-    //   const name = a.name.toUpperCase();
-    //   let description = a.description || '';
-    //   if (a.default) description = `[default: ${a.default}] ${description}`;
-    //   if (a.options) description = `(${a.options.join('|')}) ${description}`;
-    //   return [name, description ? dim(description) : undefined];
-    // });
-
-    return this.section(yellow('Arguments:'), '');
-  }
-
-  protected flags(): string {
-    return this.section(yellow('Flags:'), '');
-  }
-
-  protected examples(): string {
-    return this.section(yellow('Examples:'), '');
-  }
-
-  protected arg(arg: Command.Arg.Any): string {
-    const name = arg.name.toUpperCase();
-    if (arg.required) return `${name}`;
-    return `[${name}]`;
-  }
-
-  public async showHelp(): Promise<void> {
-    // will not implement
-  }
-
-  public async showCommandHelp(): Promise<void> {
-    // will not implement
-  }
-
-  protected log(...args: string[]): void {
-    ux.log(args.join('\n') + '\n');
+          return compact<HelpSection>(flagSections);
+        },
+      },
+      {
+        header: yellow('Description:'),
+        generate: () => this.description(),
+      },
+      {
+        header: yellow('Aliases:'),
+        generate: ({ cmd }) => this.aliases(cmd.aliases),
+      },
+      {
+        header: yellow('Examples:'),
+        generate: ({ cmd }) => {
+          const examples = cmd.examples || (cmd as any).example;
+          return this.examples(examples);
+        },
+      },
+      {
+        header: yellow('Flag descriptions:'),
+        generate: ({ flags }) => this.flagsDescriptions(flags),
+      },
+    ];
   }
 }

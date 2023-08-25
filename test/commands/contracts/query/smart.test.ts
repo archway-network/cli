@@ -1,55 +1,53 @@
 import { expect, test } from '@oclif/test';
 
-import { aliceAccountName, contractProjectMetadata, dummyQueryResult, contractArgument, contractArgumentSchema } from '../../../dummies';
+import { contractProjectMetadata, dummyQueryResult, contractArgument, contractArgumentSchema } from '../../../dummies';
 import { expectOutputJSON } from '../../../helpers/expect';
-import { AccountsStubs, ConfigStubs, FilesystemStubs, SigningArchwayClientStubs } from '../../../stubs';
+import { ArchwayClientStubs, ConfigStubs, FilesystemStubs } from '../../../stubs';
 
 describe('contracts query smart', () => {
   const contractName = contractProjectMetadata.name;
 
-  const accountsStubs = new AccountsStubs();
   const configStubs = new ConfigStubs();
-  const signingArchwayClientStubs = new SigningArchwayClientStubs();
+  const archwayClientStubs = new ArchwayClientStubs();
   const filesystemStubs = new FilesystemStubs();
 
   before(() => {
-    accountsStubs.init();
     configStubs.init();
     configStubs.assertIsValidWorkspace();
-    signingArchwayClientStubs.connectWithSigner();
+    archwayClientStubs.connect();
     filesystemStubs.readFile(contractArgumentSchema);
   });
 
   after(() => {
-    accountsStubs.restoreAll();
     configStubs.restoreAll();
-    signingArchwayClientStubs.restoreAll();
+    archwayClientStubs.restoreAll();
     filesystemStubs.restoreAll();
   });
 
   test
     .stdout()
-    .command(['contracts query smart', contractName, `--args=${contractArgument}`, `--from=${aliceAccountName}`])
+    .command(['contracts query smart', contractName, `--args=${contractArgument}`])
     .it('Queries a contract', ctx => {
       expect(ctx.stdout).to.contain(dummyQueryResult.msg);
     });
 
   test
     .stdout()
-    .command(['contracts query smart', contractName, `--args=${contractArgument}`, `--from=${aliceAccountName}`])
+    .env({ ARCHWAY_SKIP_VERSION_CHECK: 'true' })
+    .command(['contracts query smart', contractName, `--args=${contractArgument}`])
     .it('Query result is JSON formatted', expectOutputJSON);
 
   test
     .stdout()
     .stderr()
-    .command(['contracts query smart', 'thisDoesntExist', `--args=${contractArgument}`, `--from=${aliceAccountName}`])
+    .command(['contracts query smart', 'thisDoesntExist', `--args=${contractArgument}`])
     .catch(/(Contract).*(not found)/)
     .it('fails on invalid contract');
 
   test
     .stdout()
     .stderr()
-    .command(['contracts query smart', contractName, '--args={}', `--from=${aliceAccountName}`])
+    .command(['contracts query smart', contractName, '--args={}'])
     .catch(/(Failed to query).*(does not match the schema)/)
     .it('fails on invalid arguments');
 });

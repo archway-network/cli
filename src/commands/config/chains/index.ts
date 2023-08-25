@@ -2,20 +2,20 @@ import { Command } from '@oclif/core';
 import terminalLink from 'terminal-link';
 
 import Help from '@/plugins/help-plugin/help';
-import { blue } from '@/utils';
+import { blueBright } from '@/utils';
 
 /**
  * Command 'config chains'
  * Displays the help info for the 'config chains' command
  */
 export default class ConfigChains extends Command {
-  static summary = `Chain management commands. The chain files follow the ${blue(
-    terminalLink('Cosmos chain registry schema', 'https://raw.githubusercontent.com/cosmos/chain-registry/master/chain.schema.json', {
-      fallback: () => 'https://raw.githubusercontent.com/cosmos/chain-registry/master/chain.schema.json schema',
-    })
+  static summary = `Chain management commands. The chain files follow the ${terminalLink(
+    blueBright('Cosmos chain registry schema'),
+    'https://raw.githubusercontent.com/cosmos/chain-registry/master/chain.schema.json',
+    {
+      fallback: () => `${blueBright('https://raw.githubusercontent.com/cosmos/chain-registry/master/chain.schema.json')} schema`,
+    }
   )}.`;
-
-  static hidden = true;
 
   /**
    * Runs the command.

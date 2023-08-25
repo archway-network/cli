@@ -1,6 +1,6 @@
 import terminalLink from 'terminal-link';
 
-import { blue } from '@/utils';
+import { blueBright } from '@/utils';
 
 /**
  * Get a formatted version of a transaction, with clickable link when possible
@@ -16,5 +16,5 @@ export const prettyPrintTransaction = (txHash: string, explorerTxUrl?: string): 
 
   const txUrl = explorerTxUrl.replace(/(\${txHash})/, txHash.trim());
 
-  return blue(terminalLink(txHash, txUrl, { fallback: () => txUrl }));
+  return blueBright(terminalLink(txHash, txUrl, { fallback: () => txUrl }));
 };
