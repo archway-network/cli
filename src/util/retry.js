@@ -27,7 +27,7 @@ async function retryWrapper(fn, { text = DefaultSpinnerText, ...options } = {}) 
  * Queries a tx hash and retries until the tx is confirmed.
  *
  * @param {ArchwayClient} archwayd
- * @param {Cargo} cargo
+ * @param {string} txhash
  * @param {object} options
  */
 async function retryTx(archwayd, txhash, options) {
