@@ -12,14 +12,17 @@ Develop WASM smart contracts with the Archway Network's Developer CLI.
 
 ## Dependencies
 
-Make sure you've installed and configured all dependencies. For the full installation and setup instructions, [visit the docs](https://docs.archway.io/developers/getting-started/install).
+Make sure you've installed and configured all dependencies. For the full
+installation and setup instructions, [visit the docs](https://docs.archway.io/developers/getting-started/install).
 
 - [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm "Install Node.js and NPM")
 - [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html "Install Cargo")
 - [cargo-generate](https://crates.io/crates/cargo-generate "Install Cargo Generate")
 - [docker](https://docs.docker.com/get-docker "Install Docker")
 
-If you are on a Linux machine with a distribution different from Ubuntu, you may need to install the [GNOME Keyring](https://wiki.archlinux.org/title/GNOME/Keyring), or any other keyring compatible with the [Secret service API](https://www.gnu.org/software/emacs/manual/html_node/auth/Secret-Service-API.html).
+If you are on a Linux machine with a distribution different from Ubuntu, you may
+need to install the [GNOME Keyring](https://wiki.archlinux.org/title/GNOME/Keyring),
+or any other keyring compatible with the [Secret service API](https://www.gnu.org/software/emacs/manual/html_node/auth/Secret-Service-API.html).
 
 ## CLI Installation
 
