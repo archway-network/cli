@@ -50,10 +50,10 @@
     "@archwayhq/arch3-core" "^0.4.0"
     "@archwayhq/arch3-proto" "^0.4.0"
 
-"@archwayhq/keyring-go@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@archwayhq/keyring-go/-/keyring-go-0.1.0.tgz#016459e815e5466188f77a398a5dee67891672b2"
-  integrity sha512-JpzjZf9w24js99OPC6l22p28wYI4N2fgAB6GENRqz9GCajV1he/nFNuKFw4ZfNyaR5Enlp5V2yYkO/eu+3gtSg==
+"@archwayhq/keyring-go@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@archwayhq/keyring-go/-/keyring-go-0.1.1.tgz#8cfebb7a1a2cf829cd98ece50da3e53156a1608a"
+  integrity sha512-70UavbMqUrA+e5s1ZVIbS5zKxd+N7unvIjF1aVhbq8cs1viQcOqxlVYbOsvWcJoJWECobr+KQHQTBnvXRCdM7w==
   dependencies:
     node-addon-api "^7.0.0"
     node-gyp-build "^4.6.0"

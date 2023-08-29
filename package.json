@@ -62,7 +62,7 @@
   },
   "dependencies": {
     "@archwayhq/arch3.js": "^0.4.0",
-    "@archwayhq/keyring-go": "^0.1.0",
+    "@archwayhq/keyring-go": "^0.1.1",
     "@cosmjs/cosmwasm-stargate": "^0.31.1",
     "@cosmjs/crypto": "^0.31.0",
     "@cosmjs/encoding": "^0.31.0",
