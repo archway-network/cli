@@ -1,6 +1,171 @@
-## Unreleased
+# Changelog
 
-### Features
+All notable changes to this project will be documented in this file.
 
-* **cli:** add the `config` command ([#11](https://github.com/archway-network/archway-cli-v2/pull/11))
-* **cli:** add the `accounts` command ([#26](https://github.com/archway-network/archway-cli-v2/pull/26),[#27](https://github.com/archway-network/archway-cli-v2/pull/27),[#28](https://github.com/archway-network/archway-cli-v2/pull/28))
+The format is based on [Keep a Changelog](http://keepachangelog.com/)
+and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## 2.0.0-alpha (2023-08-29)
+
+### ⚠ BREAKING CHANGES
+
+- This version of the CLI is a complete rewrite of whole codebase and is not
+  compatible with previous versions. To migrate from `v1.*` to `v2.*`, users
+  will have to import their keys using the available commands in
+  `archway accounts`, and generate a new config file at the root of the project
+  using `config init`.
+
+### Added
+
+- **contracts:** commands for all stages of contract development and deployment
+  (c931552, 47c0b29, 39e81c3, c432704, 54b4486, bb1fda2, 6ac75b3, 364154f, 4efcd0f,
+  3a19192)
+- **rewards:** new command to query and withdraw rewards (0e6c993 and 82b0ae3)
+- **config:** added new sub-commands to manage your project config (6bb3000, 59245c3)
+- **config:** support for importing and exporting chain specs (3b1ed5a)
+- **cli:** added the help command (#207)
+
+### Changed
+
+- **new:** defaults to a workspace project template and changed flags (3aaa062)
+- **accounts:** manages encrypted keys and transfers (82d4ae7, 5346235, 1d116d1,
+  7879cbe)
+
+## 1.6.2 (2023-08-25)
+
+### Fixed
+
+- **archwayd:** fix semantic version check for new releases (#205)
+
+### Security
+
+- **deps:** bump word-wrap from 1.2.3 to 1.2.4 (#204)
+
+## 1.6.1 (2023-07-05)
+
+### Fixed
+
+- **archwayd:** cleanup gas simulation to execute tx (#203)
+
+## 1.6.0 (2023-07-03)
+
+### ⚠ BREAKING CHANGES
+
+- **archwayd:** Dropped support for the Docker version of `archwayd`. To migrate
+from Docker-based environments, users will have to install `archwayd` from the
+official binary releases in the protocol repository, and also export/import
+their keys using the available commands in `archwayd keys`.
+
+### Added
+
+- **networks:** add mainnet (#202)
+- **networks:** add constantine-3 (#177)
+- **premium:** add command to set flat fee (#200)
+
+### Changed
+
+- **store:** saves the deployed wasm checksum in config (#183)
+- **instantiate:** save the deployed label (#182)
+- **archwayd:** deprecated archwayd on Docker (#190)
+
+### Fixed
+
+- **archwayd:** don't freeze the shell (#184)
+- **archwayd:** validate the minimum client version (#180)
+- **archwayd:** validate errors printed to stderr (#194)
+- **build:** throw exception instead of hardcoded text  (#176)
+- **cli:** check for newer versions using semver (#185)
+- **networks:** renamed local network to localnet (#188)
+- **cargo:** resolve the WASM file name on arm64 (#196)
+- **tx:** execute contracts with premium enabled (#201)
+
+## 1.5.1 (2023-04-03)
+
+### Changed
+
+- **networks:** update chain id and RPC endpoint for constantine-2 (#171)
+
+## 1.5.0 (2023-03-15)
+
+### Added
+
+- **query:** added flag to print raw json to stdout (#164)
+
+### Changed
+
+- **accounts:** the command output will default to text mode for better
+  readability (#167)
+- **build:** bump rust-optimizer to 0.12.12 (#162)
+
+### Fixed
+
+- **cli:** fixed an output error when running commands that require waiting for
+  a tx result (#163)
+- **cli:** fixed issue when fetching the last contract address deployed (#165)
+- **instantiate:** fixed error when the codeId is not found in the deployments
+  state (#166)
+
+## 1.4.1 (2023-02-28)
+
+### Fixed
+
+- **build:** fixed error when running the CosmWasm Optimizer image on
+  M1 Macbooks (#161)
+
+## 1.4.0 (2023-02-21)
+
+### ⚠ BREAKING CHANGES
+
+- **networks:** removed `torii` from the networks list (#153)
+
+### Changed
+
+- **networks:** change the default gas adjustment parameter to `1.5` instead of
+  `1.2` (#153)
+- **build:** updated the CosmWasm Optimizer image to `0.12.11` (#155)
+- **build:** enable rust backtrace in optimizer (#156)
+- **archwayd:** use the `archwaynetwork/archwayd:v0.2.0` tag by default (#159)
+- **archwayd:** connect the container to the host network to allow interaction
+  with a node running on the host machine (#159)
+
+### Fixed
+
+- **build:** fixed error when the CosmWasm Optimizer image didn't exist in the
+  local environment (#155)
+- **build:** fixed error when a build container is already running in the
+  background (#157)
+- **store:** fixed error when validating the stored wasm file on-chain (#158)
+
+## 1.3.0 (2023-01-20)
+
+### ⚠ BREAKING CHANGES
+
+- **cli:** deprecate support for nodejs 14 (#130)
+- **cli:** deprecate the `run` command (#125)
+- **cli:** deprecate the `test` command (#132)
+- **cli:** renamed the `configure` command to `config` (#131)
+- **build:** Docker is now a hard requirement (#128)
+
+### Added
+
+- **archwayd:** use the minimum gas fee in all transactions (#120)
+- **history:** list deployments for current chain (#126)
+- **cargo:** parse metadata for workspaces (#127)
+- **config:** initialize config files in existing projects (#131)
+- **network:** enable local network (726c452)
+
+### Changed
+
+- **archwayd:** set metadata using the new rewards module (#121)
+- **config:** store project name in deployment history (#137)
+- **build:** use the rust-optimizer Docker image instead of wasm-opt (#128)
+
+### Fixed
+
+- **cargo:** check current path to fetch metadata (#124)
+- **cli:** fail fast when transactions do not succeed (#122)
+- **metadata:** typo in --rewards-address flag (#123)
+
+### Security
+
+- **deps:** bump json5 from 2.2.1 to 2.2.3 (#133)
