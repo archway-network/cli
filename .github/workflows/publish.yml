@@ -2,7 +2,7 @@ name: Publish package to npmjs
 
 on:
   push:
-    tags: "*"
+    tags: ["*"]
 
 jobs:
   build:
