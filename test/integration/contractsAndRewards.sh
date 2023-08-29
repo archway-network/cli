@@ -44,8 +44,8 @@ regex "$output" "Schemas generated"
 ### Alternative optimized: This line copies a prebuilt and preoptimized wasm file, use when you don't want to test the "build --optimize" command which is slow
 # cp -r "$(scriptRelativePath files/optimized/artifacts)" "$TEMP_DIR"
 
-# Needed on github workflow only
-if [ -n "${IS_GITHUB_ACTION:-}"  ]; then
+# Needed on github workflow only (https://github.com/actions/runner/issues/434)
+if [ -n "${CI:-}"  ]; then
   sudo chmod 777 "${TEMP_DIR}/artifacts" -R
 fi
 
