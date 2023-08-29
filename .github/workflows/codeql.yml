@@ -22,6 +22,10 @@ on:
     # “At 12:00 on Wednesdays”
     - cron: "0 12 * * 3"
 
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   analyze:
     name: Analyze
