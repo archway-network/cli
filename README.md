@@ -19,6 +19,8 @@ Make sure you've installed and configured all dependencies. For the full install
 - [cargo-generate](https://crates.io/crates/cargo-generate "Install Cargo Generate")
 - [docker](https://docs.docker.com/get-docker "Install Docker")
 
+If you are on a Linux machine with a distribution different from Ubuntu, you may need to install the [GNOME Keyring](https://wiki.archlinux.org/title/GNOME/Keyring), or any other keyring compatible with the [Secret service API](https://www.gnu.org/software/emacs/manual/html_node/auth/Secret-Service-API.html).
+
 ## CLI Installation
 
 ### Install the latest published version
