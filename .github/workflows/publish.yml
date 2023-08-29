@@ -16,4 +16,6 @@ jobs:
       - run: yarn install --immutable
       - run: yarn build
       - run: yarn config set -H npmAuthToken "${{ secrets.NPM_TOKEN }}"
-      - run: yarn publish
+      - run: yarn publish --tag alpha --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
