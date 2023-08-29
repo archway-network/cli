@@ -17,7 +17,7 @@ on:
     branches: "*"
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [main]
+    branches: [main, release/*]
   schedule:
     # “At 12:00 on Wednesdays”
     - cron: "0 12 * * 3"
