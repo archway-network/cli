@@ -14,13 +14,17 @@ name: CodeQL
 on:
   # Trigger the workflow on push for all branches or pull request to main
   push:
-    branches: "*"
+    branches: ["**"]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [main]
+    branches: [main, release/**]
   schedule:
     # “At 12:00 on Wednesdays”
     - cron: "0 12 * * 3"
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
 
 jobs:
   analyze:
@@ -71,7 +75,7 @@ jobs:
           node-version: 16
           cache: yarn
       - run: yarn install --immutable
-      - run: yarn build:all
+      - run: yarn build
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v2
