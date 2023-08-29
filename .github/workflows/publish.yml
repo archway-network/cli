@@ -14,5 +14,6 @@ jobs:
           node-version: 16
           registry-url: "https://registry.npmjs.org"
       - run: yarn install --immutable
+      - run: yarn build
       - run: yarn config set -H npmAuthToken "${{ secrets.NPM_TOKEN }}"
       - run: yarn npm publish
