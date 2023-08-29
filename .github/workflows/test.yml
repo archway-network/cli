@@ -1,13 +1,18 @@
-name: Unit Test and Lint
+name: Test
 
-on: [pull_request]
+on:
+  push:
+    branches: "*"
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [main]
 
 concurrency:
   group: ${{github.workflow}}-${{github.ref}}
   cancel-in-progress: true
 
 jobs:
-  test:
+  unit-test-and-lint:
     name: Unit Test and Lint
     runs-on: ubuntu-latest
     steps:
@@ -16,6 +21,24 @@ jobs:
         with:
           node-version: 16
           cache: yarn
-      - run: yarn install
+      - run: yarn install --immutable
       - run: yarn build
       - run: yarn test
+
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    env:
+      IS_GITHUB_ACTION: true
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+      - run: sudo apt update && sudo apt install -y jq
+      - run: cargo install cargo-generate
+      - run: yarn install --immutable
+      - run: yarn build
+      - run: scripts/start-local-node.sh
+      - run: yarn test:integration
