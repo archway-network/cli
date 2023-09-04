@@ -154,16 +154,17 @@ export class Accounts {
    * Get a single account by name or address with its signer, if not provided will ask for it on a prompt.
    * Throws error if the account is not found
    *
-   * @param nameOrAddress - Optional - Account name or account address to search by
+   * @param nameOrAddress - Account name or account address to search by
    * @param defaultAccount - Optional - Default account name or account address
+   * @param prefix - Optional - Bech 32 prefix for the address, defaults to 'archway'
    * @returns Promise containing an instance of {@link AccountWithSigner}
    */
-  async getWithSigner(nameOrAddress?: string, defaultAccount?: string): Promise<AccountWithSigner> {
+  async getWithSigner(nameOrAddress: string, defaultAccount?: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountWithSigner> {
     let searchAccount = nameOrAddress || defaultAccount;
 
     if (!searchAccount) searchAccount = await Prompts.fromAccount();
 
-    const account = await this.keystore.getWithSigner(searchAccount);
+    const account = await this.keystore.getWithSigner(searchAccount, prefix);
 
     if (!account) throw new NotFoundError('Account', nameOrAddress);
 
@@ -221,12 +222,13 @@ export class Accounts {
    * Create an instance of {@link AccountBase} from an address, getting the name if found in keyring
    *
    * @param address - Account address to search by
+   * @param prefix - Optional - Bech 32 prefix for the address, defaults to 'archway'
    * @returns Promise containing an instance of {@link AccountBase}
    */
-  async accountBaseFromAddress(address: string): Promise<AccountBase> {
+  async accountBaseFromAddress(address: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountBase> {
     const found = await this.keystore.findNameAndAddressInList(address);
 
-    if (!found) assertIsValidAddress(address, DEFAULT_ADDRESS_BECH_32_PREFIX);
+    if (!found) assertIsValidAddress(address, prefix);
 
     return {
       name: found?.name || '',

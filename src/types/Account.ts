@@ -1,5 +1,5 @@
 import ow from 'ow';
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
+import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 
 import { Coin } from '@/types';
 
@@ -18,11 +18,12 @@ export interface AccountBase {
 }
 
 /**
- * Account information (with optional mnemonic)
+ * Account information (with optional mnemonic or private key)
  */
 export interface Account extends AccountBase {
   publicKey: PublicKey;
   mnemonic?: string;
+  privateKey?: string;
 }
 
 /**
@@ -30,7 +31,7 @@ export interface Account extends AccountBase {
  */
 export interface AccountWithSigner {
   account: Account,
-  signer?: DirectSecp256k1HdWallet;
+  signer?: DirectSecp256k1Wallet;
 }
 
 /**
@@ -86,6 +87,7 @@ const AccountShape = {
   publicKey: publicKeyValidator,
   type: ow.string.oneOf(Object.values(AccountType)),
   mnemonic: ow.optional.string,
+  privateKey: ow.optional.string,
 };
 
 /**
@@ -100,3 +102,12 @@ export const accountWithMnemonicValidator = ow.object.exactShape({
   ...AccountShape,
   mnemonic: ow.string,
 });
+
+/**
+ * Format validator for the {@link Account} interface, with mandatory private key value
+ */
+export const accountWithPrivateKeyValidator = ow.object.exactShape({
+  ...AccountShape,
+  privateKey: ow.string,
+});
+

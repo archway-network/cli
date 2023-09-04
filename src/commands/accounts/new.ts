@@ -1,7 +1,7 @@
-import { Flags } from '@oclif/core';
+import { Args, Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
-import { AccountOptionalArg } from '@/parameters/arguments';
+import { ParamsAccountOptionalArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
 import { KeyringFlags } from '@/parameters/flags';
 import { bold, green, greenBright, yellow } from '@/utils';
@@ -16,11 +16,11 @@ import { Account, AccountType } from '@/types';
 export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
   static summary = 'Adds a new wallet to the keystore';
   static args = {
-    'account-name': AccountOptionalArg,
+    'account-name': Args.string({ ...ParamsAccountOptionalArg, ignoreStdin: true }),
+    stdinInput: StdinInputArg,
   };
 
   static flags = {
-    mnemonic: Flags.string({ description: 'Wallet mnemonic (seed phrase)' }),
     ledger: Flags.boolean({ description: 'Add an account from a ledger device' }),
     ...KeyringFlags,
   };
@@ -39,7 +39,7 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
     const account = await accountsDomain.new(
       this.args['account-name'] || (await Prompts.newAccount()),
       type,
-      this.flags.mnemonic
+      this.args.stdinInput
     );
 
     await this.successMessage(account);
@@ -52,7 +52,7 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
       this.success(`${green('Account')} ${greenBright(account.name)} successfully created!`);
       this.log(`\nAddress: ${greenBright(account.address)}\n`);
       this.log(Accounts.prettyPrintPublicKey(account.publicKey));
-      if (account.type === AccountType.LOCAL) {
+      if (account.type === AccountType.LOCAL && account.mnemonic) {
         this.log(`\n${bold('Mnemonic:')} ${account.mnemonic}\n`);
         this.warning(
           `${yellow('Important:')} write this mnemonic phrase in a safe place. It is the ${bold(

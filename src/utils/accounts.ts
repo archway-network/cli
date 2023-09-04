@@ -1,4 +1,5 @@
 import { bech32 } from 'bech32';
+import { HdPath, Slip10RawIndex } from '@cosmjs/crypto';
 
 import { InvalidFormatError } from '@/exceptions';
 
@@ -37,3 +38,22 @@ export const isValidAddress = (address: string, prefix?: string): boolean => {
 
   return false;
 };
+
+/**
+ * Creates a BIP44 compatible derivation path
+ *
+ * @param coinType - Optional - Defaults to 118 which is the standard cosmos coinType
+ * @param account - Optional - Defaults to 0
+ * @param change  - Optional - Defaults to 0
+ * @param index  - Optional - Defaults to 0
+ * @returns Array containing the derivation path values
+ */
+export function makeCosmosDerivationPath(coinType = 118, account = 0, change = 0, index = 0): HdPath {
+  return [
+    Slip10RawIndex.hardened(44),
+    Slip10RawIndex.hardened(coinType),
+    Slip10RawIndex.hardened(account),
+    Slip10RawIndex.normal(change),
+    Slip10RawIndex.normal(index),
+  ];
+}

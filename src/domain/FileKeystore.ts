@@ -1,10 +1,11 @@
 import keyring from '@archwayhq/keyring-go';
 import path from 'node:path';
-import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
+import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
+import { fromBase64 } from '@cosmjs/encoding';
 
 import { InvalidPasswordError } from '@/exceptions';
 import { Prompts } from '@/services';
-import { Accounts } from '@/domain/Accounts';
+import { DEFAULT_ADDRESS_BECH_32_PREFIX } from '@/domain/Accounts';
 import { KeystoreBackend } from '@/domain/KeystoreBackend';
 
 import { Account, AccountBase, AccountType, AccountWithSigner } from '@/types';
@@ -33,14 +34,11 @@ export class FileKeystore extends KeystoreBackend {
     keyring.FileStore.set(
       this.filesPath,
       this.createEntryTag(account.name, account.type, account.address),
-      JSON.stringify(account),
+      JSON.stringify({ ...account, mnemonic: undefined }),
       password
     );
 
-    return {
-      ...account,
-      mnemonic: account.mnemonic && (await DirectSecp256k1HdWallet.deserialize(account.mnemonic, password)).mnemonic,
-    };
+    return account;
   }
 
   /**
@@ -59,9 +57,9 @@ export class FileKeystore extends KeystoreBackend {
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.get}
+   * {@inheritDoc KeystoreBackend.getWithSigner}
    */
-  async getWithSigner(nameOrAddress: string): Promise<AccountWithSigner | undefined> {
+  async getWithSigner(nameOrAddress: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountWithSigner | undefined> {
     const password = await this.promptPassword(nameOrAddress);
     const tag = await this.findAccountTag(nameOrAddress);
     let stored = '';
@@ -73,14 +71,29 @@ export class FileKeystore extends KeystoreBackend {
     }
 
     if (stored) {
-      const result = JSON.parse(stored);
+      let result = JSON.parse(stored);
 
-      Accounts.assertIsValidAccountWithMnemonic(result);
+      if (this.isValidAccountWithMnemonic(result)) {
+        // Use private key instead of mnemonic (transition from alpha.1 to alpha.2)
+        const deserialized = await DirectSecp256k1HdWallet.deserialize(result.mnemonic, result.address);
+        const privateKey = await this.convertMnemonicToPrivateKey(deserialized.mnemonic);
 
-      const signer = result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1HdWallet.deserialize(result.mnemonic, password);
+        result = {
+          ...result,
+          mnemonic: undefined,
+          privateKey,
+        };
+
+        keyring.OsStore.set(this.filesPath, tag, JSON.stringify(result));
+      }
+
+      this.assertIsValidAccountWithPrivateKey(result);
+
+      const signer =
+        result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1Wallet.fromKey(fromBase64(result.privateKey), prefix);
 
       return {
-        account: result,
+        account: { ...result, mnemonic: undefined, privateKey: undefined },
         signer,
       };
     }
