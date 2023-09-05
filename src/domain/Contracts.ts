@@ -1,17 +1,16 @@
-import path from 'node:path';
+import { Coin, StargateClient } from '@cosmjs/stargate';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
+import path from 'node:path';
 import toml from 'toml';
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
-import { Coin, StargateClient } from '@cosmjs/stargate';
 
-import { readSubDirectories, getWorkspaceRoot, bold, greenBright, redBright, green, prettyPrintBalancesList } from '@/utils';
-import { AccountBalancesJSON, Contract } from '@/types';
 import { Cargo, Deployments } from '@/domain';
 import { ErrorCodes, ExecuteError, InstantiateError, NotFoundError, QueryError } from '@/exceptions';
+import { AccountBalancesJSON, Contract } from '@/types';
+import { bold, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright } from '@/utils';
 
 import { ConsoleError, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
+import { SchemaValidator } from './SchemaValidation';
 
 /** Contracts file constants */
 export const DEFAULT_CONTRACTS_RELATIVE_PATH = './contracts';
@@ -34,6 +33,7 @@ export class Contracts {
   private _workspaceRoot: string;
   private _contractsRoot: string;
   private _deployments: Deployments;
+  private _schemaValidator: SchemaValidator;
 
   /**
    * @param data - Array of {@link Contract}
@@ -46,6 +46,7 @@ export class Contracts {
     this._workspaceRoot = workspaceRoot;
     this._contractsRoot = contractsRoot;
     this._deployments = deployments;
+    this._schemaValidator = new SchemaValidator();
   }
 
   get data(): Contract[] {
@@ -62,6 +63,10 @@ export class Contracts {
 
   get deployments(): Deployments {
     return this._deployments;
+  }
+
+  get schemaValidator(): SchemaValidator {
+    return this._schemaValidator;
   }
 
   /**
@@ -245,25 +250,15 @@ export class Contracts {
     return `${bold('Available contracts: ')}${contractsList}`;
   }
 
-  private async assertValidJSONSchema(schemaPath: string, data: any): Promise<void> {
-    const schema = JSON.parse(await fs.readFile(path.resolve(schemaPath), 'utf-8'));
-    const validator = addFormats(new Ajv()).compile(schema);
-    const isValid = validator(data);
-
-    if (!isValid) {
-      throw new Error(`${validator.errors?.map(item => `${item.instancePath} ${item.message}`).join(', ')}`);
-    }
-  }
-
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async assertValidInstantiateArgs(contractName: string, initArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);
     const schemaPath = path.join(contract.root, INSTANTIATE_SCHEMA_RELATIVE_PATH);
 
     try {
-      await this.assertValidJSONSchema(schemaPath, initArgs);
+      await this.schemaValidator.assertValidJSONSchema(schemaPath, initArgs);
     } catch (error: Error | any) {
-      throw new InstantiateError(`the message arguments does not match the schema: ${error.message}`);
+      throw new InstantiateError(`the instantiate arguments does not match the schema: ${error.message}`);
     }
   }
 
@@ -273,7 +268,7 @@ export class Contracts {
     const schemaPath = path.join(contract.root, EXECUTE_SCHEMA_RELATIVE_PATH);
 
     try {
-      await this.assertValidJSONSchema(schemaPath, executeArgs);
+      await this.schemaValidator.assertValidJSONSchema(schemaPath, executeArgs);
     } catch (error: Error | any) {
       throw new ExecuteError(`the message arguments does not match the schema: ${error.message}`);
     }
@@ -285,9 +280,9 @@ export class Contracts {
     const schemaPath = path.join(contract.root, QUERY_SCHEMA_RELATIVE_PATH);
 
     try {
-      await this.assertValidJSONSchema(schemaPath, queryArgs);
+      await this.schemaValidator.assertValidJSONSchema(schemaPath, queryArgs);
     } catch (error: Error | any) {
-      throw new QueryError(`the message arguments does not match the schema: ${error.message}`);
+      throw new QueryError(`the query arguments does not match the schema: ${error.message}`);
     }
   }
 
