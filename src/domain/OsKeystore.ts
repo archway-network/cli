@@ -1,6 +1,7 @@
 import keyring from '@archwayhq/keyring-go';
 import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { fromBase64 } from '@cosmjs/encoding';
+import { HdPath } from '@cosmjs/crypto';
 
 import { InvalidPasswordError } from '@/exceptions';
 import { DEFAULT_ADDRESS_BECH_32_PREFIX } from './Accounts';
@@ -22,8 +23,8 @@ export class OsKeystore extends KeystoreBackend {
   /**
    * {@inheritDoc KeystoreBackend.add}
    */
-  async add(name: string, type: AccountType, mnemonic?: string): Promise<Account> {
-    const account = await this.createAccountObject(name, type, mnemonic);
+  async add(name: string, type: AccountType, mnemonicOrPrivateKey?: string, hdPath?: HdPath): Promise<Account> {
+    const account = await this.createAccountObject(name, type, mnemonicOrPrivateKey, hdPath);
 
     keyring.OsStore.set(
       this.serviceName,

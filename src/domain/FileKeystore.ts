@@ -2,6 +2,7 @@ import keyring from '@archwayhq/keyring-go';
 import path from 'node:path';
 import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { fromBase64 } from '@cosmjs/encoding';
+import { HdPath } from '@cosmjs/crypto';
 
 import { InvalidPasswordError } from '@/exceptions';
 import { Prompts } from '@/services';
@@ -27,9 +28,9 @@ export class FileKeystore extends KeystoreBackend {
   /**
    * {@inheritDoc KeystoreBackend.add}
    */
-  async add(name: string, type: AccountType, mnemonic?: string): Promise<Account> {
+  async add(name: string, type: AccountType, mnemonicOrPrivateKey?: string, hdPath?: HdPath): Promise<Account> {
     const password = await this.promptPassword(name);
-    const account = await this.createAccountObject(name, type, mnemonic, password);
+    const account = await this.createAccountObject(name, type, mnemonicOrPrivateKey, hdPath);
 
     keyring.FileStore.set(
       this.filesPath,

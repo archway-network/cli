@@ -25,7 +25,7 @@ output="$(archway accounts remove ${ALICE} --force --keyring-backend test --json
 output="$(archway accounts remove ${BOB} --force --keyring-backend test --json || true)"
 
 printf "\n***** accounts new ***** \n"
-output="$(archway accounts new ${ALICE} --mnemonic "$ALICE_MNEMONIC" --keyring-backend test --json)"
+output="$(echo "$ALICE_MNEMONIC" | archway accounts new ${ALICE} --recover --keyring-backend test --json)"
 validate "$output" ".name == \"${ALICE}\" and has(\"address\") and (.publicKey | has(\"key\")) and .mnemonic == \"${ALICE_MNEMONIC}\""
 
 output="$(archway accounts new ${BOB} --keyring-backend test --json)"

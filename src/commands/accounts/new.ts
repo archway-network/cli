@@ -3,7 +3,7 @@ import { Args, Flags } from '@oclif/core';
 import { BaseCommand } from '@/lib/base';
 import { ParamsAccountOptionalArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { KeyringFlags } from '@/parameters/flags';
+import { HdPathOptionalFlag, KeyringFlags } from '@/parameters/flags';
 import { bold, green, greenBright, yellow } from '@/utils';
 import { Prompts } from '@/services';
 
@@ -22,6 +22,11 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
 
   static flags = {
     ledger: Flags.boolean({ description: 'Add an account from a ledger device' }),
+    recover: Flags.boolean({
+      description:
+        'Enables the recovery of an account from a mnemonic or a private key, received via the stdin, for example: cat ./key.txt | archway accounts new --recover',
+    }),
+    'hd-path': HdPathOptionalFlag,
     ...KeyringFlags,
   };
 
@@ -39,7 +44,8 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
     const account = await accountsDomain.new(
       this.args['account-name'] || (await Prompts.newAccount()),
       type,
-      this.args.stdinInput
+      this.flags.recover ? this.args.stdinInput : undefined,
+      this.flags['hd-path']
     );
 
     await this.successMessage(account);

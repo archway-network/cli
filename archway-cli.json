@@ -1,5 +1,0 @@
-{
-  "name": "archway-cli",
-  "chainId": "constantine-3",
-  "contractsPath": "./contracts"
-}
