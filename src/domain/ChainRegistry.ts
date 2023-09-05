@@ -1,14 +1,14 @@
-import ow from 'ow';
 import path from 'node:path';
+import ow from 'ow';
 
-import { BuiltInChains } from '@/services';
-import { bold, redBright, yellow, getWorkspaceRoot, fileExists, readFilesFromDirectory, writeFileWithDir } from '@/utils';
 import { AlreadyExistsError, ErrorCodes, InvalidFormatError } from '@/exceptions';
+import { BuiltInChains } from '@/services';
+import { bold, fileExists, getWorkspaceRoot, readFilesFromDirectory, redBright, writeFileWithDir, yellow } from '@/utils';
 
-import { ConsoleError, ChainRegistrySpec, CosmosChain, cosmosChainValidator } from '@/types';
+import { ChainRegistrySpec, ConsoleError, CosmosChain, cosmosChainValidator } from '@/types';
 
 export const DEFAULT_CHAIN_ID = 'constantine-3';
-export const DEFAULT_CHAINS_RELATIVE_PATH = './.archway-cli/chains';
+export const DEFAULT_CHAINS_RELATIVE_PATH = '.archway/chains';
 export const CHAIN_FILE_EXTENSION = '.json';
 
 /**
