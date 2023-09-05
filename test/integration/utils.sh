@@ -48,29 +48,29 @@ function regex() {
   fi
 }
 
-function archway-cli() {
+function archway() {
   "$(scriptRelativePath ../../bin/run)" "$@"
 }
 
 function initConfig() {
   echo "Creating a config file"
-  archway-cli config init --chain constantine-3 --json
+  archway config init --chain constantine-3 --json
 }
 
 function useLocalChain() {
   echo "Setting local chain config"
-  archway-cli config chains import "$(scriptRelativePath files/test-1.json)" --json
-  archway-cli config chains use test-1 --json
+  archway config chains import "$(scriptRelativePath files/test-1.json)" --json
+  archway config chains use test-1 --json
 }
 
 function createAlice() {
   echo "Recreating Alice Account"
-  archway-cli accounts remove ${ALICE} --force --keyring-backend test --json
-  archway-cli accounts new ${ALICE} --mnemonic "$ALICE_MNEMONIC" --keyring-backend test --json
+  archway accounts remove ${ALICE} --force --keyring-backend test --json
+  archway accounts new ${ALICE} --mnemonic "$ALICE_MNEMONIC" --keyring-backend test --json
 }
 
 function getAliceAddress() {
-  archway-cli accounts get ${ALICE} --keyring-backend test --address
+  archway accounts get ${ALICE} --keyring-backend test --address
 }
 
 # shellcheck disable=SC2317

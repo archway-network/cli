@@ -1,21 +1,21 @@
-import ow from 'ow';
 import path from 'node:path';
+import ow from 'ow';
 
 import { ChainRegistry, DeploymentsByChain } from '@/domain';
-import { bold, getWorkspaceRoot, readFilesFromDirectory } from '@/utils';
 import { InvalidFormatError } from '@/exceptions';
+import { bold, getWorkspaceRoot, readFilesFromDirectory } from '@/utils';
 
 import {
   CargoProjectMetadata,
   Contract,
-  DeploymentWithChain,
+  Deployment,
   DeploymentAction,
   DeploymentFile,
+  DeploymentWithChain,
   deploymentFileValidator,
-  Deployment,
 } from '@/types';
 
-export const DEFAULT_DEPLOYMENTS_RELATIVE_PATH = './.archway-cli/deployments';
+export const DEFAULT_DEPLOYMENTS_RELATIVE_PATH = '.archway/deployments';
 export const DEPLOYMENTS_FILE_EXTENSION = '.json';
 export const NO_DEPLOYMENTS_MESSAGE = 'No deployments found';
 

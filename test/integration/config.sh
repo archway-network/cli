@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# End to end tests of the archway-cli 'config' commands against a local node
+# End to end tests of the archway 'config' commands against a local node
 #
 
 set -euo pipefail
@@ -21,29 +21,29 @@ git init "$TEMP_DIR"
 cd "$PROJECT_NAME"
 
 echo "***** config init *****"
-output="$(archway-cli config init --chain $CHAIN_ID --json)"
+output="$(archway config init --chain $CHAIN_ID --json)"
 validate "$output" ".chainId == \"$CHAIN_ID\" and .name == \"${PROJECT_NAME}\""
-fileExists "${TEMP_DIR}/archway-cli.json" "Config file created" "Config file not found"
+fileExists "${TEMP_DIR}/archway.json" "Config file created" "Config file not found"
 
 printf "\n***** config show ***** \n"
-output="$(archway-cli config show --json)"
+output="$(archway config show --json)"
 validate "$output" ".chainId == \"$CHAIN_ID\" and .name == \"${PROJECT_NAME}\""
 
 printf "\n***** config deployments ***** \n"
-output="$(archway-cli config deployments --json)"
+output="$(archway config deployments --json)"
 validate "$output" ".deployments == []"
 
 printf "\n***** config chains export ***** \n"
-output="$(archway-cli config chains export archway-1 --json)"
+output="$(archway config chains export archway-1 --json)"
 validate "$output" '.chainId == "archway-1"'
-fileExists "${TEMP_DIR}/.archway-cli/chains/archway-1.json" "Chain info exported" "Chain info not found"
+fileExists "${TEMP_DIR}/.archway/chains/archway-1.json" "Chain info exported" "Chain info not found"
 
 printf "\n***** config chains import ***** \n"
-output="$(archway-cli config chains import "$(scriptRelativePath files/test-1.json)" --json)"
+output="$(archway config chains import "$(scriptRelativePath files/test-1.json)" --json)"
 validate "$output" '.chainId == "test-1"'
 
 printf "\n***** config chains use ***** \n"
-output="$(archway-cli config chains use test-1 --json)"
+output="$(archway config chains use test-1 --json)"
 validate "$output" '.chainId == "test-1"'
 
 echo

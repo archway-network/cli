@@ -1,27 +1,27 @@
+import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
+import { StargateClient } from '@cosmjs/stargate';
+import _ from 'lodash';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import _ from 'lodash';
 import ow from 'ow';
-import { StargateClient } from '@cosmjs/stargate';
-import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
 
-import { getWorkspaceRoot, mergeCustomizer, writeFileWithDir, sanitizeDirName, prettyPrintTransaction, bold } from '@/utils';
 import { ChainRegistry, Contracts, DEFAULT_CONTRACTS_RELATIVE_PATH, Deployments, Ledger } from '@/domain';
-import { AlreadyExistsError, NotFoundError, InvalidFormatError } from '@/exceptions';
+import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
+import { bold, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, sanitizeDirName, writeFileWithDir } from '@/utils';
 
 import {
-  MergeMode,
-  CosmosChain,
-  Deployment,
-  Contract,
-  ConfigData,
-  ConfigDataWithContracts,
-  configDataValidator,
   AccountType,
   AccountWithSigner,
+  ConfigData,
+  ConfigDataWithContracts,
+  Contract,
+  CosmosChain,
+  Deployment,
+  MergeMode,
+  configDataValidator,
 } from '@/types';
 
-export const DEFAULT_CONFIG_FILENAME = 'archway-cli.json';
+export const DEFAULT_CONFIG_FILENAME = 'archway.json';
 export const DEFAULT_GAS_ADJUSTMENT = 1.3;
 
 /**
@@ -320,13 +320,14 @@ export class Config {
    *
    * @returns Promise containing the {@link StargateClient}
    */
-  async getSigningArchwayClient(accountWithSigner: AccountWithSigner, gasAdjustment = DEFAULT_GAS_ADJUSTMENT): Promise<SigningArchwayClient> {
+  async getSigningArchwayClient(
+    accountWithSigner: AccountWithSigner,
+    gasAdjustment = DEFAULT_GAS_ADJUSTMENT
+  ): Promise<SigningArchwayClient> {
     const chainInfo = await this.activeChainInfo();
     const rpcEndpoint = await this.activeChainRpcEndpoint(chainInfo);
 
-    const signer = accountWithSigner.account.type === AccountType.LEDGER ?
-      (await Ledger.getLedgerSigner()) :
-      accountWithSigner.signer!;
+    const signer = accountWithSigner.account.type === AccountType.LEDGER ? await Ledger.getLedgerSigner() : accountWithSigner.signer!;
 
     return SigningArchwayClient.connectWithSigner(rpcEndpoint, signer, { gasAdjustment });
   }
