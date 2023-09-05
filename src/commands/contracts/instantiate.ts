@@ -1,14 +1,14 @@
+import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 import { Args, Flags } from '@oclif/core';
 import fs from 'node:fs/promises';
-import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 
+import { Accounts, Config } from '@/domain';
+import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
-import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright } from '@/utils';
+import { KeyringFlags, ParamsAmountOptionalFlag, TransactionFlags } from '@/parameters/flags';
 import { showDisappearingSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/parameters/flags';
-import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
+import { blueBright, buildStdFee, greenBright } from '@/utils';
 
 import { Account, Amount, BackendType, Contract, DeploymentAction, InstantiateDeployment } from '@/types';
 
@@ -66,11 +66,9 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     const from = await accountsDomain.getWithSigner(this.flags.from!);
 
     const label = this.flags.label || contract.label;
-    const admin = this.flags['no-admin'] ?
-      undefined :
-      (this.flags.admin ?
-        (await accountsDomain.accountBaseFromAddress(this.flags.admin)).address :
-        from.account.address);
+    const getAdmin = async (): Promise<string> =>
+      this.flags.admin ? (await accountsDomain.accountBaseFromAddress(this.flags.admin)).address : from.account.address;
+    const admin = this.flags['no-admin'] ? undefined : await getAdmin();
 
     // If code id is not set as flag, try to get it from deployments history
     let codeId = this.flags.code;
@@ -83,7 +81,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     await this.logTransactionDetails(config, contract, codeId, label, admin!, from.account);
 
     // Validate init args schema
-    const initArgs = JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
+    const initArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
     await config.contractsInstance.assertValidInstantiateArgs(contract.name, initArgs);
 
     const result = await showDisappearingSpinner(async () => {
