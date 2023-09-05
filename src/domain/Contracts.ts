@@ -17,7 +17,7 @@ export const DEFAULT_CONTRACTS_RELATIVE_PATH = './contracts';
 
 /** Contract Templates constants */
 export const TEMPLATES_REPOSITORY = 'https://github.com/archway-network/archway-templates';
-export const DEFAULT_TEMPLATE_BRANCH = 'chore/update-templates';
+export const DEFAULT_TEMPLATE_BRANCH = 'main';
 export const DEFAULT_WORKSPACE_TEMPLATE = 'base-workspace';
 
 /** Message schema validation constants */
