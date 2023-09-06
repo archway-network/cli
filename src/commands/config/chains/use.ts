@@ -1,6 +1,6 @@
 import { BaseCommand } from '@/lib/base';
 import { bold, greenBright } from '@/utils';
-import { ChainRegistry, Config, DEFAULT_CONFIG_FILENAME } from '@/domain';
+import { ChainRegistry, Config } from '@/domain';
 import { ChainRequiredArg } from '@/parameters/arguments';
 
 /**
@@ -8,7 +8,7 @@ import { ChainRequiredArg } from '@/parameters/arguments';
  * Switches the current chain in use and updates the config file
  */
 export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse> {
-  static summary = `Switches the current chain in use and updates the ${bold(DEFAULT_CONFIG_FILENAME)} config file with his information.`;
+  static summary = 'Switches the current chain in use and updates the config file.';
   static args = {
     chain: ChainRequiredArg,
   };

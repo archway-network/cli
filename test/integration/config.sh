@@ -23,7 +23,7 @@ cd "$PROJECT_NAME"
 echo "***** config init *****"
 output="$(archway config init --chain $CHAIN_ID --json)"
 validate "$output" ".chainId == \"$CHAIN_ID\" and .name == \"${PROJECT_NAME}\""
-fileExists "${TEMP_DIR}/archway.json" "Config file created" "Config file not found"
+fileExists "${TEMP_DIR}/.archway/config.json" "Config file created" "Config file not found"
 
 printf "\n***** config show ***** \n"
 output="$(archway config show --json)"

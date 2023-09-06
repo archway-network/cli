@@ -21,7 +21,9 @@ import {
   configDataValidator,
 } from '@/types';
 
-export const DEFAULT_CONFIG_FILENAME = 'archway.json';
+export const DEFAULT_ARCHWAY_DIRECTORY = '.archway';
+export const DEFAULT_CONFIG_FILENAME = 'config.json';
+export const DEFAULT_CONFIG_PATH = path.join(DEFAULT_ARCHWAY_DIRECTORY, DEFAULT_CONFIG_FILENAME);
 export const DEFAULT_GAS_ADJUSTMENT = 1.3;
 
 /**
@@ -203,7 +205,7 @@ export class Config {
   static async getFilePath(workingDir?: string): Promise<string> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
 
-    return path.join(workspaceRoot, DEFAULT_CONFIG_FILENAME);
+    return path.join(workspaceRoot, DEFAULT_CONFIG_PATH);
   }
 
   /**
