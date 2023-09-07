@@ -35,7 +35,6 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
    */
   public async run(): Promise<void> {
     const config = await Config.init();
-    await config.assertIsValidWorkspace();
 
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, {
       filesPath: this.flags['keyring-path'],
@@ -57,6 +56,8 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
     if (isValidAddress(this.args.contract!)) {
       contractAddress = this.args.contract!;
     } else {
+      await config.assertIsValidWorkspace();
+
       contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
       instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
 

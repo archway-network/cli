@@ -48,6 +48,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
     const config = await Config.init();
 
     await config.assertIsValidWorkspace();
+
     const contract = config.contractsInstance.getContractByName(this.args.contract!);
 
     const existingDeployment = await config.contractsInstance.isChecksumAlreadyDeployed(this.args.contract!, config.chainId);

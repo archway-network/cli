@@ -49,7 +49,6 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
     }
 
     const config = await Config.init();
-    await config.assertIsValidWorkspace();
 
     const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, {
       filesPath: this.flags['keyring-path'],
@@ -70,6 +69,8 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
     if (isValidAddress(this.args.contract!)) {
       contractAddress = this.args.contract!;
     } else {
+      await config.assertIsValidWorkspace();
+
       contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
 
       instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
