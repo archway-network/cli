@@ -1,7 +1,8 @@
 import path from 'node:path';
 import ow from 'ow';
 
-import { ChainRegistry, DEFAULT_ARCHWAY_DIRECTORY, DeploymentsByChain } from '@/domain';
+import { ChainRegistry, DeploymentsByChain } from '@/domain';
+import { DEFAULT_ARCHWAY_DIRECTORY } from './Config';
 import { InvalidFormatError } from '@/exceptions';
 import { bold, getWorkspaceRoot, readFilesFromDirectory } from '@/utils';
 

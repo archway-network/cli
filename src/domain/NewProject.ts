@@ -1,7 +1,8 @@
 /* eslint-disable unicorn/no-static-only-class */
 import path from 'node:path';
 
-import { Cargo, Config, DEFAULT_TEMPLATE_BRANCH, DEFAULT_WORKSPACE_TEMPLATE, TEMPLATES_REPOSITORY } from '@/domain';
+import { Cargo, Config } from '@/domain';
+import { DEFAULT_TEMPLATE_BRANCH, DEFAULT_WORKSPACE_TEMPLATE, TEMPLATES_REPOSITORY } from './Contracts';
 import { sanitizeDirName } from '@/utils';
 
 /**

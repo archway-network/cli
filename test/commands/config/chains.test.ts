@@ -52,16 +52,6 @@ describe('config chains', () => {
       .it('fails on double input');
   });
 
-  describe('export', () => {
-    test
-      .stdout()
-      .command(['config chains export', 'constantine-3'])
-      .it('exports chain to file', ctx => {
-        expect(ctx.stdout).to.contain('Exported chain to');
-        expect(filesystemStubs.stubbedWriteFile?.called).to.be.true;
-      });
-  });
-
   describe('use', () => {
     test
       .stdout()

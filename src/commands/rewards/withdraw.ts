@@ -1,11 +1,12 @@
+import { WithdrawContractRewardsResult } from '@archwayhq/arch3.js/build';
+
 import { BaseCommand } from '@/lib/base';
 import { Accounts, Config } from '@/domain';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { bold, buildStdFee, green, greenBright, yellow } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
 
-import { Account, BackendType } from '@/types';
-import { WithdrawContractRewardsResult } from '@archwayhq/arch3.js/build';
+import { Account } from '@/types';
 
 /**
  * Command 'rewards withdraw'
@@ -25,10 +26,10 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const accountWithSigner = await accountsDomain.getWithSigner(this.flags.from!);
-
     const config = await Config.init();
+
+    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
+    const accountWithSigner = await accountsDomain.getWithSigner(this.flags.from!);
 
     await this.logTransactionDetails(accountWithSigner.account);
 

@@ -8,7 +8,6 @@ export abstract class ChainRegistrySpec {
   abstract get listChains(): CosmosChain[];
 
   abstract import(chainInfo: CosmosChain): Promise<void>;
-  abstract export(chainId: string): Promise<void>;
 }
 
 /**

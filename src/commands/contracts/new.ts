@@ -25,7 +25,7 @@ export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const contractName = this.args['contract-name'] || (await Prompts.newContract())['contract-name'];
+    const contractName = this.args['contract-name'] || (await Prompts.newContract());
 
     this.log(`Creating new contract ${contractName}...\n`);
 
@@ -33,7 +33,7 @@ export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
 
     await config.assertIsValidWorkspace();
 
-    const templateName = this.flags.template || (await Prompts.template()).template;
+    const templateName = this.flags.template || (await Prompts.template());
 
     await config.contractsInstance.create(contractName, templateName, this.jsonEnabled());
 

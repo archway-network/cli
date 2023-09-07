@@ -1,8 +1,6 @@
 import { Flags } from '@oclif/core';
 import { AlphabetLowercase } from '@oclif/core/lib/interfaces';
-import { CustomOptions, DefaultContext } from '@oclif/core/lib/interfaces/parser';
 
-import { Prompts } from '@/services';
 import { parseAmount } from '@/utils';
 
 import { Amount } from '@/types';
@@ -14,26 +12,11 @@ const ConfirmDescription = 'Asks for confirmation before broadcasting the tx or 
 const GasAdjustmentDescription = 'Asks for confirmation before broadcasting the tx or skips the prompt completely';
 
 /**
- * Util function to prompt the user for a chain id if it is not provided
- *
- * @param _input - Oclif context, not used
- * @param isWritingManifest - Optional - Sometimes Oclif tries to cache the default, to avoid it from triggering multiple prompts, we verify that this variable is undefined
- * @returns Promise containing the chain id value if prompted
- */
-const inputFromAccount = async (_input: DefaultContext<CustomOptions>, isWritingManifest?: boolean): Promise<string | undefined> => {
-  if (isWritingManifest === undefined) {
-    const promptedFromAccount = await Prompts.fromAccount();
-    return promptedFromAccount?.from as string;
-  }
-};
-
-/**
  * Definition of Transaction From flag
  */
 export const ParamsTransactionFromFlag = {
   description: FromDescription,
   char: 'f' as AlphabetLowercase,
-  default: inputFromAccount,
 };
 
 /**
@@ -100,7 +83,8 @@ export const TransactionGasAdjustmentFlag = Flags.custom<number>(ParamsTransacti
 export const TransactionFlags = {
   from: TransactionFromFlag,
   fee: TransactionFeeFlag,
-  'fee-account': TransactionFeeAccountFlag,
+  // Currently not being used anywhere, commenting out so it doesn't appear on the helper
+  // 'fee-account': TransactionFeeAccountFlag,
   confirm: TransactionConfirmFlag,
   // eslint-disable-next-line new-cap
   'gas-adjustment': TransactionGasAdjustmentFlag(),

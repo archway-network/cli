@@ -2,12 +2,12 @@ import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
 import { AccountOptionalArg } from '@/parameters/arguments';
-import { Accounts } from '@/domain';
+import { Accounts, Config } from '@/domain';
 import { KeyringFlags } from '@/parameters/flags';
 import { bold, green, greenBright, yellow } from '@/utils';
 import { Prompts } from '@/services';
 
-import { Account, AccountType, BackendType } from '@/types';
+import { Account, AccountType } from '@/types';
 
 /**
  * Command 'accounts new'
@@ -33,9 +33,10 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
   public async run(): Promise<void> {
     const type = this.flags.ledger ? AccountType.LEDGER : AccountType.LOCAL;
 
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
+    const config = await Config.init();
+    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
     const account = await accountsDomain.new(
-      this.args['account-name'] || (await Prompts.newAccount())['account-name'],
+      this.args['account-name'] || (await Prompts.newAccount()),
       type,
       this.flags.mnemonic
     );

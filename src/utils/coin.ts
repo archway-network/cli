@@ -6,7 +6,7 @@ import BigNumber from 'bignumber.js';
 import { InvalidFormatError } from '@/exceptions';
 
 import { Amount } from '@/types';
-import { bold, greenBright, white, yellow } from './style';
+import { bold, greenBright, white, yellow } from '@/utils';
 
 export const DEFAULT_GAS_PRICE_AMOUNT = '0.005';
 export const DEFAULT_GAS_PRICE_DENOM = 'aarch';

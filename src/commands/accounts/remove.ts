@@ -1,10 +1,10 @@
 import { BaseCommand } from '@/lib/base';
 import { askForConfirmation, bold, green, yellow } from '@/utils';
 import { AccountRequiredArg } from '@/parameters/arguments';
-import { Accounts } from '@/domain';
+import { Accounts, Config } from '@/domain';
 import { ForceFlag, KeyringFlags } from '@/parameters/flags';
 
-import { AccountBase, BackendType } from '@/types';
+import { AccountBase } from '@/types';
 
 /**
  * Command 'accounts remove'
@@ -27,7 +27,8 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
+    const config = await Config.init();
+    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
     const accountInfo = await accountsDomain.keystore.assertAccountExists(this.args.account!);
 
     if (!this.jsonEnabled()) {

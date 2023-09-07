@@ -2,10 +2,10 @@ import { Flags } from '@oclif/core';
 
 import { BaseCommand } from '@/lib/base';
 import { AccountRequiredArg } from '@/parameters/arguments';
-import { Accounts } from '@/domain';
+import { Accounts, Config } from '@/domain';
 import { KeyringFlags } from '@/parameters/flags';
 
-import { Account, BackendType } from '@/types';
+import { Account } from '@/types';
 
 /**
  * Command 'accounts get'
@@ -28,7 +28,8 @@ export default class AccountsGet extends BaseCommand<typeof AccountsGet> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
+    const config = await Config.init();
+    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
     const account = await accountsDomain.get(this.args.account!);
 
     await this.successMessage(account, this.flags.address);

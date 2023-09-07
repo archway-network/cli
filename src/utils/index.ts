@@ -39,6 +39,6 @@ export const askForConfirmation = async (force = false): Promise<void> => {
   if (!force) {
     const promptedConfirmation = await Prompts.confirmation();
 
-    if (!promptedConfirmation.confirm) throw new PromptCanceledError();
+    if (!promptedConfirmation) throw new PromptCanceledError();
   }
 };

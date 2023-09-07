@@ -3,15 +3,19 @@ import { StargateClient } from '@cosmjs/stargate';
 import _ from 'lodash';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import os from 'node:os';
 import ow from 'ow';
 
-import { ChainRegistry, Contracts, DEFAULT_CONTRACTS_RELATIVE_PATH, Deployments, Ledger } from '@/domain';
+import { ChainRegistry, Contracts, Deployments, Ledger } from '@/domain';
+import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
+import { DEFAULT_CHAIN_ID } from './ChainRegistry';
 import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
-import { bold, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, sanitizeDirName, writeFileWithDir } from '@/utils';
+import { bold, fileExists, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, writeFileWithDir } from '@/utils';
 
 import {
   AccountType,
   AccountWithSigner,
+  KeystoreBackendType,
   ConfigData,
   ConfigDataWithContracts,
   Contract,
@@ -21,65 +25,57 @@ import {
   configDataValidator,
 } from '@/types';
 
+/** Default Config constants */
 export const DEFAULT_ARCHWAY_DIRECTORY = '.archway';
 export const DEFAULT_CONFIG_FILENAME = 'config.json';
-export const DEFAULT_CONFIG_PATH = path.join(DEFAULT_ARCHWAY_DIRECTORY, DEFAULT_CONFIG_FILENAME);
+export const DEFAULT_CONFIG_FILE = path.join(DEFAULT_ARCHWAY_DIRECTORY, DEFAULT_CONFIG_FILENAME);
+export const DEFAULT_CONFIG_DATA = {
+  'chain-id': DEFAULT_CHAIN_ID,
+  'contracts-path': DEFAULT_CONTRACTS_RELATIVE_PATH,
+  'keyring-backend': KeystoreBackendType.os,
+};
+
+/** Default signer constants */
 export const DEFAULT_GAS_ADJUSTMENT = 1.3;
+
+/** Global Config constants */
+export const GLOBAL_CONFIG_PATH = `${os.homedir()}/.config/archway`;
+export const GLOBAL_CONFIG_FILE = `${GLOBAL_CONFIG_PATH}/${DEFAULT_CONFIG_FILENAME}`;
 
 /**
  * Manages the config file of the project and creates instances of ChainRegistry and Contracts
  */
 export class Config {
-  private _name: string;
-  private _chainId: string;
-  private _contractsPath: string;
+  private _workspaceRoot: string;
   private _contracts: Contracts;
   private _chainRegistry: ChainRegistry;
-  private _workspaceRoot: string;
-  private _configPath: string;
+  private _globalConfigData: ConfigData;
+  private _localConfigData: ConfigData;
 
   /**
-   * @param name - Name of the project
-   * @param chainId - Active/selected chain id in the project
-   * @param contractsPath - Path of the contract files in the project
+   * @param workspaceRoot - Absolute path of the project's workspace root
    * @param contracts - Instance of {@link Contracts} of the project
    * @param chainRegistry - Instance of {@link ChainRegistry} of the project
-   * @param workspaceRoot - Absolute path of the project's workspace root
-   * @param configPath - Absolute path of the project's config file
+   * @param globalConfigData - Instance of {@link ConfigData} representing the global data of the project
+   * @param localConfigData - Instance of {@link ConfigData} representing the local data of the project
    */
   // eslint-disable-next-line max-params
   constructor(
-    name: string,
-    chainId: string,
-    contractsPath: string,
+    workspaceRoot: string,
     contracts: Contracts,
     chainRegistry: ChainRegistry,
-    workspaceRoot: string,
-    configPath: string
+    globalConfigData: ConfigData,
+    localConfigData: ConfigData
   ) {
-    this._name = name;
-    this._chainId = chainId;
-    this._contractsPath = contractsPath;
+    this._workspaceRoot = workspaceRoot;
     this._contracts = contracts;
     this._chainRegistry = chainRegistry;
-    this._workspaceRoot = workspaceRoot;
-    this._configPath = configPath;
-  }
-
-  get name(): string {
-    return this._name;
-  }
-
-  get chainId(): string {
-    return this._chainId;
+    this._globalConfigData = globalConfigData;
+    this._localConfigData = localConfigData;
   }
 
   get workspaceRoot(): string {
     return this._workspaceRoot;
-  }
-
-  get contractsPath(): string {
-    return this._contractsPath;
   }
 
   get contractsInstance(): Contracts {
@@ -102,64 +98,85 @@ export class Config {
     return this._contracts.deployments.listDeployments();
   }
 
+  get globalConfigData(): ConfigData {
+    return this._globalConfigData;
+  }
+
+  get localConfigData(): ConfigData {
+    return this._localConfigData;
+  }
+
+  /** Returns the resolved version with precedence of local \> global \> default */
+  get configData(): ConfigData {
+    return {
+      'chain-id': this.chainId,
+      'contracts-path': this.contractsPath,
+      'keyring-backend': this.keyringBackend,
+      'default-account': this.defaultAccount,
+    };
+  }
+
+  /** Getters for the fields from ConfigData */
+  get chainId(): string {
+    return this._localConfigData['chain-id'] || this._globalConfigData['chain-id'] || DEFAULT_CONFIG_DATA['chain-id'];
+  }
+
+  get contractsPath(): string {
+    return this._localConfigData['contracts-path'] || this._globalConfigData['contracts-path'] || DEFAULT_CONFIG_DATA['contracts-path'];
+  }
+
+  get keyringBackend(): KeystoreBackendType {
+    return this._localConfigData['keyring-backend'] || this._globalConfigData['keyring-backend'] || DEFAULT_CONFIG_DATA['keyring-backend'];
+  }
+
+  get defaultAccount(): string | undefined {
+    return this._localConfigData['default-account'] || this._globalConfigData['default-account'];
+  }
+
   /**
-   * Initializes a {@link Config} instance, opening the config file in the project
+   * Initializes a {@link Config} instance, opening the global config file, and the project's config file
    *
    * @param workingDir - Optional - Path of the working directory
+   * @param overrideConfig - Optional - Instance of {@link ConfigData} with values that we want to override on top of the existing config
    * @returns Promise containing an instance of {@link Config}
    */
-  static async init(workingDir?: string): Promise<Config> {
-    const configPath = await this.getFilePath(workingDir);
-    let data: ConfigData;
+  static async init(workingDir?: string, overrideConfig?: ConfigData): Promise<Config> {
+    const globalConfig = await this.readConfigFile(workingDir, true);
+    const localConfig = await this.readConfigFile(workingDir);
 
-    try {
-      data = JSON.parse(await fs.readFile(configPath, 'utf8'));
-    } catch {
-      throw new Error(
-        `Failed to open the config file (expected to be found in ${configPath}). Pleaes check that you are inside a project that was created with 'mod new' or that you have used 'mod config init' in an existing project`
-      );
-    }
-
-    this.assertIsValidConfigData(data, configPath);
-
-    return Config.make(data, workingDir);
+    return Config.make(globalConfig, { ...localConfig, ...overrideConfig }, workingDir);
   }
 
   /**
    * Create a {@link Config} instance, by receiving a {@link ConfigData} object
    *
-   * @param data - {@link ConfigData} representation of a config file
+   * @param globalConfigData - {@link ConfigData} representation of the global config file
+   * @param localConfigData - {@link ConfigData} representation of the local project's config file
    * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing an instance of {@link Config}
    */
-  static async make(data: ConfigData, workingDir?: string): Promise<Config> {
+  static async make(globalConfigData: ConfigData, localConfigData: ConfigData, workingDir?: string): Promise<Config> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
-    const configPath = await this.getFilePath(workingDir);
-    const contracts = await Contracts.init(workingDir, data.contractsPath);
+    const contracts = await Contracts.init(
+      workingDir,
+      localConfigData['contracts-path'] || globalConfigData['contracts-path'] || DEFAULT_CONFIG_DATA['contracts-path']
+    );
     const chainRegistry = await ChainRegistry.init(workingDir);
 
-    return new Config(
-      data.name,
-      data.chainId,
-      data.contractsPath || DEFAULT_CONTRACTS_RELATIVE_PATH,
-      contracts,
-      chainRegistry,
-      workspaceRoot,
-      configPath
-    );
+    return new Config(workspaceRoot, contracts, chainRegistry, globalConfigData, localConfigData);
   }
 
   /**
-   * Verify if the config file exists
+   * Verify if the local config file exists
    *
    * @param workingDir - Optional - Path of the working directory
    * @returns Promise containing boolean
    */
   static async exists(workingDir?: string): Promise<boolean> {
-    const configPath = await this.getFilePath(workingDir);
+    const localConfigPath = await this.getFilePath(workingDir);
 
     try {
-      await fs.access(configPath);
+      await fs.access(localConfigPath);
       return true;
     } catch {
       return false;
@@ -175,22 +192,16 @@ export class Config {
    */
   static async create(chainId: string, workingDir?: string): Promise<Config> {
     if (await Config.exists(workingDir)) {
-      throw new AlreadyExistsError('Config file', DEFAULT_CONFIG_FILENAME);
+      throw new AlreadyExistsError('Config file', DEFAULT_CONFIG_FILE);
     }
 
-    // Get Workspace root
-    const directory = await getWorkspaceRoot(workingDir);
-    // Get name of Workspace root directory
-    const name = sanitizeDirName(path.basename(directory));
+    const globalConfig = await this.readConfigFile(workingDir, true);
 
-    // Create config file
-    const configFile = await Config.make(
-      {
-        name,
-        chainId,
-      },
-      directory
-    );
+    const configFile = await Config.make(globalConfig, {
+      'chain-id': chainId,
+      'contracts-path': DEFAULT_CONTRACTS_RELATIVE_PATH
+    }, workingDir);
+
     await configFile.write();
 
     return configFile;
@@ -200,12 +211,39 @@ export class Config {
    * Get the absolute path of the config file
    *
    * @param workingDir - Optional - Path of the working directory
+   * @param global - Optional - Get the path for the global config, defaults to false
    * @returns Promise containing the absolute path of the config file
    */
-  static async getFilePath(workingDir?: string): Promise<string> {
+  static async getFilePath(workingDir?: string, global = false): Promise<string> {
+    if (global) {
+      return GLOBAL_CONFIG_FILE;
+    }
+
     const workspaceRoot = await getWorkspaceRoot(workingDir);
 
-    return path.join(workspaceRoot, DEFAULT_CONFIG_PATH);
+    return path.join(workspaceRoot, DEFAULT_CONFIG_FILE);
+  }
+
+  /**
+   * Reads the {@link ConfigData} representation of the local or global config from the config file
+   *
+   * @param workingDir - Optional - Path of the working directory
+   * @param global - Optional - Get the data for the global config, defaults to false
+   * @returns Promise containing the config data
+   */
+  static async readConfigFile(workingDir?: string, global = false): Promise<ConfigData> {
+    const configPath = await this.getFilePath(workingDir, global);
+
+    let data: ConfigData = {};
+
+    const exists = await fileExists(configPath);
+
+    if (exists) {
+      data = JSON.parse(await fs.readFile(configPath, 'utf8'));
+      this.assertIsValidConfigData(data, configPath);
+    }
+
+    return data;
   }
 
   /**
@@ -230,41 +268,34 @@ export class Config {
   };
 
   /**
-   * Returns the attributes of {@link Config} as {@link ConfigData}
+   * Write the data of the {@link Config} instance into the local or global config file
    *
-   * @param data - Object instance to validate
-   * @returns Boolean, whether it is valid or not
-   */
-  toConfigData = (): ConfigData => {
-    return { name: this._name, chainId: this._chainId, contractsPath: this._contractsPath } as ConfigData;
-  };
-
-  /**
-   * Write the data of the {@link Config} instance into the config file
-   *
+   * @param global - Optional - Write the data into the global config, defaults to false
    * @returns Empty promise
    */
-  async write(): Promise<void> {
-    const json = JSON.stringify(this.toConfigData(), null, 2);
-    await writeFileWithDir(this._configPath, json);
+  async write(global = false): Promise<void> {
+    const configPath = await Config.getFilePath(this._workspaceRoot, global);
+
+    await writeFileWithDir(configPath, JSON.stringify(global ? this._globalConfigData : this._localConfigData, undefined, 2));
   }
 
   /**
-   * Updates the data of the {@link Config} instance, overwriting the passed values
+   * Updates the data of the {@link Config} (local or global), overwriting the passed values
    *
    * @param newData - Partial object of {@link ConfigData} that will be updated
-   * @param writeAfterUpdate - Optional - Allows the function to write to the file after updating the object's data
+   * @param global - Optional - Update the global config, defaults to false
+   * @param writeAfterUpdate - Optional - Allows the function to write to the file after updating the object's data, defaults to true
    * @param arrayMergeMode - Optional - Different merge modes, can be OVERWRITE, APPEND, or PREPEND
    */
-  async update(newData: Partial<ConfigData>, writeAfterUpdate = false, arrayMergeMode = MergeMode.OVERWRITE): Promise<void> {
-    const mergeResult = _.mergeWith(this.toConfigData(), newData, mergeCustomizer(arrayMergeMode));
-
-    this._name = mergeResult.name;
-    this._chainId = mergeResult.chainId;
-    this._contractsPath = mergeResult.contractsPath;
+  async update(newData: Partial<ConfigData>, global = false, writeAfterUpdate = true, arrayMergeMode = MergeMode.OVERWRITE): Promise<void> {
+    if (global) {
+      this._globalConfigData = _.mergeWith(this._globalConfigData, newData, mergeCustomizer(arrayMergeMode));
+    } else {
+      this._localConfigData = _.mergeWith(this._localConfigData, newData, mergeCustomizer(arrayMergeMode));
+    }
 
     if (writeAfterUpdate) {
-      await this.write();
+      await this.write(global);
     }
   }
 
@@ -274,9 +305,9 @@ export class Config {
    * @returns Promise containing the {@link CosmosChain} data
    */
   async activeChainInfo(): Promise<CosmosChain> {
-    const result = this._chainRegistry.getChainById(this._chainId);
+    const result = this._chainRegistry.getChainById(this.chainId);
 
-    if (!result) throw new NotFoundError("Chain in the project's configuration", this._chainId);
+    if (!result) throw new NotFoundError("Chain in the project's configuration", this.chainId);
 
     return result;
   }
@@ -290,7 +321,7 @@ export class Config {
   async activeChainRpcEndpoint(chainInfo?: CosmosChain): Promise<string> {
     const auxInfo = chainInfo || (await this.activeChainInfo());
 
-    if (!auxInfo.apis?.rpc?.[0]?.address) throw new NotFoundError('Rpc endpoint for chain', this._chainId);
+    if (!auxInfo.apis?.rpc?.[0]?.address) throw new NotFoundError('Rpc endpoint for chain', this.chainId);
 
     return auxInfo.apis.rpc[0].address;
   }
@@ -344,10 +375,16 @@ export class Config {
     let contractsStatus = '';
 
     if (withContracts) {
-      contractsStatus = `\n\n${await this.contractsInstance.prettyPrint()}`;
+      contractsStatus = `\n${await this.contractsInstance.prettyPrint()}`;
     }
 
-    return `${bold('Project: ')}${this._name}\n${bold('Selected chain: ')}${this._chainId}` + contractsStatus;
+    return (
+      `${bold('Chain id: ')}${this.chainId}\n` +
+      `${bold('Contracts path: ')}${this.contractsPath}\n` +
+      `${bold('Keyring backend: ')}${this.keyringBackend}\n` +
+      (this.defaultAccount ? `${bold('Default account: ')}${this.defaultAccount}\n` : '') +
+      contractsStatus
+    );
   }
 
   /**
@@ -357,7 +394,7 @@ export class Config {
    * @returns Transaction hash, with clickable tx link when available
    */
   async prettyPrintTxHash(txHash: string): Promise<string> {
-    const explorerTxUrl = this._chainRegistry.getChainById(this._chainId)?.explorers?.find(item => Boolean(item.tx_page))?.tx_page;
+    const explorerTxUrl = this._chainRegistry.getChainById(this.chainId)?.explorers?.find(item => Boolean(item.tx_page))?.tx_page;
 
     return prettyPrintTransaction(txHash, explorerTxUrl);
   }
@@ -369,7 +406,7 @@ export class Config {
    */
   async dataWithContracts(): Promise<ConfigDataWithContracts> {
     return {
-      ...this.toConfigData(),
+      ...this.configData,
       contracts: this.contractsInstance.listContracts(),
     };
   }

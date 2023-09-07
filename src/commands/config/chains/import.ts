@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
 import { bold, greenBright, redBright } from '@/utils';
-import { ChainRegistry, DEFAULT_CHAINS_RELATIVE_PATH } from '@/domain';
+import { ChainRegistry, GLOBAL_CHAINS_PATH } from '@/domain';
 import { ErrorCodes } from '@/exceptions';
 import { StdinInputArg } from '@/parameters/arguments';
 
@@ -16,7 +16,7 @@ import { ConsoleError, CosmosChain } from '@/types';
  */
 export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsImport> {
   static summary = `Import a chain registry file and save it to ${bold(
-    path.join('{project-root}', DEFAULT_CHAINS_RELATIVE_PATH, './{chain-id}.json')
+    path.join(GLOBAL_CHAINS_PATH, './{chain-id}.json')
   )}.`;
 
   static args = {
@@ -51,7 +51,7 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
   protected async successMessage(chainId: string): Promise<void> {
     this.success(`${greenBright('Imported chain')} ${bold(chainId)}`);
 
-    if (this.jsonEnabled()) this.logJson({ chainId });
+    if (this.jsonEnabled()) this.logJson({ 'chain-id': chainId });
   }
 }
 

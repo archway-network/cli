@@ -104,6 +104,6 @@ export class FileKeystore extends KeystoreBackend {
   async promptPassword(nameOrAddress: string): Promise<string> {
     const promptedPassword = await Prompts.accountPassword(nameOrAddress);
 
-    return promptedPassword?.password || '';
+    return promptedPassword || '';
   }
 }

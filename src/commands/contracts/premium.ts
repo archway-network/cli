@@ -3,12 +3,12 @@ import { SetContractPremiumResult } from '@archwayhq/arch3.js';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright, prettyPrintCoin } from '@/utils';
+import { buildStdFee, blueBright, greenBright, prettyPrintCoin, isValidAddress } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags, AmountRequiredFlag } from '@/parameters/flags';
 import { NotFoundError } from '@/exceptions';
 
-import { Account, BackendType, Contract, DeploymentAction, PremiumDeployment } from '@/types';
+import { Account, Contract, DeploymentAction, InstantiateDeployment, PremiumDeployment } from '@/types';
 
 /**
  * Command 'contracts premium'
@@ -32,20 +32,31 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    // Load config and contract info
     const config = await Config.init();
     await config.assertIsValidWorkspace();
-    const contract = config.contractsInstance.getContractByName(this.args.contract!);
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const from = await accountsDomain.getWithSigner(this.flags.from!);
 
-    const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
+    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, {
+      filesPath: this.flags['keyring-path'],
+    });
+    const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    if (!instantiated) throw new NotFoundError('Instantiated deployment with a contract address');
+    // Load contract info
+    let contractAddress: string;
+    let contractInstance: Contract | undefined;
+    let instantiateDeployment: InstantiateDeployment | undefined;
 
-    const contractAddress = instantiated.contract.address;
+    if (isValidAddress(this.args.contract!)) {
+      contractAddress = this.args.contract!;
+    } else {
+      contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
+      instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
 
-    await this.logTransactionDetails(config, contract, contractAddress, from.account);
+      if (!instantiateDeployment) throw new NotFoundError('Instantiated deployment with a contract address');
+
+      contractAddress = instantiateDeployment.contract.address;
+    }
+
+    await this.logTransactionDetails(config, contractInstance?.name || contractAddress, contractAddress, from.account);
 
     const result = await showDisappearingSpinner(async () => {
       const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
@@ -58,29 +69,36 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
       );
     }, 'Waiting for tx to confirm...');
 
-    await config.deploymentsInstance.addDeployment(
-      {
-        action: DeploymentAction.PREMIUM,
-        txhash: result!.transactionHash,
-        wasm: {
-          codeId: instantiated.wasm.codeId,
-        },
-        contract: {
-          name: contract.name,
-          version: contract.version,
-          address: contractAddress,
-          admin: instantiated.contract.admin,
-        },
-        flatFee: result!.premium.flatFee,
-      } as PremiumDeployment,
-      config.chainId
-    );
+    if (contractInstance && instantiateDeployment) {
+      await config.deploymentsInstance.addDeployment(
+        {
+          action: DeploymentAction.PREMIUM,
+          txhash: result!.transactionHash,
+          wasm: {
+            codeId: instantiateDeployment.wasm.codeId,
+          },
+          contract: {
+            name: contractInstance.name,
+            version: contractInstance.version,
+            address: contractAddress,
+            admin: instantiateDeployment.contract.admin,
+          },
+          flatFee: result!.premium.flatFee,
+        } as PremiumDeployment,
+        config.chainId
+      );
+    }
 
-    await this.successMessage(result!, contract.label, config);
+    await this.successMessage(result!, contractInstance?.label || contractAddress, config);
   }
 
-  protected async logTransactionDetails(config: Config, contract: Contract, contractAddress: string, fromAccount: Account): Promise<void> {
-    this.log(`Setting premium for contract ${blueBright(contract.name)}`);
+  protected async logTransactionDetails(
+    config: Config,
+    contractName: string,
+    contractAddress: string,
+    fromAccount: Account
+  ): Promise<void> {
+    this.log(`Setting premium for contract ${blueBright(contractName)}`);
     this.log(`  Chain: ${blueBright(config.chainId)}`);
     this.log(`  Contract: ${blueBright(contractAddress)}`);
     this.log(`  Premium: ${blueBright(prettyPrintCoin(this.flags['premium-fee']!.coin))}`);

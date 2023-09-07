@@ -10,6 +10,8 @@ export const blueBright = _chalk.blueBright;
 export const cyan = _chalk.cyan;
 export const white = _chalk.white;
 
+export const reset = _chalk.reset;
+
 // Styles
 export const bold = _chalk.bold;
 export const dim = _chalk.dim;

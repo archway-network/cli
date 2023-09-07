@@ -1,21 +1,15 @@
 import { chainRegistryInstance } from '../dummies/chainRegistry';
 import { contractsInstance } from '../dummies/contracts';
-import { Config, DEFAULT_CONFIG_PATH } from '../../src/domain';
+import { Config } from '../../src/domain';
 
-export const configFile = {
-  name: 'foo',
-  chainId: 'constantine-3',
-  contractsPath: './contracts',
+import { ConfigData, KeystoreBackendType } from '../../src/types';
+
+export const configFile: ConfigData = {
+  'chain-id': 'constantine-3',
+  'contracts-path': './contracts',
+  'keyring-backend': KeystoreBackendType.test,
 };
 
 export const configString = JSON.stringify(configFile);
 
-export const configInstance = new Config(
-  configFile.name,
-  configFile.chainId,
-  configFile.contractsPath,
-  contractsInstance,
-  chainRegistryInstance,
-  '.',
-  DEFAULT_CONFIG_PATH
-);
+export const configInstance = new Config('.', contractsInstance, chainRegistryInstance, configFile, configFile);

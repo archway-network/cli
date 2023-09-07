@@ -1,6 +1,6 @@
 import { Flags } from '@oclif/core';
 
-import { BackendType } from '@/types';
+import { KeystoreBackendType } from '@/types';
 
 const KeyringBackendDescription = 'Backend for the keyring';
 const KeyringPathDescription = 'File-based keyring path';
@@ -10,14 +10,15 @@ const KeyringPathDescription = 'File-based keyring path';
  */
 export const ParamsKeyringBackendFlag = {
   description: KeyringBackendDescription,
-  default: 'os',
-  options: Object.values(BackendType),
+  default: KeystoreBackendType.os,
+  options: Object.values(KeystoreBackendType),
+  parse: async (val: string): Promise<KeystoreBackendType> => val as KeystoreBackendType,
 };
 
 /**
  * Keyring Backend flag
  */
-export const KeyringBackendFlag = Flags.string(ParamsKeyringBackendFlag);
+export const KeyringBackendFlag = Flags.custom(ParamsKeyringBackendFlag)();
 
 /**
  * Definition of Keyring path flag
