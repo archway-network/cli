@@ -50,6 +50,8 @@
     "README.md"
   ],
   "scripts": {
+    "run:bin": "node ./bin/run",
+    "run:dev": "node ./bin/dev",
     "build": "shx rm -rf dist && tsc -b && tsc-alias -p tsconfig.json",
     "lint": "eslint . --ext .ts --config .eslintrc",
     "postpack": "shx rm -f oclif.manifest.json",
@@ -59,7 +61,8 @@
     "test:coverage": "nyc --reporter=text mocha --forbid-only \"test/**/*.test.ts\"",
     "test:integration": "./test/integration/all.sh",
     "version": "oclif readme && git add README.md",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "changelog": "conventional-changelog -p conventionalcommits"
   },
   "dependencies": {
     "@archwayhq/arch3.js": "^0.4.0",
@@ -116,6 +119,7 @@
     "@types/prompts": "^2.4.4",
     "@types/semver": "^7.5.0",
     "chai": "^4.3.7",
+    "conventional-changelog-cli": "^4.1.0",
     "elliptic": "^6.5.4",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^4.0.0",
