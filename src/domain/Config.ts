@@ -108,29 +108,24 @@ export class Config {
 
   /** Returns the resolved version with precedence of local \> global \> default */
   get configData(): ConfigData {
-    return {
-      'chain-id': this.chainId,
-      'contracts-path': this.contractsPath,
-      'keyring-backend': this.keyringBackend,
-      'default-account': this.defaultAccount,
-    };
+    return _.merge(DEFAULT_CONFIG_DATA, this._globalConfigData, this._localConfigData);
   }
 
   /** Getters for the fields from ConfigData */
   get chainId(): string {
-    return this._localConfigData['chain-id'] || this._globalConfigData['chain-id'] || DEFAULT_CONFIG_DATA['chain-id'];
+    return this.configData['chain-id']!;
   }
 
   get contractsPath(): string {
-    return this._localConfigData['contracts-path'] || this._globalConfigData['contracts-path'] || DEFAULT_CONFIG_DATA['contracts-path'];
+    return this.configData['contracts-path']!;
   }
 
   get keyringBackend(): KeystoreBackendType {
-    return this._localConfigData['keyring-backend'] || this._globalConfigData['keyring-backend'] || DEFAULT_CONFIG_DATA['keyring-backend'];
+    return this.configData['keyring-backend']!;
   }
 
   get defaultAccount(): string | undefined {
-    return this._localConfigData['default-account'] || this._globalConfigData['default-account'];
+    return this.configData['default-account'];
   }
 
   /**

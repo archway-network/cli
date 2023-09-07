@@ -28,6 +28,6 @@ export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
   protected async successMessage(config: Config): Promise<void> {
     this.success(`${green('Config file')} ${bold(DEFAULT_CONFIG_FILE)} ${green('created')}`);
 
-    if (this.jsonEnabled()) this.logJson(config.configData);
+    if (this.jsonEnabled()) this.logJson(config.localConfigData);
   }
 }
