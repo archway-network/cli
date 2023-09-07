@@ -74,7 +74,6 @@
     "@ledgerhq/hw-transport-node-hid": "^6.27.18",
     "@oclif/core": "^2.8.2",
     "@oclif/plugin-help": "^5.2.9",
-    "@oclif/plugin-plugins": "^2.4.4",
     "@oclif/plugin-warn-if-update-available": "^2.0.48",
     "@webassemblyjs/wasm-opt": "^1.11.5",
     "ajv": "^8.12.0",
