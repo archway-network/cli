@@ -156,12 +156,12 @@ export class Accounts {
    * Get a single account by name or address with its signer, if not provided will ask for it on a prompt.
    * Throws error if the account is not found
    *
-   * @param nameOrAddress - Account name or account address to search by
+   * @param nameOrAddress - Optional - Account name or account address to search by
    * @param defaultAccount - Optional - Default account name or account address
    * @param prefix - Optional - Bech 32 prefix for the address, defaults to 'archway'
    * @returns Promise containing an instance of {@link AccountWithSigner}
    */
-  async getWithSigner(nameOrAddress: string, defaultAccount?: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountWithSigner> {
+  async getWithSigner(nameOrAddress?: string, defaultAccount?: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountWithSigner> {
     let searchAccount = nameOrAddress || defaultAccount;
 
     if (!searchAccount) searchAccount = await Prompts.fromAccount();
