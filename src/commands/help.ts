@@ -1,12 +1,11 @@
-import { Command } from '@oclif/core';
-
-import Help from '@/plugins/help-plugin/help';
+import { BaseCommand } from '@/lib/base';
+import HelpPlugin from '@/plugins/help-plugin/help';
 
 /**
  * Command 'help'
  * Displays the help info
  */
-export default class Config extends Command {
+export default class Help extends BaseCommand<typeof Help> {
   static summary = 'Display help for archway.';
 
   /**
@@ -15,7 +14,7 @@ export default class Config extends Command {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const help = new Help(this.config, { all: true });
+    const help = new HelpPlugin(this.config, { all: true });
     await help.showHelp(this.argv);
   }
 }
