@@ -7,7 +7,7 @@ import toml from 'toml';
 import { Cargo, Deployments } from '@/domain';
 import { ErrorCodes, ExecuteError, InstantiateError, NotFoundError, QueryError } from '@/exceptions';
 import { AccountBalancesJSON, Contract } from '@/types';
-import { bold, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright } from '@/utils';
+import { bold, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright, sanitizeDirName } from '@/utils';
 
 import { ConsoleError, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
 import { SchemaValidator } from './SchemaValidation';
@@ -135,16 +135,19 @@ export class Contracts {
    * @returns Promise containing an instance of {@link Contract} that was created
    */
   async create(name: string, template: string, quiet = false): Promise<Contract> {
+    const sanitizedName = sanitizeDirName(name);
     const cargo = new Cargo();
+
     await cargo.generate({
-      name,
+      name: sanitizedName,
       repository: TEMPLATES_REPOSITORY,
       branch: DEFAULT_TEMPLATE_BRANCH,
       template: template,
       destinationDir: this.contractsRoot,
       quiet,
     });
-    const generatedPath = path.join(this.contractsRoot, name);
+
+    const generatedPath = path.join(this.contractsRoot, sanitizedName);
     const generatedCrate = new Cargo(generatedPath);
     const metadata = await generatedCrate.projectMetadata();
 
@@ -250,18 +253,32 @@ export class Contracts {
     return `${bold('Available contracts: ')}${contractsList}`;
   }
 
+  /**
+   * Verifies that an instantiate argument is valid for a specific contract, throws an error if not
+   *
+   * @param contractName - Contract name
+   * @param initArgs - Instantiate arguments to be validated
+   * @returns Empty promise
+   */
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-  async assertValidInstantiateArgs(contractName: string, initArgs: any): Promise<void> {
+  async assertValidInstantiateArgs(contractName: string, instArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);
     const schemaPath = path.join(contract.root, INSTANTIATE_SCHEMA_RELATIVE_PATH);
 
     try {
-      await this.schemaValidator.assertValidJSONSchema(schemaPath, initArgs);
+      await this.schemaValidator.assertValidJSONSchema(schemaPath, instArgs);
     } catch (error: Error | any) {
       throw new InstantiateError(`the instantiate arguments does not match the schema: ${error.message}`);
     }
   }
 
+  /**
+   * Verifies that an execute argument is valid for a specific contract, throws an error if not
+   *
+   * @param contractName - Contract name
+   * @param executeArgs - Execute arguments to be validated
+   * @returns Empty promise
+   */
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async assertValidExecuteArgs(contractName: string, executeArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);
@@ -274,6 +291,13 @@ export class Contracts {
     }
   }
 
+  /**
+   * Verifies that a query argument is valid for a specific contract, throws an error if not
+   *
+   * @param contractName - Contract name
+   * @param queryArgs - Query arguments to be validated
+   * @returns Empty promise
+   */
   // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
   async assertValidQueryArgs(contractName: string, queryArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);

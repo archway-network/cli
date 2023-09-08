@@ -5,12 +5,12 @@ import fs from 'node:fs/promises';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright } from '@/utils';
+import { buildStdFee, blueBright, greenBright, isValidAddress } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 
-import { Account, BackendType, Contract, DeploymentAction, MigrateDeployment } from '@/types';
+import { Account, Contract, DeploymentAction, InstantiateDeployment, MigrateDeployment } from '@/types';
 
 /**
  * Command 'contracts migrate'
@@ -48,56 +48,80 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
       throw new OnlyOneArgSourceError('Migration message');
     }
 
-    // Load config and contract info
     const config = await Config.init();
-    await config.assertIsValidWorkspace();
-    const contract = config.contractsInstance.getContractByName(this.args.contract!);
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const from = await accountsDomain.getWithSigner(this.flags.from!);
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
+    const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    if (!instantiated) throw new NotFoundError('Instantiated deployment with a contract address');
-
-    const contractAddress = instantiated.contract.address;
-
-    this.logTransactionDetails(config, contract, contractAddress, from.account);
+    // Load contract info
+    let contractAddress: string;
+    let contractInstance: Contract | undefined;
+    let instantiateDeployment: InstantiateDeployment | undefined;
 
     // Parse migrate message (if exists)
-    const message =
-      this.flags.args || this.args.stdinInput || this.flags['args-file'] ?
-        JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8'))) :
+    const migrationMessage =
+      this.args.stdinInput || this.flags.args || this.flags['args-file'] ?
+        JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf-8'))) :
         {};
+
+    if (isValidAddress(this.args.contract!)) {
+      contractAddress = this.args.contract!;
+    } else {
+      await config.assertIsValidWorkspace();
+
+      contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
+
+      instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
+
+      if (!instantiateDeployment) throw new NotFoundError('Instantiated deployment with a contract address');
+
+      contractAddress = instantiateDeployment.contract.address;
+    }
+
+    this.logTransactionDetails(config, contractInstance?.name || contractAddress, contractAddress, from.account);
 
     const result = await showDisappearingSpinner(async () => {
       const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
 
-      return signingClient.migrate(from.account.address, contractAddress, this.flags.code!, message, buildStdFee(this.flags.fee?.coin));
+      return signingClient.migrate(
+        from.account.address,
+        contractAddress,
+        this.flags.code!,
+        migrationMessage,
+        buildStdFee(this.flags.fee?.coin)
+      );
     }, 'Waiting for tx to confirm...');
 
-    await config.deploymentsInstance.addDeployment(
-      {
-        action: DeploymentAction.MIGRATE,
-        txhash: result!.transactionHash,
-        wasm: {
-          codeId: this.flags.code,
-        },
-        contract: {
-          name: contract.name,
-          version: contract.version,
-          address: contractAddress,
-          admin: instantiated.contract.admin,
-        },
-        msg: message,
-      } as MigrateDeployment,
-      config.chainId
-    );
+    if (contractInstance && instantiateDeployment) {
+      await config.deploymentsInstance.addDeployment(
+        {
+          action: DeploymentAction.MIGRATE,
+          txhash: result!.transactionHash,
+          wasm: {
+            codeId: this.flags.code,
+          },
+          contract: {
+            name: contractInstance.name,
+            version: contractInstance.version,
+            address: contractAddress,
+            admin: instantiateDeployment.contract.admin,
+          },
+          msg: migrationMessage,
+        } as MigrateDeployment,
+        config.chainId
+      );
+    }
 
-    await this.successMessage(result!, contract.label, config);
+    await this.successMessage(result!, contractInstance?.label || contractAddress, config);
   }
 
-  protected async logTransactionDetails(config: Config, contract: Contract, contractAddress: string, fromAccount: Account): Promise<void> {
-    this.log(`Migrating contract ${blueBright(contract.name)}`);
+  protected async logTransactionDetails(
+    config: Config,
+    contractName: string,
+    contractAddress: string,
+    fromAccount: Account
+  ): Promise<void> {
+    this.log(`Migrating contract ${blueBright(contractName)}`);
     this.log(`  Chain: ${blueBright(config.chainId)}`);
     this.log(`  Contract: ${blueBright(contractAddress)}`);
     this.log(`  Code: ${blueBright(this.flags.code)}`);

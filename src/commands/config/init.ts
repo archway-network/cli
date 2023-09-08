@@ -1,5 +1,5 @@
 import { BaseCommand } from '@/lib/base';
-import { Config, DEFAULT_CONFIG_FILENAME } from '@/domain';
+import { Config, DEFAULT_CONFIG_FILE } from '@/domain';
 import { bold, green } from '@/utils';
 import { ChainOptionalFlag } from '@/parameters/flags';
 import { Prompts } from '@/services';
@@ -20,14 +20,14 @@ export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const config = await Config.create(this.flags.chain || (await Prompts.chain()).chain);
+    const config = await Config.create(this.flags.chain || (await Prompts.chain()));
 
     await this.successMessage(config);
   }
 
   protected async successMessage(config: Config): Promise<void> {
-    this.success(`${green('Config file')} ${bold(DEFAULT_CONFIG_FILENAME)} ${green('created')}`);
+    this.success(`${green('Config file')} ${bold(DEFAULT_CONFIG_FILE)} ${green('created')}`);
 
-    if (this.jsonEnabled()) this.logJson(config.toConfigData());
+    if (this.jsonEnabled()) this.logJson(config.localConfigData);
   }
 }

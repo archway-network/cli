@@ -55,7 +55,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     const contractAddress = instantiated.contract.address;
 
     // Validate query arguments
-    const queryMsg = JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
+    const queryMsg = JSON.parse(this.args.stdinInput || this.flags.args ||  (await fs.readFile(this.flags['args-file']!, 'utf-8')));
     await config.contractsInstance.assertValidQueryArgs(contract.name, queryMsg);
 
     const result = await showDisappearingSpinner(async () => {

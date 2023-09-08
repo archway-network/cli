@@ -1,6 +1,6 @@
 import { expect, test } from '@oclif/test';
 
-import { aliceAccountName, contractProjectMetadata, dummyMigrateTransaction, instantiateDeployment } from '../../dummies';
+import { aliceAccountName, contractArgument, contractProjectMetadata, dummyMigrateTransaction, instantiateDeployment } from '../../dummies';
 
 import { AccountsStubs, ConfigStubs, FilesystemStubs, SigningArchwayClientStubs } from '../../stubs';
 
@@ -30,7 +30,7 @@ describe('contracts migrate', () => {
 
   test
     .stdout()
-    .command(['contracts migrate', contractName, `--code=${codeId}`, `--from=${aliceAccountName}`])
+    .command(['contracts migrate', contractName, `--args=${contractArgument}`, `--code=${codeId}`, `--from=${aliceAccountName}`])
     .it('Migrates the smart contract', ctx => {
       expect(ctx.stdout).to.contain('migrated');
       expect(ctx.stdout).to.contain(contractProjectMetadata.label);
@@ -40,7 +40,7 @@ describe('contracts migrate', () => {
 
   test
     .stdout()
-    .command(['contracts migrate', contractName, `--code=${codeId}`, `--from=${aliceAccountName}`, '--json'])
+    .command(['contracts migrate', contractName, `--args=${contractArgument}`, `--code=${codeId}`, `--from=${aliceAccountName}`, '--json'])
     .it('Prints json output', ctx => {
       expect(ctx.stdout).to.not.contain('migrated');
       expect(ctx.stdout).to.contain(dummyMigrateTransaction.transactionHash);
@@ -50,7 +50,7 @@ describe('contracts migrate', () => {
   test
     .stdout()
     .stderr()
-    .command(['contracts migrate', 'thisDoesntExist', `--code=${codeId}`, `--from=${aliceAccountName}`])
+    .command(['contracts migrate', 'thisDoesntExist', `--args=${contractArgument}`, `--code=${codeId}`, `--from=${aliceAccountName}`])
     .catch(/(Contract).*(not found)/)
     .it('fails on invalid contract');
 });

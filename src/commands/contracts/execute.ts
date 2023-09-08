@@ -5,12 +5,12 @@ import { ExecuteResult } from '@cosmjs/cosmwasm-stargate';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright } from '@/utils';
+import { buildStdFee, blueBright, greenBright, isValidAddress } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/parameters/flags';
 import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 
-import { Account, Amount, BackendType, Contract } from '@/types';
+import { Account, Amount, Contract } from '@/types';
 
 /**
  * Command 'contracts execute'
@@ -53,24 +53,34 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       throw new NotFoundError('Args to execute in the contract');
     }
 
-    // Load config and contract info
     const config = await Config.init();
-    await config.assertIsValidWorkspace();
-    const contract = config.contractsInstance.getContractByName(this.args.contract!);
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const from = await accountsDomain.getWithSigner(this.flags.from!);
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
+    const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    if (!instantiated) throw new NotFoundError('Instantiated deployment with a contract address');
+    const executeArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
 
-    const contractAddress = instantiated.contract.address;
+    // Load contract info
+    let contractAddress: string;
+    let contractInstance: Contract | undefined;
 
-    await this.logTransactionDetails(config, contract, from.account);
+    if (isValidAddress(this.args.contract!)) {
+      contractAddress = this.args.contract!;
+    } else {
+      await config.assertIsValidWorkspace();
 
-    // Validate init args schema
-    const executeArgs = JSON.parse(this.flags.args || this.args.stdinInput || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
-    await config.contractsInstance.assertValidExecuteArgs(contract.name, executeArgs);
+      contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
+      const instantiated = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
+
+      if (!instantiated) throw new NotFoundError('Instantiated deployment with a contract address');
+
+      contractAddress = instantiated.contract.address;
+
+      // Validate exec args schema
+      await config.contractsInstance.assertValidExecuteArgs(contractInstance.name, executeArgs);
+    }
+
+    await this.logTransactionDetails(config, contractInstance?.name || contractAddress, from.account);
 
     const result = await showDisappearingSpinner(async () => {
       try {
@@ -89,20 +99,20 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       }
     }, 'Waiting for tx to confirm...');
 
-    await this.successMessage(result!, contract, config);
+    await this.successMessage(result!, contractInstance?.label || contractAddress, config);
   }
 
-  protected async logTransactionDetails(config: Config, contract: Contract, fromAccount: Account): Promise<void> {
-    this.log(`Executing contract ${blueBright(contract.name)}`);
+  protected async logTransactionDetails(config: Config, contractName: string, fromAccount: Account): Promise<void> {
+    this.log(`Executing contract ${blueBright(contractName)}`);
     this.log(`  Chain: ${blueBright(config.chainId)}`);
     this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
   }
 
-  protected async successMessage(result: ExecuteResult, contractInstance: Contract, configInstance: Config): Promise<void> {
+  protected async successMessage(result: ExecuteResult, contractLabel: string, configInstance: Config): Promise<void> {
     if (this.jsonEnabled()) {
       this.logJson(result);
     } else {
-      this.success(`${greenBright('Executed contract ')} ${blueBright(contractInstance.label)}`);
+      this.success(`${greenBright('Executed contract ')} ${blueBright(contractLabel)}`);
       this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
     }
   }

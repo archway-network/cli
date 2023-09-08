@@ -7,7 +7,7 @@ import { Accounts, Config } from '@/domain';
 import { KeyringFlags } from '@/parameters/flags';
 import { showDisappearingSpinner } from '@/ui';
 
-import { AccountBase, BackendType } from '@/types';
+import { AccountBase } from '@/types';
 
 /**
  * Command 'rewards query'
@@ -29,10 +29,10 @@ export default class RewardsQuery extends BaseCommand<typeof RewardsQuery> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const account = await accountsDomain.accountBaseFromAddress(this.args.account!);
-
     const config = await Config.init();
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+
+    const account = await accountsDomain.accountBaseFromAddress(this.args.account!);
 
     const result = await showDisappearingSpinner(async () => {
       const client = await config.getArchwayClient();

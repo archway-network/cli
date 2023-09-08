@@ -5,7 +5,7 @@ import { BaseCommand } from '@/lib/base';
 import { ChainOptionalFlag } from '@/parameters/flags';
 import { Prompts } from '@/services';
 import { NewProject as NewProjectDomain, ProjectType } from '@/domain';
-import { green, greenBright } from '@/utils';
+import { green, greenBright, sanitizeDirName } from '@/utils';
 
 /**
  * Command 'new'
@@ -33,8 +33,11 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const inputProjectName = this.args['project-name'] || (await Prompts.newProject())['project-name'];
-    const inputChain = this.flags.chain || (await Prompts.chain()).chain;
+    const inputProjectName = sanitizeDirName(this.args['project-name'] || (await Prompts.newProject()));
+    const inputChain = this.flags.chain || (await Prompts.chain());
+
+    const contractName = this.flags.contract ? sanitizeDirName(this.flags['contract-name'] || (await Prompts.contractName())) : undefined;
+    const contractTemplate = this.flags.contract ? this.flags.template || (await Prompts.template()) : undefined;
 
     this.log(`Creating Archway project ${inputProjectName}...\n`);
 
@@ -42,8 +45,8 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
       {
         name: inputProjectName,
         chainId: inputChain,
-        contractName: this.flags.contract ? this.flags['contract-name'] || (await Prompts.contractName())['contract-name'] : undefined,
-        contractTemplate: this.flags.contract ? this.flags.template || (await Prompts.template()).template : undefined,
+        contractName,
+        contractTemplate,
       },
       ProjectType.RUST,
       this.jsonEnabled()
@@ -65,6 +68,6 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
       `${green('Project')} ${greenBright(projectName)} ${green('created and configured for the chain')} ${greenBright(chainId)}`
     );
 
-    if (this.jsonEnabled()) this.logJson({ name: projectName, chainId });
+    if (this.jsonEnabled()) this.logJson({ name: projectName, 'chain-id': chainId });
   }
 }

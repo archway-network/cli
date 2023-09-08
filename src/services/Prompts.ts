@@ -1,9 +1,10 @@
 /* eslint-disable unicorn/no-static-only-class */
-import { Answers, Choice } from 'prompts';
+import { Choice } from 'prompts';
 
 import { ChainRegistry, DEFAULT_CHAIN_ID } from '@/domain';
 import { showPrompt } from '@/ui';
 import { ContractTemplates } from '@/services';
+import { sanitizeDirName } from '@/utils';
 
 import { CosmosChain } from '@/types';
 
@@ -16,9 +17,9 @@ export class Prompts {
   /**
    * Shows a terminal prompt asking the user to select a chain
    *
-   * @returns Promise containing the {@link Answers} object containing the chain
+   * @returns Promise containing the chain id
    */
-  static async chain(): Promise<Answers<'chain'>> {
+  static async chain(): Promise<string> {
     const chainRegistry = await ChainRegistry.init();
 
     const choices = chainRegistry.listChains.map((item: CosmosChain) => {
@@ -32,7 +33,7 @@ export class Prompts {
 
     const defaultSelected = choices.findIndex(item => item.value === DEFAULT_CHAIN_ID);
 
-    return showPrompt({
+    const answer = await showPrompt({
       type: 'select',
       name: 'chain',
       message: 'Select a chain to use',
@@ -40,34 +41,40 @@ export class Prompts {
       initial: defaultSelected === -1 ? undefined : defaultSelected,
       choices,
     });
+
+    return answer.chain;
   }
 
   /**
    * Shows a terminal prompt asking the user to enter a contract name
    *
-   * @returns Promise containing the {@link Answers} object containing the contract name
+   * @returns Promise containing the contract name
    */
-  static async contractName(): Promise<Answers<'contract-name'>> {
-    return showPrompt({
+  static async contractName(): Promise<string> {
+    const answer = await showPrompt({
       type: 'text',
       name: 'contract-name',
       message: 'Choose a name for your contract',
       validate: value => Boolean(value.toString().trim()),
     });
+
+    return answer['contract-name'];
   }
 
   /**
    * Shows a terminal prompt asking the user the user for a template after confirmation
    *
-   * @returns Promise containing the {@link Answers} object containing the template name
+   * @returns Promise containing the template name
    */
-  static async template(): Promise<Answers<'template'>> {
-    return showPrompt({
+  static async template(): Promise<string> {
+    const answer = await showPrompt({
       type: 'select',
       name: 'template',
       message: 'Choose a starter template',
       choices: ContractTemplates?.getTemplateChoices?.() || [],
     });
+
+    return answer.template;
   }
 
   /**
@@ -76,12 +83,14 @@ export class Prompts {
    * @param nameOrAddress - Name or address of the account
    * @returns Promise containing the {@link Answers} object containing the account password
    */
-  static async accountPassword(nameOrAddress: string): Promise<Answers<'password'>> {
-    return showPrompt({
+  static async accountPassword(nameOrAddress: string): Promise<string> {
+    const answer = await showPrompt({
       type: 'password',
       name: 'password',
       message: `Enter the password for the account ${nameOrAddress}`,
     });
+
+    return answer.password;
   }
 
   /**
@@ -89,13 +98,15 @@ export class Prompts {
    *
    * @returns Promise containing the {@link Answers} object containing confirmation
    */
-  static async confirmation(): Promise<Answers<'confirm'>> {
-    return showPrompt({
+  static async confirmation(): Promise<boolean> {
+    const answer = await showPrompt({
       type: 'confirm',
       name: 'confirm',
       message: 'Do you want to proceed?',
       initial: false,
     });
+
+    return answer.confirm;
   }
 
   /**
@@ -103,13 +114,15 @@ export class Prompts {
    *
    * @returns Promise containing the {@link Answers} object containing the account name or address
    */
-  static async fromAccount(): Promise<Answers<'from'>> {
-    return showPrompt({
+  static async fromAccount(): Promise<string> {
+    const answer = await showPrompt({
       type: 'text',
       name: 'from',
       message: 'Enter the name or address of the account that will send the transaction',
       validate: value => Boolean(value.toString().trim()),
     });
+
+    return answer.from;
   }
 
   /**
@@ -117,13 +130,15 @@ export class Prompts {
    *
    * @returns Promise containing the {@link Answers} object containing the new account name
    */
-  static async newAccount(): Promise<Answers<'account-name'>> {
-    return showPrompt({
+  static async newAccount(): Promise<string> {
+    const answer = await showPrompt({
       type: 'text',
       name: 'account-name',
       message: 'Enter the name of the new account',
       validate: value => Boolean(value.toString().trim()),
     });
+
+    return answer['account-name'];
   }
 
   /**
@@ -131,13 +146,16 @@ export class Prompts {
    *
    * @returns Promise containing the {@link Answers} object containing the new project name
    */
-  static async newProject(): Promise<Answers<'project-name'>> {
-    return showPrompt({
+  static async newProject(): Promise<string> {
+    const answer = await showPrompt({
       type: 'text',
       name: 'project-name',
       message: 'Enter the name of the new project',
       validate: value => Boolean(value.toString().trim()),
+      format: value => sanitizeDirName(value)
     });
+
+    return answer['project-name'];
   }
 
   /**
@@ -145,12 +163,15 @@ export class Prompts {
    *
    * @returns Promise containing the {@link Answers} object containing the new contract name
    */
-  static async newContract(): Promise<Answers<'contract-name'>> {
-    return showPrompt({
+  static async newContract(): Promise<string> {
+    const answer = await showPrompt({
       type: 'text',
       name: 'contract-name',
       message: 'Enter the name of the new contract',
       validate: value => Boolean(value.toString().trim()),
+      format: value => sanitizeDirName(value)
     });
+
+    return answer['contract-name'];
   }
 }

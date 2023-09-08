@@ -3,12 +3,14 @@ import ow from 'ow';
 
 import { AlreadyExistsError, ErrorCodes, InvalidFormatError } from '@/exceptions';
 import { BuiltInChains } from '@/services';
-import { bold, fileExists, getWorkspaceRoot, readFilesFromDirectory, redBright, writeFileWithDir, yellow } from '@/utils';
+import { bold, fileExists, readFilesFromDirectory, redBright, writeFileWithDir, yellow } from '@/utils';
+import { GLOBAL_CONFIG_PATH } from './Config';
 
 import { ChainRegistrySpec, ConsoleError, CosmosChain, cosmosChainValidator } from '@/types';
 
+export const GLOBAL_CHAINS_PATH = `${GLOBAL_CONFIG_PATH}/chains`;
+
 export const DEFAULT_CHAIN_ID = 'constantine-3';
-export const DEFAULT_CHAINS_RELATIVE_PATH = '.archway/chains';
 export const CHAIN_FILE_EXTENSION = '.json';
 
 /**
@@ -16,18 +18,18 @@ export const CHAIN_FILE_EXTENSION = '.json';
  */
 export class ChainRegistry extends ChainRegistrySpec {
   private _data: CosmosChain[];
-  private _path: string;
+  private _dirPath: string;
   private _warnings: ChainWarning[];
 
   /**
    * @param data - List of the {@link CosmosChain} representation of the chains in the project
-   * @param path - Absolute path of the imported chain config files
+   * @param dirPath - Absolute path of the imported chain config files
    * @param warning - List of warnings related to the chain config files
    */
-  constructor(data: CosmosChain[], path: string, warning: ChainWarning[]) {
+  constructor(data: CosmosChain[], dirPath: string, warning: ChainWarning[]) {
     super();
     this._data = data;
-    this._path = path;
+    this._dirPath = dirPath;
     this._warnings = warning;
   }
 
@@ -35,8 +37,8 @@ export class ChainRegistry extends ChainRegistrySpec {
     return this._data;
   }
 
-  get path(): string {
-    return this._path;
+  get dirPath(): string {
+    return this._dirPath;
   }
 
   get warnings(): ChainWarning[] | undefined {
@@ -46,17 +48,14 @@ export class ChainRegistry extends ChainRegistrySpec {
   /**
    * Initializes the Chain Registry, by loading the built-in chains and reading the imported chain files.
    *
-   * @param chainsDirectory - Optional - Path to the directory where the imported chains are
-   * @param workingDir - Optional - Path of the working directory
+   * @param chainsDir - Optional - Path to the directory where the imported chains are. Defaults to '~/.config/archway/chains/'
    * @returns Promise containing a {@link ChainRegistry} instance
    */
-  static async init(workingDir?: string): Promise<ChainRegistry> {
-    const directoryPath = await this.getDirectoryPath(workingDir);
-
+  static async init(chainsDir = GLOBAL_CHAINS_PATH): Promise<ChainRegistry> {
     let filesRead: Record<string, string> = {};
 
     try {
-      filesRead = await readFilesFromDirectory(directoryPath, CHAIN_FILE_EXTENSION);
+      filesRead = await readFilesFromDirectory(chainsDir, CHAIN_FILE_EXTENSION);
     } catch {}
 
     // List of built-in chains that could be added to final result
@@ -98,17 +97,7 @@ export class ChainRegistry extends ChainRegistrySpec {
     }
 
     // Create chain registry with the parsed chains and the built-in chains pending to add
-    return new ChainRegistry([...Object.values(builtInToAdd), ...parsedList], directoryPath, warnings);
-  }
-
-  /**
-   * Get the absolute path of the imported chains directory
-   *
-   * @param workingDir - Optional - Path of the working directory
-   * @returns Promise containing the absolute path of the chains directory
-   */
-  static async getDirectoryPath(workingDir?: string): Promise<string> {
-    return path.join(await getWorkspaceRoot(workingDir), DEFAULT_CHAINS_RELATIVE_PATH);
+    return new ChainRegistry([...Object.values(builtInToAdd), ...parsedList], chainsDir, warnings);
   }
 
   /**
@@ -139,7 +128,7 @@ export class ChainRegistry extends ChainRegistrySpec {
    * @returns Promise containig the absolute path of the chain file
    */
   async getFilePath(chainId: string): Promise<string> {
-    return path.join(this._path, `./${chainId}${CHAIN_FILE_EXTENSION}`);
+    return path.join(this._dirPath, `./${chainId}${CHAIN_FILE_EXTENSION}`);
   }
 
   /**
@@ -213,19 +202,6 @@ export class ChainRegistry extends ChainRegistrySpec {
    */
   async import(chainInfo: CosmosChain): Promise<void> {
     ChainRegistry.assertIsValidChain(chainInfo);
-
-    await this.writeChainFile(chainInfo);
-  }
-
-  /**
-   * Exports a built-in chain info object into a file
-   *
-   * @param chainId - Chain id to be exported
-   */
-  async export(chainId: string): Promise<void> {
-    const chainInfo = BuiltInChains.getChainById(chainId);
-
-    if (!chainInfo) throw new ChainIdNotFoundError(chainId);
 
     await this.writeChainFile(chainInfo);
   }

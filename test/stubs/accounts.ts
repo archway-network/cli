@@ -3,7 +3,7 @@ import keyring from '@archwayhq/keyring-go';
 
 import { aliceStoreEntry, aliceStoredAccount, bobStoreEntry } from '../dummies';
 
-import { BackendType } from '../../src/types';
+import { KeystoreBackendType } from '../../src/types';
 
 export default class AccountsStubs {
   public stubbedKeyringGet: SinonStub | undefined;
@@ -11,21 +11,21 @@ export default class AccountsStubs {
   public stubbedKeyringRemove: SinonStub | undefined;
   public stubbedKeyringSet: SinonStub | undefined;
 
-  init(type: BackendType = BackendType.os, getResponse = aliceStoredAccount, listResponse = [aliceStoreEntry, bobStoreEntry]): void {
+  init(type: KeystoreBackendType = KeystoreBackendType.os, getResponse = aliceStoredAccount, listResponse = [aliceStoreEntry, bobStoreEntry]): void {
     switch (type) {
-      case BackendType.os:
+      case KeystoreBackendType.os:
         this.stubbedKeyringGet = sinon.stub(keyring.OsStore, 'get').callsFake(() => getResponse);
         this.stubbedKeyringList = sinon.stub(keyring.OsStore, 'list').callsFake(() => listResponse);
         this.stubbedKeyringRemove = sinon.stub(keyring.OsStore, 'remove');
         this.stubbedKeyringSet = sinon.stub(keyring.OsStore, 'set');
         break;
-      case BackendType.file:
+      case KeystoreBackendType.file:
         this.stubbedKeyringGet = sinon.stub(keyring.FileStore, 'get').callsFake(() => getResponse);
         this.stubbedKeyringList = sinon.stub(keyring.FileStore, 'list').callsFake(() => listResponse);
         this.stubbedKeyringRemove = sinon.stub(keyring.FileStore, 'remove');
         this.stubbedKeyringSet = sinon.stub(keyring.FileStore, 'set');
         break;
-      case BackendType.test:
+      case KeystoreBackendType.test:
         this.stubbedKeyringGet = sinon.stub(keyring.UnencryptedFileStore, 'get').callsFake(() => getResponse);
         this.stubbedKeyringList = sinon.stub(keyring.UnencryptedFileStore, 'list').callsFake(() => listResponse);
         this.stubbedKeyringRemove = sinon.stub(keyring.UnencryptedFileStore, 'remove');

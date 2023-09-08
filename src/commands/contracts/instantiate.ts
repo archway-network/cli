@@ -5,12 +5,12 @@ import fs from 'node:fs/promises';
 import { Accounts, Config } from '@/domain';
 import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
-import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
+import { ParamsContractNameOptionalArg, StdinInputArg } from '@/parameters/arguments';
 import { KeyringFlags, ParamsAmountOptionalFlag, TransactionFlags } from '@/parameters/flags';
 import { showDisappearingSpinner } from '@/ui';
 import { blueBright, buildStdFee, greenBright } from '@/utils';
 
-import { Account, Amount, BackendType, Contract, DeploymentAction, InstantiateDeployment } from '@/types';
+import { Account, Amount, Contract, DeploymentAction, InstantiateDeployment } from '@/types';
 
 /**
  * Command 'contracts instantiate'
@@ -19,7 +19,7 @@ import { Account, Amount, BackendType, Contract, DeploymentAction, InstantiateDe
 export default class ContractsInstantiate extends BaseCommand<typeof ContractsInstantiate> {
   static summary = 'Instantiates code stored on-chain with the given arguments';
   static args = {
-    contract: Args.string({ ...ParamsContractNameRequiredArg, ignoreStdin: true }),
+    contract: Args.string({ ...ParamsContractNameOptionalArg, ignoreStdin: true }),
     stdinInput: StdinInputArg,
   };
 
@@ -58,37 +58,50 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       throw new NotFoundError('Init args to instantiate the contract');
     }
 
-    // Load config and contract info
     const config = await Config.init();
-    await config.assertIsValidWorkspace();
-    const contract = config.contractsInstance.getContractByName(this.args.contract!);
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const from = await accountsDomain.getWithSigner(this.flags.from!);
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    const label = this.flags.label || contract.label;
+    const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
+
     const getAdmin = async (): Promise<string> =>
       this.flags.admin ? (await accountsDomain.accountBaseFromAddress(this.flags.admin)).address : from.account.address;
     const admin = this.flags['no-admin'] ? undefined : await getAdmin();
 
+    const instArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
+
+    let label = this.flags.label;
+
+    let contractInstance: Contract | undefined;
+
     // If code id is not set as flag, try to get it from deployments history
     let codeId = this.flags.code;
     if (!codeId) {
+      if (!this.args.contract)
+        throw new NotFoundError("Please pass either the Contract name in the arguments, or the '--code' flag.");
+
+      await config.assertIsValidWorkspace();
+
+      contractInstance = config.contractsInstance.getContractByName(this.args.contract);
+
       codeId = config.contractsInstance.findStoreDeployment(this.args.contract!, config.chainId)?.wasm.codeId;
 
       if (!codeId) throw new NotFoundError("Code id of contract's store deployment");
+
+      if (!label) label = contractInstance.label;
+
+      // Validate instantiate args schema
+      await config.contractsInstance.assertValidInstantiateArgs(contractInstance.name, instArgs);
     }
 
-    await this.logTransactionDetails(config, contract, codeId, label, admin!, from.account);
+    if (!label) throw new NotFoundError("Please pass the label of the contract in the '--label' flag.");
 
-    // Validate init args schema
-    const initArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
-    await config.contractsInstance.assertValidInstantiateArgs(contract.name, initArgs);
+    await this.logTransactionDetails(config, codeId, admin!, from.account, label, contractInstance?.name);
 
     const result = await showDisappearingSpinner(async () => {
       try {
         const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
 
-        return signingClient.instantiate(from.account.address, codeId!, initArgs, label, buildStdFee(this.flags.fee?.coin), {
+        return signingClient.instantiate(from.account.address, codeId!, instArgs, label!, buildStdFee(this.flags.fee?.coin), {
           funds: this.flags.amount?.coin ? [this.flags.amount.coin] : undefined,
           admin,
         });
@@ -97,23 +110,25 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       }
     }, 'Waiting for tx to confirm...');
 
-    await config.deploymentsInstance.addDeployment(
-      {
-        action: DeploymentAction.INSTANTIATE,
-        txhash: result!.transactionHash,
-        wasm: {
-          codeId,
-        },
-        contract: {
-          name: contract.name,
-          version: contract.version,
-          address: result!.contractAddress,
-          admin: admin,
-        },
-        msg: initArgs,
-      } as InstantiateDeployment,
-      config.chainId
-    );
+    if (contractInstance) {
+      await config.deploymentsInstance.addDeployment(
+        {
+          action: DeploymentAction.INSTANTIATE,
+          txhash: result!.transactionHash,
+          wasm: {
+            codeId,
+          },
+          contract: {
+            name: contractInstance.name,
+            version: contractInstance.version,
+            address: result!.contractAddress,
+            admin: admin,
+          },
+          msg: instArgs,
+        } as InstantiateDeployment,
+        config.chainId
+      );
+    }
 
     await this.successMessage(result!, label, config);
   }
@@ -121,13 +136,13 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
   // eslint-disable-next-line max-params
   protected async logTransactionDetails(
     config: Config,
-    contract: Contract,
     codeId: number,
-    label: string,
     admin: string,
-    fromAccount: Account
+    fromAccount: Account,
+    label?: string,
+    contractName?: string
   ): Promise<void> {
-    this.log(`Instantiating contract ${blueBright(contract.name)}`);
+    this.log(`Instantiating contract ${blueBright(contractName)}`);
     this.log(`  Chain: ${blueBright(config.chainId)}`);
     this.log(`  Code: ${blueBright(codeId)}`);
     this.log(`  Label: ${blueBright(label)}`);

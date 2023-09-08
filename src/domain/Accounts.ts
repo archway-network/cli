@@ -2,7 +2,8 @@ import ow from 'ow';
 import { Coin, StargateClient } from '@cosmjs/stargate';
 
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
-import { FileKeystore, KeystoreBackend, OsKeystore, TestKeystore } from '@/domain';
+import { Config, FileKeystore, KeystoreBackend, OsKeystore, TestKeystore } from '@/domain';
+import { GLOBAL_CONFIG_PATH } from './Config';
 import { assertIsValidAddress, bold, yellow } from '@/utils';
 
 import {
@@ -12,14 +13,15 @@ import {
   AccountType,
   AccountWithSigner,
   AccountsParams,
-  BackendType,
+  KeystoreBackendType,
   PublicKey,
   accountValidator,
   accountWithMnemonicValidator,
 } from '@/types';
+import { Prompts } from '@/services';
 
 export const SECRET_SERVICE_NAME = 'io.archway.cli';
-export const KEY_FILES_PATH = `${process.env.HOME}/atest`;
+export const DEFAULT_KEY_FILES_PATH = `${GLOBAL_CONFIG_PATH}/keys`;
 export const ENTRY_TAG_SEPARATOR = '<-_>';
 export const ENTRY_SUFFIX = 'account';
 export const TEST_ENTRY_SUFFIX = 'test';
@@ -43,26 +45,40 @@ export class Accounts {
   }
 
   /**
-   * Loads all the available keys
+   * Initializes the account management class by setting up the keystore that will be used as backend for storing/reading the accounts.
    *
-   * @param customKeysPath - Optional - Additional path to check for key files
+   * @param type - Optional - Type of keystore that will be used as backend for the accounts
+   * @param params - Optional - Parameters for getting the accounts {@link AccountsParams}
    * @returns Promise containing an instance of {@link Accounts}
    */
-  static async init(type: BackendType, params?: AccountsParams): Promise<Accounts> {
+  static async init(type: KeystoreBackendType, params?: AccountsParams): Promise<Accounts> {
     let keystore: KeystoreBackend;
     switch (type) {
-      case BackendType.os:
+      case KeystoreBackendType.os:
         keystore = new OsKeystore(params?.serviceName || SECRET_SERVICE_NAME);
         break;
-      case BackendType.file:
-        keystore = new FileKeystore(params?.filesPath || KEY_FILES_PATH);
+      case KeystoreBackendType.file:
+        keystore = new FileKeystore(params?.filesPath || DEFAULT_KEY_FILES_PATH);
         break;
-      case BackendType.test:
-        keystore = new TestKeystore(params?.filesPath || KEY_FILES_PATH);
+      case KeystoreBackendType.test:
+        keystore = new TestKeystore(params?.filesPath || DEFAULT_KEY_FILES_PATH);
         break;
     }
 
     return new Accounts(keystore);
+  }
+
+  /**
+   * Initializes the account management class by receiving the flags from a command and an instance of {@link Config}
+   *
+   * @param customKeysPath - Optional - Additional path to check for key files
+   * @returns Promise containing an instance of {@link Accounts}
+   */
+  static async initFromFlags(
+    flags: { 'keyring-backend': KeystoreBackendType | undefined; 'keyring-path': string | undefined },
+    config: Config
+  ): Promise<Accounts> {
+    return Accounts.init(flags['keyring-backend'] || config.keyringBackend, { filesPath: flags['keyring-path'] || config.keyringPath });
   }
 
   /**
@@ -135,13 +151,19 @@ export class Accounts {
   }
 
   /**
-   * Get a single account by name or address with its signer, throws error if not found
+   * Get a single account by name or address with its signer, if not provided will ask for it on a prompt.
+   * Throws error if the account is not found
    *
-   * @param nameOrAddress - Account name or account address to search by
+   * @param nameOrAddress - Optional - Account name or account address to search by
+   * @param defaultAccount - Optional - Default account name or account address
    * @returns Promise containing an instance of {@link AccountWithSigner}
    */
-  async getWithSigner(nameOrAddress: string): Promise<AccountWithSigner> {
-    const account = await this.keystore.getWithSigner(nameOrAddress);
+  async getWithSigner(nameOrAddress?: string, defaultAccount?: string): Promise<AccountWithSigner> {
+    let searchAccount = nameOrAddress || defaultAccount;
+
+    if (!searchAccount) searchAccount = await Prompts.fromAccount();
+
+    const account = await this.keystore.getWithSigner(searchAccount);
 
     if (!account) throw new NotFoundError('Account', nameOrAddress);
 

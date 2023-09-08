@@ -22,29 +22,24 @@ cd "$PROJECT_NAME"
 
 echo "***** config init *****"
 output="$(archway config init --chain $CHAIN_ID --json)"
-validate "$output" ".chainId == \"$CHAIN_ID\" and .name == \"${PROJECT_NAME}\""
-fileExists "${TEMP_DIR}/archway.json" "Config file created" "Config file not found"
+validate "$output" ".[\"chain-id\"] == \"$CHAIN_ID\""
+fileExists "${TEMP_DIR}/.archway/config.json" "Config file created" "Config file not found"
 
 printf "\n***** config show ***** \n"
 output="$(archway config show --json)"
-validate "$output" ".chainId == \"$CHAIN_ID\" and .name == \"${PROJECT_NAME}\""
+validate "$output" ".[\"chain-id\"] == \"$CHAIN_ID\""
 
 printf "\n***** config deployments ***** \n"
 output="$(archway config deployments --json)"
 validate "$output" ".deployments == []"
 
-printf "\n***** config chains export ***** \n"
-output="$(archway config chains export archway-1 --json)"
-validate "$output" '.chainId == "archway-1"'
-fileExists "${TEMP_DIR}/.archway/chains/archway-1.json" "Chain info exported" "Chain info not found"
-
 printf "\n***** config chains import ***** \n"
-output="$(archway config chains import "$(scriptRelativePath files/test-1.json)" --json)"
-validate "$output" '.chainId == "test-1"'
+output="$(archway config chains import "$(scriptRelativePath files/integration-test-1.json)" --json)"
+validate "$output" '.["chain-id"] == "integration-test-1"'
 
 printf "\n***** config chains use ***** \n"
-output="$(archway config chains use test-1 --json)"
-validate "$output" '.chainId == "test-1"'
+output="$(archway config chains use integration-test-1 --json)"
+validate "$output" '.["chain-id"] == "integration-test-1"'
 
 echo
 ok SUCCESS

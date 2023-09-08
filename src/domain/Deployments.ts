@@ -2,6 +2,7 @@ import path from 'node:path';
 import ow from 'ow';
 
 import { ChainRegistry, DeploymentsByChain } from '@/domain';
+import { DEFAULT_ARCHWAY_DIRECTORY } from './Config';
 import { InvalidFormatError } from '@/exceptions';
 import { bold, getWorkspaceRoot, readFilesFromDirectory } from '@/utils';
 
@@ -15,7 +16,6 @@ import {
   deploymentFileValidator,
 } from '@/types';
 
-export const DEFAULT_DEPLOYMENTS_RELATIVE_PATH = '.archway/deployments';
 export const DEPLOYMENTS_FILE_EXTENSION = '.json';
 export const NO_DEPLOYMENTS_MESSAGE = 'No deployments found';
 
@@ -79,7 +79,7 @@ export class Deployments {
   static async getDeploymentsRoot(workingDir?: string): Promise<string> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
 
-    return path.join(workspaceRoot, DEFAULT_DEPLOYMENTS_RELATIVE_PATH);
+    return path.join(workspaceRoot, DEFAULT_ARCHWAY_DIRECTORY);
   }
 
   /**

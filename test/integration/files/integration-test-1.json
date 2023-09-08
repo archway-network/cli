@@ -5,7 +5,7 @@
   "network_type": "mainnet",
   "website": "https://archway.io/",
   "pretty_name": "Archway",
-  "chain_id": "test-1",
+  "chain_id": "integration-test-1",
   "bech32_prefix": "archway",
   "daemon_name": "archwayd",
   "node_home": "$HOME/.archway",

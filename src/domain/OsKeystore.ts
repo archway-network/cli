@@ -2,8 +2,8 @@ import keyring from '@archwayhq/keyring-go';
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
 import { InvalidPasswordError } from '@/exceptions';
-import { Accounts } from '@/domain/Accounts';
-import { KeystoreBackend } from '@/domain/KeystoreBackend';
+import { Accounts } from './Accounts';
+import { KeystoreBackend } from './KeystoreBackend';
 
 import { Account, AccountBase, AccountType, AccountWithSigner } from '@/types';
 

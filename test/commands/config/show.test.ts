@@ -2,6 +2,7 @@ import { expect, test } from '@oclif/test';
 
 import { expectOutputJSON } from '../../helpers';
 import { ConfigStubs } from '../../stubs';
+import { configFile } from '../../dummies';
 
 describe('config show', () => {
   const configStubs = new ConfigStubs();
@@ -18,8 +19,9 @@ describe('config show', () => {
     .stdout()
     .command(['config show'])
     .it('shows the config info', ctx => {
-      expect(ctx.stdout).to.contain('Project: ');
-      expect(ctx.stdout).to.contain('Selected chain: ');
+      expect(ctx.stdout).to.contain(configFile['chain-id']);
+      expect(ctx.stdout).to.contain(configFile['contracts-path']);
+      expect(ctx.stdout).to.contain(configFile['keyring-backend']);
     });
 
   test

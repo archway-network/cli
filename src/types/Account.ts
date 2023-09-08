@@ -44,7 +44,7 @@ export interface PublicKey {
 /**
  * Types of backends to be used in the keystore
  */
-export enum BackendType {
+export enum KeystoreBackendType {
   test = 'test',
   file = 'file',
   os = 'os',

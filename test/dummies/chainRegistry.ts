@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
-import { ChainRegistry, DEFAULT_CHAINS_RELATIVE_PATH } from '../../src/domain';
+import { ChainRegistry, GLOBAL_CHAINS_PATH } from '../../src/domain';
 import { BuiltInChains } from '../../src/services';
 
 export const chainFile = {
@@ -114,4 +114,4 @@ export const chainString = JSON.stringify(chainFile);
 
 export const chainNames = ['constantine-3', 'titus-1'];
 
-export const chainRegistryInstance = new ChainRegistry([...Object.values({ ...BuiltInChains.chainMap })], DEFAULT_CHAINS_RELATIVE_PATH, []);
+export const chainRegistryInstance = new ChainRegistry([...Object.values({ ...BuiltInChains.chainMap })], GLOBAL_CHAINS_PATH, []);

@@ -5,7 +5,7 @@ import { Accounts, Config } from '@/domain';
 import { showDisappearingSpinner } from '@/ui';
 import { green, greenBright, prettyPrintBalancesList } from '@/utils';
 
-import { AccountBalancesJSON, BackendType } from '@/types';
+import { AccountBalancesJSON } from '@/types';
 
 /**
  * Command 'accounts balances get'
@@ -27,8 +27,8 @@ export default class AccountsBalancesGet extends BaseCommand<typeof AccountsBala
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
     const config = await Config.init();
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
     const result = await showDisappearingSpinner(async () => {
       const client = await config.getStargateClient();

@@ -22,7 +22,7 @@ CONTRACT_BAR=bar
 echo "***** new *****"
 export CARGO_GENERATE_VALUE_VERSION=full
 output="$(archway new $PROJECT_NAME --chain constantine-3 --contract-name $CONTRACT_FOO --template increment --json)"
-validate "$output" ".chainId == \"constantine-3\" and .name == \"${PROJECT_NAME}\""
+validate "$output" ".[\"chain-id\"] == \"constantine-3\""
 cd $PROJECT_NAME
 git init
 fileExists "${TEMP_DIR}/contracts/${CONTRACT_FOO}/src/contract.rs" "Contract template created" "Contract template not found"

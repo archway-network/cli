@@ -1,14 +1,16 @@
 import ow from 'ow';
 
-import { Contract } from '@/types';
+import { KeystoreBackendType, Contract } from '@/types';
 
 /**
  * Config data information
  */
 export interface ConfigData {
-  name: string;
-  chainId: string;
-  contractsPath?: string;
+  'chain-id'?: string;
+  'contracts-path'?: string;
+  'keyring-backend'?: KeystoreBackendType;
+  'keyring-path'?: string;
+  'default-account'?: string;
 }
 
 /**
@@ -21,8 +23,10 @@ export interface ConfigDataWithContracts extends ConfigData {
 /**
  * Format validator for the {@link ConfigData} interface
  */
-export const configDataValidator = ow.object.partialShape({
-  name: ow.string,
-  chainId: ow.string,
-  contractsPath: ow.optional.string,
+export const configDataValidator = ow.object.exactShape({
+  'chain-id': ow.optional.string,
+  'contracts-path': ow.optional.string,
+  'keyring-backend': ow.optional.string.oneOf(Object.values(KeystoreBackendType)),
+  'keyring-path': ow.optional.string,
+  'default-account': ow.optional.string,
 });

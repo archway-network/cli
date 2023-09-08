@@ -11,7 +11,7 @@ import { askForConfirmation, buildStdFee, blueBright, white, yellow, greenBright
 import { ForceFlag, KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { showDisappearingSpinner } from '@/ui';
 
-import { Account, BackendType, InstantiatePermission, DeploymentAction, StoreDeployment, Contract } from '@/types';
+import { Account, InstantiatePermission, DeploymentAction, StoreDeployment, Contract } from '@/types';
 
 /**
  * Command 'contracts store'
@@ -48,6 +48,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
     const config = await Config.init();
 
     await config.assertIsValidWorkspace();
+
     const contract = config.contractsInstance.getContractByName(this.args.contract!);
 
     const existingDeployment = await config.contractsInstance.isChecksumAlreadyDeployed(this.args.contract!, config.chainId);
@@ -63,8 +64,10 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       await askForConfirmation(this.flags.force);
     }
 
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const from = await accountsDomain.getWithSigner(this.flags.from!);
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+
+    const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
+
     const wasmCode = await fs.readFile(contract.wasm.optimizedFilePath);
     const allowedAddresses = this.flags['allowed-addresses'] || [];
 

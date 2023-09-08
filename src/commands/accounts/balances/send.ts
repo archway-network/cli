@@ -7,7 +7,7 @@ import { AmountRequiredArg } from '@/parameters/arguments';
 import { showDisappearingSpinner } from '@/ui';
 import { buildStdFee, green, greenBright, white, askForConfirmation, prettyPrintCoin } from '@/utils';
 
-import { Account, AccountBase, Amount, BackendType } from '@/types';
+import { Account, AccountBase, Amount } from '@/types';
 
 /**
  * Command 'accounts balances send'
@@ -31,10 +31,11 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const from = await accountsDomain.getWithSigner(this.flags.from!);
-    const toAccount: AccountBase = await accountsDomain.accountBaseFromAddress(this.flags.to);
     const config = await Config.init();
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+
+    const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
+    const toAccount: AccountBase = await accountsDomain.accountBaseFromAddress(this.flags.to);
 
     await this.logTransactionDetails(from.account, toAccount);
 

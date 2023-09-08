@@ -1,9 +1,7 @@
 import { BaseCommand } from '@/lib/base';
-import { Accounts } from '@/domain';
+import { Accounts, Config } from '@/domain';
 import { KeyringFlags } from '@/parameters/flags';
 import { yellow } from '@/utils';
-
-import { BackendType } from '@/types';
 
 /**
  * Command 'accounts list'
@@ -22,7 +20,8 @@ export default class AccountsList extends BaseCommand<typeof AccountsList> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
+    const config = await Config.init();
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
     await this.successMessage(accountsDomain);
   }

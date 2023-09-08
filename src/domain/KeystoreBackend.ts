@@ -1,7 +1,8 @@
 import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 import { toBase64 } from '@cosmjs/encoding';
 
-import { DEFAULT_ADDRESS_BECH_32_PREFIX, ENTRY_SUFFIX, ENTRY_TAG_SEPARATOR, Ledger } from '@/domain';
+import { Ledger } from '@/domain';
+import { DEFAULT_ADDRESS_BECH_32_PREFIX, ENTRY_SUFFIX, ENTRY_TAG_SEPARATOR } from './Accounts';
 import { AlreadyExistsError, NotFoundError } from '@/exceptions';
 
 import { Account, AccountBase, AccountType, AccountWithSigner } from '@/types';

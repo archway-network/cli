@@ -4,12 +4,12 @@ import { SetContractMetadataResult } from '@archwayhq/arch3.js';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright } from '@/utils';
+import { buildStdFee, blueBright, greenBright, isValidAddress } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { NotFoundError } from '@/exceptions';
 
-import { Account, BackendType, Contract, DeploymentAction, MetadataDeployment } from '@/types';
+import { Account, Contract, DeploymentAction, InstantiateDeployment, MetadataDeployment } from '@/types';
 
 /**
  * Command 'contracts metadata'
@@ -34,18 +34,10 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    // Load config and contract info
     const config = await Config.init();
-    await config.assertIsValidWorkspace();
-    const contract = config.contractsInstance.getContractByName(this.args.contract!);
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] as BackendType, { filesPath: this.flags['keyring-path'] });
-    const from = await accountsDomain.getWithSigner(this.flags.from!);
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
-
-    if (!instantiated) throw new NotFoundError('Instantiated deployment with a contract address');
-
-    const contractAddress = instantiated.contract.address;
+    const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
     const ownerAddress = this.flags['owner-address'] ?
       (await accountsDomain.accountBaseFromAddress(this.flags['owner-address'])).address :
@@ -54,7 +46,32 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
       (await accountsDomain.accountBaseFromAddress(this.flags['rewards-address'])).address :
       undefined;
 
-    await this.logTransactionDetails(config, contract, from.account, contractAddress, rewardsAddress, ownerAddress);
+    // Load contract info
+    let contractAddress: string;
+    let contractInstance: Contract | undefined;
+    let instantiateDeployment: InstantiateDeployment | undefined;
+
+    if (isValidAddress(this.args.contract!)) {
+      contractAddress = this.args.contract!;
+    } else {
+      await config.assertIsValidWorkspace();
+
+      contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
+      instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
+
+      if (!instantiateDeployment) throw new NotFoundError('Instantiated deployment with a contract address');
+
+      contractAddress = instantiateDeployment.contract.address;
+    }
+
+    await this.logTransactionDetails(
+      config,
+      contractInstance?.name || contractAddress,
+      from.account,
+      contractAddress,
+      rewardsAddress,
+      ownerAddress
+    );
 
     const result = await showDisappearingSpinner(async () => {
       const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
@@ -70,37 +87,39 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
       );
     }, 'Waiting for tx to confirm...');
 
-    await config.deploymentsInstance.addDeployment(
-      {
-        action: DeploymentAction.METADATA,
-        txhash: result!.transactionHash,
-        wasm: {
-          codeId: instantiated.wasm.codeId,
-        },
-        contract: {
-          name: contract.name,
-          version: contract.version,
-          address: contractAddress,
-          admin: instantiated.contract.admin,
-        },
-        metadata: result!.metadata,
-      } as MetadataDeployment,
-      config.chainId
-    );
+    if (contractInstance && instantiateDeployment) {
+      await config.deploymentsInstance.addDeployment(
+        {
+          action: DeploymentAction.METADATA,
+          txhash: result!.transactionHash,
+          wasm: {
+            codeId: instantiateDeployment.wasm.codeId,
+          },
+          contract: {
+            name: contractInstance.name,
+            version: contractInstance.version,
+            address: contractAddress,
+            admin: instantiateDeployment.contract.admin,
+          },
+          metadata: result!.metadata,
+        } as MetadataDeployment,
+        config.chainId
+      );
+    }
 
-    await this.successMessage(result!, contract.label, config);
+    await this.successMessage(result!, contractInstance?.label || contractAddress, config);
   }
 
   // eslint-disable-next-line max-params
   protected async logTransactionDetails(
     config: Config,
-    contract: Contract,
+    contractName: string,
     fromAccount: Account,
     contractAddress: string,
     rewardsAddress?: string,
     ownerAddress?: string
   ): Promise<void> {
-    this.log(`Setting metadata for contract ${blueBright(contract.name)}`);
+    this.log(`Setting metadata for contract ${blueBright(contractName)}`);
     this.log(`  Chain: ${blueBright(config.chainId)}`);
     this.log(`  Contract: ${blueBright(contractAddress)}`);
     if (rewardsAddress) this.log(`  Rewards: ${blueBright(rewardsAddress)}`);
