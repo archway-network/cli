@@ -1,11 +1,12 @@
 import ow from 'ow';
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
+import { KdfConfiguration } from '@cosmjs/amino';
 
 import { Coin } from '@/types';
 
 export enum AccountType {
   LOCAL = 'local',
-  LEDGER = 'ledger'
+  LEDGER = 'ledger',
 }
 
 /**
@@ -30,7 +31,7 @@ export interface Account extends AccountBase {
  * Account with signer
  */
 export interface AccountWithSigner {
-  account: Account,
+  account: Account;
   signer?: DirectSecp256k1Wallet;
 }
 
@@ -68,6 +69,18 @@ export interface AccountBalancesJSON {
 export interface AccountsParams {
   serviceName?: string;
   filesPath?: string;
+}
+
+/**
+ * Serialized key with kdf and encryption information
+ */
+export interface SerializedKey {
+  type: string;
+  kdf: KdfConfiguration;
+  encryption: {
+    algorithm: string;
+  };
+  data: string;
 }
 
 /**
@@ -111,3 +124,21 @@ export const accountWithPrivateKeyValidator = ow.object.exactShape({
   privateKey: ow.string,
 });
 
+/**
+ * Format validator for the {@link Account} interface, with mandatory private key value
+ */
+export const argonXchachaSerializedKeyValidator = ow.object.exactShape({
+  type: ow.string.equals('private-key'),
+  kdf: {
+    algorithm: ow.string.equals('argon2id'),
+    params: {
+      outputLength: ow.number,
+      opsLimit: ow.number,
+      memLimitKib: ow.number,
+    },
+  },
+  encryption: {
+    algorithm: ow.string.equals('xchacha20poly1305-ietf'),
+  },
+  data: ow.string,
+});

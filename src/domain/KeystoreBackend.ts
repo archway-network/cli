@@ -1,6 +1,7 @@
 import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
-import { fromBase64, toBase64 } from '@cosmjs/encoding';
-import { Bip39, EnglishMnemonic, HdPath, Slip10, Slip10Curve } from '@cosmjs/crypto';
+import { fromBase64, fromUtf8, toBase64, toUtf8 } from '@cosmjs/encoding';
+import { KdfConfiguration, executeKdf } from '@cosmjs/amino';
+import { Bip39, EnglishMnemonic, HdPath, Random, Slip10, Slip10Curve, Xchacha20poly1305Ietf, xchacha20NonceLength } from '@cosmjs/crypto';
 import ow from 'ow';
 
 import { Ledger } from '@/domain';
@@ -13,9 +14,11 @@ import {
   AccountBase,
   AccountType,
   AccountWithSigner,
+  SerializedKey,
   accountValidator,
   accountWithMnemonicValidator,
   accountWithPrivateKeyValidator,
+  argonXchachaSerializedKeyValidator,
 } from '@/types';
 
 /**
@@ -131,7 +134,7 @@ export abstract class KeystoreBackend {
     type: AccountType,
     mnemonicOrPrivateKey?: string,
     hdPath = makeCosmosDerivationPath(),
-    prefix = DEFAULT_ADDRESS_BECH_32_PREFIX,
+    prefix = DEFAULT_ADDRESS_BECH_32_PREFIX
   ): Promise<Account> {
     let result: Account;
 
@@ -297,4 +300,62 @@ export abstract class KeystoreBackend {
       return undefined;
     }
   }
+
+  async serializePrivateKey(key: string, password: string): Promise<SerializedKey> {
+    // Config from cosmjs library https://github.com/cosmos/cosmjs/blob/main/packages/amino/src/secp256k1hdwallet.ts
+    const kdfConfiguration: KdfConfiguration = {
+      algorithm: 'argon2id',
+      params: {
+        outputLength: 32,
+        opsLimit: 24,
+        memLimitKib: 12 * 1024,
+      },
+    };
+    const encryptionKey = await executeKdf(password, kdfConfiguration);
+    const encryptionConfiguration = {
+      algorithm: 'xchacha20poly1305-ietf',
+    };
+    const utf8Key = toUtf8(key);
+    const nonce = Random.getBytes(xchacha20NonceLength);
+
+    const encryptedData = new Uint8Array([...nonce, ...(await Xchacha20poly1305Ietf.encrypt(utf8Key, encryptionKey, nonce))]);
+
+    return {
+      type: 'private-key',
+      kdf: kdfConfiguration,
+      encryption: encryptionConfiguration,
+      data: toBase64(encryptedData),
+    };
+  }
+
+  async deserializePrivateKey(serializedKey: SerializedKey, password: string): Promise<string> {
+    const encryptionKey = await executeKdf(password, serializedKey.kdf);
+    const ciphertext = fromBase64(serializedKey.data);
+    const nonce = ciphertext.slice(0, xchacha20NonceLength);
+
+    const result = await Xchacha20poly1305Ietf.decrypt(ciphertext.slice(xchacha20NonceLength), encryptionKey, nonce);
+
+    return fromUtf8(result);
+  }
+
+  /**
+   * Verify if an object has the valid format of a {@link SerializedKey} created by this Keystore
+   *
+   * @param data - Object instance to validate
+   * @param name - Name of the account, will be used in the possible error
+   * @returns void
+   */
+  assertIsValidSerializedKey = (data: unknown, name: string): void => {
+    if (!this.isValidSerializedKey(data)) throw new InvalidFormatError(`Serialized key for account ${name}`);
+  };
+
+  /**
+   * Verify if an object has the valid format of a {@link SerializedKey} created by this Keystore
+   *
+   * @param data - Object instance to validate
+   * @returns Boolean, whether it is valid or not
+   */
+  isValidSerializedKey = (data: unknown): boolean => {
+    return ow.isValid(data, argonXchachaSerializedKeyValidator);
+  };
 }

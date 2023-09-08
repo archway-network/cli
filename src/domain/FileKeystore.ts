@@ -32,10 +32,12 @@ export class FileKeystore extends KeystoreBackend {
     const password = await this.promptPassword(name);
     const account = await this.createAccountObject(name, type, mnemonicOrPrivateKey, hdPath);
 
+    const serializedPrivateKey = await this.serializePrivateKey(account.privateKey!, password);
+
     keyring.FileStore.set(
       this.filesPath,
       this.createEntryTag(account.name, account.type, account.address),
-      JSON.stringify({ ...account, mnemonic: undefined }),
+      JSON.stringify({ ...account, privateKey: JSON.stringify(serializedPrivateKey), mnemonic: undefined }),
       password
     );
 
@@ -79,10 +81,12 @@ export class FileKeystore extends KeystoreBackend {
         const deserialized = await DirectSecp256k1HdWallet.deserialize(result.mnemonic, result.address);
         const privateKey = await this.convertMnemonicToPrivateKey(deserialized.mnemonic);
 
+        const serializedPrivateKey = await this.serializePrivateKey(privateKey, password);
+
         result = {
           ...result,
           mnemonic: undefined,
-          privateKey,
+          privateKey: JSON.stringify(serializedPrivateKey),
         };
 
         keyring.OsStore.set(this.filesPath, tag, JSON.stringify(result));
@@ -90,8 +94,13 @@ export class FileKeystore extends KeystoreBackend {
 
       this.assertIsValidAccountWithPrivateKey(result);
 
+      const serializedKey = JSON.parse(result.privateKey);
+      this.assertIsValidSerializedKey(serializedKey, result.name);
+
+      const deserializedPrivateKey = await this.deserializePrivateKey(serializedKey, password);
+
       const signer =
-        result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1Wallet.fromKey(fromBase64(result.privateKey), prefix);
+        result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1Wallet.fromKey(fromBase64(deserializedPrivateKey), prefix);
 
       return {
         account: { ...result, mnemonic: undefined, privateKey: undefined },

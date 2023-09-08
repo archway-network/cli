@@ -29,10 +29,12 @@ export class TestKeystore extends KeystoreBackend {
   async add(name: string, type: AccountType, mnemonicOrPrivateKey?: string, hdPath?: HdPath): Promise<Account> {
     const account = await this.createAccountObject(name, type, mnemonicOrPrivateKey, hdPath);
 
+    const serializedPrivateKey = await this.serializePrivateKey(account.privateKey!, account.address);
+
     keyring.UnencryptedFileStore.set(
       this.filesPath,
       this.createEntryTag(account.name, account.type, account.address, TEST_ENTRY_SUFFIX),
-      JSON.stringify({ ...account, mnemonic: undefined }, undefined, 2)
+      JSON.stringify({ ...account, privateKey: JSON.stringify(serializedPrivateKey), mnemonic: undefined }, undefined, 2)
     );
 
     return account;
@@ -79,10 +81,12 @@ export class TestKeystore extends KeystoreBackend {
         const deserialized = await DirectSecp256k1HdWallet.deserialize(result.mnemonic, result.address);
         const privateKey = await this.convertMnemonicToPrivateKey(deserialized.mnemonic);
 
+        const serializedPrivateKey = await this.serializePrivateKey(privateKey, result.address);
+
         result = {
           ...result,
           mnemonic: undefined,
-          privateKey,
+          privateKey: JSON.stringify(serializedPrivateKey),
         };
 
         keyring.OsStore.set(this.filesPath, tag, JSON.stringify(result));
@@ -90,8 +94,13 @@ export class TestKeystore extends KeystoreBackend {
 
       this.assertIsValidAccountWithPrivateKey(result);
 
+      const serializedKey = JSON.parse(result.privateKey);
+      this.assertIsValidSerializedKey(serializedKey, result.name);
+
+      const deserializedPrivateKey = await this.deserializePrivateKey(serializedKey, result.address);
+
       const signer =
-        result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1Wallet.fromKey(fromBase64(result.privateKey), prefix);
+        result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1Wallet.fromKey(fromBase64(deserializedPrivateKey), prefix);
 
       return {
         account: {...result, mnemonic: undefined, privateKey: undefined},
