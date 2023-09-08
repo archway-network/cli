@@ -59,10 +59,8 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     }
 
     const config = await Config.init();
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, {
-      filesPath: this.flags['keyring-path'],
-    });
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
     const getAdmin = async (): Promise<string> =>

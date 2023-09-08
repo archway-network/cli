@@ -2,7 +2,7 @@ import ow from 'ow';
 import { Coin, StargateClient } from '@cosmjs/stargate';
 
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
-import { FileKeystore, KeystoreBackend, OsKeystore, TestKeystore } from '@/domain';
+import { Config, FileKeystore, KeystoreBackend, OsKeystore, TestKeystore } from '@/domain';
 import { GLOBAL_CONFIG_PATH } from './Config';
 import { assertIsValidAddress, bold, yellow } from '@/utils';
 
@@ -21,7 +21,7 @@ import {
 import { Prompts } from '@/services';
 
 export const SECRET_SERVICE_NAME = 'io.archway.cli';
-export const KEY_FILES_PATH = `${GLOBAL_CONFIG_PATH}/keys`;
+export const DEFAULT_KEY_FILES_PATH = `${GLOBAL_CONFIG_PATH}/keys`;
 export const ENTRY_TAG_SEPARATOR = '<-_>';
 export const ENTRY_SUFFIX = 'account';
 export const TEST_ENTRY_SUFFIX = 'test';
@@ -45,9 +45,10 @@ export class Accounts {
   }
 
   /**
-   * Loads all the available keys
+   * Initializes the account management class by setting up the keystore that will be used as backend for storing/reading the accounts.
    *
-   * @param customKeysPath - Optional - Additional path to check for key files
+   * @param type - Optional - Type of keystore that will be used as backend for the accounts
+   * @param params - Optional - Parameters for getting the accounts {@link AccountsParams}
    * @returns Promise containing an instance of {@link Accounts}
    */
   static async init(type: KeystoreBackendType, params?: AccountsParams): Promise<Accounts> {
@@ -57,14 +58,27 @@ export class Accounts {
         keystore = new OsKeystore(params?.serviceName || SECRET_SERVICE_NAME);
         break;
       case KeystoreBackendType.file:
-        keystore = new FileKeystore(params?.filesPath || KEY_FILES_PATH);
+        keystore = new FileKeystore(params?.filesPath || DEFAULT_KEY_FILES_PATH);
         break;
       case KeystoreBackendType.test:
-        keystore = new TestKeystore(params?.filesPath || KEY_FILES_PATH);
+        keystore = new TestKeystore(params?.filesPath || DEFAULT_KEY_FILES_PATH);
         break;
     }
 
     return new Accounts(keystore);
+  }
+
+  /**
+   * Initializes the account management class by receiving the flags from a command and an instance of {@link Config}
+   *
+   * @param customKeysPath - Optional - Additional path to check for key files
+   * @returns Promise containing an instance of {@link Accounts}
+   */
+  static async initFromFlags(
+    flags: { 'keyring-backend': KeystoreBackendType | undefined; 'keyring-path': string | undefined },
+    config: Config
+  ): Promise<Accounts> {
+    return Accounts.init(flags['keyring-backend'] || config.keyringBackend, { filesPath: flags['keyring-path'] || config.keyringPath });
   }
 
   /**

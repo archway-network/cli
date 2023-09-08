@@ -32,7 +32,8 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
    */
   public async run(): Promise<void> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
     const toAccount: AccountBase = await accountsDomain.accountBaseFromAddress(this.flags.to);
 

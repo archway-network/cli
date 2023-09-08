@@ -33,10 +33,8 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
    */
   public async run(): Promise<void> {
     const config = await Config.init();
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, {
-      filesPath: this.flags['keyring-path'],
-    });
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
     // Load contract info

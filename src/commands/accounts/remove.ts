@@ -28,7 +28,8 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
    */
   public async run(): Promise<void> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+
     const accountInfo = await accountsDomain.keystore.assertAccountExists(this.args.account!);
 
     if (!this.jsonEnabled()) {

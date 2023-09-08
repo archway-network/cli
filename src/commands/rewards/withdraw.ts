@@ -27,8 +27,8 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
    */
   public async run(): Promise<void> {
     const config = await Config.init();
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
     const accountWithSigner = await accountsDomain.getWithSigner(this.flags.from!);
 
     await this.logTransactionDetails(accountWithSigner.account);

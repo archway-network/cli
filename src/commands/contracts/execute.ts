@@ -54,10 +54,8 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
     }
 
     const config = await Config.init();
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, {
-      filesPath: this.flags['keyring-path'],
-    });
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
     const executeArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf-8')));

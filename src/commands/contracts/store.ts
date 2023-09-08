@@ -64,7 +64,8 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       await askForConfirmation(this.flags.force);
     }
 
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
     const wasmCode = await fs.readFile(contract.wasm.optimizedFilePath);

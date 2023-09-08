@@ -34,7 +34,8 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
     const type = this.flags.ledger ? AccountType.LEDGER : AccountType.LOCAL;
 
     const config = await Config.init();
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+
     const account = await accountsDomain.new(
       this.args['account-name'] || (await Prompts.newAccount()),
       type,

@@ -21,7 +21,7 @@ export default class AccountsList extends BaseCommand<typeof AccountsList> {
    */
   public async run(): Promise<void> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
     await this.successMessage(accountsDomain);
   }

@@ -7,6 +7,7 @@ import os from 'node:os';
 import ow from 'ow';
 
 import { ChainRegistry, Contracts, Deployments, Ledger } from '@/domain';
+import { DEFAULT_KEY_FILES_PATH } from './Accounts';
 import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
 import { DEFAULT_CHAIN_ID } from './ChainRegistry';
 import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
@@ -33,6 +34,7 @@ export const DEFAULT_CONFIG_DATA = {
   'chain-id': DEFAULT_CHAIN_ID,
   'contracts-path': DEFAULT_CONTRACTS_RELATIVE_PATH,
   'keyring-backend': KeystoreBackendType.os,
+  'keyring-path': DEFAULT_KEY_FILES_PATH,
 };
 
 /** Default signer constants */
@@ -122,6 +124,10 @@ export class Config {
 
   get keyringBackend(): KeystoreBackendType {
     return this.configData['keyring-backend']!;
+  }
+
+  get keyringPath(): string {
+    return this.configData['keyring-path']!;
   }
 
   get defaultAccount(): string | undefined {
@@ -377,6 +383,7 @@ export class Config {
       `${bold('Chain id: ')}${this.chainId}\n` +
       `${bold('Contracts path: ')}${this.contractsPath}\n` +
       `${bold('Keyring backend: ')}${this.keyringBackend}\n` +
+      `${bold('Keyring files path: ')}${this.keyringPath}\n` +
       (this.defaultAccount ? `${bold('Default account: ')}${this.defaultAccount}\n` : '') +
       contractsStatus
     );

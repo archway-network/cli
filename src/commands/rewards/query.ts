@@ -30,8 +30,8 @@ export default class RewardsQuery extends BaseCommand<typeof RewardsQuery> {
    */
   public async run(): Promise<void> {
     const config = await Config.init();
+    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    const accountsDomain = await Accounts.init(this.flags['keyring-backend'] || config.keyringBackend, { filesPath: this.flags['keyring-path'] });
     const account = await accountsDomain.accountBaseFromAddress(this.args.account!);
 
     const result = await showDisappearingSpinner(async () => {
