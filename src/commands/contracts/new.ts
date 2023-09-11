@@ -10,7 +10,7 @@ import { Prompts } from '@/services';
  * Initializes a new smart contract from a template
  */
 export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
-  static summary = 'Scaffolds a new Smart Contract from a template';
+  static summary = 'Scaffolds a new Wasm smart contract from a template';
   static args = {
     'contract-name': ContractNameOptionalArg,
   };

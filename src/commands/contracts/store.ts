@@ -15,10 +15,10 @@ import { Account, InstantiatePermission, DeploymentAction, StoreDeployment, Cont
 
 /**
  * Command 'contracts store'
- * Stores a WASM file on-chain
+ * Stores a Wasm file on-chain
  */
 export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
-  static summary = 'Stores a WASM file on-chain';
+  static summary = 'Stores a Wasm file on-chain';
   static args = {
     contract: ContractNameRequiredArg,
   };

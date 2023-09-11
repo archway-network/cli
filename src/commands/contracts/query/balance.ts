@@ -10,10 +10,10 @@ import { AccountBalancesJSON, InstantiateDeployment } from '@/types';
 
 /**
  * Command 'contracts query balance'
- * Access the bank module to query the balance of contracts
+ * Access the bank module to query the balance of smart contracts
  */
 export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQuerySmart> {
-  static summary = 'Access the bank module to query the balance of contracts';
+  static summary = 'Access the bank module to query the balance of smart contracts';
   static args = {
     contract: ContractNameOptionalArg,
   };

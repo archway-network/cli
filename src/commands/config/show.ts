@@ -3,10 +3,10 @@ import { Config } from '@/domain';
 
 /**
  * Command 'config show'
- * Shows the config file for the current project.
+ * Displays the config file for the current project
  */
 export default class ConfigShow extends BaseCommand<typeof ConfigShow> {
-  static summary = 'Shows the config file for the current project.';
+  static summary = 'Displays the config file for the current project';
 
   /**
    * Runs the command.

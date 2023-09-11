@@ -17,7 +17,7 @@ import { ConsoleError, CosmosChain } from '@/types';
 export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsImport> {
   static summary = `Import a chain registry file and save it to ${bold(
     path.join(GLOBAL_CHAINS_PATH, './{chain-id}.json')
-  )}.`;
+  )}`;
 
   static args = {
     file: Args.string({ name: 'file', required: false, ignoreStdin: true, description: 'Path to file to be imported' }),

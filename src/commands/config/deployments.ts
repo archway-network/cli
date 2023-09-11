@@ -11,7 +11,7 @@ import { DeploymentAction } from '@/types';
  * Displays the list of deployments, allows filtering by chain, action and contract
  */
 export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployments> {
-  static summary = 'Displays the list of deployments, allows filtering by chain, action and contract.';
+  static summary = 'Displays the list of deployments, allows filtering by chain, action and contract';
   static flags = {
     chain: ChainOptionalFlag,
     action: Flags.string({ options: Object.values(DeploymentAction), description: 'Deployment action to filter by' }),

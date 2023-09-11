@@ -13,10 +13,10 @@ import { Account, Contract, DeploymentAction, InstantiateDeployment, MetadataDep
 
 /**
  * Command 'contracts metadata'
- * Sets a contract rewards metadata
+ * Sets a smart contracts rewards metadata
  */
 export default class ContractsMetadata extends BaseCommand<typeof ContractsMetadata> {
-  static summary = 'Sets a contract rewards metadata';
+  static summary = 'Sets a smart contracts rewards metadata';
   static args = {
     contract: ContractNameRequiredArg,
   };

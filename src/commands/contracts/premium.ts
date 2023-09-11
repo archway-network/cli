@@ -12,10 +12,10 @@ import { Account, Contract, DeploymentAction, InstantiateDeployment, PremiumDepl
 
 /**
  * Command 'contracts premium'
- * Sets a contract premium flat fee for a contract
+ * Sets the smart contract premium flat fee
  */
 export default class ContractsPremium extends BaseCommand<typeof ContractsPremium> {
-  static summary = 'Sets a contract premium flat fee for a contract';
+  static summary = 'Sets the smart contract premium flat fee';
   static args = {
     contract: ContractNameRequiredArg,
   };
