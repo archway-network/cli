@@ -7,7 +7,7 @@ import Help from '@/plugins/help-plugin/help';
  * Displays the help info for the 'config' command
  */
 export default class Config extends Command {
-  static summary = 'Display help for the config command.';
+  static summary = 'Display help for the config command';
 
   /**
    * Runs the command.
