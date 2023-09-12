@@ -1,11 +1,11 @@
 import { Flags } from '@oclif/core';
 
-import { BaseCommand } from '@/lib/base';
 import { Accounts, Config } from '@/domain';
-import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
+import { BaseCommand } from '@/lib/base';
 import { AmountRequiredArg } from '@/parameters/arguments';
+import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { showDisappearingSpinner } from '@/ui';
-import { buildStdFee, green, greenBright, white, askForConfirmation, prettyPrintCoin } from '@/utils';
+import { askForConfirmation, buildStdFee, green, greenBright, prettyPrintCoin, white } from '@/utils';
 
 import { Account, AccountBase, Amount } from '@/types';
 
@@ -45,9 +45,6 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
     try {
       await showDisappearingSpinner(async () => {
         const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
-
-        from.account.mnemonic = '';
-
         await signingClient.sendTokens(from.account.address, toAccount.address, [this.args.amount!.coin], buildStdFee(this.flags.fee?.coin));
       }, 'Sending tokens');
     } catch (error: Error | any) {
