@@ -8,12 +8,12 @@ import { GlobalFlag } from '@/parameters/flags';
 
 /**
  * Command 'config contracts-path'
- * Updates the contracts-path config in the config file (local or global)
+ * Query or update the contracts-path in the config file (local or global)
  */
 export default class ConfigContractsPath extends BaseCommand<typeof ConfigContractsPath> {
-  static summary = 'Gets the contracts-path config in the config file (local or global). If an additional argument is passed, it sets a new value';
+  static summary = "Query or update the 'contracts-path' in the config file (local or global)";
   static args = {
-    'contracts-path': Args.string({description: 'Relative Path where the contracts are found in a project'}),
+    'contracts-path': Args.string({description: 'New value for the relative Path where the contracts are found in a project'}),
   };
 
   static flags = {

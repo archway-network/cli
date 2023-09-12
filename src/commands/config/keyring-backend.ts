@@ -9,16 +9,15 @@ import { KeystoreBackendType } from '@/types';
 
 /**
  * Command 'config keyring-backend'
- * Updates the keyring-backend config in the config file (local or global)
+ * Query or update the keyring-backend in the config file (local or global)
  */
 export default class ConfigKeyringBackend extends BaseCommand<typeof ConfigKeyringBackend> {
-  static summary =
-    'Gets the keyring-backend config in the config file (local or global). If an additional argument is passed, it sets a new value';
+  static summary = "Query or update the 'keyring-backend' in the config file (local or global)";
 
   static args = {
     'keyring-backend': Args.custom({
-      description: 'Keyring backend for account management (os/file/test)',
-      parse: async (val?: string): Promise<KeystoreBackendType | undefined> => val ? val as KeystoreBackendType : undefined,
+      description: 'New value for the keyring backend for account management (os/file/test)',
+      parse: async (val?: string): Promise<KeystoreBackendType | undefined> => (val ? (val as KeystoreBackendType) : undefined),
       options: Object.values(KeystoreBackendType),
     })(),
   };

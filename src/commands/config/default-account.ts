@@ -8,14 +8,15 @@ import { GlobalFlag } from '@/parameters/flags';
 
 /**
  * Command 'config default-account'
- * Updates the default-account config in the config file (local or global)
+ * Query or update the default-account in the config file (local or global)
  */
 export default class ConfigDefaultAccount extends BaseCommand<typeof ConfigDefaultAccount> {
-  static summary =
-    'Gets the default-account config in the config file (local or global). If an additional argument is passed, it sets a new value';
+  static summary = "Query or update the 'default-account' in the config file (local or global)";
 
   static args = {
-    'default-account': Args.string({ description: 'Account that will be used by default if no --from flag is passed to other commands' }),
+    'default-account': Args.string({
+      description: 'New value for the account that will be used by default if no --from flag is passed to other commands',
+    }),
   };
 
   static flags = {

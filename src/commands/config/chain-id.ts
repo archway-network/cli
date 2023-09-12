@@ -4,16 +4,16 @@ import { Args } from '@oclif/core';
 import { BaseCommand } from '@/lib/base';
 import { bold, greenBright, reset } from '@/utils';
 import { ChainRegistry, Config, DEFAULT_CONFIG_DATA } from '@/domain';
-import { GlobalFlag, ParamsChainOptionalFlag } from '@/parameters/flags';
+import { GlobalFlag } from '@/parameters/flags';
 
 /**
  * Command 'config chain-id'
- * Updates the chain-id config in the config file (local or global)
+ * Query or update the chain-id in the config file (local or global)
  */
 export default class ConfigChainId extends BaseCommand<typeof ConfigChainId> {
-  static summary = 'Updates the chain-id config in the config file (local or global)';
+  static summary = "Query or update the 'chain-id' in the config file (local or global)";
   static args = {
-    'chain-id': Args.string(ParamsChainOptionalFlag),
+    'chain-id': Args.string({description: 'New value for the ID of the chain'}),
   };
 
   static flags = {
