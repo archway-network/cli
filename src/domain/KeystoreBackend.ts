@@ -1,55 +1,135 @@
-import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
-import { fromBase64, fromUtf8, toBase64, toUtf8 } from '@cosmjs/encoding';
-import { KdfConfiguration, executeKdf } from '@cosmjs/amino';
-import { Bip39, EnglishMnemonic, HdPath, Random, Slip10, Slip10Curve, Xchacha20poly1305Ietf, xchacha20NonceLength } from '@cosmjs/crypto';
-import ow from 'ow';
+import { DirectSecp256k1HdWallet } from '@cosmjs/proto-signing';
 
-import { Ledger } from '@/domain';
-import { DEFAULT_ADDRESS_BECH_32_PREFIX, ENTRY_SUFFIX, ENTRY_TAG_SEPARATOR } from './Accounts';
-import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
-import { makeCosmosDerivationPath } from '@/utils';
-
+import { NotFoundError } from '@/exceptions';
 import {
   Account,
   AccountBase,
   AccountType,
-  AccountWithSigner,
-  SerializedKey,
-  accountValidator,
-  accountWithMnemonicValidator,
-  accountWithPrivateKeyValidator,
-  argonXchachaSerializedKeyValidator,
+  ExtendedHdPath,
+  KeystoreBackendType,
+  assertIsValidAccount
 } from '@/types';
+import { derivePrivateKey } from '@/utils';
+
+const ENTRY_SUFFIX = 'account';
+const ENTRY_TAG_SEPARATOR = '<-_>';
+
+/**
+ * Params to be used when creating an instance of the Accounts domain that will be used in the keyring
+ */
+export interface KeystoreBackendParams {
+  backend: KeystoreBackendType,
+  serviceName?: string;
+  filesPath?: string;
+}
 
 /**
  * Abstract definition to be used on different KeystoreBackend implementations
  */
 export abstract class KeystoreBackend {
+  abstract entrySuffix: string;
+
   /**
-   * Adds a new account to the keyring, if mnemonic is not passed, it generates one
+   * Adds a new account to the keyring
    *
-   * @param name - Name of the new account
-   * @param type - ${@link AccountType} of the new account
-   * @param mnemonic - Optional - Mnemonic of the account
-   * @param hdPath - Optional - HD path of the account, Defaults to 0/0/0/0
-   * @returns Promise containing the newly created account data
+   * @param account - The account to be added
+   * @returns Promise containing the newly stored account
    */
-  abstract add(name: string, type: AccountType, mnemonic?: string, hdPath?: HdPath): Promise<Account>;
+  public async add<T extends AccountBase>(account: T): Promise<T> {
+    assertIsValidAccount(account, account.name);
+
+    const tag = this.createEntryTag(account);
+    const data = JSON.stringify(account);
+
+    this.save(account.name, tag, data);
+
+    return account;
+  }
+
+  /**
+   * Saves an account to the keyring
+   *
+   * @param name - Name of the account
+   * @param tag - Tag to be used to save the account
+   * @param data - Data to be saved
+   */
+  protected abstract save(name: string, tag: string, data: string): Promise<void>;
+
+  /**
+   * Get a single account by name or address
+   *
+   * @param nameOrAddress - Account name or account address to search by
+   * @returns Promise containing the account's data, or undefined if it doesn't exist
+   */
+  async get(nameOrAddress: string): Promise<Account | undefined> {
+    const stored = await this.getFromStorage(nameOrAddress);
+    if (!stored) {
+      return;
+    }
+
+    const { mnemonic, ...account } = JSON.parse(stored);
+
+    // Convert old version alpha.1 account style to use private key instead. Remove on v2.0.0 release.
+    if (mnemonic) {
+      // TODO: Use password on file storage
+      const deserialized = await DirectSecp256k1HdWallet.deserialize(mnemonic, account.address);
+      const hdPath = ExtendedHdPath.Default;
+      const privateKey = await derivePrivateKey(deserialized.mnemonic, hdPath.value);
+      const convertedAccount: Account = { ...account, privateKey, };
+
+      this.add(convertedAccount);
+
+      return this.get(nameOrAddress);
+    }
+
+    return account;
+  }
+
+  /**
+   * Get an account's data from the key storage
+   *
+   * @param nameOrAddress - Account name or account address to search by
+   */
+  protected abstract getFromStorage(nameOrAddress: string): Promise<string>;
 
   /**
    * Get a list of the accounts in the keystore, only getting their basic info
    * @returns Promise containing an array with all the accounts in the keystore
    */
-  abstract listNameAndAddress(): Promise<AccountBase[]>;
+  async listNameAndAddress(): Promise<readonly AccountBase[]> {
+    const result = this.listFromStorage()
+      .map((item: string) => this.parseEntryTag(item))
+      .filter((item: AccountBase | undefined): item is AccountBase => Boolean(item));
+
+    return result;
+  }
 
   /**
-   * Get a single account by name or address, including mnemonic
-   *
-   * @param nameOrAddress - Account name or account address to search by
-   * @param prefix - Optional - Bech 32 prefix for the address, defaults to 'archway'
-   * @returns Promise containing the account's data and signer, or undefined if it doesn't exist
+   * Get a list of the accounts in the keystore
+   * @returns Promise containing an array with all the accounts in the keystore
    */
-  abstract getWithSigner(nameOrAddress: string, prefix: string): Promise<AccountWithSigner | undefined>;
+  async list(): Promise<readonly Account[]> {
+    const result: Account[] = [];
+    const baseAccounts = await this.listNameAndAddress();
+
+    for (const item of baseAccounts) {
+      // Making the await happen inside the loop so the user does not see
+      // a lot of OS password inputs popup at the same time, but one by one
+      /* eslint-disable no-await-in-loop */
+      const auxAccount = await this.get(item.address);
+      if (auxAccount) {
+        result.push(auxAccount)
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Get a list of the accounts in the keystore
+   * @returns An array with all the accounts in the keystore
+   */
+  protected abstract listFromStorage(): readonly string[];
 
   /**
    * Remove an account by name or address
@@ -60,154 +140,6 @@ export abstract class KeystoreBackend {
   abstract remove(nameOrAddress: string): Promise<void>;
 
   /**
-   * Get a list of the accounts in the keystore
-   * @returns Promise containing an array with all the accounts in the keystore
-   */
-  async list(): Promise<Account[]> {
-    const result: Account[] = [];
-    const baseAccounts = await this.listNameAndAddress();
-
-    for (const item of baseAccounts) {
-      // Making the await happen inside the loop so the user does not see
-      // a lot of OS password inputs popup at the same time, but one by one
-      /* eslint-disable no-await-in-loop */
-      const auxAccount = await this.get(item.address);
-
-      if (auxAccount) result.push(auxAccount);
-    }
-
-    return result;
-  }
-
-  /**
-   * Get a single account by name or address
-   *
-   * @param nameOrAddress - Account name or account address to search by
-   * @param prefix - Optional - Bech 32 prefix for the address, defaults to 'archway'
-   * @returns Promise containing the account's data, or undefined if it doesn't exist
-   */
-  async get(nameOrAddress: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<Account | undefined> {
-    let found = await this.getWithSigner(nameOrAddress, prefix);
-
-    if (found?.account) {
-      const result: Account = {
-        name: found.account.name,
-        address: found.account.address,
-        publicKey: found.account.publicKey,
-        type: found.account.type,
-      };
-
-      found = undefined;
-
-      return result;
-    }
-  }
-
-  /**
-   * Convert a mnemonic into a single account private key. Derivation path can be passed as a parameter.
-   *
-   * @param mnemonic - Mnemonic to convert
-   * @param hdPath - Optional - Derivation path to get the account that will be extracted. Defaults to `m/44'/118'/0'/0/0`
-   * @param bip39Password - Optional - Password used to generate the seed
-   * @returns Promise containing the private key in base64 encoding
-   */
-  protected async convertMnemonicToPrivateKey(mnemonic: string, hdPath = makeCosmosDerivationPath(), bip39Password = ''): Promise<string> {
-    const seed = await Bip39.mnemonicToSeed(new EnglishMnemonic(mnemonic), bip39Password);
-    const { privkey } = Slip10.derivePath(Slip10Curve.Secp256k1, seed, hdPath);
-
-    return toBase64(privkey);
-  }
-
-  /**
-   * Create a new {@link Account}, can be from ledger, or from mnemonic
-   *
-   * @param name - Account name
-   * @param type - {@link AccountType} value
-   * @param mnemonicOrPrivateKey - Optional - Existing mnemonic or private key to use
-   * @param hdPath - Optional - HD path of the account, Defaults to 0/0/0/0
-   * @param prefix - Optional - Bech 32 prefix for the generated address, defaults to 'archway'
-   * @returns Promise containing the {@link Account}
-   */
-  // eslint-disable-next-line max-params
-  protected async createAccountObject(
-    name: string,
-    type: AccountType,
-    mnemonicOrPrivateKey?: string,
-    hdPath = makeCosmosDerivationPath(),
-    prefix = DEFAULT_ADDRESS_BECH_32_PREFIX
-  ): Promise<Account> {
-    let result: Account;
-
-    if (type === AccountType.LEDGER) {
-      result = await Ledger.getAccount(name);
-    } else {
-      const hdWallet = await (mnemonicOrPrivateKey ?
-        (mnemonicOrPrivateKey.includes(' ') ?
-          DirectSecp256k1HdWallet.fromMnemonic(mnemonicOrPrivateKey, { prefix, hdPaths: [hdPath] }) :
-          undefined) :
-        DirectSecp256k1HdWallet.generate(24, { prefix, hdPaths: [hdPath] }));
-
-      const mnemonic = hdWallet?.mnemonic;
-
-      const privateKey = mnemonic ? await this.convertMnemonicToPrivateKey(mnemonic, hdPath) : mnemonicOrPrivateKey!;
-
-      const wallet = await DirectSecp256k1Wallet.fromKey(fromBase64(privateKey), prefix);
-
-      const newAccount = (await wallet.getAccounts())[0];
-
-      result = {
-        name,
-        address: newAccount.address,
-        publicKey: {
-          '@type': newAccount.algo,
-          key: toBase64(newAccount.pubkey),
-        },
-        type: AccountType.LOCAL,
-        mnemonic,
-        privateKey,
-      };
-    }
-
-    await this.assertAccountDoesNotExist(result.name);
-    await this.assertAccountDoesNotExist(result.address);
-
-    return result;
-  }
-
-  /**
-   * Verify if an object has the valid format of a {@link Account} (including the private key except for ledger accounts), throws error if not
-   *
-   * @param data - Object instance to validate
-   * @param name - Optional - Name of the account, will be used in the possible error
-   * @returns void
-   */
-  protected assertIsValidAccountWithPrivateKey = (data: unknown, name?: string): void => {
-    if (!this.isValidAccountWithPrivateKey(data)) throw new InvalidFormatError(name || 'Account');
-  };
-
-  /**
-   * Verify if an object has the valid format of a {@link Account} (including private key, except for ledger accounts)
-   *
-   * @param data - Object instance to validate
-   * @returns Boolean, whether it is valid or not
-   */
-  protected isValidAccountWithPrivateKey = (data: unknown): boolean => {
-    return (data as any).type === AccountType.LEDGER ?
-      ow.isValid(data, accountValidator) :
-      ow.isValid(data, accountWithPrivateKeyValidator);
-  };
-
-  /**
-   * Verify if an object has the valid format of a {@link Account} (including mnemonic, except for ledger accounts)
-   *
-   * @param data - Object instance to validate
-   * @returns Boolean, whether it is valid or not
-   */
-  protected isValidAccountWithMnemonic = (data: unknown): boolean => {
-    return (data as any).type === AccountType.LEDGER ? ow.isValid(data, accountValidator) : ow.isValid(data, accountWithMnemonicValidator);
-  };
-
-  /**
    * Check if an account exists by name or address, if not found throws an error
    *
    * @param nameOrAddress - Account name or address to search by
@@ -215,20 +147,11 @@ export abstract class KeystoreBackend {
    */
   async assertAccountExists(nameOrAddress: string): Promise<AccountBase> {
     const result = await this.findNameAndAddressInList(nameOrAddress);
-
-    if (!result) throw new NotFoundError('Account', nameOrAddress);
+    if (!result) {
+      throw new NotFoundError('Account', nameOrAddress)
+    }
 
     return result;
-  }
-
-  /**
-   * Check if an account doesn't exist by name or address, if it exists throws an error
-   *
-   * @param nameOrAddress - Account name or address to search by
-   * @returns Empty promise
-   */
-  async assertAccountDoesNotExist(nameOrAddress: string): Promise<void> {
-    if (await this.findNameAndAddressInList(nameOrAddress)) throw new AlreadyExistsError('Account', nameOrAddress);
   }
 
   /**
@@ -254,22 +177,20 @@ export abstract class KeystoreBackend {
    * @param suffix - Optional - Suffix at the end of the tag
    * @returns Promise containing the entry tag found
    */
-  protected async findAccountTag(nameOrAddress: string, suffix = ENTRY_SUFFIX): Promise<string> {
+  protected async findAccountTag(nameOrAddress: string, suffix: string = ENTRY_SUFFIX): Promise<string> {
     const account = await this.assertAccountExists(nameOrAddress);
-
-    return this.createEntryTag(account.name, account.type, account.address, suffix);
+    return this.createEntryTag(account, suffix);
   }
 
   /**
    * Create an account's keyring entry tag based on the name and address
    *
-   * @param name - Name to be used in the tag
-   * @param type - {@link AccountType} to be used in the tag
-   * @param address - Address to be used in the tag
+   * @param account - Account to be used in the tag
    * @param suffix - Optional - Suffix at the end of the tag
    * @returns Tag with base64 encoded name and address, with an identifying suffix
    */
-  protected createEntryTag(name: string, type: AccountType, address: string, suffix = ENTRY_SUFFIX): string {
+  protected createEntryTag(account: AccountBase, suffix: string = ENTRY_SUFFIX): string {
+    const { name, type, address } = account;
     return `${name}${ENTRY_TAG_SEPARATOR}${type}${ENTRY_TAG_SEPARATOR}${address}.${suffix}`;
   }
 
@@ -284,12 +205,14 @@ export abstract class KeystoreBackend {
     try {
       // Validate suffix
       const splitBySuffix = tag.split('.');
-
-      if (splitBySuffix.length !== 2 || splitBySuffix[1] !== suffix) return undefined;
+      if (splitBySuffix.length !== 2 || splitBySuffix[1] !== suffix) {
+        return undefined
+      }
 
       const splitAccountBase = splitBySuffix[0].split(ENTRY_TAG_SEPARATOR);
-
-      if (splitAccountBase.length !== 3) return undefined;
+      if (splitAccountBase.length !== 3) {
+        return undefined
+      }
 
       return {
         name: splitAccountBase[0],
@@ -300,62 +223,4 @@ export abstract class KeystoreBackend {
       return undefined;
     }
   }
-
-  async serializePrivateKey(key: string, password: string): Promise<SerializedKey> {
-    // Config from cosmjs library https://github.com/cosmos/cosmjs/blob/main/packages/amino/src/secp256k1hdwallet.ts
-    const kdfConfiguration: KdfConfiguration = {
-      algorithm: 'argon2id',
-      params: {
-        outputLength: 32,
-        opsLimit: 24,
-        memLimitKib: 12 * 1024,
-      },
-    };
-    const encryptionKey = await executeKdf(password, kdfConfiguration);
-    const encryptionConfiguration = {
-      algorithm: 'xchacha20poly1305-ietf',
-    };
-    const utf8Key = toUtf8(key);
-    const nonce = Random.getBytes(xchacha20NonceLength);
-
-    const encryptedData = new Uint8Array([...nonce, ...(await Xchacha20poly1305Ietf.encrypt(utf8Key, encryptionKey, nonce))]);
-
-    return {
-      type: 'private-key',
-      kdf: kdfConfiguration,
-      encryption: encryptionConfiguration,
-      data: toBase64(encryptedData),
-    };
-  }
-
-  async deserializePrivateKey(serializedKey: SerializedKey, password: string): Promise<string> {
-    const encryptionKey = await executeKdf(password, serializedKey.kdf);
-    const ciphertext = fromBase64(serializedKey.data);
-    const nonce = ciphertext.slice(0, xchacha20NonceLength);
-
-    const result = await Xchacha20poly1305Ietf.decrypt(ciphertext.slice(xchacha20NonceLength), encryptionKey, nonce);
-
-    return fromUtf8(result);
-  }
-
-  /**
-   * Verify if an object has the valid format of a {@link SerializedKey} created by this Keystore
-   *
-   * @param data - Object instance to validate
-   * @param name - Name of the account, will be used in the possible error
-   * @returns void
-   */
-  assertIsValidSerializedKey = (data: unknown, name: string): void => {
-    if (!this.isValidSerializedKey(data)) throw new InvalidFormatError(`Serialized key for account ${name}`);
-  };
-
-  /**
-   * Verify if an object has the valid format of a {@link SerializedKey} created by this Keystore
-   *
-   * @param data - Object instance to validate
-   * @returns Boolean, whether it is valid or not
-   */
-  isValidSerializedKey = (data: unknown): boolean => {
-    return ow.isValid(data, argonXchachaSerializedKeyValidator);
-  };
 }

@@ -1,13 +1,12 @@
-import keyring from '@archwayhq/keyring-go';
 import path from 'node:path';
-import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
-import { fromBase64 } from '@cosmjs/encoding';
-import { HdPath } from '@cosmjs/crypto';
 
-import { DEFAULT_ADDRESS_BECH_32_PREFIX, TEST_ENTRY_SUFFIX } from './Accounts';
+import keyring from '@archwayhq/keyring-go';
+
+import { AccountBase } from '@/types';
+
 import { KeystoreBackend } from './KeystoreBackend';
 
-import { Account, AccountBase, AccountType, AccountWithSigner } from '@/types';
+export const TEST_ENTRY_SUFFIX = 'test';
 
 /**
  * Implementation of a unencrypted file based keystore for testing purposes
@@ -24,88 +23,28 @@ export class TestKeystore extends KeystoreBackend {
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.add}
+   * {@inheritDoc KeystoreBackend.save}
    */
-  async add(name: string, type: AccountType, mnemonicOrPrivateKey?: string, hdPath?: HdPath): Promise<Account> {
-    const account = await this.createAccountObject(name, type, mnemonicOrPrivateKey, hdPath);
-
-    const serializedPrivateKey = await this.serializePrivateKey(account.privateKey!, account.address);
-
-    keyring.UnencryptedFileStore.set(
-      this.filesPath,
-      this.createEntryTag(account.name, account.type, account.address, TEST_ENTRY_SUFFIX),
-      JSON.stringify({ ...account, privateKey: JSON.stringify(serializedPrivateKey), mnemonic: undefined }, undefined, 2)
-    );
-
-    return account;
+  protected async save(_name: string, tag: string, data: string): Promise<void> {
+    keyring.UnencryptedFileStore.set(this.filesPath, tag, data);
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.listNameAndAddress}
+   * {@inheritDoc KeystoreBackend.getFromStorage}
    */
-  async listNameAndAddress(): Promise<AccountBase[]> {
-    let found: string[];
-
-    try {
-      found = keyring.UnencryptedFileStore.list(this.filesPath);
-    } catch {
-      found = [];
-    }
-
-    const result: AccountBase[] = [];
-
-    for (const item of found) {
-      const auxAccount = this.parseEntryTag(item, TEST_ENTRY_SUFFIX);
-      if (auxAccount) result.push(auxAccount);
-    }
-
-    return result;
-  }
-
-  /**
-   * {@inheritDoc KeystoreBackend.getWithSigner}
-   */
-  async getWithSigner(nameOrAddress: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountWithSigner | undefined> {
+  protected async getFromStorage(nameOrAddress: string): Promise<string> {
     const tag = await this.findAccountTag(nameOrAddress, TEST_ENTRY_SUFFIX);
-    let stored = '';
+    return keyring.UnencryptedFileStore.get(this.filesPath, tag);
+  }
 
+  /**
+   * {@inheritDoc KeystoreBackend.listFromStorage}
+   */
+  protected listFromStorage(): readonly string[] {
     try {
-      stored = keyring.UnencryptedFileStore.get(this.filesPath, tag);
-    } catch {}
-
-    if (stored) {
-      let result = JSON.parse(stored);
-
-      if (this.isValidAccountWithMnemonic(result)) {
-        // Use private key instead of mnemonic (transition from alpha.1 to alpha.2)
-        const deserialized = await DirectSecp256k1HdWallet.deserialize(result.mnemonic, result.address);
-        const privateKey = await this.convertMnemonicToPrivateKey(deserialized.mnemonic);
-
-        const serializedPrivateKey = await this.serializePrivateKey(privateKey, result.address);
-
-        result = {
-          ...result,
-          mnemonic: undefined,
-          privateKey: JSON.stringify(serializedPrivateKey),
-        };
-
-        keyring.OsStore.set(this.filesPath, tag, JSON.stringify(result));
-      }
-
-      this.assertIsValidAccountWithPrivateKey(result);
-
-      const serializedKey = JSON.parse(result.privateKey);
-      this.assertIsValidSerializedKey(serializedKey, result.name);
-
-      const deserializedPrivateKey = await this.deserializePrivateKey(serializedKey, result.address);
-
-      const signer =
-        result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1Wallet.fromKey(fromBase64(deserializedPrivateKey), prefix);
-
-      return {
-        account: {...result, mnemonic: undefined, privateKey: undefined},
-        signer,
-      };
+      return keyring.UnencryptedFileStore.list(this.filesPath);
+    } catch {
+      return [];
     }
   }
 
@@ -114,7 +53,13 @@ export class TestKeystore extends KeystoreBackend {
    */
   async remove(nameOrAddress: string): Promise<void> {
     const tag = await this.findAccountTag(nameOrAddress, TEST_ENTRY_SUFFIX);
-
     keyring.UnencryptedFileStore.remove(this.filesPath, tag);
+  }
+
+  /**
+   * {@inheritDoc KeystoreBackend.createEntryTag}
+   */
+  protected createEntryTag(account: AccountBase, _suffix?: string): string {
+    return super.createEntryTag(account, TEST_ENTRY_SUFFIX);
   }
 }

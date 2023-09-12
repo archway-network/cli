@@ -1,15 +1,10 @@
-import keyring from '@archwayhq/keyring-go';
 import path from 'node:path';
-import { DirectSecp256k1HdWallet, DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
-import { fromBase64 } from '@cosmjs/encoding';
-import { HdPath } from '@cosmjs/crypto';
 
+import keyring from '@archwayhq/keyring-go';
+
+import { KeystoreBackend } from '@/domain/KeystoreBackend';
 import { InvalidPasswordError } from '@/exceptions';
 import { Prompts } from '@/services';
-import { DEFAULT_ADDRESS_BECH_32_PREFIX } from '@/domain/Accounts';
-import { KeystoreBackend } from '@/domain/KeystoreBackend';
-
-import { Account, AccountBase, AccountType, AccountWithSigner } from '@/types';
 
 /**
  * Implementation of an encrypted file based keystore
@@ -26,86 +21,39 @@ export class FileKeystore extends KeystoreBackend {
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.add}
+   * {@inheritDoc KeystoreBackend.save}
    */
-  async add(name: string, type: AccountType, mnemonicOrPrivateKey?: string, hdPath?: HdPath): Promise<Account> {
+  protected async save(name: string, tag: string, data: string): Promise<void> {
     const password = await this.promptPassword(name);
-    const account = await this.createAccountObject(name, type, mnemonicOrPrivateKey, hdPath);
-
-    const serializedPrivateKey = await this.serializePrivateKey(account.privateKey!, password);
-
-    keyring.FileStore.set(
-      this.filesPath,
-      this.createEntryTag(account.name, account.type, account.address),
-      JSON.stringify({ ...account, privateKey: JSON.stringify(serializedPrivateKey), mnemonic: undefined }),
-      password
-    );
-
-    return account;
+    keyring.FileStore.set(this.filesPath, tag, data, password);
   }
 
   /**
-   * {@inheritDoc KeystoreBackend.listNameAndAddress}
+   * {@inheritDoc KeystoreBackend.getFromStorage}
    */
-  async listNameAndAddress(): Promise<AccountBase[]> {
-    const found: string[] = keyring.FileStore.list(this.filesPath);
-    const result: AccountBase[] = [];
-
-    for (const item of found) {
-      const auxAccount = this.parseEntryTag(item);
-      if (auxAccount) result.push(auxAccount);
-    }
-
-    return result;
-  }
-
-  /**
-   * {@inheritDoc KeystoreBackend.getWithSigner}
-   */
-  async getWithSigner(nameOrAddress: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountWithSigner | undefined> {
-    const password = await this.promptPassword(nameOrAddress);
+  protected async getFromStorage(nameOrAddress: string): Promise<string> {
     const tag = await this.findAccountTag(nameOrAddress);
-    let stored = '';
+    const password = await this.promptPassword(nameOrAddress);
 
     try {
-      stored = keyring.FileStore.get(this.filesPath, tag, password);
+      return keyring.FileStore.get(this.filesPath, tag, password);
     } catch (error: Error | any) {
-      if (error?.message?.includes?.('aes.KeyUnwrap(): integrity check failed')) throw new InvalidPasswordError();
-    }
-
-    if (stored) {
-      let result = JSON.parse(stored);
-
-      if (this.isValidAccountWithMnemonic(result)) {
-        // Use private key instead of mnemonic (transition from alpha.1 to alpha.2)
-        const deserialized = await DirectSecp256k1HdWallet.deserialize(result.mnemonic, result.address);
-        const privateKey = await this.convertMnemonicToPrivateKey(deserialized.mnemonic);
-
-        const serializedPrivateKey = await this.serializePrivateKey(privateKey, password);
-
-        result = {
-          ...result,
-          mnemonic: undefined,
-          privateKey: JSON.stringify(serializedPrivateKey),
-        };
-
-        keyring.OsStore.set(this.filesPath, tag, JSON.stringify(result));
+      if (error?.message?.includes?.('aes.KeyUnwrap(): integrity check failed')) {
+        throw new InvalidPasswordError();
       }
 
-      this.assertIsValidAccountWithPrivateKey(result);
+      throw error;
+    }
+  }
 
-      const serializedKey = JSON.parse(result.privateKey);
-      this.assertIsValidSerializedKey(serializedKey, result.name);
-
-      const deserializedPrivateKey = await this.deserializePrivateKey(serializedKey, password);
-
-      const signer =
-        result.type === AccountType.LEDGER ? undefined : await DirectSecp256k1Wallet.fromKey(fromBase64(deserializedPrivateKey), prefix);
-
-      return {
-        account: { ...result, mnemonic: undefined, privateKey: undefined },
-        signer,
-      };
+  /**
+   * {@inheritDoc KeystoreBackend.listFromStorage}
+   */
+  protected listFromStorage(): readonly string[] {
+    try {
+      return keyring.FileStore.list(this.filesPath);
+    } catch {
+      return [];
     }
   }
 
