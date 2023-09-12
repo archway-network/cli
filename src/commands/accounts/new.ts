@@ -1,11 +1,11 @@
 import { Args, Flags } from '@oclif/core';
 
+import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ParamsAccountOptionalArg, StdinInputArg } from '@/parameters/arguments';
-import { Accounts, Config } from '@/domain';
-import { HdPathOptionalFlag, KeyringFlags } from '@/parameters/flags';
-import { bold, green, greenBright, yellow } from '@/utils';
+import { CustomFlags, KeyringFlags } from '@/parameters/flags';
 import { Prompts } from '@/services';
+import { bold, dim, green, greenBright, yellow } from '@/utils';
 
 import { Account, AccountType } from '@/types';
 
@@ -21,14 +21,45 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
   };
 
   static flags = {
-    ledger: Flags.boolean({ description: 'Add an account from a ledger device' }),
-    recover: Flags.boolean({
-      description:
-        'Enables the recovery of an account from a mnemonic or a private key, received via the stdin, for example: cat ./key.txt | archway accounts new --recover',
+    ledger: Flags.boolean({
+      description: 'Add an account from a ledger device',
+      exclusive: ['recover'],
     }),
-    'hd-path': HdPathOptionalFlag,
+    'hd-path': CustomFlags.hdPath(),
+    recover: Flags.boolean({
+      exclusive: ['ledger'],
+      description: 'Enables the recovery of an account from a mnemonic or a private key',
+    }),
     ...KeyringFlags,
   };
+
+  static examples = [
+    {
+      description: 'Create a new account with a random mnemonic',
+      command: '<%= config.bin %> <%= command.id %> alice',
+    },
+    {
+      description: 'Create a new account with a random mnemonic and a custom HD path',
+      command: '<%= config.bin %> <%= command.id %> alice --hd-path "m/44\'/60\'/1\'/0/0"',
+    },
+    {
+      description: 'Create a new account from a ledger device',
+      command: '<%= config.bin %> <%= command.id %> alice --ledger',
+    },
+    {
+      description: 'Create a new account from a ledger device and a custom HD path',
+      command: '<%= config.bin %> <%= command.id %> alice --ledger --hd-path "m/44\'/60\'/1\'/0/0"',
+    },
+    {
+      description: 'Recover an account from a private key exported in unarmored hex format',
+      command: 'archwayd keys export --unarmored-hex --unsafe alice | <%= config.bin %> <%= command.id %> alice --recover',
+    },
+    {
+      description: 'Recover an account from a mnemonic',
+      // For some reason, oclif only colours the examples starting with `archway`
+      command: dim('$ cat mnemonic.txt | <%= config.bin %> <%= command.id %> alice --recover --hd-path "m/44\'/60\'/1\'/0/0"'),
+    },
+  ];
 
   /**
    * Runs the command.
@@ -36,30 +67,38 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
    * @returns Empty promise
    */
   public async run(): Promise<void> {
-    const type = this.flags.ledger ? AccountType.LEDGER : AccountType.LOCAL;
+    const [account, mnemonic] = await this.createOrRecoverAccount();
+    await this.successMessage(account, mnemonic);
+  }
 
+  private async createOrRecoverAccount(): Promise<[Account, string?]> {
     const config = await Config.init();
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    const account = await accountsDomain.new(
-      this.args['account-name'] || (await Prompts.newAccount()),
-      type,
-      this.flags.recover ? this.args.stdinInput : undefined,
-      this.flags['hd-path']
-    );
+    const accountName = this.args['account-name'] || (await Prompts.newAccount());
+    const type = this.flags.ledger ? AccountType.LEDGER : AccountType.LOCAL;
+    const hdPath = this.flags['hd-path']!;
 
-    await this.successMessage(account);
+    if (this.flags.recover) {
+      const mnemonicOrPrivateKey = this.args.stdinInput || (await Prompts.mnemonicOrPrivateKey());
+      const account = await accountsDomain.import(accountName, hdPath, mnemonicOrPrivateKey);
+      return [account];
+    }
+
+    return accountsDomain.new(accountName, type, hdPath);
   }
 
-  protected async successMessage(account: Account): Promise<void> {
+  protected async successMessage(account: Account, mnemonic?: string): Promise<void> {
     if (this.jsonEnabled()) {
       this.logJson(account);
     } else {
       this.success(`${green('Account')} ${greenBright(account.name)} successfully created!`);
+
       this.log(`\nAddress: ${greenBright(account.address)}\n`);
       this.log(Accounts.prettyPrintPublicKey(account.publicKey));
-      if (account.type === AccountType.LOCAL && account.mnemonic) {
-        this.log(`\n${bold('Mnemonic:')} ${account.mnemonic}\n`);
+
+      if (account.type === AccountType.LOCAL && mnemonic) {
+        this.log(`\n${bold('Recovery phrase:')} ${mnemonic}\n`);
         this.warning(
           `${yellow('Important:')} write this mnemonic phrase in a safe place. It is the ${bold(
             'only'
