@@ -2,9 +2,9 @@ import path from 'node:path';
 import ow from 'ow';
 
 import { ChainRegistry, DeploymentsByChain } from '@/domain';
-import { DEFAULT_ARCHWAY_DIRECTORY } from './Config';
 import { InvalidFormatError } from '@/exceptions';
 import { bold, getWorkspaceRoot, readFilesFromDirectory } from '@/utils';
+import { LOCAL_CONFIG_PATH } from './Config';
 
 import {
   CargoProjectMetadata,
@@ -79,7 +79,7 @@ export class Deployments {
   static async getDeploymentsRoot(workingDir?: string): Promise<string> {
     const workspaceRoot = await getWorkspaceRoot(workingDir);
 
-    return path.join(workspaceRoot, DEFAULT_ARCHWAY_DIRECTORY);
+    return path.join(workspaceRoot, LOCAL_CONFIG_PATH);
   }
 
   /**

@@ -8,10 +8,6 @@ import ow from 'ow';
 
 import { ChainRegistry, Contracts, Deployments } from '@/domain';
 import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
-import { bold, fileExists, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, writeFileWithDir } from '@/utils';
-import { DEFAULT_CHAIN_ID } from './ChainRegistry';
-import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
-
 import {
   AccountWithSigner,
   ConfigData,
@@ -23,23 +19,28 @@ import {
   MergeMode,
   configDataValidator
 } from '@/types';
+import { bold, fileExists, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, writeFileWithDir } from '@/utils';
 
-/** Default Config constants */
-export const DEFAULT_ARCHWAY_DIRECTORY = '.archway';
-export const DEFAULT_CONFIG_FILENAME = 'config.json';
-export const DEFAULT_CONFIG_FILE = path.join(DEFAULT_ARCHWAY_DIRECTORY, DEFAULT_CONFIG_FILENAME);
+import { DEFAULT_CHAIN_ID } from './ChainRegistry';
+import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
+
+export const CONFIG_FILENAME = 'config.json';
+
+export const GLOBAL_CONFIG_PATH = `${os.homedir()}/.config/archway`;
+export const GLOBAL_CONFIG_FILE = `${GLOBAL_CONFIG_PATH}/${CONFIG_FILENAME}`;
+
+export const LOCAL_CONFIG_PATH = '.archway';
+export const LOCAL_CONFIG_FILE = path.join(LOCAL_CONFIG_PATH, CONFIG_FILENAME);
+
 export const DEFAULT_CONFIG_DATA = {
   'chain-id': DEFAULT_CHAIN_ID,
   'contracts-path': DEFAULT_CONTRACTS_RELATIVE_PATH,
   'keyring-backend': KeystoreBackendType.os,
+  'keyring-path': `${GLOBAL_CONFIG_PATH}/keys`,
 };
 
 /** Default signer constants */
 export const DEFAULT_GAS_ADJUSTMENT = 1.3;
-
-/** Global Config constants */
-export const GLOBAL_CONFIG_PATH = `${os.homedir()}/.config/archway`;
-export const GLOBAL_CONFIG_FILE = `${GLOBAL_CONFIG_PATH}/${DEFAULT_CONFIG_FILENAME}`;
 
 /**
  * Manages the config file of the project and creates instances of ChainRegistry and Contracts
@@ -190,7 +191,7 @@ export class Config {
    */
   static async create(chainId: string, workingDir?: string): Promise<Config> {
     if (await Config.exists(workingDir)) {
-      throw new AlreadyExistsError('Config file', DEFAULT_CONFIG_FILE);
+      throw new AlreadyExistsError('Config file', LOCAL_CONFIG_FILE);
     }
 
     const globalConfig = await this.readConfigFile(workingDir, true);
@@ -219,7 +220,7 @@ export class Config {
 
     const workspaceRoot = await getWorkspaceRoot(workingDir);
 
-    return path.join(workspaceRoot, DEFAULT_CONFIG_FILE);
+    return path.join(workspaceRoot, LOCAL_CONFIG_FILE);
   }
 
   /**
