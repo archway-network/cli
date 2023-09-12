@@ -142,3 +142,26 @@ export const argonXchachaSerializedKeyValidator = ow.object.exactShape({
   },
   data: ow.string,
 });
+
+const DEFAULT_HD_PATH = "m/44'/118'/0'/0/0";
+
+/**
+ * Utility to quickly convert between a HdPath and its string representation.
+ */
+export class ExtendedHdPath {
+  public static readonly Default = new ExtendedHdPath();
+
+  private _value: HdPath;
+
+  constructor(readonly input: string = DEFAULT_HD_PATH) {
+    this._value = stringToPath(input);
+  }
+
+  toString(): string {
+    return pathToString(this._value);
+  }
+
+  public get value(): HdPath {
+    return this._value;
+  }
+}
