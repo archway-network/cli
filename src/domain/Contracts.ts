@@ -1,15 +1,16 @@
-import { Coin, StargateClient } from '@cosmjs/stargate';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+
 import toml from 'toml';
+
+import { StargateClient } from '@cosmjs/stargate';
 
 import { Cargo, Deployments } from '@/domain';
 import { ErrorCodes, ExecuteError, InstantiateError, NotFoundError, QueryError } from '@/exceptions';
-import { AccountBalancesJSON, Contract } from '@/types';
+import { AccountBalancesJSON, ConsoleError, Contract, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
 import { bold, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright, sanitizeDirName } from '@/utils';
 
-import { ConsoleError, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
 import { SchemaValidator } from './SchemaValidation';
 
 /** Contracts file constants */
@@ -420,7 +421,7 @@ export class Contracts {
       account: {
         name: item.contract.name,
         address: item.contract.address,
-        balances: balances[index] as Coin[],
+        balances: balances[index],
       },
     }));
   }

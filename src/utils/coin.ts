@@ -107,8 +107,8 @@ export const prettyPrintCoin = (value: Coin): string => {
  * @param value - Array of {@link Coin} to be displayed
  * @returns Pretty formatted string
  */
-export const prettyPrintBalancesList = (balances: Coin[], emptyMessage = 'Empty balance'): string => {
+export function prettyPrintBalancesList(balances: readonly Coin[], emptyMessage = 'Empty balance'): string {
   if (balances.length === 0) return `- ${yellow(emptyMessage)}`;
   // eslint-disable-next-line unicorn/no-array-reduce
   return balances.reduce((previous, current) => `${previous}- ${greenBright(prettyPrintCoin(current))}\n`, '');
-};
+}
