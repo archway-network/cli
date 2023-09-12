@@ -1,34 +1,31 @@
 import keyring from '@archwayhq/keyring-go';
 
 import { InvalidPasswordError } from '@/exceptions';
-import { KeystoreBackend } from './KeystoreBackend';
+import { KeystoreBackendType } from '@/types';
+import { KeystoreBackend, KeystoreOptions } from './backend';
+
+const DEFAULT_SERVICE_NAME = 'io.archway.cli';
 
 /**
  * Implementation of an OS based keystore
  */
-export class OsKeystore extends KeystoreBackend {
+export class OsBackend implements KeystoreBackend {
+  public type: KeystoreBackendType = KeystoreBackendType.os;
+
   /**
    * @param serviceName - Service name to group the account entries in the OS keystore
    */
-  constructor(private serviceName: string) {
-    super();
+  public constructor(private serviceName: string = DEFAULT_SERVICE_NAME) {
+    this.serviceName = serviceName;
   }
 
-  /**
-   * {@inheritDoc KeystoreBackend.save}
-   */
-  protected async save(_name: string, tag: string, data: string): Promise<void> {
+  save(tag: string, data: string, _options?: KeystoreOptions): void {
     keyring.OsStore.set(this.serviceName, tag, data);
   }
 
-  /**
-   * {@inheritDoc KeystoreBackend.getFromStorage}
-   */
-  protected async getFromStorage(nameOrAddress: string): Promise<string> {
-    const tag = await this.findAccountTag(nameOrAddress);
-
+  get(tag: string, _options?: KeystoreOptions): string | undefined {
     try {
-      return keyring.OsStore.get(this.serviceName, tag);
+      return keyring.OsStore.get(this.serviceName, tag) || undefined;
     } catch (error: Error | any) {
       if (error?.message?.includes?.('Keyring backend access denied by user')) {
         throw new InvalidPasswordError()
@@ -38,10 +35,7 @@ export class OsKeystore extends KeystoreBackend {
     }
   }
 
-  /**
-   * {@inheritDoc KeystoreBackend.listFromStorage}
-   */
-  protected listFromStorage(): readonly string[] {
+  list(): readonly string[] {
     try {
       return keyring.OsStore.list(this.serviceName);
     } catch {
@@ -49,12 +43,7 @@ export class OsKeystore extends KeystoreBackend {
     }
   }
 
-  /**
-   * {@inheritDoc KeystoreBackend.remove}
-   */
-  async remove(nameOrAddress: string): Promise<void> {
-    const tag = await this.findAccountTag(nameOrAddress);
-
+  remove(tag: string): void {
     try {
       keyring.OsStore.remove(this.serviceName, tag);
     } catch (error: Error | any) {
