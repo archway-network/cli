@@ -2,14 +2,13 @@
 import { Choice } from 'prompts';
 
 import { ChainRegistry, DEFAULT_CHAIN_ID } from '@/domain';
-import { showPrompt } from '@/ui';
 import { ContractTemplates } from '@/services';
+import { CosmosChain } from '@/types';
+import { showPrompt } from '@/ui';
 import { sanitizeDirName } from '@/utils';
 
-import { CosmosChain } from '@/types';
-
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
-  'constantine-3': { description: 'Stable testnet - recommended for dApp development' },
+  'constantine-3': { description: 'Stable testnet - recommended for dapp development' },
   'archway-1': { description: 'Production network' },
 };
 
@@ -17,7 +16,7 @@ export class Prompts {
   /**
    * Shows a terminal prompt asking the user to select a chain
    *
-   * @returns Promise containing the chain id
+   * @returns Promise<string> containing the chain id
    */
   static async chain(): Promise<string> {
     const chainRegistry = await ChainRegistry.init();
@@ -48,7 +47,7 @@ export class Prompts {
   /**
    * Shows a terminal prompt asking the user to enter a contract name
    *
-   * @returns Promise containing the contract name
+   * @returns Promise<string> containing the contract name
    */
   static async contractName(): Promise<string> {
     const answer = await showPrompt({
@@ -62,9 +61,9 @@ export class Prompts {
   }
 
   /**
-   * Shows a terminal prompt asking the user the user for a template after confirmation
+   * Shows a terminal prompt asking the user for a template after confirmation
    *
-   * @returns Promise containing the template name
+   * @returns Promise<string> containing the template name
    */
   static async template(): Promise<string> {
     const answer = await showPrompt({
@@ -78,10 +77,10 @@ export class Prompts {
   }
 
   /**
-   * Shows a terminal prompt asking the user the user for an account password
+   * Shows a terminal prompt asking the user for an account password
    *
    * @param nameOrAddress - Name or address of the account
-   * @returns Promise containing the {@link Answers} object containing the account password
+   * @returns Promise<string> containing the password
    */
   static async accountPassword(nameOrAddress: string): Promise<string> {
     const answer = await showPrompt({
@@ -94,9 +93,9 @@ export class Prompts {
   }
 
   /**
-   * Shows a terminal prompt asking the user the user for confirmation
+   * Shows a terminal prompt asking the user for confirmation
    *
-   * @returns Promise containing the {@link Answers} object containing confirmation
+   * @returns Promise<boolean> object containing confirmation
    */
   static async confirmation(): Promise<boolean> {
     const answer = await showPrompt({
@@ -104,15 +103,16 @@ export class Prompts {
       name: 'confirm',
       message: 'Do you want to proceed?',
       initial: false,
+      stdout: process.stderr,
     });
 
     return answer.confirm;
   }
 
   /**
-   * Shows a terminal prompt asking the user the user for a signer account for a transaction
+   * Shows a terminal prompt asking the user for a signer account for a transaction
    *
-   * @returns Promise containing the {@link Answers} object containing the account name or address
+   * @returns Promise<string> containing the account name or address
    */
   static async fromAccount(): Promise<string> {
     const answer = await showPrompt({
@@ -126,9 +126,9 @@ export class Prompts {
   }
 
   /**
-   * Shows a terminal prompt asking the user the user for a new account name
+   * Shows a terminal prompt asking the user for a new account name
    *
-   * @returns Promise containing the {@link Answers} object containing the new account name
+   * @returns Promise<string> containing the new account name
    */
   static async newAccount(): Promise<string> {
     const answer = await showPrompt({
@@ -142,9 +142,9 @@ export class Prompts {
   }
 
   /**
-   * Shows a terminal prompt asking the user the user for a new project name
+   * Shows a terminal prompt asking the user for a new project name
    *
-   * @returns Promise containing the {@link Answers} object containing the new project name
+   * @returns Promise<string> containing the new project name
    */
   static async newProject(): Promise<string> {
     const answer = await showPrompt({
@@ -159,9 +159,9 @@ export class Prompts {
   }
 
   /**
-   * Shows a terminal prompt asking the user the user for a new contract name
+   * Shows a terminal prompt asking the user for a new contract name
    *
-   * @returns Promise containing the {@link Answers} object containing the new contract name
+   * @returns Promise<string> containing the new contract name
    */
   static async newContract(): Promise<string> {
     const answer = await showPrompt({
@@ -173,5 +173,20 @@ export class Prompts {
     });
 
     return answer['contract-name'];
+  }
+
+  /**
+   * Shows a terminal prompt asking the user for a mnemonic or private key
+   *
+   * @returns Promise<string> containing the mnemonic or private key
+   */
+  static async mnemonicOrPrivateKey(): Promise<string> {
+    const answer = await showPrompt({
+      type: 'text',
+      name: 'mnemonicOrPrivateKey',
+      message: 'Please enter the mnemonic or private key to recover',
+    });
+
+    return answer.mnemonicOrPrivateKey;
   }
 }
