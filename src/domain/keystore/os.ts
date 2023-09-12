@@ -2,7 +2,7 @@ import keyring from '@archwayhq/keyring-go';
 
 import { InvalidPasswordError } from '@/exceptions';
 import { KeystoreBackendType } from '@/types';
-import { KeystoreBackend, KeystoreOptions } from './backend';
+import { KeystoreActionOptions, KeystoreBackend } from './backend';
 
 const DEFAULT_SERVICE_NAME = 'io.archway.cli';
 
@@ -11,6 +11,7 @@ const DEFAULT_SERVICE_NAME = 'io.archway.cli';
  */
 export class OsBackend implements KeystoreBackend {
   public type: KeystoreBackendType = KeystoreBackendType.os;
+  public tagSuffix = 'account';
 
   /**
    * @param serviceName - Service name to group the account entries in the OS keystore
@@ -19,11 +20,11 @@ export class OsBackend implements KeystoreBackend {
     this.serviceName = serviceName;
   }
 
-  save(tag: string, data: string, _options?: KeystoreOptions): void {
+  save(tag: string, data: string, _options?: KeystoreActionOptions): void {
     keyring.OsStore.set(this.serviceName, tag, data);
   }
 
-  get(tag: string, _options?: KeystoreOptions): string | undefined {
+  get(tag: string, _options?: KeystoreActionOptions): string | undefined {
     try {
       return keyring.OsStore.get(this.serviceName, tag) || undefined;
     } catch (error: Error | any) {

@@ -5,23 +5,21 @@ import keyring from '@archwayhq/keyring-go';
 
 import { InvalidPasswordError } from '@/exceptions';
 import { KeystoreBackendType } from '@/types';
-import { GLOBAL_CONFIG_PATH } from '../Config';
-import { KeystoreBackend, KeystoreOptions } from './backend';
-
-const DEFAULT_KEY_FILES_PATH = `${GLOBAL_CONFIG_PATH}/keys`;
+import { KeystoreActionOptions, KeystoreBackend } from './backend';
 
 /**
  * Implementation of an encrypted file based keystore
  */
 export class FileBackend implements KeystoreBackend {
   public type: KeystoreBackendType = KeystoreBackendType.file;
+  public tagSuffix = 'account';
 
-  private filesPath: string;
+  protected filesPath: string;
 
   /**
    * @param filesPath - Path where the account data files will be stored
    */
-  constructor(filesPath: string = DEFAULT_KEY_FILES_PATH) {
+  constructor(filesPath: string) {
     this.filesPath = path.resolve(filesPath);
 
     if (!fs.existsSync(this.filesPath)) {
@@ -29,11 +27,11 @@ export class FileBackend implements KeystoreBackend {
     }
   }
 
-  save(tag: string, data: string, options?: KeystoreOptions): void {
+  save(tag: string, data: string, options?: KeystoreActionOptions): void {
     keyring.FileStore.set(this.filesPath, tag, data, options?.password);
   }
 
-  get(tag: string, options?: KeystoreOptions): string | undefined {
+  get(tag: string, options?: KeystoreActionOptions): string | undefined {
     try {
       return keyring.FileStore.get(this.filesPath, tag, options?.password) || undefined;
     } catch (error: Error | any) {

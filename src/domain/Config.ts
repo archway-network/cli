@@ -2,28 +2,26 @@ import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
 import { StargateClient } from '@cosmjs/stargate';
 import _ from 'lodash';
 import fs from 'node:fs/promises';
-import path from 'node:path';
 import os from 'node:os';
+import path from 'node:path';
 import ow from 'ow';
 
-import { ChainRegistry, Contracts, Deployments, Ledger } from '@/domain';
-import { DEFAULT_KEY_FILES_PATH } from './Accounts';
-import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
-import { DEFAULT_CHAIN_ID } from './ChainRegistry';
+import { ChainRegistry, Contracts, Deployments } from '@/domain';
 import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
 import { bold, fileExists, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, writeFileWithDir } from '@/utils';
+import { DEFAULT_CHAIN_ID } from './ChainRegistry';
+import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
 
 import {
-  AccountType,
   AccountWithSigner,
-  KeystoreBackendType,
   ConfigData,
   ConfigDataWithContracts,
   Contract,
   CosmosChain,
   Deployment,
+  KeystoreBackendType,
   MergeMode,
-  configDataValidator,
+  configDataValidator
 } from '@/types';
 
 /** Default Config constants */
@@ -34,7 +32,6 @@ export const DEFAULT_CONFIG_DATA = {
   'chain-id': DEFAULT_CHAIN_ID,
   'contracts-path': DEFAULT_CONTRACTS_RELATIVE_PATH,
   'keyring-backend': KeystoreBackendType.os,
-  'keyring-path': DEFAULT_KEY_FILES_PATH,
 };
 
 /** Default signer constants */
@@ -355,13 +352,11 @@ export class Config {
    * @returns Promise containing the {@link StargateClient}
    */
   async getSigningArchwayClient(
-    accountWithSigner: AccountWithSigner,
+    { signer }: AccountWithSigner,
     gasAdjustment = DEFAULT_GAS_ADJUSTMENT
   ): Promise<SigningArchwayClient> {
     const chainInfo = await this.activeChainInfo();
     const rpcEndpoint = await this.activeChainRpcEndpoint(chainInfo);
-
-    const signer = accountWithSigner.account.type === AccountType.LEDGER ? await Ledger.getLedgerSigner() : accountWithSigner.signer!;
 
     return SigningArchwayClient.connectWithSigner(rpcEndpoint, signer, { gasAdjustment });
   }

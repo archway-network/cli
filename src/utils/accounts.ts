@@ -1,5 +1,5 @@
+import { Bip39, EnglishMnemonic, HdPath, Secp256k1, Slip10, Slip10Curve } from '@cosmjs/crypto';
 import { bech32 } from 'bech32';
-import { HdPath, Slip10RawIndex } from '@cosmjs/crypto';
 
 import { InvalidFormatError } from '@/exceptions';
 
@@ -41,24 +41,36 @@ export function isValidAddress(address: string, prefix?: string): boolean {
   }
 }
 
-  return false;
-};
+/**
+ * Derives the private key for a given mnemonic and derivation path.
+ *
+ * @param mnemonic - Mnemonic to convert
+ * @param hdPath - Derivation path to get the account that will be extracted
+ * @param bip39Password - Optional - Password used to generate the seed
+ * @returns Promise containing the private key bytes
+ */
+export async function derivePrivateKey(mnemonic: string, hdPath: HdPath, bip39Password = ''): Promise<Uint8Array> {
+  const seed = await Bip39.mnemonicToSeed(new EnglishMnemonic(mnemonic), bip39Password);
+  const { privkey } = Slip10.derivePath(Slip10Curve.Secp256k1, seed, hdPath);
+  return privkey;
+}
 
 /**
- * Creates a BIP44 compatible derivation path
+ * Converts an unarmored hex string to a private key.
  *
- * @param coinType - Optional - Defaults to 118 which is the standard cosmos coinType
- * @param account - Optional - Defaults to 0
- * @param change  - Optional - Defaults to 0
- * @param index  - Optional - Defaults to 0
- * @returns Array containing the derivation path values
+ * @param unarmoredHex - Unarmored hex string to convert
+ * @returns Promise containing the private key bytes
  */
-export function makeCosmosDerivationPath(coinType = 118, account = 0, change = 0, index = 0): HdPath {
-  return [
-    Slip10RawIndex.hardened(44),
-    Slip10RawIndex.hardened(coinType),
-    Slip10RawIndex.hardened(account),
-    Slip10RawIndex.normal(change),
-    Slip10RawIndex.normal(index),
-  ];
+export async function convertUnarmoredHexToPrivateKey(unarmoredHex: string): Promise<Uint8Array> {
+  if (!isHex(unarmoredHex)) {
+    throw new InvalidFormatError('Unarmored hex string');
+  }
+
+  const privKey = Buffer.from(unarmoredHex, 'hex');
+  const { privkey } = await Secp256k1.makeKeypair(privKey);
+  return privkey;
+}
+
+export function isHex(value: string): boolean {
+  return /^[\dA-Fa-f]+$/.test(value);
 }

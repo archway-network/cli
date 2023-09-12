@@ -1,24 +1,22 @@
 
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
 import { Prompts } from '@/services';
-import { Account, AccountBase, AccountType, KeystoreBackendType, assertIsValidAccount, assertIsValidAccountBase, sanitizeAccount } from '@/types';
+import { Account, AccountBase, AccountType, KeystoreBackendType, assertIsValidAccount, assertIsValidAccountBase } from '@/types';
 
-import { KeystoreOptions as KeystoreActionOptions, KeystoreBackend } from './backend';
+import { KeystoreActionOptions, KeystoreBackend } from './backend';
 import { FileBackend } from './file';
 import { OsBackend } from './os';
 import { TestBackend } from './test';
 
-const ENTRY_TAG_SEPARATOR = '@';
-const ENTRY_TAG_SUFFIX = 'account';
-const ENTRY_TAG_REGEX = new RegExp(`^[\\da-f]+\\.${ENTRY_TAG_SUFFIX}$/`);
+const ENTRY_TAG_SEPARATOR = '$';
 
 /**
  * Params to be used when creating an instance of the Accounts domain that will be used in the keyring
  */
 export interface KeystoreBackendParams {
   backend: KeystoreBackendType,
+  filesPath: string;
   serviceName?: string;
-  filesPath?: string;
 }
 
 /**
@@ -34,11 +32,11 @@ export class Keystore {
     const backend = (() => {
       switch (params.backend) {
         case KeystoreBackendType.os:
-          return new OsBackend(params?.serviceName);
+          return new OsBackend(params.serviceName);
         case KeystoreBackendType.file:
-          return new FileBackend(params?.filesPath);
+          return new FileBackend(params.filesPath);
         case KeystoreBackendType.test:
-          return new TestBackend(params?.filesPath);
+          return new TestBackend(params.filesPath);
       }
     })();
 
@@ -51,7 +49,7 @@ export class Keystore {
    * @param account - The account to be added
    * @returns Promise containing the newly stored account
    */
-  public async add(account: Account): Promise<Account> {
+  public async save(account: Account): Promise<Account> {
     assertIsValidAccount(account, account.name);
 
     const tag = this.toEntryTag(account);
@@ -64,14 +62,37 @@ export class Keystore {
   }
 
   /**
-   * Get a single account by tag
+   * Gets a single account by name or address
    *
    * @param nameOrAddress - Account name or account address to search by
-   * @returns Promise containing the account's data
-   * @throws NotFoundError if the account doesn't exist
-   * @throws InvalidFormatError if the tag is not in the correct format
+   * @returns Promise containing the account's data, or undefined if it doesn't exist
+   * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
+   * @throws {@link NotFoundError} if the account does not exist
    */
-  private get(tag: string, options?: KeystoreActionOptions): Account {
+  public async get(nameOrAddress: string): Promise<Account> {
+    const tag = this.getTag(nameOrAddress);
+    return this.getByTag(tag, nameOrAddress);
+  }
+
+  private getTag(nameOrAddress: string): string  {
+    const [tag] = this.findTag(nameOrAddress) || [];
+    if (!tag) {
+      throw new NotFoundError('Account', nameOrAddress);
+    }
+
+    return tag;
+  }
+
+  /**
+   * Get a single account by tag
+   *
+   * @param tag - Tag to get the account by
+   * @param nameOrAddress - Account name or account address to search by
+   * @returns Promise containing the account's data
+   * @throws InvalidFormatError if the tag is not in the correct format or the serialized account is not valid
+   */
+  private async getByTag(tag: string, nameOrAddress: string): Promise<Account> {
+    const options = await this.buildKeystoreActionOptions(nameOrAddress);
     const serializedAccount = this.backend.get(tag, options);
     if (!serializedAccount) {
       throw new NotFoundError('Account', tag);
@@ -84,40 +105,37 @@ export class Keystore {
   }
 
   /**
-   * Finds a single account by name or address
+   * Check if an account doesn't exist by name or address
    *
-   * @param nameOrAddress - Account name or account address to search by
-   * @returns Promise containing the account's data, or undefined if it doesn't exist
+   * @param nameOrAddress - Account name or address to search by
+   * @returns If the account exists or not
    */
-  async find(nameOrAddress: string): Promise<Account> {
-    const [tag] = this.findTag(nameOrAddress);
-    const options = await this.buildKeystoreActionOptions(nameOrAddress);
-
-    return this.get(tag, options);
+  public exists(nameOrAddress: string): boolean {
+    return this.findTag(nameOrAddress) !== undefined;
   }
 
   /**
-   * Finds an account tag by name or address
+   * Searches for an account base data by name or address
    *
    * @param nameOrAddress - Account name or account address to search by
-   * @returns Promise containing the account's tag
-   * @throws NotFoundError if the account doesn't exist
+   * @returns Promise containing the account's base data, or undefined if it doesn't exist
    */
-  private findTag(nameOrAddress: string): [string, AccountBase]  {
+  public findAccountBase(nameOrAddress: string): AccountBase | undefined {
+    const [, account] = this.findTag(nameOrAddress) || [];
+    return account;
+  }
+
+  private findTag(nameOrAddress: string): [string, AccountBase] | undefined {
     const accountWithTags = this.listAccountsWithTags();
-    const [tag, account] = [...accountWithTags]
-      .find(([_, account]) => account.name === nameOrAddress || account.address === nameOrAddress) || [];
+    const result = [...accountWithTags]
+      .find(([_, { name, address }]) => name === nameOrAddress || address === nameOrAddress);
 
-    if (!tag || !account) {
-      throw new NotFoundError('Account', nameOrAddress);
-    }
-
-    return [tag, account];
+    return result;
   }
 
   private listAccountsWithTags(): ReadonlyMap<string, AccountBase> {
     const tags = this.backend.list();
-    const accountsWithTags: [string, AccountBase][] = tags.map(tag => [tag, this.fromEntryTag(tag)]);
+    const accountsWithTags: Array<[string, AccountBase]> = tags.map(tag => [tag, this.fromEntryTag(tag)]);
     return new Map(accountsWithTags);
   }
 
@@ -144,17 +162,21 @@ export class Keystore {
       // Await inside the loop so the user does not see a lot of
       // OS password inputs popup at the same time, but one by one
       // eslint-disable-next-line no-await-in-loop
-        const options = await this.buildKeystoreActionOptions(name);
-        const account = this.get(tag, options);
-        accounts.push(sanitizeAccount(account));
+        const account = await this.getByTag(tag, name);
+        accounts.push(account);
       } catch {}
     }
 
     return accounts;
   }
 
+  /**
+   * Remove an account from the keyring
+   *
+   * @param nameOrAddress - Account name or address to search by
+   */
   public remove(nameOrAddress: string): void {
-    const [tag] = this.findTag(nameOrAddress);
+    const tag = this.getTag(nameOrAddress);
     this.backend.remove(tag);
   }
 
@@ -167,7 +189,7 @@ export class Keystore {
   private toEntryTag({ name, type, address }: AccountBase): string {
     const tag = [name, type, address].join(ENTRY_TAG_SEPARATOR);
     const hexEncodedTag = Buffer.from(tag).toString('hex');
-    return `${hexEncodedTag}.${ENTRY_TAG_SUFFIX}`;
+    return `${hexEncodedTag}.${this.backend.tagSuffix}`;
   }
 
   /**
@@ -178,6 +200,7 @@ export class Keystore {
    * @throws InvalidFormatError if the tag is not in the correct format
    */
   private fromEntryTag(tag: string): AccountBase {
+    const ENTRY_TAG_REGEX = new RegExp(`^[\\da-f]+\\.${this.backend.tagSuffix}$`);
     if (!ENTRY_TAG_REGEX.test(tag)) {
       throw new InvalidFormatError(`Invalid tag: ${tag}`);
     }

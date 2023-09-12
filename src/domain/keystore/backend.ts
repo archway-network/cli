@@ -3,7 +3,7 @@ import { KeystoreBackendType } from '@/types';
 /**
  * Options to be used when saving or fetching data from the keystore
  */
-export interface KeystoreOptions {
+export interface KeystoreActionOptions {
   /**
    * Password to be used with the `FileBackend`
    */
@@ -15,6 +15,7 @@ export interface KeystoreOptions {
   */
 export interface KeystoreBackend {
   type: KeystoreBackendType;
+  tagSuffix: string;
 
   /**
    * Saves raw data to the keyring
@@ -23,7 +24,7 @@ export interface KeystoreBackend {
    * @param data - Data to be saved
    * @param options - Options to be used when saving the data
    */
-  save(tag: string, data: string, options?: KeystoreOptions): void;
+  save(tag: string, data: string, options?: KeystoreActionOptions): void;
 
   /**
    * Get the raw data from the key storage by tag
@@ -32,7 +33,7 @@ export interface KeystoreBackend {
    * @param options - Options to be used when fetching the data
    * @returns Promise containing the stored raw data, or undefined if it doesn't exist
    */
-  get(tag: string, options?: KeystoreOptions): string | undefined;
+  get(tag: string, options?: KeystoreActionOptions): string | undefined;
 
   /**
    * Get a list of the tags in the keystore

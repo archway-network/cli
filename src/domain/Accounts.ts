@@ -1,9 +1,12 @@
-import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
-import { Coin, StargateClient } from '@cosmjs/stargate';
 import bip39 from 'bip39';
+import _ from 'lodash';
 
-import { Config, FileKeystore, KeystoreBackend, KeystoreBackendParams, Ledger, OsKeystore, TestKeystore } from '@/domain';
-import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
+import { toBase64 } from '@cosmjs/encoding';
+import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
+import { StargateClient } from '@cosmjs/stargate';
+
+import { Config, Ledger } from '@/domain';
+import { AlreadyExistsError, InvalidFormatError } from '@/exceptions';
 import { Prompts } from '@/services';
 import {
   Account,
@@ -14,16 +17,12 @@ import {
   ExtendedHdPath,
   KeystoreBackendType,
   PublicKey,
-  assertIsValidAccount,
-  assertIsValidAccountBase,
-  sanitizeAccount
+  redactAccount
 } from '@/types';
 import { assertIsValidAddress, bold, convertUnarmoredHexToPrivateKey, derivePrivateKey, isHex, yellow } from '@/utils';
-import { toBase64 } from '@cosmjs/encoding';
-import { GLOBAL_CONFIG_PATH } from './Config';
 
-export const SECRET_SERVICE_NAME = 'io.archway.cli';
-export const DEFAULT_KEY_FILES_PATH = `${GLOBAL_CONFIG_PATH}/keys`;
+import { Keystore, KeystoreBackendParams } from './keystore';
+
 export const DEFAULT_ADDRESS_BECH_32_PREFIX = 'archway';
 
 export type KeyringFlags = {
@@ -35,17 +34,11 @@ export type KeyringFlags = {
  * Accounts manager
  */
 export class Accounts {
-  private _keystore: KeystoreBackend;
-
   /**
-   * @param keystore - Keystore backend that will keep the account's data
+   * @param keystore - Keystore facade to interface with the keyring serialization and deserialization
    */
-  constructor(keystore: KeystoreBackend) {
-    this._keystore = keystore;
-  }
-
-  get keystore(): KeystoreBackend {
-    return this._keystore;
+  constructor(private readonly keystore: Keystore) {
+    this.keystore = keystore;
   }
 
   /**
@@ -55,16 +48,7 @@ export class Accounts {
    * @returns Promise containing an instance of {@link Accounts}
    */
   static async init(keystoreParams: KeystoreBackendParams): Promise<Accounts> {
-    const keystore: KeystoreBackend = (() => {
-      switch (keystoreParams.backend) {
-        case KeystoreBackendType.os:
-          return new OsKeystore(keystoreParams?.serviceName || SECRET_SERVICE_NAME);
-        case KeystoreBackendType.file:
-          return new FileKeystore(keystoreParams?.filesPath || DEFAULT_KEY_FILES_PATH);
-        case KeystoreBackendType.test:
-          return new TestKeystore(keystoreParams?.filesPath || DEFAULT_KEY_FILES_PATH);
-      }
-    })();
+    const keystore = Keystore.build(keystoreParams);
     return new Accounts(keystore);
   }
 
@@ -147,12 +131,12 @@ export class Accounts {
     await this.assertAccountDoesNotExist(name);
 
     const account = (type === AccountType.LEDGER) ?
-      await Ledger.getAccount(name, hdPath) :
+      await Ledger.getAccount(name, hdPath, DEFAULT_ADDRESS_BECH_32_PREFIX) :
       await this.createLocalAccount(name, hdPath, mnemonicOrUnarmoredHex);
 
     await this.assertAccountDoesNotExist(account.address);
 
-    this.keystore.add(account);
+    this.keystore.save(account);
 
     return account;
   }
@@ -191,29 +175,22 @@ export class Accounts {
    * Check if an account doesn't exist by name or address, if it exists throws an error
    *
    * @param nameOrAddress - Account name or address to search by
-   * @returns Empty promise
    */
   async assertAccountDoesNotExist(nameOrAddress: string): Promise<void> {
-    if (await this.keystore.findNameAndAddressInList(nameOrAddress)) {
+    if (this.keystore.exists(nameOrAddress)) {
       throw new AlreadyExistsError('Account', nameOrAddress)
     }
   }
 
   /**
-   * Get a single account by name or address, without mnemonic, throws error if not found
+   * Get a single account by name or address, without private key
    *
    * @param nameOrAddress - Account name or account address to search by
    * @returns Promise containing an instance of {@link Account}
    */
   async get(nameOrAddress: string): Promise<Account> {
     const account = await this.keystore.get(nameOrAddress);
-    if (!account) {
-      throw new NotFoundError('Account', nameOrAddress)
-    }
-
-    assertIsValidAccountBase(account);
-
-    return sanitizeAccount(account);
+    return redactAccount(account);
   }
 
   /**
@@ -231,16 +208,14 @@ export class Accounts {
     prefix = DEFAULT_ADDRESS_BECH_32_PREFIX
   ): Promise<AccountWithSigner> {
     const searchAccount = nameOrAddress || defaultAccount || (await Prompts.fromAccount());
-    const account = await this.get(searchAccount);
-
-    assertIsValidAccount(account, nameOrAddress);
+    const account = await this.keystore.get(searchAccount);
 
     const signer = account.type === AccountType.LEDGER ?
       await Ledger.getLedgerSigner(new ExtendedHdPath(account.hdPath), prefix) :
       await DirectSecp256k1Wallet.fromKey(account.privateKey!, prefix);
 
     return {
-      account: sanitizeAccount(account),
+      account: redactAccount(account),
       signer,
     };
   }
@@ -250,7 +225,8 @@ export class Accounts {
    * @returns Promise containing an array with all the accounts in the keystore
    */
   async list(): Promise<readonly Account[]> {
-    return this.keystore.list();
+    const accounts = await this.keystore.list();
+    return accounts.map(account => redactAccount(account));
   }
 
   /**
@@ -279,14 +255,14 @@ export class Accounts {
    * @returns Promise containing the balances result
    */
   async queryBalance(client: StargateClient, nameOrAddress: string): Promise<AccountBalancesJSON> {
-    const accountInfo = await this.keystore.assertAccountExists(nameOrAddress);
-    const balances = await client.getAllBalances(accountInfo.address);
+    const { name, address } = await this.keystore.get(nameOrAddress);
+    const balances = await client.getAllBalances(address);
 
     return {
       account: {
-        name: accountInfo.name,
-        address: accountInfo.address,
-        balances: balances as Coin[],
+        name,
+        address,
+        balances,
       },
     };
   }
@@ -299,15 +275,12 @@ export class Accounts {
    * @returns Promise containing an instance of {@link AccountBase}
    */
   async accountBaseFromAddress(address: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountBase> {
-    const found = await this.keystore.findNameAndAddressInList(address);
-    if (!found) {
-      assertIsValidAddress(address, prefix)
+    const account = this.keystore.findAccountBase(address);
+    if (!account) {
+      // If the account is not found in the keyring, check if it's a valid address so the tx doesn't fail
+      assertIsValidAddress(address, prefix);
     }
 
-    return {
-      name: found?.name || '',
-      address: found?.address || address,
-      type: found?.type || AccountType.LOCAL,
-    };
+    return _.merge(account, { type: AccountType.LOCAL, name: address, address });
   }
 }
