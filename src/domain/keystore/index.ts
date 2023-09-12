@@ -1,20 +1,22 @@
-
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
 import { Prompts } from '@/services';
 import { Account, AccountBase, AccountType, KeystoreBackendType, assertIsValidAccount, assertIsValidAccountBase } from '@/types';
 
+import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { KeystoreActionOptions, KeystoreBackend } from './backend';
 import { FileBackend } from './file';
 import { OsBackend } from './os';
 import { TestBackend } from './test';
 
 const ENTRY_TAG_SEPARATOR = '$';
+const ENTRY_TAG_SUFFIX = 'account';
+const ENTRY_TAG_ENCODING: BufferEncoding = 'base64';
 
 /**
  * Params to be used when creating an instance of the Accounts domain that will be used in the keyring
  */
 export interface KeystoreBackendParams {
-  backend: KeystoreBackendType,
+  backendType: KeystoreBackendType,
   filesPath: string;
   serviceName?: string;
 }
@@ -30,7 +32,7 @@ export class Keystore {
 
   public static build(params: KeystoreBackendParams): Keystore {
     const backend = (() => {
-      switch (params.backend) {
+      switch (params.backendType) {
         case KeystoreBackendType.os:
           return new OsBackend(params.serviceName);
         case KeystoreBackendType.file:
@@ -43,6 +45,35 @@ export class Keystore {
     return new Keystore(backend);
   }
 
+  private async serializeAccount(account: Account): Promise<string> {
+    const { publicKey, privateKey } = account;
+    const serializedAccount = {
+      ...account,
+      publicKey: {
+        algo: publicKey.algo,
+        key: toBase64(publicKey.key)
+      },
+      privateKey: privateKey ? toBase64(privateKey) : undefined,
+    };
+
+    return JSON.stringify(serializedAccount);
+  }
+
+  private async deserializeAccount(data: string): Promise<Account> {
+    const serializedAccount = JSON.parse(data);
+    const { publicKey, privateKey } = serializedAccount;
+    const account = {
+      ...serializedAccount,
+      publicKey: {
+        algo: publicKey.algo,
+        key: fromBase64(publicKey.key)
+      },
+      privateKey: privateKey ? fromBase64(privateKey) : undefined,
+    };
+
+    return account;
+  }
+
   /**
    * Adds a new account to the keyring
    *
@@ -53,7 +84,7 @@ export class Keystore {
     assertIsValidAccount(account, account.name);
 
     const tag = this.toEntryTag(account);
-    const data = JSON.stringify(account);
+    const data = await this.serializeAccount(account);
     const options = await this.buildKeystoreActionOptions(account.name);
 
     this.backend.save(tag, data, options);
@@ -93,12 +124,12 @@ export class Keystore {
    */
   private async getByTag(tag: string, nameOrAddress: string): Promise<Account> {
     const options = await this.buildKeystoreActionOptions(nameOrAddress);
-    const serializedAccount = this.backend.get(tag, options);
-    if (!serializedAccount) {
+    const data = this.backend.get(tag, options);
+    if (!data) {
       throw new NotFoundError('Account', tag);
     }
 
-    const account = JSON.parse(serializedAccount);
+    const account = await this.deserializeAccount(data);
     assertIsValidAccount(account, account.name);
 
     return account;
@@ -135,8 +166,18 @@ export class Keystore {
 
   private listAccountsWithTags(): ReadonlyMap<string, AccountBase> {
     const tags = this.backend.list();
-    const accountsWithTags: Array<[string, AccountBase]> = tags.map(tag => [tag, this.fromEntryTag(tag)]);
-    return new Map(accountsWithTags);
+    const accountsWithTags: Array<[string, AccountBase] | null> = tags.map(tag => {
+      // try {
+      const account = this.fromEntryTag(tag);
+      return [tag, account];
+      // } catch {}
+
+      // return null;
+    });
+
+    return new Map(
+      accountsWithTags.filter((accountWithTags): accountWithTags is [string, AccountBase] => accountWithTags !== null)
+    );
   }
 
   /**
@@ -158,13 +199,11 @@ export class Keystore {
     const accounts: Account[] = [];
 
     for (const [tag, { name }] of this.listAccountsWithTags()) {
-      try {
       // Await inside the loop so the user does not see a lot of
       // OS password inputs popup at the same time, but one by one
       // eslint-disable-next-line no-await-in-loop
-        const account = await this.getByTag(tag, name);
-        accounts.push(account);
-      } catch {}
+      const account = await this.getByTag(tag, name);
+      accounts.push(account);
     }
 
     return accounts;
@@ -188,8 +227,8 @@ export class Keystore {
    */
   private toEntryTag({ name, type, address }: AccountBase): string {
     const tag = [name, type, address].join(ENTRY_TAG_SEPARATOR);
-    const hexEncodedTag = Buffer.from(tag).toString('hex');
-    return `${hexEncodedTag}.${this.backend.tagSuffix}`;
+    const hexEncodedTag = Buffer.from(tag).toString(ENTRY_TAG_ENCODING);
+    return `${hexEncodedTag}.${ENTRY_TAG_SUFFIX}`;
   }
 
   /**
@@ -200,13 +239,13 @@ export class Keystore {
    * @throws InvalidFormatError if the tag is not in the correct format
    */
   private fromEntryTag(tag: string): AccountBase {
-    const ENTRY_TAG_REGEX = new RegExp(`^[\\da-f]+\\.${this.backend.tagSuffix}$`);
+    const ENTRY_TAG_REGEX = new RegExp(`^[\\da-f]+\\.${ENTRY_TAG_SUFFIX}$`);
     if (!ENTRY_TAG_REGEX.test(tag)) {
-      throw new InvalidFormatError(`Invalid tag: ${tag}`);
+      throw new InvalidFormatError(`Tag ${tag}`);
     }
 
-    const [hexEncodedTag] = tag.split('.');
-    const decoded = Buffer.from(hexEncodedTag, 'hex').toString();
+    const [encodedTag] = tag.split('.');
+    const decoded = Buffer.from(encodedTag, ENTRY_TAG_ENCODING).toString();
     const [name, type, address] = decoded.split(ENTRY_TAG_SEPARATOR);
 
     const account = {

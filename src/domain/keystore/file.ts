@@ -12,7 +12,6 @@ import { KeystoreActionOptions, KeystoreBackend } from './backend';
  */
 export class FileBackend implements KeystoreBackend {
   public type: KeystoreBackendType = KeystoreBackendType.file;
-  public tagSuffix = 'account';
 
   protected filesPath: string;
 
@@ -23,7 +22,7 @@ export class FileBackend implements KeystoreBackend {
     this.filesPath = path.resolve(filesPath);
 
     if (!fs.existsSync(this.filesPath)) {
-      fs.mkdirSync(this.filesPath);
+      fs.mkdirSync(this.filesPath, { recursive: true });
     }
   }
 

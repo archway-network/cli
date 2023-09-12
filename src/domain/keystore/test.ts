@@ -1,3 +1,4 @@
+import path from 'node:path';
 
 import keyring from '@archwayhq/keyring-go';
 
@@ -9,8 +10,11 @@ import { FileBackend } from './file';
  * Implementation of a unencrypted file based keystore for testing purposes
  */
 export class TestBackend extends FileBackend {
-  public type: KeystoreBackendType = KeystoreBackendType.file;
-  public tagSuffix = 'test';
+  public type: KeystoreBackendType = KeystoreBackendType.test;
+
+  constructor(filesPath: string) {
+    super(path.join(filesPath, 'test'));
+  }
 
   save(tag: string, data: string, _options: KeystoreActionOptions): void {
     keyring.UnencryptedFileStore.set(this.filesPath, tag, data);

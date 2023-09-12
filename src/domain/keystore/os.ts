@@ -11,7 +11,6 @@ const DEFAULT_SERVICE_NAME = 'io.archway.cli';
  */
 export class OsBackend implements KeystoreBackend {
   public type: KeystoreBackendType = KeystoreBackendType.os;
-  public tagSuffix = 'account';
 
   /**
    * @param serviceName - Service name to group the account entries in the OS keystore

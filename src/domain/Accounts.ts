@@ -1,4 +1,4 @@
-import bip39 from 'bip39';
+import * as bip39 from 'bip39';
 import _ from 'lodash';
 
 import { toBase64 } from '@cosmjs/encoding';
@@ -58,9 +58,9 @@ export class Accounts {
    * @returns Promise containing an instance of {@link Accounts}
    */
   static async initFromFlags(flags: KeyringFlags, config: Config): Promise<Accounts> {
-    const backend = flags['keyring-backend'] || config.keyringBackend;
+    const backendType = flags['keyring-backend'] || config.keyringBackend;
     const filesPath = flags['keyring-path'] || config.keyringPath;
-    return Accounts.init({ backend, filesPath });
+    return Accounts.init({ backendType, filesPath });
   }
 
   /**
@@ -135,8 +135,7 @@ export class Accounts {
       await this.createLocalAccount(name, hdPath, mnemonicOrUnarmoredHex);
 
     await this.assertAccountDoesNotExist(account.address);
-
-    this.keystore.save(account);
+    await this.keystore.save(account);
 
     return account;
   }

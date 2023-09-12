@@ -15,7 +15,6 @@ export interface KeystoreActionOptions {
   */
 export interface KeystoreBackend {
   type: KeystoreBackendType;
-  tagSuffix: string;
 
   /**
    * Saves raw data to the keyring
