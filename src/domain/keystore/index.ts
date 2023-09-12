@@ -167,12 +167,12 @@ export class Keystore {
   private listAccountsWithTags(): ReadonlyMap<string, AccountBase> {
     const tags = this.backend.list();
     const accountsWithTags: Array<[string, AccountBase] | null> = tags.map(tag => {
-      // try {
-      const account = this.fromEntryTag(tag);
-      return [tag, account];
-      // } catch {}
+      try {
+        const account = this.fromEntryTag(tag);
+        return [tag, account];
+      } catch {}
 
-      // return null;
+      return null;
     });
 
     return new Map(
