@@ -1,8 +1,8 @@
 import { Command, Flags, Interfaces } from '@oclif/core';
 import debugInstance from 'debug';
 
-import { redBright, yellow } from '@/utils';
 import { PromptCanceledError } from '@/ui';
+import { redBright, yellow } from '@/utils';
 
 import { ConsoleError } from '@/types';
 
@@ -32,7 +32,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   static enableJsonFlag = true;
 
   // examples to show at the end of the command's help.
-  static examples = ['<%= config.bin %> <%= command.id %>'];
+  static examples: Command.Example[] = ['<%= config.bin %> <%= command.id %>'];
 
   // define flags that can be inherited by any command that extends BaseCommand
   static baseFlags = {
