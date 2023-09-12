@@ -5,7 +5,7 @@ import { ChainRegistry, DEFAULT_CHAIN_ID } from '@/domain';
 import { ContractTemplates } from '@/services';
 import { CosmosChain } from '@/types';
 import { showPrompt } from '@/ui';
-import { sanitizeDirName } from '@/utils';
+import { blueBright, sanitizeDirName } from '@/utils';
 
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
   'constantine-3': { description: 'Stable testnet - recommended for dapp development' },
@@ -86,7 +86,7 @@ export class Prompts {
     const answer = await showPrompt({
       type: 'password',
       name: 'password',
-      message: `Enter the password for the account ${nameOrAddress}`,
+      message: `Enter the password for the account ${blueBright(nameOrAddress)}`,
     });
 
     return answer.password;
