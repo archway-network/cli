@@ -1,7 +1,7 @@
 import * as bip39 from 'bip39';
 import _ from 'lodash';
 
-import { toBase64 } from '@cosmjs/encoding';
+import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { StargateClient } from '@cosmjs/stargate';
 
@@ -70,7 +70,7 @@ export class Accounts {
    * @returns Pretty formatted string
    */
   static prettyPrintPublicKey(publicKey: PublicKey): string {
-    return `${bold('Public Key')}\n  ${bold('Algo:')} ${publicKey.algo}\n  ${bold('Key:')} ${toBase64(publicKey.key)}`;
+    return `${bold('Public Key')}\n  ${bold('Algo:')} ${publicKey.algo}\n  ${bold('Key:')} ${publicKey.key}`;
   }
 
   /**
@@ -162,9 +162,9 @@ export class Accounts {
       address,
       publicKey: {
         algo,
-        key: pubkey,
+        key: toBase64(pubkey),
       },
-      privateKey: privKey,
+      privateKey: toBase64(privKey),
     };
 
     return account;
@@ -211,7 +211,7 @@ export class Accounts {
 
     const signer = account.type === AccountType.LEDGER ?
       await Ledger.getLedgerSigner(new ExtendedHdPath(account.hdPath), prefix) :
-      await DirectSecp256k1Wallet.fromKey(account.privateKey!, prefix);
+      await DirectSecp256k1Wallet.fromKey(fromBase64(account.privateKey!), prefix);
 
     return {
       account: redactAccount(account),

@@ -27,7 +27,7 @@ export interface AccountBase {
  */
 export interface LocalAccount extends AccountBase {
   publicKey: PublicKey;
-  privateKey?: Uint8Array;
+  privateKey?: string;
 }
 
 /**
@@ -53,7 +53,7 @@ export interface AccountWithSigner {
  */
 export interface PublicKey {
   algo: string;
-  key: Uint8Array;
+  key: string;
 }
 
 /**
@@ -93,7 +93,7 @@ export interface SerializedKey {
  */
 const publicKeyValidator = ow.object.exactShape({
   algo: ow.string,
-  key: ow.uint8Array,
+  key: ow.string,
 });
 
 /**
@@ -120,7 +120,7 @@ const localAccountValidator = ow.object.exactShape({
   ...AccountBaseShape,
   type: ow.string.equals(AccountType.LOCAL),
   publicKey: publicKeyValidator,
-  privateKey: ow.uint8Array,
+  privateKey: ow.string,
 });
 
 /**

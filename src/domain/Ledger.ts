@@ -1,3 +1,4 @@
+import { toBase64 } from '@cosmjs/encoding';
 import { LedgerSigner } from '@cosmjs/ledger-amino';
 import TransportNodeHid from '@ledgerhq/hw-transport-node-hid';
 
@@ -39,7 +40,7 @@ export namespace Ledger {
       hdPath: hdPath.toString(),
       publicKey: {
         algo,
-        key: pubkey,
+        key: toBase64(pubkey),
       },
     };
   }

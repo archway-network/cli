@@ -19,7 +19,7 @@ export class FileBackend implements KeystoreBackend {
    * @param filesPath - Path where the account data files will be stored
    */
   constructor(filesPath: string) {
-    this.filesPath = path.resolve(filesPath);
+    this.filesPath = path.join(path.resolve(filesPath), this.type);
 
     if (!fs.existsSync(this.filesPath)) {
       fs.mkdirSync(this.filesPath, { recursive: true });

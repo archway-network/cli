@@ -1,19 +1,28 @@
+import fs from 'node:fs';
 import path from 'node:path';
 
 import keyring from '@archwayhq/keyring-go';
 
 import { KeystoreBackendType } from '@/types';
-import { KeystoreActionOptions } from './backend';
-import { FileBackend } from './file';
+import { KeystoreActionOptions, KeystoreBackend } from './backend';
 
 /**
  * Implementation of a unencrypted file based keystore for testing purposes
  */
-export class TestBackend extends FileBackend {
+export class TestBackend implements KeystoreBackend {
   public type: KeystoreBackendType = KeystoreBackendType.test;
 
+  protected filesPath: string;
+
+  /**
+   * @param filesPath - Path where the account data files will be stored
+   */
   constructor(filesPath: string) {
-    super(path.join(filesPath, 'test'));
+    this.filesPath = path.join(path.resolve(filesPath), this.type);
+
+    if (!fs.existsSync(this.filesPath)) {
+      fs.mkdirSync(this.filesPath, { recursive: true });
+    }
   }
 
   save(tag: string, data: string, _options: KeystoreActionOptions): void {

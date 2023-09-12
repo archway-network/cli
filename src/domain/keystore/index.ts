@@ -2,7 +2,6 @@ import { InvalidFormatError, NotFoundError } from '@/exceptions';
 import { Prompts } from '@/services';
 import { Account, AccountBase, AccountType, KeystoreBackendType, assertIsValidAccount, assertIsValidAccountBase } from '@/types';
 
-import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { KeystoreActionOptions, KeystoreBackend } from './backend';
 import { FileBackend } from './file';
 import { OsBackend } from './os';
@@ -45,35 +44,6 @@ export class Keystore {
     return new Keystore(backend);
   }
 
-  private async serializeAccount(account: Account): Promise<string> {
-    const { publicKey, privateKey } = account;
-    const serializedAccount = {
-      ...account,
-      publicKey: {
-        algo: publicKey.algo,
-        key: toBase64(publicKey.key)
-      },
-      privateKey: privateKey ? toBase64(privateKey) : undefined,
-    };
-
-    return JSON.stringify(serializedAccount);
-  }
-
-  private async deserializeAccount(data: string): Promise<Account> {
-    const serializedAccount = JSON.parse(data);
-    const { publicKey, privateKey } = serializedAccount;
-    const account = {
-      ...serializedAccount,
-      publicKey: {
-        algo: publicKey.algo,
-        key: fromBase64(publicKey.key)
-      },
-      privateKey: privateKey ? fromBase64(privateKey) : undefined,
-    };
-
-    return account;
-  }
-
   /**
    * Adds a new account to the keyring
    *
@@ -84,7 +54,7 @@ export class Keystore {
     assertIsValidAccount(account, account.name);
 
     const tag = this.toEntryTag(account);
-    const data = await this.serializeAccount(account);
+    const data = JSON.stringify(account);
     const options = await this.buildKeystoreActionOptions(account.name);
 
     this.backend.save(tag, data, options);
@@ -129,7 +99,7 @@ export class Keystore {
       throw new NotFoundError('Account', tag);
     }
 
-    const account = await this.deserializeAccount(data);
+    const account = JSON.parse(data);
     assertIsValidAccount(account, account.name);
 
     return account;
@@ -170,7 +140,10 @@ export class Keystore {
       try {
         const account = this.fromEntryTag(tag);
         return [tag, account];
-      } catch {}
+      } catch (error: Error | any) {
+        // Ignore invalid tags
+        console.error(error);
+      }
 
       return null;
     });
@@ -225,8 +198,8 @@ export class Keystore {
    * @param account - Account to be used in the tag
    * @returns Tag with hex encoded name and address
    */
-  private toEntryTag({ name, type, address }: AccountBase): string {
-    const tag = [name, type, address].join(ENTRY_TAG_SEPARATOR);
+  private toEntryTag({ type, name, address }: AccountBase): string {
+    const tag = [name, address, type].join(ENTRY_TAG_SEPARATOR);
     const hexEncodedTag = Buffer.from(tag).toString(ENTRY_TAG_ENCODING);
     return `${hexEncodedTag}.${ENTRY_TAG_SUFFIX}`;
   }
@@ -239,14 +212,14 @@ export class Keystore {
    * @throws InvalidFormatError if the tag is not in the correct format
    */
   private fromEntryTag(tag: string): AccountBase {
-    const ENTRY_TAG_REGEX = new RegExp(`^[\\da-f]+\\.${ENTRY_TAG_SUFFIX}$`);
+    const ENTRY_TAG_REGEX = new RegExp(`^[a-zA-Z0-9+/]+={0,2}\\.${ENTRY_TAG_SUFFIX}$`);
     if (!ENTRY_TAG_REGEX.test(tag)) {
       throw new InvalidFormatError(`Tag ${tag}`);
     }
 
     const [encodedTag] = tag.split('.');
     const decoded = Buffer.from(encodedTag, ENTRY_TAG_ENCODING).toString();
-    const [name, type, address] = decoded.split(ENTRY_TAG_SEPARATOR);
+    const [name, address, type] = decoded.split(ENTRY_TAG_SEPARATOR);
 
     const account = {
       name,
