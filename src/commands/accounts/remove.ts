@@ -8,10 +8,10 @@ import { AccountBase } from '@/types';
 
 /**
  * Command 'accounts remove'
- * Removes an account from the keystore
+ * Removes an account from the keyring
  */
 export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
-  static summary = 'Removes an account from the keystore';
+  static summary = 'Removes an account from the keyring';
   static args = {
     account: AccountRequiredArg,
   };

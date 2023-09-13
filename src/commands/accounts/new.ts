@@ -11,10 +11,10 @@ import { Account, AccountType } from '@/types';
 
 /**
  * Command 'accounts new'
- * Adds a new wallet to the keystore. It requires a name and will generate a new mnemonic (if not provided) to create the wallet's private keys.
+ * Adds a new wallet to the keyring. It requires a name and will generate a new mnemonic (if not provided) to create the wallet's private keys
  */
 export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
-  static summary = 'Adds a new wallet to the keystore';
+  static summary = 'Adds a new wallet to the keyring';
   static args = {
     'account-name': Args.string({ ...ParamsAccountOptionalArg, ignoreStdin: true }),
     stdinInput: StdinInputArg,

@@ -63,10 +63,10 @@ $ archway help
 
 new                                Initializes a new project repository
 
-accounts new [options]             Adds a new wallet to the keystore
+accounts new [options]             Adds a new wallet to the keyring
 accounts get [options]             Displays details about an account
 accounts list [options]            Lists all accounts in the keyring
-accounts remove [options]          Removes an account from the keystore
+accounts remove [options]          Removes an account from the keyring
 accounts balances get [options]    Query the balance of an address or account
 accounts balances send [options]   Send tokens from an address or account to another
 accounts balances [options]        Manage the token balance of an account
