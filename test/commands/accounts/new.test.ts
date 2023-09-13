@@ -1,6 +1,6 @@
 import { expect, test } from '@oclif/test';
 
-import { aliceAccountName, aliceMnemonic } from '../../dummies';
+import { aliceAccountName, aliceAddress, aliceMnemonic } from '../../dummies';
 import { AccountsStubs } from '../../stubs';
 
 describe('accounts new', () => {
@@ -27,9 +27,21 @@ describe('accounts new', () => {
 
     test
       .stdout()
-      .command(['accounts new', aliceAccountName, `--mnemonic=${aliceMnemonic}`])
+      .command(['accounts new', aliceAccountName, `${aliceMnemonic}`, '--recover'])
       .it('creates a new account using mnemonic passed in flag', ctx => {
         expect(ctx.stdout).to.contain(aliceAccountName);
+        expect(ctx.stdout).to.contain(aliceAddress);
+        expect(ctx.stdout).to.contain('successfully created');
+        expect(ctx.stdout).to.contain('Mnemonic:');
+        expect(ctx.stdout).to.contain(aliceMnemonic);
+      });
+
+    test
+      .stdout()
+      .command(['accounts new', aliceAccountName, `${aliceMnemonic}`, '--recover', '--hd-path=2'])
+      .it('creates a new account using mnemonic and with a different hd path', ctx => {
+        expect(ctx.stdout).to.contain(aliceAccountName);
+        expect(ctx.stdout).to.not.contain(aliceAddress);
         expect(ctx.stdout).to.contain('successfully created');
         expect(ctx.stdout).to.contain('Mnemonic:');
         expect(ctx.stdout).to.contain(aliceMnemonic);

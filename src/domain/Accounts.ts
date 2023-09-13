@@ -1,5 +1,6 @@
 import ow from 'ow';
 import { Coin, StargateClient } from '@cosmjs/stargate';
+import { HdPath } from '@cosmjs/crypto';
 
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
 import { Config, FileKeystore, KeystoreBackend, OsKeystore, TestKeystore } from '@/domain';
@@ -129,11 +130,12 @@ export class Accounts {
    *
    * @param name - Account name
    * @param type - {@link AccountType} value
-   * @param mnemonic - Optional - 24 word mnemonic to use in the new account
+   * @param mnemonicOrPrivateKey - Optional - Existing mnemonic or private key to use for the new account
+   * @param hdPath - Optional - HD path of the account
    * @returns Promise containing an instance of {@link Account}
    */
-  async new(name: string, type: AccountType, mnemonic?: string): Promise<Account> {
-    return this._keystore.add(name, type, mnemonic);
+  async new(name: string, type: AccountType, mnemonicOrPrivateKey?: string, hdPath?: HdPath): Promise<Account> {
+    return this._keystore.add(name, type, mnemonicOrPrivateKey, hdPath);
   }
 
   /**
@@ -156,14 +158,15 @@ export class Accounts {
    *
    * @param nameOrAddress - Optional - Account name or account address to search by
    * @param defaultAccount - Optional - Default account name or account address
+   * @param prefix - Optional - Bech 32 prefix for the address, defaults to 'archway'
    * @returns Promise containing an instance of {@link AccountWithSigner}
    */
-  async getWithSigner(nameOrAddress?: string, defaultAccount?: string): Promise<AccountWithSigner> {
+  async getWithSigner(nameOrAddress?: string, defaultAccount?: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountWithSigner> {
     let searchAccount = nameOrAddress || defaultAccount;
 
     if (!searchAccount) searchAccount = await Prompts.fromAccount();
 
-    const account = await this.keystore.getWithSigner(searchAccount);
+    const account = await this.keystore.getWithSigner(searchAccount, prefix);
 
     if (!account) throw new NotFoundError('Account', nameOrAddress);
 
@@ -221,12 +224,13 @@ export class Accounts {
    * Create an instance of {@link AccountBase} from an address, getting the name if found in keyring
    *
    * @param address - Account address to search by
+   * @param prefix - Optional - Bech 32 prefix for the address, defaults to 'archway'
    * @returns Promise containing an instance of {@link AccountBase}
    */
-  async accountBaseFromAddress(address: string): Promise<AccountBase> {
+  async accountBaseFromAddress(address: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountBase> {
     const found = await this.keystore.findNameAndAddressInList(address);
 
-    if (!found) assertIsValidAddress(address, DEFAULT_ADDRESS_BECH_32_PREFIX);
+    if (!found) assertIsValidAddress(address, prefix);
 
     return {
       name: found?.name || '',
