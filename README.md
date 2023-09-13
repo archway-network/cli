@@ -72,12 +72,15 @@ accounts balances send [options]   Send tokens from an address or account to ano
 accounts balances [options]        Manage the token balance of an account
 
 config init [options]              Initializes a config file for the current project
-config show [options]              Displays the config file for the current project
+config show [options]              Displays the config values for the current project
 config deployments [options]       Displays the list of deployments, allows filtering by chain, action and contract
-config chains use [options]        Switches the current chain in use and updates the archway-cli.json config file appropriately
-config chains export [options]     Exports a built-in chain registry file to {project-root}/.archway-cli/chains/{chain-id}.json
-config chains import [options]     Import a chain registry file and save it to {project-root}/.archway-cli/chains/{chain-id}.json
-config chains [options]            Chain management commands, the chain files follow the Cosmos chain registry schema
+config chains use [options]        Switches the current chain in use and updates the config file appropriately
+config chains import [options]     Import a chain registry file and save it to the global configuration
+config chain-id [options]          Query or update the 'chain-id' in the config file (local or global)
+config contracts-path [options]    Query or update the 'contracts-path' in the config file (local or global)
+config default-account [options]   Query or update the 'default-account' in the config file (local or global)
+config keyring-backend [options]   Query or update the 'keyring-backend' in the config file (local or global)
+config keyring-path [options]      Query or update the 'keyring-path' in the config file (local or global)
 
 contracts new [options]            Scaffolds a new Wasm smart contract from a template
 contracts build [options]          Builds the smart contracts optimized Wasm file along with its schemas
@@ -89,7 +92,6 @@ contracts execute [options]        Executes a transaction in a smart contract
 contracts migrate [options]        Runs a smart contract migration
 contracts query balance [options]  Access the bank module to query the balance of smart contracts
 contracts query smart [options]    Queries a single smart contract
-contracts query [options]          Display help for the contracts query command
 
 rewards query [options]            Queries the outstanding rewards for a specific account or address
 rewards withdraw [options]         Withdraws rewards for a specific account
