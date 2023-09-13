@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { DEFAULT_ARCHWAY_DIRECTORY, DEPLOYMENTS_FILE_EXTENSION, Deployments, DeploymentsByChain } from '../../src/domain';
+import { DEPLOYMENTS_FILE_EXTENSION, Deployments, DeploymentsByChain, LOCAL_CONFIG_PATH } from '../../src/domain';
 import { chainNames } from './chainRegistry';
 
 import { DeploymentAction } from '../../src/types';
@@ -81,15 +81,15 @@ export const deploymentString = JSON.stringify(deploymentFile);
 export const deploymentsInstance = new Deployments(
   [
     DeploymentsByChain.make(
-      DEFAULT_ARCHWAY_DIRECTORY,
+      LOCAL_CONFIG_PATH,
       path.basename(chainNames[0], DEPLOYMENTS_FILE_EXTENSION),
       deploymentFile.deployments
     ),
   ],
-  DEFAULT_ARCHWAY_DIRECTORY
+  LOCAL_CONFIG_PATH
 );
 
 export const deploymentsEmptyInstance = new Deployments(
-  [DeploymentsByChain.make(DEFAULT_ARCHWAY_DIRECTORY, path.basename(chainNames[0], DEPLOYMENTS_FILE_EXTENSION), [])],
-  DEFAULT_ARCHWAY_DIRECTORY
+  [DeploymentsByChain.make(LOCAL_CONFIG_PATH, path.basename(chainNames[0], DEPLOYMENTS_FILE_EXTENSION), [])],
+  LOCAL_CONFIG_PATH
 );

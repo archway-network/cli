@@ -7,9 +7,9 @@ import { FileBackend } from './file';
 import { OsBackend } from './os';
 import { TestBackend } from './test';
 
-const ENTRY_TAG_SEPARATOR = '$';
-const ENTRY_TAG_SUFFIX = 'account';
-const ENTRY_TAG_ENCODING: BufferEncoding = 'base64';
+export const ENTRY_TAG_SEPARATOR = '$';
+export const ENTRY_TAG_SUFFIX = 'account';
+export const ENTRY_TAG_ENCODING: BufferEncoding = 'base64';
 
 /**
  * Params to be used when creating an instance of the Accounts domain that will be used in the keyring
@@ -53,7 +53,7 @@ export class Keystore {
   public async save(account: Account): Promise<Account> {
     assertIsValidAccount(account, account.name);
 
-    const tag = this.toEntryTag(account);
+    const tag = toEntryTag(account);
     const data = JSON.stringify(account);
     const options = await this.buildKeystoreActionOptions(account.name);
 
@@ -138,7 +138,7 @@ export class Keystore {
     const tags = this.backend.list();
     const accountsWithTags: Array<[string, AccountBase] | null> = tags.map(tag => {
       try {
-        const account = this.fromEntryTag(tag);
+        const account = fromEntryTag(tag);
         return [tag, account];
       } catch (error: Error | any) {
         // Ignore invalid tags
@@ -192,45 +192,6 @@ export class Keystore {
     this.backend.remove(tag);
   }
 
-  /**
-   * Create an account's keyring entry tag based on the name and address
-   *
-   * @param account - Account to be used in the tag
-   * @returns Tag with hex encoded name and address
-   */
-  private toEntryTag({ type, name, address }: AccountBase): string {
-    const tag = [name, address, type].join(ENTRY_TAG_SEPARATOR);
-    const hexEncodedTag = Buffer.from(tag).toString(ENTRY_TAG_ENCODING);
-    return `${hexEncodedTag}.${ENTRY_TAG_SUFFIX}`;
-  }
-
-  /**
-   * Create an account's keyring entry tag based on the name and address
-   *
-   * @param account - Account to be used in the tag
-   * @returns Tag with hex encoded name and address
-   * @throws InvalidFormatError if the tag is not in the correct format
-   */
-  private fromEntryTag(tag: string): AccountBase {
-    const ENTRY_TAG_REGEX = new RegExp(`^[a-zA-Z0-9+/]+={0,2}\\.${ENTRY_TAG_SUFFIX}$`);
-    if (!ENTRY_TAG_REGEX.test(tag)) {
-      throw new InvalidFormatError(`Tag ${tag}`);
-    }
-
-    const [encodedTag] = tag.split('.');
-    const decoded = Buffer.from(encodedTag, ENTRY_TAG_ENCODING).toString();
-    const [name, address, type] = decoded.split(ENTRY_TAG_SEPARATOR);
-
-    const account = {
-      name,
-      type: type as AccountType,
-      address
-    };
-    assertIsValidAccountBase(account, account.name);
-
-    return account;
-  }
-
   private async buildKeystoreActionOptions(nameOrAddress: string): Promise<KeystoreActionOptions | undefined> {
     if (this.backend.type === KeystoreBackendType.file) {
       const password = await this.promptPassword(nameOrAddress);
@@ -248,4 +209,43 @@ export class Keystore {
     const promptedPassword = await Prompts.accountPassword(nameOrAddress);
     return promptedPassword || '';
   }
+}
+
+/**
+ * Create an account's keyring entry tag based on the name and address
+ *
+ * @param account - Account to be used in the tag
+ * @returns Tag with hex encoded name and address
+ */
+export function toEntryTag({ type, name, address }: AccountBase): string {
+  const tag = [name, address, type].join(ENTRY_TAG_SEPARATOR);
+  const hexEncodedTag = Buffer.from(tag).toString(ENTRY_TAG_ENCODING);
+  return `${hexEncodedTag}.${ENTRY_TAG_SUFFIX}`;
+}
+
+/**
+ * Create an account's keyring entry tag based on the name and address
+ *
+ * @param account - Account to be used in the tag
+ * @returns Tag with hex encoded name and address
+ * @throws InvalidFormatError if the tag is not in the correct format
+ */
+export function fromEntryTag(tag: string): AccountBase {
+  const ENTRY_TAG_REGEX = new RegExp(`^[a-zA-Z0-9+/]+={0,2}\\.${ENTRY_TAG_SUFFIX}$`);
+  if (!ENTRY_TAG_REGEX.test(tag)) {
+    throw new InvalidFormatError(`Tag ${tag}`);
+  }
+
+  const [encodedTag] = tag.split('.');
+  const decoded = Buffer.from(encodedTag, ENTRY_TAG_ENCODING).toString();
+  const [name, address, type] = decoded.split(ENTRY_TAG_SEPARATOR);
+
+  const account = {
+    name,
+    type: type as AccountType,
+    address
+  };
+  assertIsValidAccountBase(account, account.name);
+
+  return account;
 }

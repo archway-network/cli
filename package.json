@@ -106,6 +106,7 @@
     "@types/chai": "^4.3.4",
     "@types/debug": "^4.1.7",
     "@types/dockerode": "^3.3.16",
+    "@types/elliptic": "^6.4.14",
     "@types/expect": "^24.3.0",
     "@types/ledgerhq__hw-transport": "^4.21.4",
     "@types/lodash": "^4.14.196",
@@ -115,6 +116,7 @@
     "@types/prompts": "^2.4.4",
     "@types/semver": "^7.5.0",
     "chai": "^4.3.7",
+    "elliptic": "^6.5.4",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^4.0.0",
     "eslint-config-oclif-typescript": "^1.0.3",
@@ -135,7 +137,11 @@
     "typescript": "^5.0.4"
   },
   "oclif": {
-    "additionalVersionFlags": ["version", "v", "-v"],
+    "additionalVersionFlags": [
+      "version",
+      "v",
+      "-v"
+    ],
     "bin": "archway",
     "dirname": "archway",
     "commands": "./dist/commands",

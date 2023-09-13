@@ -1,6 +1,6 @@
 import { expect, test } from '@oclif/test';
 
-import { aliceAddress, aliceAccountName, alicePublicKey } from '../../dummies';
+import { aliceAccountName, aliceAddress, alicePublicKey } from '../../dummies';
 import { AccountsStubs } from '../../stubs';
 
 describe('accounts get', () => {
@@ -19,7 +19,7 @@ describe('accounts get', () => {
     .it('displays the account info', ctx => {
       expect(ctx.stdout).to.contain(aliceAccountName);
       expect(ctx.stdout).to.contain(aliceAddress);
-      expect(ctx.stdout).to.contain(alicePublicKey['@type']);
+      expect(ctx.stdout).to.contain(alicePublicKey.algo);
       expect(ctx.stdout).to.contain(alicePublicKey.key);
     });
 
@@ -29,7 +29,7 @@ describe('accounts get', () => {
     .it('displays the address only', ctx => {
       expect(ctx.stdout).to.not.contain(aliceAccountName);
       expect(ctx.stdout).to.contain(aliceAddress);
-      expect(ctx.stdout).to.not.contain(alicePublicKey['@type']);
+      expect(ctx.stdout).to.not.contain(alicePublicKey.algo);
       expect(ctx.stdout).to.not.contain(alicePublicKey.key);
     });
 
