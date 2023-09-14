@@ -74,7 +74,7 @@ function useLocalChain() {
 
 function createAlice() {
   echo "Recreating Alice Account"
-  archway accounts remove ${ALICE} --force --keyring-backend test >/dev/null 2>&1 || true
+  archway accounts remove ${ALICE} --no-confirm --keyring-backend test >/dev/null 2>&1 || true
   echo "$ALICE_MNEMONIC" | archway accounts new ${ALICE} --recover --keyring-backend test --json
 }
 

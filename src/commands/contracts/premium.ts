@@ -15,7 +15,7 @@ import { Account, Contract, DeploymentAction, InstantiateDeployment, PremiumDepl
  * Sets the smart contract premium flat fee
  */
 export default class ContractsPremium extends BaseCommand<typeof ContractsPremium> {
-  static summary = 'Sets the smart contract\'s premium flat fee. It is required to set the metadata of your contract before you can set a premium.';
+  static summary = 'Sets the smart contract\'s premium flat fee. The contract must have the rewards metadata already configured';
   static args = {
     contract: ContractNameRequiredArg,
   };

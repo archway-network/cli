@@ -1,7 +1,7 @@
 import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { AccountRequiredArg } from '@/parameters/arguments';
-import { ForceFlag, KeyringFlags } from '@/parameters/flags';
+import { KeyringFlags, NoConfirmFlag } from '@/parameters/flags';
 import { askForConfirmation, bold, green, yellow } from '@/utils';
 
 import { AccountBase } from '@/types';
@@ -17,7 +17,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
   };
 
   static flags = {
-    force: ForceFlag,
+    'no-confirm': NoConfirmFlag,
     ...KeyringFlags,
   };
 
@@ -28,7 +28,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
     },
     {
       description: 'Remove an account without confirmation prompt',
-      command: '<%= config.bin %> <%= command.id %> alice --force',
+      command: '<%= config.bin %> <%= command.id %> alice --no-confirm',
     },
   ];
 
@@ -50,7 +50,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
       );
     }
 
-    await askForConfirmation(this.flags.force);
+    await askForConfirmation(this.flags['no-confirm']);
 
     await accountsDomain.remove(accountInfo.address);
 

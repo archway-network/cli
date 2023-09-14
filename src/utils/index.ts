@@ -33,7 +33,7 @@ export function mergeCustomizer(arrayMergeMode = MergeMode.OVERWRITE): any {
 /**
  * Util function to ask for confirmation
  *
- * @param force - Optional - skips the confirmation prompt
+ * @param skipConfirmation - Optional - Skips the confirmation prompt
  */
 export async function askForConfirmation(force = false): Promise<void> {
   if (force) {

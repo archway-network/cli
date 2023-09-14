@@ -8,7 +8,7 @@ import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { Accounts, Config, DEFAULT_ADDRESS_BECH_32_PREFIX } from '@/domain';
 import { askForConfirmation, buildStdFee, blueBright, white, yellow, greenBright, assertIsValidAddress } from '@/utils';
-import { ForceFlag, KeyringFlags, TransactionFlags } from '@/parameters/flags';
+import { KeyringFlags, NoConfirmFlag, TransactionFlags } from '@/parameters/flags';
 import { showDisappearingSpinner } from '@/ui';
 
 import { Account, InstantiatePermission, DeploymentAction, StoreDeployment, Contract } from '@/types';
@@ -34,7 +34,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       description:
         'List of addresses that can instantiate a contract from the code; works only if the instantiate permission is set to "any-of"',
     })(),
-    force: ForceFlag,
+    'no-confirm': NoConfirmFlag,
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -46,7 +46,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
     },
     {
       description: 'Store a contract on-chain, without confirmation prompt',
-      command: '<%= config.bin %> <%= command.id %> my-project --force',
+      command: '<%= config.bin %> <%= command.id %> my-project --no-confirm',
     },
     {
       description: 'Store a contract on-chain, with list of addresses allowed to instantiate',
@@ -80,7 +80,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
           )} has already been deployed to ${white.reset(config.chainId)}`
         )
       );
-      await askForConfirmation(this.flags.force);
+      await askForConfirmation(this.flags['no-confirm']);
     }
 
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);
