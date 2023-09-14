@@ -49,6 +49,10 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
    * @returns Empty promise
    */
   public async run(): Promise<void> {
+    if (!this.flags['owner-address'] && !this.flags['rewards-address']) {
+      throw new NotFoundError('Metadata values in flags "owner-address" and "rewards-address');
+    }
+
     const config = await Config.init();
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 

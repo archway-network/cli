@@ -55,4 +55,11 @@ describe('contracts metadata', () => {
     .command(['contracts metadata', 'thisDoesntExist', `--rewards-address=${aliceAddress}`, `--from=${aliceAccountName}`])
     .catch(/(Contract).*(not found)/)
     .it('fails on invalid contract');
+
+  test
+    .stdout()
+    .stderr()
+    .command(['contracts metadata', contractName, `--from=${aliceAccountName}`])
+    .catch(/(Metadata).*(not found)/)
+    .it('fails on new values missing');
 });
