@@ -110,10 +110,9 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       return undefined;
     }
 
-    debug('Original error message: ', err.message);
-    err.message = `${ERROR_PREFIX} ${err instanceof ConsoleError ? err.toConsoleString() : redBright((err as any)?.stderr || err.message)}`;
+    debug('original error:', err);
 
-    return super.catch(err);
+    return super.catch(this.decorateError(err));
   }
 
   /**
@@ -135,4 +134,27 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * Optional success message function
    */
   protected successMessage?(...args: any[]): Promise<void>;
+
+  private decorateError(err: Error): Error {
+    if (this.jsonEnabled()) {
+      err.message = err instanceof ConsoleError ? err.toConsoleString() : (err as any)?.stderr || err.message;
+    } else {
+      const message = err instanceof ConsoleError ? err.toConsoleString() : redBright((err as any)?.stderr || err.message);
+      err.message = `${ERROR_PREFIX} ${message}`;
+    }
+
+    return err;
+  }
+
+  protected toErrorJson(err: unknown): any {
+    if (err instanceof ConsoleError || (err as any)?.stderr) {
+      return { error: err };
+    }
+
+    return {
+      error: {
+        message: (err as any).message
+      }
+    };
+  }
 }
