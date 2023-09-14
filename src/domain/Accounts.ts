@@ -283,6 +283,6 @@ export class Accounts {
       assertIsValidAddress(address, prefix);
     }
 
-    return _.merge(account, { type: AccountType.LOCAL, name: address, address });
+    return _.merge({ type: AccountType.LOCAL, name: address, address }, account);
   }
 }
