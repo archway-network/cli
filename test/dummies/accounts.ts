@@ -35,24 +35,30 @@ function createTestAccount(name: string): LocalAccount & { mnemonic: string; } {
 }
 
 export const aliceAccountName = 'Alice';
-export const aliceAccountInstance = createTestAccount(aliceAccountName);
+export const {
+  mnemonic: aliceMnemonic,
+  ...aliceAccountInstance
+} = createTestAccount(aliceAccountName);
+
 export const {
   type: aliceAccountType,
   address: aliceAddress,
   publicKey: alicePublicKey,
-  mnemonic: aliceMnemonic,
 } = aliceAccountInstance;
 
 export const aliceStoreEntry = toEntryTag(aliceAccountInstance);
 export const aliceStoredAccount = JSON.stringify(aliceAccountInstance);
 
 export const bobAccountName = 'Bob';
-export const bobAccountInstance = createTestAccount(bobAccountName);
+export const {
+  mnemonic: bobMnemonic,
+  ...bobAccountInstance
+} = createTestAccount(bobAccountName);
+
 export const {
   type: bobAccountType,
   address: bobAddress,
   publicKey: bobPublicKey,
-  mnemonic: bobMnemonic,
 } = bobAccountInstance;
 
 export const bobStoreEntry = toEntryTag(bobAccountInstance);
