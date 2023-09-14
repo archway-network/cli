@@ -25,6 +25,17 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
     ...TransactionFlags,
   };
 
+  static examples = [
+    {
+      description: 'Send tokens to an address',
+      command: '<%= config.bin %> <%= command.id %> 1aconst --to "archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz"',
+    },
+    {
+      description: 'Send tokens to an address from a specific account',
+      command: '<%= config.bin %> <%= command.id %> 1aconst --to "archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz" --from "alice"',
+    },
+  ];
+
   /**
    * Runs the command.
    *

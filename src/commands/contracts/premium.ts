@@ -15,7 +15,7 @@ import { Account, Contract, DeploymentAction, InstantiateDeployment, PremiumDepl
  * Sets the smart contract premium flat fee
  */
 export default class ContractsPremium extends BaseCommand<typeof ContractsPremium> {
-  static summary = 'Sets the smart contract premium flat fee';
+  static summary = 'Sets the smart contract\'s premium flat fee. It is required to set the metadata of your contract before you can set a premium.';
   static args = {
     contract: ContractNameRequiredArg,
   };
@@ -25,6 +25,21 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
     ...KeyringFlags,
     ...TransactionFlags,
   };
+
+  static examples = [
+    {
+      description: 'Set the premium flat fee, by contract name',
+      command: '<%= config.bin %> <%= command.id %> my-contract --premium-fee "1aconst"',
+    },
+    {
+      description: 'Set the premium flat fee, by address',
+      command: '<%= config.bin %> <%= command.id %> archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz --premium-fee "1aconst"',
+    },
+    {
+      description: 'Set the premium flat fee, from a specific account',
+      command: '<%= config.bin %> <%= command.id %> my-contract --premium-fee "1aconst" --from "alice"',
+    },
+  ];
 
   /**
    * Runs the command.

@@ -25,6 +25,17 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     }),
   };
 
+  static examples = [
+    {
+      description: 'Query the balance of a contract',
+      command: '<%= config.bin %> <%= command.id %> my-contract',
+    },
+    {
+      description: 'Query the balance of all contracts in the project',
+      command: '<%= config.bin %> <%= command.id %> --all',
+    },
+  ];
+
   /**
    * Runs the command.
    *

@@ -8,6 +8,13 @@ import { Config } from '@/domain';
 export default class ConfigShow extends BaseCommand<typeof ConfigShow> {
   static summary = 'Displays the config values for the current project';
 
+  static examples = [
+    {
+      description: 'Display the config for the current project',
+      command: '<%= config.bin %> <%= command.id %>'
+    },
+  ];
+
   /**
    * Runs the command.
    *

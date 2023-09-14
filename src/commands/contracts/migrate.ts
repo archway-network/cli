@@ -5,7 +5,7 @@ import fs from 'node:fs/promises';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright, isValidAddress } from '@/utils';
+import { buildStdFee, blueBright, greenBright, isValidAddress, dim } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
@@ -26,12 +26,35 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
   static flags = {
     ...KeyringFlags,
     ...TransactionFlags,
-    code: Flags.integer({ description: 'New code stored', required: true }),
+    code: Flags.integer({ description: 'Code id of the new version that will be migrated to', required: true }),
     args: Flags.string({
       description: 'JSON string with a message to be passed to the contract on migration',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a message to be passed to the contract on migration' }),
   };
+
+  static examples = [
+    {
+      description: 'Migrate a contract by contract name, with empty migrate message',
+      command: '<%= config.bin %> <%= command.id %> my-contract --code 21',
+    },
+    {
+      description: 'Migrate a contract, from a specific account',
+      command: '<%= config.bin %> <%= command.id %> my-contract --code 21 --from "alice"',
+    },
+    {
+      description: 'Migrate a contract, with message from --args flag',
+      command: '<%= config.bin %> <%= command.id %> my-contract --code 21 --args \'{"example":{}}\'',
+    },
+    {
+      description: 'Migrate a contract, with message from file',
+      command: '<%= config.bin %> <%= command.id %> my-contract --code 21 --args-file="./migrateMsg.json"',
+    },
+    {
+      description: 'Instantiate a contract, with message from stdin',
+      command: dim('$ echo \'{"example":{}}\' | <%= config.bin %> <%= command.id %> my-contract --code 21'),
+    },
+  ];
 
   /**
    * Runs the command.

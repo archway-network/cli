@@ -7,6 +7,7 @@ import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/argum
 import { Config } from '@/domain';
 import { showDisappearingSpinner } from '@/ui';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
+import { dim } from '@/utils';
 
 /**
  * Command 'contracts query smart'
@@ -25,6 +26,25 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a query for the smart contract' }),
   };
+
+  static examples = [
+    {
+      description: 'Query a smart contract by contract name in the project, with query message in the --args flag',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args \'{"example":{}}\'',
+    },
+    {
+      description: 'Query a smart contract by address, with query message in the --args flag',
+      command: '<%= config.bin %> <%= command.id %> archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm --args \'{"example":{}}\'',
+    },
+    {
+      description: 'Query a smart contract, with query message from file',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args-file "./queryMsg.json"',
+    },
+    {
+      description: 'Query a smart contract, with query message from stdin',
+      command: dim('$ echo \'{"example":{}}\' | <%= config.bin %> <%= command.id %> my-contract'),
+    },
+  ];
 
   /**
    * Runs the command.

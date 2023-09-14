@@ -2,7 +2,7 @@ import { BaseCommand } from '@/lib/base';
 import { ContractNameOptionalArg } from '@/parameters/arguments';
 import { TemplateOptionalFlag } from '@/parameters/flags';
 import { Config } from '@/domain';
-import { green, greenBright } from '@/utils';
+import { dim, green, greenBright } from '@/utils';
 import { Prompts } from '@/services';
 
 /**
@@ -18,6 +18,25 @@ export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
   static flags = {
     template: TemplateOptionalFlag,
   };
+
+  static examples = [
+    {
+      description: 'Create a new contract in the current project',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Create a new contract in the current project, with contract name',
+      command: '<%= config.bin %> <%= command.id %> --contract-name "other-contract"',
+    },
+    {
+      description: 'Create a new contract, with cw-20 template',
+      command: '<%= config.bin %> <%= command.id %> --contract-name="other-contract" --template="cw-20/base"',
+    },
+    {
+      description: 'Create a new contract, with increment template',
+      command: dim('$ CARGO_GENERATE_VALUE_VERSION=full <%= config.bin %> <%= command.id %> --contract-name="other-contract" --template="increment"'),
+    },
+  ];
 
   /**
    * Runs the command.

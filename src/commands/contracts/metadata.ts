@@ -28,6 +28,21 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
     ...TransactionFlags,
   };
 
+  static examples = [
+    {
+      description: 'Set the rewards metadata, by contract name',
+      command: '<%= config.bin %> <%= command.id %> my-contract --owner-address "archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm" --rewards-address="archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm"',
+    },
+    {
+      description: 'Set the rewards metadata, by address',
+      command: '<%= config.bin %> <%= command.id %> archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz --owner-address "archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm" --rewards-address="archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm"',
+    },
+    {
+      description: 'Set the rewards metadata, from a specific account',
+      command: '<%= config.bin %> <%= command.id %> my-contract --owner-address "archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm" --rewards-address="archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm" --from "alice"',
+    },
+  ];
+
   /**
    * Runs the command.
    *

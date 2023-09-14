@@ -14,6 +14,13 @@ export default class AccountsList extends BaseCommand<typeof AccountsList> {
     ...KeyringFlags,
   };
 
+  static examples = [
+    {
+      description: 'List all accounts',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+  ];
+
   /**
    * Runs the command.
    *

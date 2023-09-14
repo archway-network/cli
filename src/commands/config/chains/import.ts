@@ -2,7 +2,7 @@ import { Args } from '@oclif/core';
 import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
-import { bold, greenBright, redBright } from '@/utils';
+import { bold, dim, greenBright, redBright } from '@/utils';
 import { ChainRegistry } from '@/domain';
 import { ErrorCodes } from '@/exceptions';
 import { StdinInputArg } from '@/parameters/arguments';
@@ -21,6 +21,17 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
     stdinInput: StdinInputArg,
   };
 
+  static examples = [
+    {
+      description: 'Import a chain from a spec file',
+      command: '<%= config.bin %> <%= command.id %> --file "other-chain.json"',
+    },
+    {
+      description: 'Import a chain from stdin',
+      command: dim('$ cat other-chain.json | <%= config.bin %> <%= command.id %>'),
+    },
+  ];
+
   /**
    * Runs the command.
    *
@@ -34,9 +45,7 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
     }
 
     // If it is piped, parse the received content, otherwise try to open file
-    const chainInfo: CosmosChain = this.args.stdinInput ?
-      JSON.parse(this.args.stdinInput || '') :
-      JSON.parse(await fs.readFile(this.args.file as string, 'utf-8'));
+    const chainInfo: CosmosChain = JSON.parse(this.args.stdinInput || (await fs.readFile(this.args.file as string, 'utf-8')));
 
     const chainRegistry = await ChainRegistry.init();
 

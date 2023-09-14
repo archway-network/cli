@@ -18,6 +18,25 @@ export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployme
     contract: Flags.string({ aliases: ['c'], description: 'Contract name to filter by' }),
   };
 
+  static examples = [
+    {
+      description: 'Query all the deployments in the project',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Filter deployments by chain id',
+      command: '<%= config.bin %> <%= command.id %> --chain "constantine-3"',
+    },
+    {
+      description: 'Filter deployments by action',
+      command: '<%= config.bin %> <%= command.id %> --action "store"',
+    },
+    {
+      description: 'Filter deployments by contract name',
+      command: '<%= config.bin %> <%= command.id %> --contract "my-contract"',
+    },
+  ];
+
   /**
    * Runs the command.
    *

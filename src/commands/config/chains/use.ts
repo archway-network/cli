@@ -16,7 +16,18 @@ export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse>
 
   static flags = {
     global: GlobalFlag
-  }
+  };
+
+  static examples = [
+    {
+      description: 'Select a chain for the local config',
+      command: '<%= config.bin %> <%= command.id %> constantine-3',
+    },
+    {
+      description: 'Select a chain for the global config',
+      command: '<%= config.bin %> <%= command.id %> constantine-3 --global',
+    },
+  ];
 
   /**
    * Runs the command.

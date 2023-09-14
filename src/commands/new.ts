@@ -5,7 +5,7 @@ import { BaseCommand } from '@/lib/base';
 import { ChainOptionalFlag } from '@/parameters/flags';
 import { Prompts } from '@/services';
 import { NewProject as NewProjectDomain, ProjectType } from '@/domain';
-import { green, greenBright, sanitizeDirName } from '@/utils';
+import { dim, green, greenBright, sanitizeDirName } from '@/utils';
 
 /**
  * Command 'new'
@@ -26,6 +26,33 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
     'contract-name': Flags.string({ description: 'Name of the contract' }),
     template: Flags.string({ description: 'Template of the contract to be created with your project' }),
   };
+
+  static examples = [
+    {
+      description: 'Create a new project',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Create a new project, with project name',
+      command: '<%= config.bin %> <%= command.id %> my-project',
+    },
+    {
+      description: 'Create a new project, with chain id',
+      command: '<%= config.bin %> <%= command.id %> my-project --chain="constantine-3"',
+    },
+    {
+      description: 'Create a new project, with contract name',
+      command: '<%= config.bin %> <%= command.id %> my-project --contract-name="my-contract"',
+    },
+    {
+      description: 'Create a new project, with cw-20 template',
+      command: '<%= config.bin %> <%= command.id %> my-project --chain="constantine-3" --contract-name="my-contract" --template="cw-20/base"',
+    },
+    {
+      description: 'Create a new project, with increment template',
+      command: dim('$ CARGO_GENERATE_VALUE_VERSION=full <%= config.bin %> <%= command.id %> my-project --chain="constantine-3" --contract-name="my-contract" --template="increment"'),
+    },
+  ];
 
   /**
    * Runs the command.

@@ -14,6 +14,17 @@ export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
     chain: ChainOptionalFlag,
   };
 
+  static examples = [
+    {
+      description: 'Initialize a config file',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Initialize a config file with a chain id',
+      command: '<%= config.bin %> <%= command.id %> --chain="constantine-3"',
+    },
+  ];
+
   /**
    * Runs the command.
    *

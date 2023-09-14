@@ -23,6 +23,25 @@ export default class ConfigDefaultAccount extends BaseCommand<typeof ConfigDefau
     global: GlobalFlag,
   };
 
+  static examples = [
+    {
+      description: 'Query the default account for txs in the local config',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Update the default account for txs in the local config',
+      command: '<%= config.bin %> <%= command.id %> ALICE',
+    },
+    {
+      description: 'Query the default account for txs in the global config',
+      command: '<%= config.bin %> <%= command.id %> --global',
+    },
+    {
+      description: 'Update the default account for txs in the global config',
+      command: '<%= config.bin %> <%= command.id %> ALICE --global',
+    },
+  ];
+
   /**
    * Runs the command.
    *

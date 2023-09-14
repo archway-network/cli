@@ -20,6 +20,17 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
     ...TransactionFlags,
   };
 
+  static examples = [
+    {
+      description: 'Withdraw the rewards for an account, by name',
+      command: '<%= config.bin %> <%= command.id %> --from "alice"',
+    },
+    {
+      description: 'Query the outstanding rewards for an account, by address',
+      command: '<%= config.bin %> <%= command.id %> --from "archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm"',
+    },
+  ];
+
   /**
    * Runs the command.
    *

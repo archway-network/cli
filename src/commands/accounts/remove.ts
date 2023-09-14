@@ -21,6 +21,17 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
     ...KeyringFlags,
   };
 
+  static examples = [
+    {
+      description: 'Remove an account',
+      command: '<%= config.bin %> <%= command.id %> alice',
+    },
+    {
+      description: 'Remove an account without confirmation prompt',
+      command: '<%= config.bin %> <%= command.id %> alice --force',
+    },
+  ];
+
   /**
    * Runs the command.
    *

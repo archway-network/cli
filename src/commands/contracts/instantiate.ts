@@ -8,7 +8,7 @@ import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameOptionalArg, StdinInputArg } from '@/parameters/arguments';
 import { KeyringFlags, ParamsAmountOptionalFlag, TransactionFlags } from '@/parameters/flags';
 import { showDisappearingSpinner } from '@/ui';
-import { blueBright, buildStdFee, greenBright } from '@/utils';
+import { blueBright, buildStdFee, dim, greenBright } from '@/utils';
 
 import { Account, Amount, Contract, DeploymentAction, InstantiateDeployment } from '@/types';
 
@@ -33,13 +33,51 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       description: 'Funds to send to the contract during instantiation',
     })(),
     args: Flags.string({
-      required: true,
       description: 'JSON string with a valid instantiate schema for the contract',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a valid instantiate schema for the contract' }),
     ...KeyringFlags,
     ...TransactionFlags,
   };
+
+  static examples = [
+    {
+      description: 'Instantiate a contract by contract name, with message from --args flag',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args \'{"example":{}}\'',
+    },
+    {
+      description: 'Instantiate a contract by code id, with message from --args flag',
+      command: '<%= config.bin %> <%= command.id %> --code 10 --args \'{"example":{}}\'',
+    },
+    {
+      description: 'Instantiate a contract, from a specific account',
+      command: '<%= config.bin %> <%= command.id %> my-contract --from "alice"',
+    },
+    {
+      description: 'Instantiate a contract, with a custom label',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args \'{"example":{}}\' --label "my-contract-v1.0.0"',
+    },
+    {
+      description: 'Instantiate a contract, sending tokens with the transaction',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args \'{"example":{}}\' --amount "1const"',
+    },
+    {
+      description: 'Instantiate a contract, with admin account different than the sender',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args \'{"example":{}}\' --admin "archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz"',
+    },
+    {
+      description: 'Instantiate a contract, with no admin',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args \'{"example":{}}\' --no-admin',
+    },
+    {
+      description: 'Instantiate a contract, with message from file',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args-file="./instMsg.json"',
+    },
+    {
+      description: 'Instantiate a contract, with query message from stdin',
+      command: dim('$ echo \'{"example":{}}\' | <%= config.bin %> <%= command.id %> my-contract'),
+    },
+  ];
 
   /**
    * Runs the command.

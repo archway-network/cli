@@ -26,6 +26,25 @@ export default class ConfigKeyringBackend extends BaseCommand<typeof ConfigKeyri
     global: GlobalFlag,
   };
 
+  static examples = [
+    {
+      description: 'Query the keyring backend in the local config',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Update the keyring backend in the local config',
+      command: '<%= config.bin %> <%= command.id %> file',
+    },
+    {
+      description: 'Query the keyring backend in the global config',
+      command: '<%= config.bin %> <%= command.id %> --global',
+    },
+    {
+      description: 'Update the keyring backend in the global config',
+      command: '<%= config.bin %> <%= command.id %> file --global',
+    },
+  ];
+
   /**
    * Runs the command.
    *

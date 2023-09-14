@@ -39,6 +39,25 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
     ...TransactionFlags,
   };
 
+  static examples = [
+    {
+      description: 'Store a contract on-chain',
+      command: '<%= config.bin %> <%= command.id %> my-contract',
+    },
+    {
+      description: 'Store a contract on-chain, without confirmation prompt',
+      command: '<%= config.bin %> <%= command.id %> my-project --force',
+    },
+    {
+      description: 'Store a contract on-chain, with list of addresses allowed to instantiate',
+      command: '<%= config.bin %> <%= command.id %> my-project --instantiate-permission "any-of" --allowed-addresses "archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm,archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz"',
+    },
+    {
+      description: 'Store a contract on-chain, with nobody allowed to instantiate',
+      command: '<%= config.bin %> <%= command.id %> my-project --instantiate-permission "no-one"',
+    },
+  ];
+
   /**
    * Runs the command.
    *
