@@ -57,7 +57,7 @@
     "prepack": "yarn build && oclif manifest && oclif readme",
     "test": "mocha --forbid-only \"test/**/*.test.ts\"",
     "test:coverage": "nyc --reporter=text mocha --forbid-only \"test/**/*.test.ts\"",
-    "test:integration": "yarn build && scripts/start-local-node.sh && bash test/integration/config.sh && bash test/integration/accounts.sh && bash test/integration/contractsAndRewards.sh",
+    "test:integration": "./test/integration/all.sh",
     "version": "oclif readme && git add README.md",
     "prepare": "husky install"
   },

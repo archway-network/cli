@@ -6,19 +6,27 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-PROJECT_NAME="temp-config"
-TEMP_DIR="$(pwd)/${PROJECT_NAME}"
+PROJECT_NAME="test-config"
+TEMP_DIR="$(mktemp -d -t "$PROJECT_NAME")"
 
 source "${SCRIPT_DIR}/../../.env"
 source "${SCRIPT_DIR}/utils.sh"
 
+function cleanup_test_suite() {
+  echo "Cleaning up the created files"
+  cd "$SCRIPT_DIR"
+  rm -rf "$TEMP_DIR"
+
+}
+
+trap cleanup_test_suite EXIT
 trap cleanup ERR
 
 CHAIN_ID=constantine-3
 
-rm -rf "$TEMP_DIR"
+echo "Initializing project in $TEMP_DIR"
 git init "$TEMP_DIR"
-cd "$PROJECT_NAME"
+cd "$TEMP_DIR"
 
 echo "***** config init *****"
 output="$(archway config init --chain $CHAIN_ID --json)"
@@ -43,7 +51,3 @@ validate "$output" '.["chain-id"] == "integration-test-1"'
 
 echo
 ok SUCCESS
-echo "Cleaning up the created files"
-
-cd ..
-rm -rf "$TEMP_DIR"

@@ -6,15 +6,30 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-PROJECT_NAME="temp-contracts"
-TEMP_DIR="$(pwd)/${PROJECT_NAME}"
+PROJECT_NAME="test-contracts"
+TEMP_DIR="$(mktemp -d -t "$PROJECT_NAME")"
+
+# moves the temp dir to ~/tmp to avoid permission issues on macOS
+mkdir -p ~/.tmp
+NEW_TEMP_DIR="$HOME/.tmp/$(basename "$TEMP_DIR")"
+mv "$TEMP_DIR" "$NEW_TEMP_DIR"
+TEMP_DIR="$NEW_TEMP_DIR"
+
+PROJECT_DIR="$TEMP_DIR/$PROJECT_NAME"
+
+cd "$TEMP_DIR"
 
 source "${SCRIPT_DIR}/../../.env"
 source "${SCRIPT_DIR}/utils.sh"
 
-trap cleanup ERR
+function cleanup_test_suite() {
+  echo "Cleaning up the created files"
+  cd "$SCRIPT_DIR"
+  rm -rf "$TEMP_DIR"
+}
 
-rm -rf "$TEMP_DIR"
+trap cleanup_test_suite EXIT
+trap cleanup ERR
 
 CONTRACT_FOO=foo
 CONTRACT_BAR=bar
@@ -23,17 +38,18 @@ echo "***** new *****"
 export CARGO_GENERATE_VALUE_VERSION=full
 output="$(archway new $PROJECT_NAME --chain constantine-3 --contract-name $CONTRACT_FOO --template increment --json)"
 validate "$output" ".[\"chain-id\"] == \"constantine-3\""
-cd $PROJECT_NAME
+fileExists "${PROJECT_DIR}/contracts/${CONTRACT_FOO}/src/contract.rs" "Contract template created" "Contract template not found"
+
+cd "$PROJECT_DIR"
 git init
-fileExists "${TEMP_DIR}/contracts/${CONTRACT_FOO}/src/contract.rs" "Contract template created" "Contract template not found"
 
 useLocalChain
 
 echo "***** contracts new *****"
 output="$(archway contracts new $CONTRACT_BAR --template increment --json)"
 validate "$output" ".template == \"increment\" and .name == \"${CONTRACT_BAR}\""
-fileExists "${TEMP_DIR}/contracts/${CONTRACT_BAR}/src/contract.rs" "Contract template created" "Contract template not found"
-rm -rf "${TEMP_DIR}/contracts/${CONTRACT_BAR}"
+fileExists "${PROJECT_DIR}/contracts/${CONTRACT_BAR}/src/contract.rs" "Contract template created" "Contract template not found"
+rm -rf "${PROJECT_DIR}/contracts/${CONTRACT_BAR}"
 
 printf "\n***** contracts build ***** \n"
 ### Build the optimized version of the contract
@@ -42,11 +58,11 @@ regex "$output" "Optimized Wasm binary saved"
 regex "$output" "Schemas generated"
 
 ### Alternative optimized: This line copies a prebuilt and preoptimized wasm file, use when you don't want to test the "build --optimize" command which is slow
-# cp -r "$(scriptRelativePath files/optimized/artifacts)" "$TEMP_DIR"
+# cp -r "$(scriptRelativePath files/optimized/artifacts)" "$PROJECT_DIR"
 
 # Needed on github workflow only (https://github.com/actions/runner/issues/434)
-if [ -n "${CI:-}"  ]; then
-  sudo chmod 777 "${TEMP_DIR}/artifacts" -R
+if [ -n "${CI:-}" ]; then
+  sudo chmod 777 "${PROJECT_DIR}/artifacts" -R
 fi
 
 ### Setup Alice account for transactions
@@ -56,7 +72,7 @@ ALICE_ADDRESS=$(getAliceAddress)
 printf "\n***** contracts store ***** \n"
 output="$(archway contracts store $CONTRACT_FOO --from $ALICE --keyring-backend test --json)"
 validate "$output" "has(\"codeId\") and has(\"transactionHash\")"
-CODE_ID=$(jq -r ".codeId"  <<<"${output}")
+CODE_ID=$(jq -r ".codeId" <<<"${output}")
 echo "Contract stored with codeId ${CODE_ID}"
 
 printf "\n***** contracts instantiate ***** \n"
@@ -69,9 +85,9 @@ echo "Contract instantiated into address ${CONTRACT_ADDRESS}"
 
 printf "\n***** contracts migrate ***** \n"
 ### Copy optimized wasm file with the migratable new version of the contract, so we can store it and then migrate to it
-cp -r "$(scriptRelativePath files/migrate/artifacts)" "$TEMP_DIR"
+cp -r "$(scriptRelativePath files/migrate/artifacts)" "$PROJECT_DIR"
 output="$(archway contracts store $CONTRACT_FOO --from $ALICE --keyring-backend test --json)"
-CODE_ID_MIGRATE=$(jq -r ".codeId"  <<<"${output}")
+CODE_ID_MIGRATE=$(jq -r ".codeId" <<<"${output}")
 echo "Stored new version of contract with codeId ${CODE_ID_MIGRATE}"
 output="$(archway contracts migrate $CONTRACT_FOO --code $CODE_ID_MIGRATE --from $ALICE --keyring-backend test --json)"
 validate "$output" "has(\"transactionHash\")"
@@ -91,7 +107,7 @@ output="$(archway contracts execute $CONTRACT_FOO --args '{"increment": {}}' --f
 validate "$output" "has(\"transactionHash\")"
 
 printf "\n***** contracts query smart ***** \n"
-output="$(archway contracts query smart  $CONTRACT_FOO --args '{"get_count": {}}' --json)"
+output="$(archway contracts query smart $CONTRACT_FOO --args '{"get_count": {}}' --json)"
 validate "$output" ".count == 2"
 
 printf "\n***** contracts query balance ***** \n"
@@ -110,7 +126,3 @@ validate "$output" ".rewardsAddress == \"$ALICE_ADDRESS\" and .totalRecords == 0
 
 echo
 ok SUCCESS
-echo "Cleaning up the created files"
-
-cd ..
-rm -rf "$TEMP_DIR"

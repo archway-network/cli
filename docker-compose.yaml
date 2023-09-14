@@ -1,6 +1,6 @@
 services:
   node:
-    image: archwaynetwork/archwayd:sha-fd95e42
+    image: archwaynetwork/archwayd:v4.0.2
     command: start --x-crisis-skip-assert-invariants
     entrypoint: /docker-entrypoint.sh
     ports:
