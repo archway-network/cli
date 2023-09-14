@@ -25,7 +25,10 @@ import { Keystore, KeystoreBackendParams } from './keystore';
 
 export const DEFAULT_ADDRESS_BECH_32_PREFIX = 'archway';
 
-export type KeyringFlags = {
+// Generates a mnemonic with 256 bits of entropy (24 words)
+const MNEMONIC_ENTROPY_STRENGTH = 256;
+
+type KeyringFlags = {
   'keyring-backend'?: KeystoreBackendType;
   'keyring-path'?: string
 };
@@ -94,7 +97,7 @@ export class Accounts {
    * @returns Promise with the newly created {@link Account} and the mnemonic used
    */
   async new(name: string, type: AccountType, hdPath: ExtendedHdPath): Promise<[Account, string]> {
-    const mnemonic = bip39.generateMnemonic();
+    const mnemonic = bip39.generateMnemonic(MNEMONIC_ENTROPY_STRENGTH);
     const account = await this.createOrImport(name, type, hdPath, mnemonic);
     return [account, mnemonic];
   }

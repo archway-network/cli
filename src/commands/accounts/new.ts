@@ -48,16 +48,17 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
     },
     {
       description: 'Create a new account from a ledger device and a custom HD path',
-      command: '<%= config.bin %> <%= command.id %> alice --ledger --hd-path "m/44\'/60\'/1\'/0/0"',
+      command: '<%= config.bin %> <%= command.id %> alice --ledger --hd-path "m/44\'/118\'/1\'/0/0"',
     },
     {
       description: 'Recover an account from a private key exported in unarmored hex format',
-      command: 'archwayd keys export --unarmored-hex --unsafe alice | <%= config.bin %> <%= command.id %> alice --recover',
+      // For some reason, oclif only colours the examples starting with `archway`
+      command: dim('$ yes | archwayd keys export --unarmored-hex --unsafe alice | <%= config.bin %> <%= command.id %> alice --recover'),
     },
     {
-      description: 'Recover an account from a mnemonic',
+      description: 'Recover a Terra Station account from a mnemonic and custom HD path',
       // For some reason, oclif only colours the examples starting with `archway`
-      command: dim('$ cat mnemonic.txt | <%= config.bin %> <%= command.id %> alice --recover --hd-path "m/44\'/60\'/1\'/0/0"'),
+      command: dim('$ echo "fruit rose ..." | <%= config.bin %> <%= command.id %> alice --recover --hd-path "m/44\'/330\'/0\'/0/0"'),
     },
   ];
 
@@ -90,7 +91,7 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
 
   protected async successMessage(account: Account, mnemonic?: string): Promise<void> {
     if (this.jsonEnabled()) {
-      this.logJson(account);
+      this.logJson({ ...account, mnemonic });
     } else {
       this.success(`${green('Account')} ${greenBright(account.name)} successfully created!`);
 
