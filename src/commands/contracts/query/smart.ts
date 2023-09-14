@@ -8,6 +8,7 @@ import { Config } from '@/domain';
 import { showDisappearingSpinner } from '@/ui';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { dim } from '@/utils';
+import { SkipValidationFlag } from '@/parameters/flags';
 
 /**
  * Command 'contracts query smart'
@@ -25,6 +26,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
       description: 'JSON string with the query to run',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a query for the smart contract' }),
+    'skip-validation': SkipValidationFlag,
   };
 
   static examples = [
@@ -74,9 +76,11 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
 
     const contractAddress = instantiated.contract.address;
 
-    // Validate query arguments
     const queryMsg = JSON.parse(this.args.stdinInput || this.flags.args ||  (await fs.readFile(this.flags['args-file']!, 'utf-8')));
-    await config.contractsInstance.assertValidQueryArgs(contract.name, queryMsg);
+
+    if (!this.flags['skip-validation']) {
+      await config.contractsInstance.assertValidQueryArgs(contract.name, queryMsg);
+    }
 
     const result = await showDisappearingSpinner(async () => {
       const client = await config.getArchwayClient();

@@ -7,7 +7,7 @@ import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/argum
 import { Accounts, Config } from '@/domain';
 import { buildStdFee, blueBright, greenBright, isValidAddress, dim } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/parameters/flags';
+import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag, SkipValidationFlag } from '@/parameters/flags';
 import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 
 import { Account, Amount, Contract } from '@/types';
@@ -32,6 +32,7 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       description: 'JSON string with a valid execute schema for the contract',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a valid execute schema for the contract' }),
+    'skip-validation': SkipValidationFlag,
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -103,8 +104,9 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
 
       contractAddress = instantiated.contract.address;
 
-      // Validate exec args schema
-      await config.contractsInstance.assertValidExecuteArgs(contractInstance.name, executeArgs);
+      if (!this.flags['skip-validation']) {
+        await config.contractsInstance.assertValidExecuteArgs(contractInstance.name, executeArgs);
+      }
     }
 
     await this.logTransactionDetails(config, contractInstance?.name || contractAddress, from.account);

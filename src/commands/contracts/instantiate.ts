@@ -6,7 +6,7 @@ import { Accounts, Config } from '@/domain';
 import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameOptionalArg, StdinInputArg } from '@/parameters/arguments';
-import { KeyringFlags, ParamsAmountOptionalFlag, TransactionFlags } from '@/parameters/flags';
+import { KeyringFlags, ParamsAmountOptionalFlag, SkipValidationFlag, TransactionFlags } from '@/parameters/flags';
 import { showDisappearingSpinner } from '@/ui';
 import { blueBright, buildStdFee, dim, greenBright } from '@/utils';
 
@@ -36,6 +36,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       description: 'JSON string with a valid instantiate schema for the contract',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a valid instantiate schema for the contract' }),
+    'skip-validation': SkipValidationFlag,
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -127,8 +128,9 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
 
       if (!label) label = contractInstance.label;
 
-      // Validate instantiate args schema
-      await config.contractsInstance.assertValidInstantiateArgs(contractInstance.name, instArgs);
+      if (!this.flags['skip-validation']) {
+        await config.contractsInstance.assertValidInstantiateArgs(contractInstance.name, instArgs);
+      }
     }
 
     if (!label) throw new NotFoundError("Please pass the label of the contract in the '--label' flag.");

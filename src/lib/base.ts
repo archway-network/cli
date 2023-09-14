@@ -1,8 +1,8 @@
 import { Command, Flags, Interfaces } from '@oclif/core';
 import debugInstance from 'debug';
 
+import { redBright, sanitizeCosmWasmError, yellow } from '@/utils';
 import { PromptCanceledError } from '@/ui';
-import { redBright, yellow } from '@/utils';
 
 import { ConsoleError } from '@/types';
 
@@ -140,7 +140,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       err.message = err instanceof ConsoleError ? err.toConsoleString() : (err as any)?.stderr || err.message;
     } else {
       const message = err instanceof ConsoleError ? err.toConsoleString() : redBright((err as any)?.stderr || err.message);
-      err.message = `${ERROR_PREFIX} ${message}`;
+      err.message = `${ERROR_PREFIX} ${sanitizeCosmWasmError(message)}`;
     }
 
     return err;
