@@ -6,7 +6,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-PROJECT_NAME="test-contracts"
+PROJECT_NAME="test-contracts.XXXXXX"
 TEMP_DIR="$(mktemp -d -t "$PROJECT_NAME")"
 
 # moves the temp dir to ~/tmp to avoid permission issues on macOS

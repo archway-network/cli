@@ -6,7 +6,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-PROJECT_NAME="test-config"
+PROJECT_NAME="test-config.XXXXXX"
 TEMP_DIR="$(mktemp -d -t "$PROJECT_NAME")"
 
 source "${SCRIPT_DIR}/../../.env"
