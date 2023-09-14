@@ -3,11 +3,13 @@
 # End to end tests of the archway 'contracts' commands against a local node
 #
 
+echo "››› CONTRACTS AND REWARDS"
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-PROJECT_NAME="test-contracts.XXXXXX"
-TEMP_DIR="$(mktemp -d -t "$PROJECT_NAME")"
+PROJECT_NAME="test-contracts"
+TEMP_DIR="$(mktemp -d -t "$PROJECT_NAME.XXXXXX")"
 
 # moves the temp dir to ~/tmp to avoid permission issues on macOS
 mkdir -p ~/.tmp

@@ -11,6 +11,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 ALICE=ALICE_INTEGRATION_FILE_TEST
 export ARCHWAY_SKIP_VERSION_CHECK=true
 
+rm -rf ~/.config/archway/chains/integration-test-1.json
+
 function ok() {
   echo " ✔ $1"
 }

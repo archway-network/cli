@@ -3,11 +3,13 @@
 # End to end tests of the archway 'accounts' commands against a local node
 #
 
+echo "››› ACCOUNTS"
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-PROJECT_NAME="test-accounts.XXXXXX"
-TEMP_DIR="$(mktemp -d -t "$PROJECT_NAME")"
+PROJECT_NAME="test-accounts"
+TEMP_DIR="$(mktemp -d -t "$PROJECT_NAME.XXXXXX")"
 
 source "${SCRIPT_DIR}/../../.env"
 source "${SCRIPT_DIR}/utils.sh"
