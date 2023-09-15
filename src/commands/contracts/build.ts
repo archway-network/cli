@@ -10,10 +10,10 @@ enum SuccessMessageType {
 
 /**
  * Command 'contracts build'
- * Builds the contract's optimized WASM file, and its schemas
+ * Builds the smart contracts optimized Wasm file along with its schemas
  */
 export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
-  static summary = "Builds the contract's optimized WASM file, and its schemas";
+  static summary = 'Builds the smart contracts optimized Wasm file along with its schemas';
   static args = {
     contract: ContractNameRequiredArg,
   };

@@ -63,33 +63,35 @@ $ archway help
 
 new                                Initializes a new project repository
 
-accounts new [options]             Adds a new wallet to the keystore
+accounts new [options]             Adds a new wallet to the keyring
 accounts get [options]             Displays details about an account
 accounts list [options]            Lists all accounts in the keyring
-accounts remove [options]          Removes an account from the keystore
+accounts remove [options]          Removes an account from the keyring
 accounts balances get [options]    Query the balance of an address or account
 accounts balances send [options]   Send tokens from an address or account to another
-accounts balances [options]        Manage the balances of an account.
+accounts balances [options]        Manage the token balance of an account
 
-config init [options]              Initializes a config file for the current project.
-config show [options]              Shows the config file for the current project.
-config deployments [options]       Displays the list of deployments, allows filtering by chain, action and contract.
-config chains use [options]        Switches the current chain in use and updates the archway-cli.json config file with his information.
-config chains export [options]     Exports a built-in chain registry file to {project-root}/.archway-cli/chains/{chain-id}.json.
-config chains import [options]     Import a chain registry file and save it to {project-root}/.archway-cli/chains/{chain-id}.json.
-config chains [options]            Chain management commands. The chain files follow the Cosmos chain registry schema.
+config init [options]              Initializes a config file for the current project
+config show [options]              Displays the config values for the current project
+config deployments [options]       Displays the list of deployments, allows filtering by chain, action and contract
+config chains use [options]        Switches the current chain in use and updates the config file appropriately
+config chains import [options]     Import a chain registry file and save it to the global configuration
+config chain-id [options]          Query or update the 'chain-id' in the config file (local or global)
+config contracts-path [options]    Query or update the 'contracts-path' in the config file (local or global)
+config default-account [options]   Query or update the 'default-account' in the config file (local or global)
+config keyring-backend [options]   Query or update the 'keyring-backend' in the config file (local or global)
+config keyring-path [options]      Query or update the 'keyring-path' in the config file (local or global)
 
-contracts new [options]            Scaffolds a new Smart Contract from a template
-contracts build [options]          Builds the contract's optimized WASM file, and its schemas
-contracts store [options]          Stores a WASM file on-chain
+contracts new [options]            Scaffolds a new Wasm smart contract from a template
+contracts build [options]          Builds the smart contracts optimized Wasm file along with its schemas
+contracts store [options]          Stores a Wasm file on-chain
 contracts instantiate [options]    Instantiates code stored on-chain with the given arguments
-contracts metadata [options]       Sets a contract rewards metadata
-contracts premium [options]        Sets a contract premium flat fee for a contract
-contracts execute [options]        Executes a transaction in a contract
-contracts migrate [options]        Runs a contract migration
-contracts query balance [options]  Access the bank module to query the balance of contracts
+contracts metadata [options]       Sets a smart contracts rewards metadata
+contracts premium [options]        Sets the smart contract premium flat fee
+contracts execute [options]        Executes a transaction in a smart contract
+contracts migrate [options]        Runs a smart contract migration
+contracts query balance [options]  Access the bank module to query the balance of smart contracts
 contracts query smart [options]    Queries a single smart contract
-contracts query [options]          Display help for the contracts query command.
 
 rewards query [options]            Queries the outstanding rewards for a specific account or address
 rewards withdraw [options]         Withdraws rewards for a specific account

@@ -9,7 +9,7 @@ import { bold, green } from '@/utils';
  * Initializes a config file for the current project
  */
 export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
-  static summary = 'Initializes a config file for the current project.';
+  static summary = 'Initializes a config file for the current project';
   static flags = {
     chain: ChainOptionalFlag,
   };

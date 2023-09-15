@@ -6,10 +6,10 @@ import { GlobalFlag } from '@/parameters/flags';
 
 /**
  * Command 'config chains use'
- * Switches the current chain in use and updates the config file
+ * Switches the current chain in use and updates the config file appropriately
  */
 export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse> {
-  static summary = 'Switches the current chain in use and updates the config file.';
+  static summary = 'Switches the current chain in use and updates the config file appropriately';
   static args = {
     chain: ChainRequiredArg,
   };

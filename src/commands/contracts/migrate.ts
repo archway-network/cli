@@ -14,10 +14,10 @@ import { Account, Contract, DeploymentAction, InstantiateDeployment, MigrateDepl
 
 /**
  * Command 'contracts migrate'
- * Runs a contract migration
+ * Runs a smart contract migration
  */
 export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrate> {
-  static summary = 'Runs a contract migration';
+  static summary = 'Runs a smart contract migration';
   static args = {
     contract: Args.string({ ...ParamsContractNameRequiredArg, ignoreStdin: true }),
     stdinInput: StdinInputArg,

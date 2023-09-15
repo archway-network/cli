@@ -1,10 +1,9 @@
-import path from 'node:path';
 import { Args } from '@oclif/core';
 import fs from 'node:fs/promises';
 
 import { BaseCommand } from '@/lib/base';
 import { bold, greenBright, redBright } from '@/utils';
-import { ChainRegistry, GLOBAL_CHAINS_PATH } from '@/domain';
+import { ChainRegistry } from '@/domain';
 import { ErrorCodes } from '@/exceptions';
 import { StdinInputArg } from '@/parameters/arguments';
 
@@ -15,9 +14,7 @@ import { ConsoleError, CosmosChain } from '@/types';
  * Imports from an external chain registry file or from pipe input, and saves it into a file
  */
 export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsImport> {
-  static summary = `Import a chain registry file and save it to ${bold(
-    path.join(GLOBAL_CHAINS_PATH, './{chain-id}.json')
-  )}.`;
+  static summary = 'Import a chain registry file and save it to the global configuration';
 
   static args = {
     file: Args.string({ name: 'file', required: false, ignoreStdin: true, description: 'Path to file to be imported' }),

@@ -3,10 +3,10 @@ import HelpPlugin from '@/plugins/help-plugin/help';
 
 /**
  * Command 'help'
- * Displays the help info
+ * Displays available commands and their descriptions for the Archway CLI
  */
 export default class Help extends BaseCommand<typeof Help> {
-  static summary = 'Display help for archway.';
+  static summary = 'Displays available commands and their descriptions for the Archway CLI';
 
   /**
    * Runs the command.

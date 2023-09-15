@@ -14,7 +14,7 @@ import { Account, AccountBase, Amount } from '@/types';
  * This command will use the bank module to send coins from one account to another.
  */
 export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBalancesSend> {
-  static summary = 'Send tokens from an address or account to another';
+  static summary = 'Send tokens from one address or account to another';
   static args = {
     amount: AmountRequiredArg,
   };

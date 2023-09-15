@@ -8,7 +8,7 @@ const expectHelp = (ctx: any) => {
   expect(ctx.stdout).to.contain('Description:');
   expect(ctx.stdout).to.contain('Usage');
   expect(ctx.stdout).to.contain('Available commands:');
-  expect(ctx.stdout).to.contain(ConfigChains.summary.split('.')[0]);
+  expect(ctx.stdout).to.contain(ConfigChains.summary.split(',')[0]);
 };
 
 describe('config chains', () => {

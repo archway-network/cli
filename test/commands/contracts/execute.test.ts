@@ -35,7 +35,7 @@ describe('contracts execute', () => {
   test
     .stdout()
     .command(['contracts execute', contractName, `--args=${contractArgument}`, `--from=${aliceAccountName}`])
-    .it('Executes a transaction in a contract', ctx => {
+    .it('Executes a transaction in a smart contract', ctx => {
       expect(ctx.stdout).to.contain('Executed contract');
       expect(ctx.stdout).to.contain(contractName);
       expect(ctx.stdout).to.contain('Transaction:');

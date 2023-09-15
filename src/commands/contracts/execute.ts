@@ -14,10 +14,10 @@ import { Account, Amount, Contract } from '@/types';
 
 /**
  * Command 'contracts execute'
- * Executes a transaction in a contract.
+ * Executes a transaction in a smart contract.
  */
 export default class ContractsExecute extends BaseCommand<typeof ContractsExecute> {
-  static summary = 'Executes a transaction in a contract';
+  static summary = 'Executes a transaction in a smart contract';
   static args = {
     contract: Args.string({ ...ParamsContractNameRequiredArg, ignoreStdin: true }),
     stdinInput: StdinInputArg,
