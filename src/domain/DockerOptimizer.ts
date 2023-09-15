@@ -22,7 +22,7 @@ export class DockerOptimizer {
   private _docker: Docker;
 
   /**
-   * @param options - Docker options
+   * @param options - Optional - Docker options
    */
   constructor(options: Docker.DockerOptions = {}) {
     this._docker = new Docker(options);
@@ -32,17 +32,17 @@ export class DockerOptimizer {
    * Runs a docker container to optimize the wasm file.
    *
    * @param workspaceRoot - Path where the workspace is located
-   * @param isWorkspace - Optional - Defaults to false
+   * @param contractRoot - Path where a single contract is located
    * @returns Promise containing the status code of the result and error if it exists
    */
-  async run(workspaceRoot: string, isWorkspace = false): Promise<{ error?: Error | string; statusCode: number }> {
+  async run(workspaceRoot: string, contractRoot?: string): Promise<{ error?: Error | string; statusCode: number }> {
     try {
       await this._docker.ping();
     } catch (error: any) {
       throw new Error(error);
     }
 
-    const image = await this.fetchImage(isWorkspace);
+    const image = await this.fetchImage(!contractRoot);
     const projectName = path.basename(workspaceRoot);
     const containerName = `${projectName}-optimizer`;
     await this.killIfRunning(containerName);
@@ -71,14 +71,14 @@ export class DockerOptimizer {
       },
     };
 
-    debug('run', image, [], createOptions);
+    debug('run', image, [], createOptions, contractRoot);
 
     const stdout = createPipe(process.stdout);
     const stderr = createPipe(process.stderr);
 
     const [{ Error: error, StatusCode: statusCode }] = await this._docker.run(
       image,
-      [],
+      contractRoot ? [path.relative(workspaceRoot, contractRoot)] : [],
       [stdout, stderr] as unknown as NodeJS.WritableStream[],
       createOptions
     );
@@ -107,13 +107,13 @@ export class DockerOptimizer {
   }
 
   /**
-   * Resolves the correct image to use and pulls it if it is not available locally.
+   * Resolves the correct image to use and pulls it if not available locally.
    *
-   * @param isWorkspace - Whether the cargo project is a workspace or not
+   * @param useWorkspaceImage - Fetch the workspace image instead of the single rust image
    * @returns Promise containing the image name
    */
-  private async fetchImage(isWorkspace: boolean): Promise<string> {
-    const name = isWorkspace ? DockerOptimizer.WorkspaceOptimizerImage : DockerOptimizer.RustOptimizerImage;
+  private async fetchImage(useWorkspaceImage = false): Promise<string> {
+    const name = useWorkspaceImage ? DockerOptimizer.WorkspaceOptimizerImage : DockerOptimizer.RustOptimizerImage;
     const image = `${name}:${DockerOptimizer.Version}`;
     debug('fetchImage', 'searching for image locally', image);
     const images: Docker.ImageInfo[] = await this._docker.listImages({

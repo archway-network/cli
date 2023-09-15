@@ -178,28 +178,37 @@ export class Contracts {
   }
 
   /**
-   * Generate a contract's schema files
+   * Generate the schema files of the smart contracts in the workspace
+   * if a name is passed, generates the schema of that contract only
    *
-   * @param name - Contract name
+   * @param name - Optional - Contract name
    * @returns Empty Promise
    */
-  async schemas(name: string): Promise<void> {
-    const cargo = this.cargoByContractName(name);
-    await cargo.schema();
+  async schemas(name?: string): Promise<void> {
+    if (name) {
+      const cargo = this.cargoByContractName(name);
+      await cargo.schema();
+      return;
+    }
+
+    for (const item of this.listContracts()) {
+      const cargo = this.cargoByContractName(item.name);
+      // eslint-disable-next-line no-await-in-loop
+      await cargo.schema();
+    }
   }
 
   /**
-   * Build the optimized version of a contract
+   * Build the optimized version of the smart contracts in the workspace,
+   * if a name is passed, builds the optimized version of that contract only
    *
-   * @param name - Contract name
+   * @param name - Optional - Contract name
    * @returns Path of the optimized file
    */
-  async optimize(name: string): Promise<string> {
-    const cargo = this.cargoByContractName(name);
-    const { wasm } = await cargo.projectMetadata();
+  async optimize(name?: string): Promise<string> {
+    const cargo = name ? this.cargoByContractName(name) : new Cargo(this.workspaceRoot);
 
-    await cargo.optimize();
-    return wasm.optimizedFilePath;
+    return cargo.optimize(!name);
   }
 
   /**

@@ -1,16 +1,13 @@
-import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import debugInstance from 'debug';
 import _ from 'lodash';
-
-import { shrinkPaddedLEB128 } from '@webassemblyjs/wasm-opt';
 import { ChildProcessPromise, PromisifySpawnOptions, spawn } from 'promisify-child-process';
 
 import { DockerOptimizer } from '@/domain';
 import { BaseError, ConsoleError, ErrorCodes } from '@/exceptions';
 import { BuildParams, CargoProjectMetadata, GenerateParams, Metadata, SchemaParams } from '@/types';
-import { bold, redBright, writeFileWithDir } from '@/utils';
+import { bold, redBright } from '@/utils';
 
 const debug = debugInstance('cargo');
 
@@ -19,9 +16,10 @@ const debug = debugInstance('cargo');
  */
 export class Cargo {
   static WasmTarget = 'wasm32-unknown-unknown';
+  static OptimizedOutputDir = 'artifacts';
 
   // eslint-disable-next-line no-useless-constructor
-  constructor(public workingDir = process.cwd()) {}
+  constructor(public readonly workingDir = process.cwd()) {}
 
   /**
    * Get absolute path of the project location
@@ -119,7 +117,7 @@ export class Cargo {
     const wasm = {
       fileName: wasmFileName,
       filePath: path.join(targetDirectory, Cargo.WasmTarget, 'release', wasmFileName),
-      optimizedFilePath: path.join(workspaceRoot, 'artifacts', wasmFileName),
+      optimizedFilePath: path.join(workspaceRoot, Cargo.OptimizedOutputDir, wasmFileName),
     };
 
     return { name, label, version, wasm, root, workspaceRoot };
@@ -142,28 +140,19 @@ export class Cargo {
   /**
    * Generate the optimized wasm version of a contract
    *
-   * @param useDocker - Flag to use docker or not
+   * @param all - Optional - Optimize all contracts in workspace
    * @returns - Promise containing the path where the optimized version was saved
    */
-  async optimize(useDocker = true): Promise<string> {
+  async optimize(all = false): Promise<string> {
     const { wasm, root, workspaceRoot } = await this.projectMetadata();
 
-    if (useDocker) {
-      const optimizer = new DockerOptimizer();
-      const isPackageInsideWorkspace = root !== workspaceRoot;
-      const { error, statusCode } = await optimizer.run(workspaceRoot, isPackageInsideWorkspace);
-      if (statusCode !== 0) {
-        throw error instanceof Error ? error : new BaseError(error);
-      }
-    } else {
-      const fileContent = await fs.readFile(wasm.filePath);
-
-      const optimized = shrinkPaddedLEB128(new Uint8Array(fileContent.buffer));
-
-      await writeFileWithDir(wasm.optimizedFilePath, Buffer.from(optimized));
+    const optimizer = new DockerOptimizer({});
+    const { error, statusCode } = await optimizer.run(workspaceRoot, all ? undefined : root);
+    if (statusCode !== 0) {
+      throw error instanceof Error ? error : new BaseError(error);
     }
 
-    return wasm.optimizedFilePath;
+    return all ? path.join(workspaceRoot, Cargo.OptimizedOutputDir) : wasm.optimizedFilePath;
   }
 
   /**
