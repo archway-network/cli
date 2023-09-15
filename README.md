@@ -38,6 +38,18 @@ or
 yarn global add @archwayhq/cli
 ```
 
+### Install the pre-release version
+
+```bash
+npm i -g @archwayhq/cli@pre
+```
+
+or
+
+```bash
+yarn global add @archwayhq/cli@pre
+```
+
 ### Install the development version
 
 ```bash
