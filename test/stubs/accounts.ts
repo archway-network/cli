@@ -1,9 +1,9 @@
 import sinon, { SinonStub } from 'sinon';
+
 import keyring from '@archwayhq/keyring-go';
 
-import { aliceStoreEntry, aliceStoredAccount, bobStoreEntry } from '../dummies';
-
 import { KeystoreBackendType } from '../../src/types';
+import { aliceStoreEntry, aliceStoredAccount, bobStoreEntry } from '../dummies';
 
 export default class AccountsStubs {
   public stubbedKeyringGet: SinonStub | undefined;

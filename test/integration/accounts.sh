@@ -3,33 +3,44 @@
 # End to end tests of the archway 'accounts' commands against a local node
 #
 
+echo "››› ACCOUNTS"
+
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
-PROJECT_NAME="temp-accounts"
-TEMP_DIR="$(pwd)/${PROJECT_NAME}"
+PROJECT_NAME="test-accounts"
+TEMP_DIR="$(mktemp -d -t "$PROJECT_NAME.XXXXXX")"
 
 source "${SCRIPT_DIR}/../../.env"
 source "${SCRIPT_DIR}/utils.sh"
 
+ALICE="${ALICE:-ALICE_INTEGRATION_FILE_TEST}"
+BOB="BOB_INTEGRATION_FILE_TEST"
+
+function cleanup_test_suite() {
+  echo "Cleaning up the created files"
+  cd "$SCRIPT_DIR"
+  rm -rf "$TEMP_DIR"
+
+  archway accounts remove "${BOB}" --force --keyring-backend test >/dev/null 2>&1 || true
+}
+
+trap cleanup_test_suite EXIT
 trap cleanup ERR
 
-rm -rf "$TEMP_DIR"
 git init "$TEMP_DIR"
-cd "$PROJECT_NAME"
-
-BOB=BOB_INTEGRATION_FILE_TEST
+cd "$TEMP_DIR"
 
 echo "***** remove integration test accounts in case they exist  *****"
-output="$(archway accounts remove ${ALICE} --force --keyring-backend test --json || true)"
-output="$(archway accounts remove ${BOB} --force --keyring-backend test --json || true)"
+output="$(archway accounts remove "${ALICE}" --force --keyring-backend test --json || true)"
+output="$(archway accounts remove "${BOB}" --force --keyring-backend test --json || true)"
 
 printf "\n***** accounts new ***** \n"
-output="$(echo "$ALICE_MNEMONIC" | archway accounts new ${ALICE} --recover --keyring-backend test --json)"
-validate "$output" ".name == \"${ALICE}\" and has(\"address\") and (.publicKey | has(\"key\")) and .mnemonic == \"${ALICE_MNEMONIC}\""
+output="$(echo "$ALICE_MNEMONIC" | archway accounts new "${ALICE}" --recover --keyring-backend test --json)"
+validate "$output" '.name == "'"${ALICE}"'" and has("address") and (.publicKey | has("key")) and has("privateKey") and (has("mnemonic") | not)'
 
 output="$(archway accounts new ${BOB} --keyring-backend test --json)"
-validate "$output" ".name == \"${BOB}\" and has(\"address\") and (.publicKey | has(\"key\")) and .mnemonic != \"${ALICE_MNEMONIC}\""
+validate "$output" '.name == "'"${BOB}"'" and has("address") and (.publicKey | has("key")) and has("privateKey") and has("mnemonic")'
 
 printf "\n***** accounts list ***** \n"
 output="$(archway accounts list --keyring-backend test --json)"
@@ -66,7 +77,3 @@ validate "$output" ".account | .name == \"${BOB}\" and has(\"address\") and (.ba
 
 echo
 ok SUCCESS
-echo "Cleaning up the created files"
-
-cd ..
-rm -rf "$TEMP_DIR"

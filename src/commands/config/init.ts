@@ -1,8 +1,8 @@
+import { Config, LOCAL_CONFIG_FILE } from '@/domain';
 import { BaseCommand } from '@/lib/base';
-import { Config, DEFAULT_CONFIG_FILE } from '@/domain';
-import { bold, green } from '@/utils';
 import { ChainOptionalFlag } from '@/parameters/flags';
 import { Prompts } from '@/services';
+import { bold, green } from '@/utils';
 
 /**
  * Command 'config init'
@@ -26,7 +26,7 @@ export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
   }
 
   protected async successMessage(config: Config): Promise<void> {
-    this.success(`${green('Config file')} ${bold(DEFAULT_CONFIG_FILE)} ${green('created')}`);
+    this.success(`${green('Config file')} ${bold(LOCAL_CONFIG_FILE)} ${green('created')}`);
 
     if (this.jsonEnabled()) this.logJson(config.localConfigData);
   }

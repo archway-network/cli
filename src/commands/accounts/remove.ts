@@ -1,8 +1,8 @@
-import { BaseCommand } from '@/lib/base';
-import { askForConfirmation, bold, green, yellow } from '@/utils';
-import { AccountRequiredArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
+import { BaseCommand } from '@/lib/base';
+import { AccountRequiredArg } from '@/parameters/arguments';
 import { ForceFlag, KeyringFlags } from '@/parameters/flags';
+import { askForConfirmation, bold, green, yellow } from '@/utils';
 
 import { AccountBase } from '@/types';
 
@@ -29,8 +29,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
   public async run(): Promise<void> {
     const config = await Config.init();
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);
-
-    const accountInfo = await accountsDomain.keystore.assertAccountExists(this.args.account!);
+    const accountInfo = await accountsDomain.get(this.args.account!);
 
     if (!this.jsonEnabled()) {
       this.warning(
@@ -49,7 +48,8 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
 
   protected async successMessage(account: AccountBase): Promise<void> {
     this.success(`${green('Account')} ${bold.green(account.name)} ${green('deleted')}`);
-
-    if (this.jsonEnabled()) this.logJson(account);
+    if (this.jsonEnabled()) {
+      this.logJson(account)
+    }
   }
 }

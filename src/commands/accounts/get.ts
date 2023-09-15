@@ -1,8 +1,8 @@
 import { Flags } from '@oclif/core';
 
+import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { AccountRequiredArg } from '@/parameters/arguments';
-import { Accounts, Config } from '@/domain';
 import { KeyringFlags } from '@/parameters/flags';
 
 import { Account } from '@/types';
@@ -30,7 +30,6 @@ export default class AccountsGet extends BaseCommand<typeof AccountsGet> {
   public async run(): Promise<void> {
     const config = await Config.init();
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);
-
     const account = await accountsDomain.get(this.args.account!);
 
     await this.successMessage(account, this.flags.address);

@@ -1,5 +1,5 @@
-import { BaseCommand } from '@/lib/base';
 import { Accounts, Config } from '@/domain';
+import { BaseCommand } from '@/lib/base';
 import { KeyringFlags } from '@/parameters/flags';
 import { yellow } from '@/utils';
 
@@ -23,22 +23,20 @@ export default class AccountsList extends BaseCommand<typeof AccountsList> {
     const config = await Config.init();
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
-    await this.successMessage(accountsDomain);
-  }
-
-  protected async successMessage(accountsDomain: Accounts): Promise<void> {
     if (this.jsonEnabled()) {
-      const list = await accountsDomain.list();
+      const accounts = await accountsDomain.list();
+      this.logJson({ accounts });
+      return;
+    }
 
-      this.logJson({ accounts: list });
-    } else {
-      const list = await accountsDomain.listNameAndAddress();
+    const accounts = await accountsDomain.listNameAndAddress();
+    if (accounts.length === 0) {
+      this.log(yellow('No accounts found'));
+      return;
+    }
 
-      for (const item of list) {
-        this.log(`${Accounts.prettyPrintNameAndAddress(item)}\n`);
-      }
-
-      if (list.length === 0) this.log(yellow('No accounts found'));
+    for (const item of accounts) {
+      this.log(`${Accounts.prettyPrintNameAndAddress(item)}\n`);
     }
   }
 }

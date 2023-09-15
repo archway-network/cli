@@ -19,7 +19,7 @@ export * from './transactions';
  * @param arrayMergeMode - Optional - Merge mode to be used
  * @returns Merged object
  */
-export const mergeCustomizer = (arrayMergeMode = MergeMode.OVERWRITE): any => {
+export function mergeCustomizer(arrayMergeMode = MergeMode.OVERWRITE): any {
   return _.cond([
     [_.overEvery(_.isArray, _.constant(arrayMergeMode === MergeMode.OVERWRITE)), _.nthArg(1)],
     [_.overEvery(_.isArray, _.constant(arrayMergeMode === MergeMode.APPEND)), _.concat],
@@ -28,17 +28,20 @@ export const mergeCustomizer = (arrayMergeMode = MergeMode.OVERWRITE): any => {
       (objValue = [], srcValue = []) => [...srcValue, ...objValue],
     ],
   ]);
-};
+}
 
 /**
  * Util function to ask for confirmation
  *
  * @param force - Optional - skips the confirmation prompt
  */
-export const askForConfirmation = async (force = false): Promise<void> => {
-  if (!force) {
-    const promptedConfirmation = await Prompts.confirmation();
-
-    if (!promptedConfirmation) throw new PromptCanceledError();
+export async function askForConfirmation(force = false): Promise<void> {
+  if (force) {
+    return;
   }
-};
+
+  const promptedConfirmation = await Prompts.confirmation();
+  if (!promptedConfirmation) {
+    throw new PromptCanceledError()
+  }
+}

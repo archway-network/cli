@@ -1,5 +1,5 @@
+import { Bip39, EnglishMnemonic, HdPath, Secp256k1, Slip10, Slip10Curve } from '@cosmjs/crypto';
 import { bech32 } from 'bech32';
-import { HdPath, Slip10RawIndex } from '@cosmjs/crypto';
 
 import { InvalidFormatError } from '@/exceptions';
 
@@ -10,9 +10,11 @@ import { InvalidFormatError } from '@/exceptions';
  * @param prefix - Optional - Bech32 address prefix to validate
  * @returns void
  */
-export const assertIsValidAddress = (address: string, prefix?: string): void => {
-  if (!isValidAddress(address, prefix)) throw new InvalidFormatError(`Address ${address}`);
-};
+export function assertIsValidAddress(address: string, prefix?: string): void {
+  if (!isValidAddress(address, prefix)) {
+    throw new InvalidFormatError(`Address ${address}`)
+  }
+}
 
 /**
  * Verify if a string has a valid address format
@@ -21,39 +23,54 @@ export const assertIsValidAddress = (address: string, prefix?: string): void => 
  * @param prefix - Optional - Bech32 address prefix to validate
  * @returns Boolean, whether it is valid or not
  */
-export const isValidAddress = (address: string, prefix?: string): boolean => {
+export function isValidAddress(address: string, prefix?: string): boolean {
   const ALLOWED_PRINTABLE_ASCII = ' -~';
   const ALLOWED_CHARS = 'qpzry9x8gf2tvdw0s3jn54khce6mua7l';
+
   const regexp = new RegExp(`^(${prefix || `[${ALLOWED_PRINTABLE_ASCII}]+`})1([${ALLOWED_CHARS}]+)$`); // Prefix + bech32 separated by '1'
   const match = regexp.exec(address);
-
-  try {
-    if (match) {
-      const decoded = bech32.decode(address);
-      return decoded?.words?.length === 32 || decoded?.words?.length === 52;
-    }
-  } catch {
+  if (!match) {
     return false;
   }
 
-  return false;
-};
+  try {
+    const decoded = bech32.decode(address);
+    return decoded?.words?.length === 32 || decoded?.words?.length === 52;
+  } catch {
+    return false;
+  }
+}
 
 /**
- * Creates a BIP44 compatible derivation path
+ * Derives the private key for a given mnemonic and derivation path.
  *
- * @param coinType - Optional - Defaults to 118 which is the standard cosmos coinType
- * @param account - Optional - Defaults to 0
- * @param change  - Optional - Defaults to 0
- * @param index  - Optional - Defaults to 0
- * @returns Array containing the derivation path values
+ * @param mnemonic - Mnemonic to convert
+ * @param hdPath - Derivation path to get the account that will be extracted
+ * @param bip39Password - Optional - Password used to generate the seed
+ * @returns Promise containing the private key bytes
  */
-export function makeCosmosDerivationPath(coinType = 118, account = 0, change = 0, index = 0): HdPath {
-  return [
-    Slip10RawIndex.hardened(44),
-    Slip10RawIndex.hardened(coinType),
-    Slip10RawIndex.hardened(account),
-    Slip10RawIndex.normal(change),
-    Slip10RawIndex.normal(index),
-  ];
+export async function derivePrivateKey(mnemonic: string, hdPath: HdPath, bip39Password = ''): Promise<Uint8Array> {
+  const seed = await Bip39.mnemonicToSeed(new EnglishMnemonic(mnemonic), bip39Password);
+  const { privkey } = Slip10.derivePath(Slip10Curve.Secp256k1, seed, hdPath);
+  return privkey;
+}
+
+/**
+ * Converts an unarmored hex string to a private key.
+ *
+ * @param unarmoredHex - Unarmored hex string to convert
+ * @returns Promise containing the private key bytes
+ */
+export async function convertUnarmoredHexToPrivateKey(unarmoredHex: string): Promise<Uint8Array> {
+  if (!isHex(unarmoredHex)) {
+    throw new InvalidFormatError('Unarmored hex string');
+  }
+
+  const privKey = Buffer.from(unarmoredHex, 'hex');
+  const { privkey } = await Secp256k1.makeKeypair(privKey);
+  return privkey;
+}
+
+export function isHex(value: string): boolean {
+  return /^[\dA-Fa-f]+$/.test(value);
 }

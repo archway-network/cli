@@ -2,47 +2,45 @@ import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
 import { StargateClient } from '@cosmjs/stargate';
 import _ from 'lodash';
 import fs from 'node:fs/promises';
-import path from 'node:path';
 import os from 'node:os';
+import path from 'node:path';
 import ow from 'ow';
 
-import { ChainRegistry, Contracts, Deployments, Ledger } from '@/domain';
-import { DEFAULT_KEY_FILES_PATH } from './Accounts';
-import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
-import { DEFAULT_CHAIN_ID } from './ChainRegistry';
+import { ChainRegistry, Contracts, Deployments } from '@/domain';
 import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
-import { bold, fileExists, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, writeFileWithDir } from '@/utils';
-
 import {
-  AccountType,
   AccountWithSigner,
-  KeystoreBackendType,
   ConfigData,
   ConfigDataWithContracts,
   Contract,
   CosmosChain,
   Deployment,
+  KeystoreBackendType,
   MergeMode,
-  configDataValidator,
+  configDataValidator
 } from '@/types';
+import { bold, fileExists, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, writeFileWithDir } from '@/utils';
 
-/** Default Config constants */
-export const DEFAULT_ARCHWAY_DIRECTORY = '.archway';
-export const DEFAULT_CONFIG_FILENAME = 'config.json';
-export const DEFAULT_CONFIG_FILE = path.join(DEFAULT_ARCHWAY_DIRECTORY, DEFAULT_CONFIG_FILENAME);
+import { DEFAULT_CHAIN_ID } from './ChainRegistry';
+import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
+
+export const CONFIG_FILENAME = 'config.json';
+
+export const GLOBAL_CONFIG_PATH = `${os.homedir()}/.config/archway`;
+export const GLOBAL_CONFIG_FILE = `${GLOBAL_CONFIG_PATH}/${CONFIG_FILENAME}`;
+
+export const LOCAL_CONFIG_PATH = '.archway';
+export const LOCAL_CONFIG_FILE = path.join(LOCAL_CONFIG_PATH, CONFIG_FILENAME);
+
 export const DEFAULT_CONFIG_DATA = {
   'chain-id': DEFAULT_CHAIN_ID,
   'contracts-path': DEFAULT_CONTRACTS_RELATIVE_PATH,
   'keyring-backend': KeystoreBackendType.os,
-  'keyring-path': DEFAULT_KEY_FILES_PATH,
+  'keyring-path': `${GLOBAL_CONFIG_PATH}/keys`,
 };
 
 /** Default signer constants */
 export const DEFAULT_GAS_ADJUSTMENT = 1.3;
-
-/** Global Config constants */
-export const GLOBAL_CONFIG_PATH = `${os.homedir()}/.config/archway`;
-export const GLOBAL_CONFIG_FILE = `${GLOBAL_CONFIG_PATH}/${DEFAULT_CONFIG_FILENAME}`;
 
 /**
  * Manages the config file of the project and creates instances of ChainRegistry and Contracts
@@ -193,7 +191,7 @@ export class Config {
    */
   static async create(chainId: string, workingDir?: string): Promise<Config> {
     if (await Config.exists(workingDir)) {
-      throw new AlreadyExistsError('Config file', DEFAULT_CONFIG_FILE);
+      throw new AlreadyExistsError('Config file', LOCAL_CONFIG_FILE);
     }
 
     const globalConfig = await this.readConfigFile(workingDir, true);
@@ -222,7 +220,7 @@ export class Config {
 
     const workspaceRoot = await getWorkspaceRoot(workingDir);
 
-    return path.join(workspaceRoot, DEFAULT_CONFIG_FILE);
+    return path.join(workspaceRoot, LOCAL_CONFIG_FILE);
   }
 
   /**
@@ -355,13 +353,11 @@ export class Config {
    * @returns Promise containing the {@link StargateClient}
    */
   async getSigningArchwayClient(
-    accountWithSigner: AccountWithSigner,
+    { signer }: AccountWithSigner,
     gasAdjustment = DEFAULT_GAS_ADJUSTMENT
   ): Promise<SigningArchwayClient> {
     const chainInfo = await this.activeChainInfo();
     const rpcEndpoint = await this.activeChainRpcEndpoint(chainInfo);
-
-    const signer = accountWithSigner.account.type === AccountType.LEDGER ? await Ledger.getLedgerSigner() : accountWithSigner.signer!;
 
     return SigningArchwayClient.connectWithSigner(rpcEndpoint, signer, { gasAdjustment });
   }
