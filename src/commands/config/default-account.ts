@@ -1,10 +1,10 @@
 /* eslint-disable unicorn/filename-case */
 import { Args } from '@oclif/core';
 
-import { BaseCommand } from '@/lib/base';
-import { bold, greenBright, reset } from '@/utils';
 import { Config } from '@/domain';
+import { BaseCommand } from '@/lib/base';
 import { GlobalFlag } from '@/parameters/flags';
+import { bold, greenBright, reset } from '@/utils';
 
 /**
  * Command 'config default-account'
@@ -39,7 +39,7 @@ export default class ConfigDefaultAccount extends BaseCommand<typeof ConfigDefau
 
       await this.successMessage(defaultAccount, global);
     } else {
-      const currentValue = global ? configFile.globalConfigData['default-account'] : configFile.localConfigData['default-account'];
+      const currentValue = global ? configFile.globalData['default-account'] : configFile.localData['default-account'];
       this.log(greenBright(currentValue || `Empty, ${reset.bold('default-account')} is not set`));
 
       if (this.jsonEnabled()) this.logJson({ 'default-account': currentValue || '' });

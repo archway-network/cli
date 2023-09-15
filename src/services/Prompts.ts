@@ -21,7 +21,7 @@ export class Prompts {
   static async chain(): Promise<string> {
     const chainRegistry = await ChainRegistry.init();
 
-    const choices = chainRegistry.listChains.map((item: CosmosChain) => {
+    const choices = chainRegistry.chains.map((item: CosmosChain) => {
       return {
         title: item?.pretty_name || item?.chain_name || '',
         description: ChainPromptDetails[item.chain_id]?.description,

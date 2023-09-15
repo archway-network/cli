@@ -17,24 +17,24 @@ export const CHAIN_FILE_EXTENSION = '.json';
  * Manages the chains in the project, including the built-in and the imported ones.
  */
 export class ChainRegistry extends ChainRegistrySpec {
-  private _data: CosmosChain[];
+  private _chains: CosmosChain[];
   private _dirPath: string;
   private _warnings: ChainWarning[];
 
   /**
-   * @param data - List of the {@link CosmosChain} representation of the chains in the project
+   * @param chains - List of the {@link CosmosChain} representation of the chains in the project
    * @param dirPath - Absolute path of the imported chain config files
    * @param warning - List of warnings related to the chain config files
    */
-  constructor(data: CosmosChain[], dirPath: string, warning: ChainWarning[]) {
+  constructor(chains: CosmosChain[], dirPath: string, warning: ChainWarning[]) {
     super();
-    this._data = data;
+    this._chains = chains;
     this._dirPath = dirPath;
     this._warnings = warning;
   }
 
-  get listChains(): CosmosChain[] {
-    return this._data;
+  get chains(): CosmosChain[] {
+    return this._chains;
   }
 
   get dirPath(): string {
@@ -159,7 +159,7 @@ export class ChainRegistry extends ChainRegistrySpec {
    * @returns The {@link CosmosChain} that matches the id, or undefined if not found
    */
   getChainById(chainId: string): CosmosChain | undefined {
-    return this._data.find(item => item.chain_id === chainId);
+    return this._chains.find(item => item.chain_id === chainId);
   }
 
   /**
@@ -192,7 +192,7 @@ export class ChainRegistry extends ChainRegistrySpec {
     if (this._warnings) this._warnings = this._warnings.filter(item => item.filename !== newChainId);
 
     // Add to inner data
-    this._data = this._data.map(item => (item.chain_id === newChainId ? chain : item));
+    this._chains = this._chains.map(item => (item.chain_id === newChainId ? chain : item));
   }
 
   /**
