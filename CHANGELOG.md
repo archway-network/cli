@@ -5,7 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 2.0.0-alpha (2023-08-29)
+## 2.0.0-alpha.2 (2023-09-15)
+
+### ⚠ BREAKING CHANGES
+
+- **config:** Changed the config file path. To migrate from `v2.0.0-alpha.1` to
+  `v2.0.0-alpha.2`, users will have to rename the config folder from
+  `./.archway-cli` to `./.archway` and move the config file from
+  `archway-cli.json` to `.archway/config.json`.
+- **accounts:** any accounts created using version `2.0.0-alpha.1` must
+  be recovered from the mnemonic using the command `archway accounts new
+  --recover {name}`.
+
+### Added
+
+- **config:** management of global config files in `~/.config/archway` (#221)
+- **accounts:** store the private key on the keyring (#218)
+
+### Fixed
+
+- **contracts**: validate the schema of Rust's numeric types (#214)
+- **contracts:** load templates for new projects from the `main` branch (#217)
+- **config:** remove the `-cli` suffix from the config path (#215)
+- **core:** add other aliases for version flag (#229)
+- **core:** update all description texts (#232)
+
+### Code Refactoring
+
+- **accounts:** update the keyring storage workflow (#235)
+
+## 2.0.0-alpha.1 (2023-08-29)
 
 ### ⚠ BREAKING CHANGES
 
