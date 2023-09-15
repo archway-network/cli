@@ -32,8 +32,8 @@ git init "$TEMP_DIR"
 cd "$TEMP_DIR"
 
 echo "***** remove integration test accounts in case they exist  *****"
-output="$(archway accounts remove ${ALICE} --no-confirm --keyring-backend test --json || true)"
-output="$(archway accounts remove ${BOB} --no-confirm --keyring-backend test --json || true)"
+output="$(archway accounts remove "${ALICE}" --no-confirm --keyring-backend test --json || true)"
+output="$(archway accounts remove "${BOB}" --no-confirm --keyring-backend test --json || true)"
 
 printf "\n***** accounts new ***** \n"
 output="$(echo "$ALICE_MNEMONIC" | archway accounts new "${ALICE}" --recover --keyring-backend test --json)"
