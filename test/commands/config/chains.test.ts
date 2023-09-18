@@ -1,6 +1,7 @@
 import { expect, test } from '@oclif/test';
 
 import ConfigChains from '../../../src/commands/config/chains';
+import { ChainData } from '../../../src/commands/config/chains/list';
 import { chainString } from '../../dummies';
 import { ConfigStubs, FilesystemStubs } from '../../stubs';
 
@@ -59,6 +60,26 @@ describe('config chains', () => {
       .it('updates config file to use chain', ctx => {
         expect(ctx.stdout).to.contain('Switched chain to');
         expect(filesystemStubs.stubbedWriteFile?.called).to.be.true;
+      });
+  });
+
+  describe('list', () => {
+    test
+      .stdout()
+      .command(['config chains list'])
+      .it('lists all available chains', ctx => {
+        expect(ctx.stdout).to.contain('Current');
+        expect(ctx.stdout).to.contain('Chain ID');
+        expect(ctx.stdout).to.contain('Name');
+        expect(ctx.stdout).to.contain('constantine-3');
+        expect(ctx.stdout).to.contain('archway-1');
+
+        const returned = ctx.returned as readonly ChainData[];
+        expect(returned.length).to.be.gte(2);
+
+        const chainIds = returned.map(({ current, chainId }) => ({ current, chainId }));
+        expect(chainIds).to.deep.contain({ current: true, chainId: 'constantine-3' });
+        expect(chainIds).to.deep.contain({ current: false, chainId: 'archway-1' });
       });
   });
 

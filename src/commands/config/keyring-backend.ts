@@ -1,11 +1,11 @@
 /* eslint-disable unicorn/filename-case */
 import { Args } from '@oclif/core';
 
-import { BaseCommand } from '@/lib/base';
-import { bold, greenBright, reset } from '@/utils';
 import { Config, DEFAULT_CONFIG_DATA } from '@/domain';
+import { BaseCommand } from '@/lib/base';
 import { GlobalFlag } from '@/parameters/flags';
 import { KeystoreBackendType } from '@/types';
+import { bold, greenBright, reset } from '@/utils';
 
 /**
  * Command 'config keyring-backend'
@@ -42,7 +42,7 @@ export default class ConfigKeyringBackend extends BaseCommand<typeof ConfigKeyri
 
       await this.successMessage(keyringBackend, global);
     } else {
-      const currentValue = global ? configFile.globalConfigData['keyring-backend'] : configFile.localConfigData['keyring-backend'];
+      const currentValue = global ? configFile.globalData['keyring-backend'] : configFile.localData['keyring-backend'];
       this.log(greenBright(currentValue || `Empty, defaults to: ${reset.bold(DEFAULT_CONFIG_DATA['keyring-backend'])}`));
 
       if (this.jsonEnabled()) this.logJson({ 'keyring-backend': currentValue || '' });

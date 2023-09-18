@@ -5,7 +5,7 @@ import ow from 'ow';
  * Abstract definition to be used on ChainRegistry class
  */
 export abstract class ChainRegistrySpec {
-  abstract get listChains(): CosmosChain[];
+  abstract get chains(): CosmosChain[];
 
   abstract import(chainInfo: CosmosChain): Promise<void>;
 }

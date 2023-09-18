@@ -98,38 +98,38 @@ export class Config {
     return this._contracts.deployments.listDeployments();
   }
 
-  get globalConfigData(): ConfigData {
+  get globalData(): ConfigData {
     return this._globalConfigData;
   }
 
-  get localConfigData(): ConfigData {
+  get localData(): ConfigData {
     return this._localConfigData;
   }
 
   /** Returns the resolved version with precedence of local \> global \> default */
-  get configData(): ConfigData {
+  get data(): ConfigData {
     return _.merge(DEFAULT_CONFIG_DATA, this._globalConfigData, this._localConfigData);
   }
 
   /** Getters for the fields from ConfigData */
   get chainId(): string {
-    return this.configData['chain-id']!;
+    return this.data['chain-id']!;
   }
 
   get contractsPath(): string {
-    return this.configData['contracts-path']!;
+    return this.data['contracts-path']!;
   }
 
   get keyringBackend(): KeystoreBackendType {
-    return this.configData['keyring-backend']!;
+    return this.data['keyring-backend']!;
   }
 
   get keyringPath(): string {
-    return this.configData['keyring-path']!;
+    return this.data['keyring-path']!;
   }
 
   get defaultAccount(): string | undefined {
-    return this.configData['default-account'];
+    return this.data['default-account'];
   }
 
   /**
@@ -404,7 +404,7 @@ export class Config {
    */
   async dataWithContracts(): Promise<ConfigDataWithContracts> {
     return {
-      ...this.configData,
+      ...this.data,
       contracts: this.contractsInstance.listContracts(),
     };
   }

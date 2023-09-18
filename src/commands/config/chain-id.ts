@@ -1,10 +1,10 @@
 /* eslint-disable unicorn/filename-case */
 import { Args } from '@oclif/core';
 
-import { BaseCommand } from '@/lib/base';
-import { bold, greenBright, reset } from '@/utils';
 import { ChainRegistry, Config, DEFAULT_CONFIG_DATA } from '@/domain';
+import { BaseCommand } from '@/lib/base';
 import { GlobalFlag } from '@/parameters/flags';
+import { bold, greenBright, reset } from '@/utils';
 
 /**
  * Command 'config chain-id'
@@ -39,7 +39,7 @@ export default class ConfigChainId extends BaseCommand<typeof ConfigChainId> {
 
       await this.successMessage(chainId, global);
     } else {
-      const currentValue = global ? configFile.globalConfigData['chain-id'] : configFile.localConfigData['chain-id'];
+      const currentValue = global ? configFile.globalData['chain-id'] : configFile.localData['chain-id'];
       this.log(greenBright(currentValue || `Empty, defaults to: ${reset.bold(DEFAULT_CONFIG_DATA['chain-id'])}`));
 
       if (this.jsonEnabled()) this.logJson({ 'chain-id': currentValue || '' });

@@ -34,9 +34,10 @@ describe('accounts remove', () => {
     });
     test
       .stdout()
+      .stderr()
       .command(['accounts remove', aliceAccountName])
       .it("doesn't delete the account", ctx => {
-        expect(ctx.stdout).to.contain('Operation canceled');
+        expect(ctx.stderr).to.contain('Operation canceled');
         expect(ctx.stdout).to.not.contain('deleted');
       });
   });

@@ -1,10 +1,10 @@
 /* eslint-disable unicorn/filename-case */
 import { Args } from '@oclif/core';
 
-import { BaseCommand } from '@/lib/base';
-import { bold, greenBright, reset } from '@/utils';
 import { Config, DEFAULT_CONFIG_DATA } from '@/domain';
+import { BaseCommand } from '@/lib/base';
 import { GlobalFlag } from '@/parameters/flags';
+import { bold, greenBright, reset } from '@/utils';
 
 /**
  * Command 'config contracts-path'
@@ -36,7 +36,7 @@ export default class ConfigContractsPath extends BaseCommand<typeof ConfigContra
 
       await this.successMessage(contractsPath, global);
     } else {
-      const currentValue = global ? configFile.globalConfigData['contracts-path'] : configFile.localConfigData['contracts-path'];
+      const currentValue = global ? configFile.globalData['contracts-path'] : configFile.localData['contracts-path'];
       this.log(greenBright(currentValue || `Empty, defaults to: ${reset.bold(DEFAULT_CONFIG_DATA['contracts-path'])}`));
 
       if (this.jsonEnabled()) this.logJson({ 'contracts-path': currentValue || '' });
