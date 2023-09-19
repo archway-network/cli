@@ -36,6 +36,7 @@ output="$(archway accounts remove "${ALICE}" --no-confirm --keyring-backend test
 output="$(archway accounts remove "${BOB}" --no-confirm --keyring-backend test --json || true)"
 
 printf "\n***** accounts new ***** \n"
+archway accounts remove "${ALICE}" --no-confirm --keyring-backend test >/dev/null 2>&1 || true
 output="$(echo "$ALICE_MNEMONIC" | archway accounts new "${ALICE}" --recover --keyring-backend test --json)"
 validate "$output" '.name == "'"${ALICE}"'" and has("address") and (.publicKey | has("key")) and has("privateKey") and (has("mnemonic") | not)'
 
