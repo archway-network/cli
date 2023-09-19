@@ -1,7 +1,7 @@
 import { Command, Flags, Interfaces } from '@oclif/core';
 import debugInstance from 'debug';
 
-import { ConsoleError } from '@/types';
+import { ConsoleError } from '@/exceptions';
 import { PromptCanceledError } from '@/ui';
 import { redBright, yellow } from '@/utils';
 

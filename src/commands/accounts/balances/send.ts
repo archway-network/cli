@@ -4,10 +4,10 @@ import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { AmountRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
-import { showDisappearingSpinner } from '@/ui';
-import { askForConfirmation, buildStdFee, green, greenBright, prettyPrintCoin, white } from '@/utils';
-
+import { Prompts } from '@/services';
 import { Account, AccountBase, Amount } from '@/types';
+import { showDisappearingSpinner } from '@/ui';
+import { buildStdFee, green, greenBright, prettyPrintCoin, white } from '@/utils';
 
 /**
  * Command 'accounts balances send'
@@ -50,7 +50,7 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
 
     await this.logTransactionDetails(from.account, toAccount);
 
-    if (this.flags.confirm) await askForConfirmation();
+    if (this.flags.confirm) await Prompts.askForConfirmation();
     this.log();
 
     try {

@@ -1,13 +1,12 @@
 import { Args } from '@oclif/core';
 import fs from 'node:fs/promises';
 
-import { BaseCommand } from '@/lib/base';
-import { bold, dim, greenBright, redBright } from '@/utils';
 import { ChainRegistry } from '@/domain';
-import { ErrorCodes } from '@/exceptions';
+import { ConsoleError, ErrorCodes } from '@/exceptions';
+import { BaseCommand } from '@/lib/base';
 import { StdinInputArg } from '@/parameters/arguments';
-
-import { ConsoleError, CosmosChain } from '@/types';
+import { CosmosChain } from '@/types';
+import { bold, dim, greenBright, redBright } from '@/utils';
 
 /**
  * Command 'config chains import'

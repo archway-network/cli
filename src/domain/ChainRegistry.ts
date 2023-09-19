@@ -1,12 +1,12 @@
 import path from 'node:path';
 import ow from 'ow';
 
-import { AlreadyExistsError, ErrorCodes, InvalidFormatError } from '@/exceptions';
+import { AlreadyExistsError, ConsoleError, ErrorCodes, InvalidFormatError } from '@/exceptions';
 import { BuiltInChains } from '@/services';
+import { ChainRegistrySpec, CosmosChain, cosmosChainValidator } from '@/types';
 import { bold, fileExists, readFilesFromDirectory, redBright, writeFileWithDir, yellow } from '@/utils';
-import { GLOBAL_CONFIG_PATH } from './Config';
 
-import { ChainRegistrySpec, ConsoleError, CosmosChain, cosmosChainValidator } from '@/types';
+import { GLOBAL_CONFIG_PATH } from './Config';
 
 export const GLOBAL_CHAINS_PATH = `${GLOBAL_CONFIG_PATH}/chains`;
 

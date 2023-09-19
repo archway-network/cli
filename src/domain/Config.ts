@@ -16,10 +16,9 @@ import {
   CosmosChain,
   Deployment,
   KeystoreBackendType,
-  MergeMode,
   configDataValidator
 } from '@/types';
-import { bold, fileExists, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, writeFileWithDir } from '@/utils';
+import { MergeMode, bold, fileExists, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, writeFileWithDir } from '@/utils';
 
 import { DEFAULT_CHAIN_ID } from './ChainRegistry';
 import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';

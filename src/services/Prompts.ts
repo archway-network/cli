@@ -1,24 +1,24 @@
-/* eslint-disable unicorn/no-static-only-class */
 import { Choice } from 'prompts';
 
 import { ChainRegistry, DEFAULT_CHAIN_ID } from '@/domain';
-import { ContractTemplates } from '@/services';
 import { CosmosChain } from '@/types';
-import { showPrompt } from '@/ui';
+import { PromptCanceledError, showPrompt } from '@/ui';
 import { blueBright, sanitizeDirName } from '@/utils';
+
+import { ContractTemplates } from './ContractTemplates';
 
 const ChainPromptDetails: Record<string, Partial<Choice>> = {
   'constantine-3': { description: 'Stable testnet - recommended for dapp development' },
   'archway-1': { description: 'Production network' },
 };
 
-export class Prompts {
+export namespace Prompts {
   /**
    * Shows a terminal prompt asking the user to select a chain
    *
    * @returns Promise<string> containing the chain id
    */
-  static async chain(): Promise<string> {
+  export async function chain(): Promise<string> {
     const chainRegistry = await ChainRegistry.init();
 
     const choices = chainRegistry.chains.map((item: CosmosChain) => {
@@ -49,7 +49,7 @@ export class Prompts {
    *
    * @returns Promise<string> containing the contract name
    */
-  static async contractName(): Promise<string> {
+  export async function contractName(): Promise<string> {
     const answer = await showPrompt({
       type: 'text',
       name: 'contract-name',
@@ -65,7 +65,7 @@ export class Prompts {
    *
    * @returns Promise<string> containing the template name
    */
-  static async template(): Promise<string> {
+  export async function template(): Promise<string> {
     const answer = await showPrompt({
       type: 'select',
       name: 'template',
@@ -82,7 +82,7 @@ export class Prompts {
    * @param nameOrAddress - Name or address of the account
    * @returns Promise<string> containing the password
    */
-  static async accountPassword(nameOrAddress: string): Promise<string> {
+  export async function accountPassword(nameOrAddress: string): Promise<string> {
     const answer = await showPrompt({
       type: 'password',
       name: 'password',
@@ -97,7 +97,7 @@ export class Prompts {
    *
    * @returns Promise<boolean> object containing confirmation
    */
-  static async confirmation(): Promise<boolean> {
+  export async function confirmation(): Promise<boolean> {
     const answer = await showPrompt({
       type: 'confirm',
       name: 'confirm',
@@ -114,7 +114,7 @@ export class Prompts {
    *
    * @returns Promise<string> containing the account name or address
    */
-  static async fromAccount(): Promise<string> {
+  export async function fromAccount(): Promise<string> {
     const answer = await showPrompt({
       type: 'text',
       name: 'from',
@@ -130,7 +130,7 @@ export class Prompts {
    *
    * @returns Promise<string> containing the new account name
    */
-  static async newAccount(): Promise<string> {
+  export async function newAccount(): Promise<string> {
     const answer = await showPrompt({
       type: 'text',
       name: 'account-name',
@@ -146,7 +146,7 @@ export class Prompts {
    *
    * @returns Promise<string> containing the new project name
    */
-  static async newProject(): Promise<string> {
+  export async function newProject(): Promise<string> {
     const answer = await showPrompt({
       type: 'text',
       name: 'project-name',
@@ -163,7 +163,7 @@ export class Prompts {
    *
    * @returns Promise<string> containing the new contract name
    */
-  static async newContract(): Promise<string> {
+  export async function newContract(): Promise<string> {
     const answer = await showPrompt({
       type: 'text',
       name: 'contract-name',
@@ -180,7 +180,7 @@ export class Prompts {
    *
    * @returns Promise<string> containing the mnemonic or private key
    */
-  static async mnemonicOrPrivateKey(): Promise<string> {
+  export async function mnemonicOrPrivateKey(): Promise<string> {
     const answer = await showPrompt({
       type: 'text',
       name: 'mnemonicOrPrivateKey',
@@ -188,5 +188,21 @@ export class Prompts {
     });
 
     return answer.mnemonicOrPrivateKey;
+  }
+
+  /**
+   * Util function to ask for confirmation
+   *
+   * @param skipConfirmation - Optional - Skips the confirmation prompt
+   */
+  export async function askForConfirmation(force = false): Promise<void> {
+    if (force) {
+      return;
+    }
+
+    const promptedConfirmation = await Prompts.confirmation();
+    if (!promptedConfirmation) {
+      throw new PromptCanceledError()
+    }
   }
 }

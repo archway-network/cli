@@ -1,7 +1,7 @@
 import { redBright } from '@/utils';
-import { ErrorCodes } from '@/exceptions';
 
-import { ConsoleError } from '@/types';
+import { ConsoleError } from './ConsoleError';
+import { ErrorCodes } from './ErrorCodes';
 
 /**
  * Error when user tries to input an arg from many sources

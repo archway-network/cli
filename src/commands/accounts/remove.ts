@@ -2,9 +2,9 @@ import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { AccountRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags, NoConfirmFlag } from '@/parameters/flags';
-import { askForConfirmation, bold, green, yellow } from '@/utils';
-
+import { Prompts } from '@/services';
 import { AccountBase } from '@/types';
+import { bold, green, yellow } from '@/utils';
 
 /**
  * Command 'accounts remove'
@@ -50,7 +50,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
       );
     }
 
-    await askForConfirmation(this.flags['no-confirm']);
+    await Prompts.askForConfirmation(this.flags['no-confirm']);
 
     await accountsDomain.remove(accountInfo.address);
 

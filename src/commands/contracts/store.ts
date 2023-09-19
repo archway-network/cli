@@ -1,17 +1,18 @@
-import { Flags } from '@oclif/core';
 import fs from 'node:fs/promises';
-import { UploadResult } from '@cosmjs/cosmwasm-stargate';
-import { AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
 import path from 'node:path';
 
+import { UploadResult } from '@cosmjs/cosmwasm-stargate';
+import { Flags } from '@oclif/core';
+import { AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
+
+import { Accounts, Config, DEFAULT_ADDRESS_BECH_32_PREFIX } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
-import { Accounts, Config, DEFAULT_ADDRESS_BECH_32_PREFIX } from '@/domain';
-import { askForConfirmation, buildStdFee, blueBright, white, yellow, greenBright, assertIsValidAddress } from '@/utils';
 import { KeyringFlags, NoConfirmFlag, TransactionFlags } from '@/parameters/flags';
+import { Prompts } from '@/services';
+import { Account, Contract, DeploymentAction, InstantiatePermission, StoreDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
-
-import { Account, InstantiatePermission, DeploymentAction, StoreDeployment, Contract } from '@/types';
+import { assertIsValidAddress, blueBright, buildStdFee, greenBright, white, yellow } from '@/utils';
 
 /**
  * Command 'contracts store'
@@ -80,7 +81,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
           )} has already been deployed to ${white.reset(config.chainId)}`
         )
       );
-      await askForConfirmation(this.flags['no-confirm']);
+      await Prompts.askForConfirmation(this.flags['no-confirm']);
     }
 
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);

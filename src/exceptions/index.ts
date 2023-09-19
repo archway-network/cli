@@ -1,5 +1,6 @@
 export * from './AlreadyExistsError';
 export * from './BaseError';
+export * from './ConsoleError';
 export * from './ErrorCodes';
 export * from './ExecuteError';
 export * from './InstantiateError';

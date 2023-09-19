@@ -1,17 +1,20 @@
 import _ from 'lodash';
 
-import { Prompts } from '@/services';
-import { PromptCanceledError } from '@/ui';
-
-import { MergeMode } from '@/types';
-
 export * from './accounts';
 export * from './coin';
 export * from './filesystem';
 export * from './paths';
-export * from './sanitize';
 export * from './style';
 export * from './transactions';
+
+/**
+ * Possible merge modes on object update
+ */
+export enum MergeMode {
+  OVERWRITE = 'OVERWRITE',
+  APPEND = 'APPEND',
+  PREPEND = 'PREPEND',
+}
 
 /**
  * Util function that customizes merging of objects, used as parameter of lodash's 'mergeWith' function
@@ -28,20 +31,4 @@ export function mergeCustomizer(arrayMergeMode = MergeMode.OVERWRITE): any {
       (objValue = [], srcValue = []) => [...srcValue, ...objValue],
     ],
   ]);
-}
-
-/**
- * Util function to ask for confirmation
- *
- * @param skipConfirmation - Optional - Skips the confirmation prompt
- */
-export async function askForConfirmation(force = false): Promise<void> {
-  if (force) {
-    return;
-  }
-
-  const promptedConfirmation = await Prompts.confirmation();
-  if (!promptedConfirmation) {
-    throw new PromptCanceledError()
-  }
 }
