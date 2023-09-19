@@ -1,20 +1,28 @@
 {
   "compilerOptions": {
+    "baseUrl": "./",
+    "rootDir": "src",
+    "outDir": "dist",
+    "target": "es2019",
+    "module": "commonjs",
     "declaration": true,
     "importHelpers": true,
-    "module": "commonjs",
     "esModuleInterop": true,
-    "outDir": "dist",
     "resolveJsonModule": true,
-    "rootDir": "src",
+    "noImplicitAny": true,
+    "preserveConstEnums": true,
     "strict": true,
-    "target": "es2019",
-    "baseUrl": "./",
+    "strictNullChecks": true,
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.js"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.js"
+  ],
   "ts-node": {
     "files": true
   }
