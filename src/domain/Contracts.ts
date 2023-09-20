@@ -6,11 +6,12 @@ import toml from 'toml';
 
 import { StargateClient } from '@cosmjs/stargate';
 
-import { Cargo, Deployments } from '@/domain';
-import { ErrorCodes, ExecuteError, InstantiateError, NotFoundError, QueryError } from '@/exceptions';
-import { AccountBalancesJSON, ConsoleError, Contract, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
+import { ConsoleError, ErrorCodes, ExecuteError, InstantiateError, NotFoundError, QueryError } from '@/exceptions';
+import { AccountBalancesJSON, Contract, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
 import { bold, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright, sanitizeDirName } from '@/utils';
 
+import { Cargo } from './Cargo';
+import { Deployments } from './Deployments';
 import { SchemaValidator } from './SchemaValidation';
 
 /** Contracts file constants */

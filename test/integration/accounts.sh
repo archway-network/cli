@@ -32,10 +32,11 @@ git init "$TEMP_DIR"
 cd "$TEMP_DIR"
 
 echo "***** remove integration test accounts in case they exist  *****"
-output="$(archway accounts remove "${ALICE}" --force --keyring-backend test --json || true)"
-output="$(archway accounts remove "${BOB}" --force --keyring-backend test --json || true)"
+output="$(archway accounts remove "${ALICE}" --no-confirm --keyring-backend test --json || true)"
+output="$(archway accounts remove "${BOB}" --no-confirm --keyring-backend test --json || true)"
 
 printf "\n***** accounts new ***** \n"
+archway accounts remove "${ALICE}" --no-confirm --keyring-backend test >/dev/null 2>&1 || true
 output="$(echo "$ALICE_MNEMONIC" | archway accounts new "${ALICE}" --recover --keyring-backend test --json)"
 validate "$output" '.name == "'"${ALICE}"'" and has("address") and (.publicKey | has("key")) and has("privateKey") and (has("mnemonic") | not)'
 
@@ -52,7 +53,7 @@ output="$(archway accounts get ${ALICE} --keyring-backend test --json)"
 validate "$output" ".name == \"${ALICE}\" and has(\"address\") and (.publicKey | has(\"key\"))"
 
 printf "\n***** accounts remove ***** \n"
-output="$(archway accounts remove ${BOB} --keyring-backend test --force --json)"
+output="$(archway accounts remove ${BOB} --keyring-backend test --no-confirm --json)"
 validate "$output" ".name == \"${BOB}\" and has(\"address\")"
 
 output="$(archway accounts get ${BOB} --keyring-backend test --json || true)"

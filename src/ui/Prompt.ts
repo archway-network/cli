@@ -1,10 +1,8 @@
 import _ from 'lodash';
-import { prompt, prompts, inject, override, PromptObject, Answers, Options } from 'prompts';
+import { Answers, Options, PromptObject, inject, override, prompt, prompts } from 'prompts';
 
+import { ConsoleError, ErrorCodes } from '@/exceptions';
 import { yellow } from '@/utils';
-import { ErrorCodes } from '@/exceptions';
-
-import { ConsoleError } from '@/types';
 
 /**
  * Display a prompt to the user to enter a value or select an option
@@ -40,4 +38,4 @@ export class PromptCanceledError extends ConsoleError {
   }
 }
 
-export { prompts, inject, override };
+export { inject, override, prompts };

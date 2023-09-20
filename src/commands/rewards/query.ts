@@ -23,6 +23,17 @@ export default class RewardsQuery extends BaseCommand<typeof RewardsQuery> {
     ...KeyringFlags,
   };
 
+  static examples = [
+    {
+      description: 'Query the outstanding rewards for an account by name',
+      command: '<%= config.bin %> <%= command.id %> alice',
+    },
+    {
+      description: 'Query the outstanding rewards for an account by address',
+      command: '<%= config.bin %> <%= command.id %> archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm',
+    },
+  ];
+
   /**
    * Runs the command.
    *

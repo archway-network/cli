@@ -1,17 +1,18 @@
-import { Flags } from '@oclif/core';
 import fs from 'node:fs/promises';
-import { UploadResult } from '@cosmjs/cosmwasm-stargate';
-import { AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
 import path from 'node:path';
 
+import { UploadResult } from '@cosmjs/cosmwasm-stargate';
+import { Flags } from '@oclif/core';
+import { AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
+
+import { Accounts, Config, DEFAULT_ADDRESS_BECH_32_PREFIX } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
-import { Accounts, Config, DEFAULT_ADDRESS_BECH_32_PREFIX } from '@/domain';
-import { askForConfirmation, buildStdFee, blueBright, white, yellow, greenBright, assertIsValidAddress } from '@/utils';
-import { ForceFlag, KeyringFlags, TransactionFlags } from '@/parameters/flags';
+import { KeyringFlags, NoConfirmFlag, TransactionFlags } from '@/parameters/flags';
+import { Prompts } from '@/services';
+import { Account, Contract, DeploymentAction, InstantiatePermission, StoreDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
-
-import { Account, InstantiatePermission, DeploymentAction, StoreDeployment, Contract } from '@/types';
+import { assertIsValidAddress, blueBright, buildStdFee, greenBright, white, yellow } from '@/utils';
 
 /**
  * Command 'contracts store'
@@ -34,10 +35,29 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       description:
         'List of addresses that can instantiate a contract from the code; works only if the instantiate permission is set to "any-of"',
     })(),
-    force: ForceFlag,
+    'no-confirm': NoConfirmFlag,
     ...KeyringFlags,
     ...TransactionFlags,
   };
+
+  static examples = [
+    {
+      description: 'Store a contract on-chain',
+      command: '<%= config.bin %> <%= command.id %> my-contract',
+    },
+    {
+      description: 'Store a contract on-chain, without confirmation prompt',
+      command: '<%= config.bin %> <%= command.id %> my-project --no-confirm',
+    },
+    {
+      description: 'Store a contract on-chain, with list of addresses allowed to instantiate',
+      command: '<%= config.bin %> <%= command.id %> my-project --instantiate-permission "any-of" --allowed-addresses "archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm,archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz"',
+    },
+    {
+      description: 'Store a contract on-chain, with nobody allowed to instantiate',
+      command: '<%= config.bin %> <%= command.id %> my-project --instantiate-permission "no-one"',
+    },
+  ];
 
   /**
    * Runs the command.
@@ -61,7 +81,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
           )} has already been deployed to ${white.reset(config.chainId)}`
         )
       );
-      await askForConfirmation(this.flags.force);
+      await Prompts.askForConfirmation(this.flags['no-confirm']);
     }
 
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);

@@ -5,9 +5,9 @@ import { ExecuteResult } from '@cosmjs/cosmwasm-stargate';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
 import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright, isValidAddress } from '@/utils';
+import { buildStdFee, blueBright, greenBright, isValidAddress, dim } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag } from '@/parameters/flags';
+import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag, SkipValidationFlag } from '@/parameters/flags';
 import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 
 import { Account, Amount, Contract } from '@/types';
@@ -32,9 +32,37 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       description: 'JSON string with a valid execute schema for the contract',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a valid execute schema for the contract' }),
+    'skip-validation': SkipValidationFlag,
     ...KeyringFlags,
     ...TransactionFlags,
   };
+
+  static examples = [
+    {
+      description: 'Execute a transaction in a contract by contract name, with message from --args flag',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args \'{"example":{}}\'',
+    },
+    {
+      description: 'Execute a transaction in a contract by address, with message from --args flag',
+      command: '<%= config.bin %> <%= command.id %> archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm --args \'{"example":{}}\'',
+    },
+    {
+      description: 'Execute a transaction in a contract, from a specific account',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args \'{"example":{}}\' --from "alice"',
+    },
+    {
+      description: 'Execute a transaction in a contract by contract name, sending tokens with the transaction',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args \'{"example":{}}\' --amount "1const"',
+    },
+    {
+      description: 'Execute a transaction in a contract, with message from file',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args-file="./execMsg.json"',
+    },
+    {
+      description: 'Execute a transaction in a contract, with query message from stdin',
+      command: dim('$ echo \'{"example":{}}\' | <%= config.bin %> <%= command.id %> my-contract'),
+    },
+  ];
 
   /**
    * Runs the command.
@@ -76,8 +104,9 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
 
       contractAddress = instantiated.contract.address;
 
-      // Validate exec args schema
-      await config.contractsInstance.assertValidExecuteArgs(contractInstance.name, executeArgs);
+      if (!this.flags['skip-validation']) {
+        await config.contractsInstance.assertValidExecuteArgs(contractInstance.name, executeArgs);
+      }
     }
 
     await this.logTransactionDetails(config, contractInstance?.name || contractAddress, from.account);

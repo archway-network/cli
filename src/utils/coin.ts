@@ -1,12 +1,12 @@
 /* eslint-disable new-cap */
-import { Coin, parseCoins } from '@cosmjs/proto-signing';
-import { StdFee } from '@cosmjs/stargate';
 import BigNumber from 'bignumber.js';
 
-import { InvalidFormatError } from '@/exceptions';
+import { Coin, parseCoins } from '@cosmjs/proto-signing';
+import { StdFee } from '@cosmjs/stargate';
 
+import { InvalidFormatError } from '@/exceptions';
 import { Amount } from '@/types';
-import { bold, greenBright, white, yellow } from '@/utils';
+import { bold, greenBright, white, yellow } from '@/utils/style';
 
 export const DEFAULT_GAS_PRICE_AMOUNT = '0.005';
 export const DEFAULT_GAS_PRICE_DENOM = 'aarch';

@@ -4,8 +4,8 @@ import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ParamsAccountOptionalArg, StdinInputArg } from '@/parameters/arguments';
 import { CustomFlags, KeyringFlags } from '@/parameters/flags';
-import { Prompts } from '@/services';
 import { bold, dim, green, greenBright, yellow } from '@/utils';
+import { Prompts } from '@/services';
 
 import { Account, AccountType } from '@/types';
 
@@ -36,6 +36,10 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
   static examples = [
     {
       description: 'Create a new account with a random mnemonic',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Create a new account with a random mnemonic and account name',
       command: '<%= config.bin %> <%= command.id %> alice',
     },
     {
@@ -54,6 +58,10 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
       description: 'Recover an account from a private key exported in unarmored hex format',
       // For some reason, oclif only colours the examples starting with `archway`
       command: dim('$ yes | archwayd keys export --unarmored-hex --unsafe alice | <%= config.bin %> <%= command.id %> alice --recover'),
+    },
+    {
+      description: 'Recover an account from a mnemonic',
+      command: dim('$ echo "fruit rose..." | <%= config.bin %> <%= command.id %> alice --recover'),
     },
     {
       description: 'Recover a Terra Station account from a mnemonic and custom HD path',

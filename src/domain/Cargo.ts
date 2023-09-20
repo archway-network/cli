@@ -1,15 +1,16 @@
-import _ from 'lodash';
-import path from 'node:path';
 import fs from 'node:fs/promises';
-import { ChildProcessPromise, PromisifySpawnOptions, spawn } from 'promisify-child-process';
-import { shrinkPaddedLEB128 } from '@webassemblyjs/wasm-opt';
+import path from 'node:path';
+
 import debugInstance from 'debug';
+import _ from 'lodash';
 
-import { writeFileWithDir, bold, redBright } from '@/utils';
+import { shrinkPaddedLEB128 } from '@webassemblyjs/wasm-opt';
+import { ChildProcessPromise, PromisifySpawnOptions, spawn } from 'promisify-child-process';
+
 import { DockerOptimizer } from '@/domain';
-import { ErrorCodes, BaseError } from '@/exceptions';
-
-import { ConsoleError, BuildParams, CargoProjectMetadata, GenerateParams, Metadata, SchemaParams } from '@/types';
+import { BaseError, ConsoleError, ErrorCodes } from '@/exceptions';
+import { BuildParams, CargoProjectMetadata, GenerateParams, Metadata, SchemaParams } from '@/types';
+import { bold, redBright, writeFileWithDir } from '@/utils';
 
 const debug = debugInstance('cargo');
 

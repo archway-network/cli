@@ -1,7 +1,7 @@
-import { ErrorCodes } from '@/exceptions';
 import { bold, redBright } from '@/utils';
 
-import { ConsoleError } from '@/types';
+import { ConsoleError } from './ConsoleError';
+import { ErrorCodes } from './ErrorCodes';
 
 /**
  * Error when the format of a file or object is not valid

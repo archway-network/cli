@@ -66,4 +66,10 @@ describe('contracts instantiate', () => {
     .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`])
     .catch(/(Failed to instantiate).*(does not match the schema)/)
     .it('fails on invalid arguments');
+  test
+    .stdout()
+    .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`, '--skip-validation'])
+    .it("Skips validation of args and doesn't fail", ctx => {
+      expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
+    });
 });

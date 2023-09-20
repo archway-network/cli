@@ -22,6 +22,17 @@ export default class AccountsGet extends BaseCommand<typeof AccountsGet> {
     ...KeyringFlags,
   };
 
+  static examples = [
+    {
+      description: 'Get all the details of an account',
+      command: '<%= config.bin %> <%= command.id %> alice',
+    },
+    {
+      description: 'Get the address only',
+      command: '<%= config.bin %> <%= command.id %> alice --address',
+    },
+  ];
+
   /**
    * Runs the command.
    *

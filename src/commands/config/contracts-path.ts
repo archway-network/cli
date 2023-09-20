@@ -20,6 +20,25 @@ export default class ConfigContractsPath extends BaseCommand<typeof ConfigContra
     global: GlobalFlag,
   };
 
+  static examples = [
+    {
+      description: 'Query the contracts path in the local config',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Update the contracts path in the local config',
+      command: '<%= config.bin %> <%= command.id %> "./other/path"',
+    },
+    {
+      description: 'Query the contracts path in the global config',
+      command: '<%= config.bin %> <%= command.id %> --global',
+    },
+    {
+      description: 'Update the contracts path in the global config',
+      command: '<%= config.bin %> <%= command.id %> "./other/path" --global',
+    },
+  ];
+
   /**
    * Runs the command.
    *

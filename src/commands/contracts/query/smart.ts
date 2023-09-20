@@ -7,6 +7,8 @@ import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/argum
 import { Config } from '@/domain';
 import { showDisappearingSpinner } from '@/ui';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
+import { dim } from '@/utils';
+import { SkipValidationFlag } from '@/parameters/flags';
 
 /**
  * Command 'contracts query smart'
@@ -24,7 +26,27 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
       description: 'JSON string with the query to run',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a query for the smart contract' }),
+    'skip-validation': SkipValidationFlag,
   };
+
+  static examples = [
+    {
+      description: 'Query a smart contract by contract name in the project, with query message in the --args flag',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args \'{"example":{}}\'',
+    },
+    {
+      description: 'Query a smart contract by address, with query message in the --args flag',
+      command: '<%= config.bin %> <%= command.id %> archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm --args \'{"example":{}}\'',
+    },
+    {
+      description: 'Query a smart contract, with query message from file',
+      command: '<%= config.bin %> <%= command.id %> my-contract --args-file "./queryMsg.json"',
+    },
+    {
+      description: 'Query a smart contract, with query message from stdin',
+      command: dim('$ echo \'{"example":{}}\' | <%= config.bin %> <%= command.id %> my-contract'),
+    },
+  ];
 
   /**
    * Runs the command.
@@ -54,9 +76,11 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
 
     const contractAddress = instantiated.contract.address;
 
-    // Validate query arguments
     const queryMsg = JSON.parse(this.args.stdinInput || this.flags.args ||  (await fs.readFile(this.flags['args-file']!, 'utf-8')));
-    await config.contractsInstance.assertValidQueryArgs(contract.name, queryMsg);
+
+    if (!this.flags['skip-validation']) {
+      await config.contractsInstance.assertValidQueryArgs(contract.name, queryMsg);
+    }
 
     const result = await showDisappearingSpinner(async () => {
       const client = await config.getArchwayClient();

@@ -65,4 +65,11 @@ describe('contracts execute', () => {
     .command(['contracts execute', contractName, '--args="{}"', `--from=${aliceAccountName}`])
     .catch(/(Failed to execute).*(does not match the schema)/)
     .it('fails on invalid query');
+
+  test
+    .stdout()
+    .command(['contracts execute', contractName, '--args="{}"', `--from=${aliceAccountName}`, '--skip-validation'])
+    .it("Skips validation of args and doesn't fail", ctx => {
+      expect(ctx.stdout).to.contain(dummyExecuteTransaction.transactionHash);
+    });
 });

@@ -1,14 +1,14 @@
-import { promisify } from 'node:util';
-import { exec } from 'node:child_process';
 import _ from 'lodash';
+import { exec } from 'node:child_process';
 import path from 'node:path';
+import { promisify } from 'node:util';
 
 /**
  * Get the git repository root path
  *
  * @returns Promise containing the path or undefined if not found
  */
-const _getRepositoryRoot = async (): Promise<string | undefined> => {
+async function _getRepositoryRoot(): Promise<string | undefined> {
   try {
     const result = await promisify(exec)('git rev-parse --show-toplevel');
     if (result.stderr) {
@@ -19,7 +19,7 @@ const _getRepositoryRoot = async (): Promise<string | undefined> => {
   } catch {
     return undefined;
   }
-};
+}
 
 /**
  * {@inheritDoc _getRepositoryRoot}
@@ -32,8 +32,18 @@ export const getRepositoryRoot = _.memoize(_getRepositoryRoot);
  * @param workingDir - Optional - Can override the workspace root value
  * @returns Promise containing the workspace root
  */
-export const getWorkspaceRoot = async (workingDir?: string): Promise<string> => {
+export async function getWorkspaceRoot(workingDir?: string): Promise<string> {
   const repositoryRoot = (workingDir && path.resolve(workingDir)) || (await getRepositoryRoot());
 
   return repositoryRoot || process.cwd();
-};
+}
+
+/**
+ * Sanitizes a directory name, replacing spaces and underscore for hyphens
+ *
+ * @param value - Name to sanitize
+ * @returns Sanitized name
+ */
+export function sanitizeDirName(value: string): string {
+  return value.toLowerCase().replace(/_/g, '-').replace(/ /g, '-');
+}

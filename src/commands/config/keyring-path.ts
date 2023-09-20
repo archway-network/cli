@@ -26,6 +26,25 @@ export default class ConfigKeyringPath extends BaseCommand<typeof ConfigKeyringP
     global: GlobalFlag,
   };
 
+  static examples = [
+    {
+      description: 'Query the path for the file keyring in the local config',
+      command: '<%= config.bin %> <%= command.id %>',
+    },
+    {
+      description: 'Update the path for the file keyring in the local config',
+      command: '<%= config.bin %> <%= command.id %> "/file/keys/custom/path"',
+    },
+    {
+      description: 'Query the path for the file keyring in the global config',
+      command: '<%= config.bin %> <%= command.id %> --global',
+    },
+    {
+      description: 'Update the path for the file keyring in the global config',
+      command: '<%= config.bin %> <%= command.id %> "/file/keys/custom/path" --global',
+    },
+  ];
+
   /**
    * Runs the command.
    *

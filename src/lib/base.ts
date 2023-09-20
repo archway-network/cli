@@ -1,10 +1,9 @@
 import { Command, Flags, Interfaces } from '@oclif/core';
 import debugInstance from 'debug';
 
+import { ConsoleError } from '@/exceptions';
 import { PromptCanceledError } from '@/ui';
 import { redBright, yellow } from '@/utils';
-
-import { ConsoleError } from '@/types';
 
 const debug = debugInstance('base-command');
 

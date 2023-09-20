@@ -18,6 +18,13 @@ export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
     contract: ContractNameRequiredArg,
   };
 
+  static examples = [
+    {
+      description: 'Build the optimized version of a contract, and generate the updated schemas',
+      command: '<%= config.bin %> <%= command.id %> my-contract',
+    },
+  ];
+
   /**
    * Runs the command.
    *

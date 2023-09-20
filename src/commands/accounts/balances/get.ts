@@ -21,6 +21,17 @@ export default class AccountsBalancesGet extends BaseCommand<typeof AccountsBala
     ...KeyringFlags,
   };
 
+  static examples = [
+    {
+      description: 'Query balance of an account',
+      command: '<%= config.bin %> <%= command.id %> alice',
+    },
+    {
+      description: 'Query balance of an address',
+      command: '<%= config.bin %> <%= command.id %> archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm',
+    },
+  ];
+
   /**
    * Runs the command.
    *
