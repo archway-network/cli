@@ -56,7 +56,7 @@ rm -rf "${PROJECT_DIR}/contracts/${CONTRACT_BAR}"
 printf "\n***** contracts build ***** \n"
 ### Build the optimized version of the contract
 output="$(archway contracts build $CONTRACT_FOO)"
-regex "$output" "Optimized Wasm binary saved"
+regex "$output" "Optimized WASM binary saved"
 regex "$output" "Schemas generated"
 
 ### Alternative optimized: This line copies a prebuilt and preoptimized wasm file, use when you don't want to test the "build --optimize" command which is slow

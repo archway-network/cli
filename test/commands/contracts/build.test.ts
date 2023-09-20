@@ -1,3 +1,5 @@
+import { relative } from 'node:path';
+
 import { expect, test } from '@oclif/test';
 import spawk from 'spawk';
 
@@ -38,8 +40,8 @@ describe('contracts build', () => {
       .stdout()
       .command(['contracts build', contractName])
       .it('Generates optimized wasm file', ctx => {
-        expect(ctx.stdout).to.contain('Optimized Wasm binary saved to');
-        expect(ctx.stdout).to.contain(contractProjectMetadata.wasm.optimizedFilePath);
+        expect(ctx.stdout).to.contain('Optimized WASM binary saved to');
+        expect(ctx.stdout).to.contain(relative(contractProjectMetadata.workspaceRoot, contractProjectMetadata.wasm.optimizedFilePath));
         expect(ctx.stdout).to.contain('Schemas generated');
       });
   });
@@ -59,7 +61,7 @@ describe('contracts build', () => {
       .stdout()
       .command(['contracts build'])
       .it('Generates optimized wasm file', ctx => {
-        expect(ctx.stdout).to.contain('Optimized Wasm binary saved to');
+        expect(ctx.stdout).to.contain('Optimized WASM binary saved to');
         expect(ctx.stdout).to.contain(contractProjectMetadata.workspaceRoot);
         expect(ctx.stdout).to.contain('Schemas generated');
       });
