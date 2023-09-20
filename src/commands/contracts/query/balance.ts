@@ -1,12 +1,11 @@
 import { Flags } from '@oclif/core';
 
+import { Config, Contracts } from '@/domain';
+import { NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameOptionalArg } from '@/parameters/arguments';
-import { Config, Contracts } from '@/domain';
-import { showDisappearingSpinner } from '@/ui';
-import { NotFoundError } from '@/exceptions';
-
 import { AccountBalancesJSON, InstantiateDeployment } from '@/types';
+import { showDisappearingSpinner } from '@/ui';
 
 /**
  * Command 'contracts query balance'
@@ -50,17 +49,10 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     const config = await Config.init();
     await config.assertIsValidWorkspace();
 
-    let contractsToQuery: InstantiateDeployment[] = [];
-
-    if (this.flags.all) {
-      contractsToQuery = config.contractsInstance.getAllInstantiateDeployments(config.chainId);
-    } else {
-      const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
-
-      contractsToQuery = instantiated ? [instantiated] : [];
+    const contractsToQuery = this.getContractsToQuery(config);
+    if (contractsToQuery.length === 0) {
+      throw new NotFoundError('Instantiated contract with a contract address')
     }
-
-    if (contractsToQuery.length === 0) throw new NotFoundError('Instantiated contract with a contract address');
 
     const result = await showDisappearingSpinner(async () => {
       const client = await config.getStargateClient();
@@ -69,6 +61,16 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     }, 'Querying contract balances...');
 
     await this.successMessage(result);
+  }
+
+  private getContractsToQuery(config: Config): readonly InstantiateDeployment[] {
+    if (this.flags.all) {
+      return config.contractsInstance.getAllInstantiateDeployments(config.chainId);
+    }
+
+    const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
+
+    return instantiated ? [instantiated] : [];
   }
 
   protected async successMessage(balances: AccountBalancesJSON[]): Promise<void> {

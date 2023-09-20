@@ -4,7 +4,7 @@
   "status": "live",
   "network_type": "mainnet",
   "website": "https://archway.io/",
-  "pretty_name": "Archway",
+  "pretty_name": "Archway Integration Test",
   "chain_id": "integration-test-1",
   "bech32_prefix": "archway",
   "daemon_name": "archwayd",

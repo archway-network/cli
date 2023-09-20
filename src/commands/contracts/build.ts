@@ -1,11 +1,11 @@
-import { BaseCommand } from '@/lib/base';
-import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { Config } from '@/domain';
-import { cyan, green } from '@/utils';
+import { BaseCommand } from '@/lib/base';
+import { ContractNameOptionalArg } from '@/parameters/arguments';
+import { cyan } from '@/utils';
+import { relative } from 'node:path';
 
-enum SuccessMessageType {
-  OPTIMIZE = 'optimize',
-  SCHEMAS = 'schemas',
+export interface ContractsBuildResult {
+  outputPath: string;
 }
 
 /**
@@ -15,7 +15,7 @@ enum SuccessMessageType {
 export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
   static summary = 'Builds the smart contracts optimized Wasm file along with its schemas';
   static args = {
-    contract: ContractNameRequiredArg,
+    contract: ContractNameOptionalArg,
   };
 
   static examples = [
@@ -30,28 +30,33 @@ export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
    *
    * @returns Empty promise
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<ContractsBuildResult> {
     const config = await Config.init();
 
     await config.assertIsValidWorkspace();
-    this.log(`Building ${green('Optimized')} wasm file for ${this.args.contract} using Docker...`);
-    const resultPath = await config.contractsInstance.optimize(this.args.contract!);
-    await this.successMessage(SuccessMessageType.OPTIMIZE, resultPath);
 
-    await config.contractsInstance.schemas(this.args.contract!);
-    await this.successMessage(SuccessMessageType.SCHEMAS);
-  }
+    this.log(
+      this.args.contract ?
+        `Building ${cyan('optimized wasm')} file for ${cyan(this.args.contract)} using Docker...` :
+        `Building ${cyan('optimized wasm')} file for all contracts in the workspace using Docker...`
+    );
 
-  protected async successMessage(type: SuccessMessageType, outputPath?: string): Promise<void> {
-    switch (type) {
-      case SuccessMessageType.OPTIMIZE:
-        this.success(`Optimized Wasm binary saved to ${cyan(outputPath)}}}`);
+    const outputPath = await config.contractsInstance.optimize(this.args.contract, this.jsonEnabled());
 
-        break;
-      case SuccessMessageType.SCHEMAS:
-        this.success('Schemas generated');
+    this.log();
+    this.success(`Optimized WASM binary saved to ${cyan(relative(config.workspaceRoot, outputPath))}\n`);
 
-        break;
-    }
+    this.log(
+      this.args.contract ?
+        `Building ${cyan('schemas')} for ${cyan(this.args.contract)}...` :
+        `Building ${cyan('schemas')} for all contracts in the workspace...`
+    );
+
+    await config.contractsInstance.schemas(this.args.contract, this.jsonEnabled());
+
+    this.log();
+    this.success('Schemas generated');
+
+    return { outputPath }
   }
 }
