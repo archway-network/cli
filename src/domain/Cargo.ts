@@ -274,16 +274,17 @@ export class Cargo {
    * @param all - Optional - Optimize all contracts in workspace
    * @returns - Promise containing the path where the optimized version was saved
    */
-  async optimize(all = false): Promise<string> {
+  async optimize(params: OptimizeParams = {}): Promise<string> {
     const { wasm, root, workspaceRoot } = await this.projectMetadata();
 
     const optimizer = new DockerOptimizer({});
-    const { error, statusCode } = await optimizer.run(workspaceRoot, all ? undefined : root);
+    const contractRoot = params.all ? undefined : root;
+    const { error, statusCode } = await optimizer.run(workspaceRoot, contractRoot, params.quiet);
     if (statusCode !== 0) {
       throw error instanceof Error ? error : new BaseError(error);
     }
 
-    return all ? path.join(workspaceRoot, Cargo.OptimizedOutputDir) : wasm.optimizedFilePath;
+    return params.all ? path.join(workspaceRoot, Cargo.OptimizedOutputDir) : wasm.optimizedFilePath;
   }
 
   /**

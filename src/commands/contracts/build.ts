@@ -1,11 +1,11 @@
+import { Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameOptionalArg } from '@/parameters/arguments';
-import { Config } from '@/domain';
-import { cyan, green } from '@/utils';
+import { cyan } from '@/utils';
+import { relative } from 'node:path';
 
-enum SuccessMessageType {
-  OPTIMIZE = 'optimize',
-  SCHEMAS = 'schemas',
+export interface ContractsBuildResult {
+  outputPath: string;
 }
 
 /**
@@ -30,32 +30,33 @@ export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
    *
    * @returns Empty promise
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<ContractsBuildResult> {
     const config = await Config.init();
 
     await config.assertIsValidWorkspace();
+
     this.log(
       this.args.contract ?
-        `Building ${green('Optimized')} wasm file for ${this.args.contract} using Docker...` :
-        `Building ${green('Optimized')} wasm file for all contracts in the workspace using Docker...`
+        `Building ${cyan('optimized wasm')} file for ${cyan(this.args.contract)} using Docker...` :
+        `Building ${cyan('optimized wasm')} file for all contracts in the workspace using Docker...`
     );
-    const resultPath = await config.contractsInstance.optimize(this.args.contract);
-    await this.successMessage(SuccessMessageType.OPTIMIZE, resultPath);
 
-    await config.contractsInstance.schemas(this.args.contract);
-    await this.successMessage(SuccessMessageType.SCHEMAS);
-  }
+    const outputPath = await config.contractsInstance.optimize(this.args.contract, this.jsonEnabled());
 
-  protected async successMessage(type: SuccessMessageType, outputPath?: string): Promise<void> {
-    switch (type) {
-      case SuccessMessageType.OPTIMIZE:
-        this.success(`Optimized Wasm binary saved to ${cyan(outputPath)}`);
+    this.log();
+    this.success(`Optimized WASM binary saved to ${cyan(relative(config.workspaceRoot, outputPath))}\n`);
 
-        break;
-      case SuccessMessageType.SCHEMAS:
-        this.success('Schemas generated');
+    this.log(
+      this.args.contract ?
+        `Building ${cyan('schemas')} for ${cyan(this.args.contract)}...` :
+        `Building ${cyan('schemas')} for all contracts in the workspace...`
+    );
 
-        break;
-    }
+    await config.contractsInstance.schemas(this.args.contract, this.jsonEnabled());
+
+    this.log();
+    this.success('Schemas generated');
+
+    return { outputPath }
   }
 }

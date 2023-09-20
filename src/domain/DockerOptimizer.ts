@@ -1,8 +1,10 @@
-import ora from 'ora';
-import { WritableStream } from 'node:stream/web';
 import path from 'node:path';
-import Docker from 'dockerode';
+import stream from 'node:stream';
+import { WritableStream } from 'node:stream/web';
+
 import debugInstance from 'debug';
+import Docker from 'dockerode';
+import ora from 'ora';
 
 import { cyan, dim } from '@/utils';
 
@@ -35,23 +37,24 @@ export class DockerOptimizer {
    * @param contractRoot - Path where a single contract is located
    * @returns Promise containing the status code of the result and error if it exists
    */
-  async run(workspaceRoot: string, contractRoot?: string): Promise<{ error?: Error | string; statusCode: number }> {
+  async run(workspaceRoot: string, contractRoot?: string, quiet = false): Promise<{ error?: Error | string; statusCode: number }> {
     try {
       await this._docker.ping();
     } catch (error: any) {
       throw new Error(error);
     }
 
-    const image = await this.fetchImage(!contractRoot);
+    const image = await this.fetchImage(!contractRoot, quiet);
     const projectName = path.basename(workspaceRoot);
     const containerName = `${projectName}-optimizer`;
-    await this.killIfRunning(containerName);
+
+    await this.killIfRunning(containerName, quiet);
 
     const createOptions = {
       name: containerName,
-      AttachStdin: true,
-      AttachStdout: true,
-      AttachStderr: true,
+      AttachStdin: !quiet,
+      AttachStdout: !quiet,
+      AttachStderr: !quiet,
       Tty: false,
       Env: ['CARGO_TERM_COLOR=always', 'RUST_BACKTRACE=1'],
       Volumes: {
@@ -73,17 +76,27 @@ export class DockerOptimizer {
 
     debug('run', image, [], createOptions, contractRoot);
 
-    const stdout = createPipe(process.stdout);
-    const stderr = createPipe(process.stderr);
-
+    const outputStream = this.createOutputStream(quiet);
     const [{ Error: error, StatusCode: statusCode }] = await this._docker.run(
       image,
       contractRoot ? [path.relative(workspaceRoot, contractRoot)] : [],
-      [stdout, stderr] as unknown as NodeJS.WritableStream[],
+      outputStream,
       createOptions
     );
 
     return { error, statusCode };
+  }
+
+  private createOutputStream(quiet: boolean): NodeJS.WritableStream | NodeJS.WritableStream[] {
+    if (quiet) {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      return new stream.Writable({ write: () => {} });
+    }
+
+    const stdout = createPipe(process.stdout);
+    const stderr = createPipe(process.stderr);
+
+    return [stdout, stderr];
   }
 
   /**
@@ -91,14 +104,17 @@ export class DockerOptimizer {
    *
    * @param container - Name of the container to kill.
    */
-  private async killIfRunning(containerName: string) {
+  private async killIfRunning(containerName: string, quiet = false) {
     debug('killIfRunning', 'checking if container is running', containerName);
     const container = this._docker.getContainer(containerName);
     try {
       const info = await container.inspect();
       if (info.State.Running) {
         const kill = container.kill();
-        ora.promise(kill, { text: `${dim('Killing running container')} ${cyan(`${containerName}...`)}` });
+        if (!quiet) {
+          ora.promise(kill, { text: `${dim('Killing running container')} ${cyan(`${containerName}...`)}` });
+        }
+
         await kill;
       }
     } catch {
@@ -112,7 +128,7 @@ export class DockerOptimizer {
    * @param useWorkspaceImage - Fetch the workspace image instead of the single rust image
    * @returns Promise containing the image name
    */
-  private async fetchImage(useWorkspaceImage = false): Promise<string> {
+  private async fetchImage(useWorkspaceImage = false, quiet = false): Promise<string> {
     const name = useWorkspaceImage ? DockerOptimizer.WorkspaceOptimizerImage : DockerOptimizer.RustOptimizerImage;
     const image = `${name}:${DockerOptimizer.Version}`;
     debug('fetchImage', 'searching for image locally', image);
@@ -121,7 +137,10 @@ export class DockerOptimizer {
     } as unknown as Docker.ListImagesOptions);
     if (images.length === 0) {
       const pull = this.pullImage(image);
-      ora.promise(pull, { text: `${dim('Pulling docker image')} ${cyan(`${image}...`)}` });
+      if (!quiet) {
+        ora.promise(pull, { text: `${dim('Pulling docker image')} ${cyan(`${image}...`)}` });
+      }
+
       await pull;
     }
 
@@ -155,12 +174,12 @@ export class DockerOptimizer {
   }
 }
 
-const createPipe = (stream: NodeJS.WriteStream) => {
+function createPipe(stream: NodeJS.WriteStream): NodeJS.WritableStream {
   const writable = new WritableStream({
     write(chunk) {
       stream.write(chunk);
     },
   });
 
-  return writable.getWriter();
-};
+  return writable.getWriter() as unknown as NodeJS.WritableStream;
+}

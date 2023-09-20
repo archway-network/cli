@@ -165,17 +165,12 @@ export class Contracts {
    * @param name - Optional - Contract name
    * @returns Empty Promise
    */
-  async schemas(name?: string): Promise<void> {
-    if (name) {
-      const cargo = this.cargoByContractName(name);
-      await cargo.schema();
-      return;
-    }
-
-    for (const item of this.listContracts()) {
-      const cargo = this.cargoByContractName(item.name);
+  async schemas(name?: string, quiet = false): Promise<void> {
+    const contracts = name ? [name] : this.contracts.map(item => item.name);
+    for (const contract of contracts) {
+      const cargo = this.cargoByContractName(contract);
       // eslint-disable-next-line no-await-in-loop
-      await cargo.schema();
+      await cargo.schema({ quiet });
     }
   }
 
@@ -186,10 +181,9 @@ export class Contracts {
    * @param name - Optional - Contract name
    * @returns Path of the optimized file
    */
-  async optimize(name?: string): Promise<string> {
+  async optimize(name?: string, quiet = false): Promise<string> {
     const cargo = name ? this.cargoByContractName(name) : new Cargo(this.workspaceRoot);
-
-    return cargo.optimize(!name);
+    return cargo.optimize({ all: !name, quiet });
   }
 
   /**
