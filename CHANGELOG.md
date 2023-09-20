@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.0.0-beta.1 (2023-09-20)
+
+### ⚠ BREAKING CHANGES
+
+- **core:** renamed the flag `--force` to `--no-confirm` in the sub-commands:
+  - `accounts`: `remove`
+  - `contracts`: `premium` and `store`
+
+### Added
+
+- **contracts:** flag to skip validation on contracts sub-commands (#233)
+- **config:** new command to list available chains (#240)
+- **core:** added usage example in several commands (#227)
+
+### Fixed
+
+- **contracts:** running the `build` command without a contract name will now
+  build the entire workspace (#237)
+- **contracts:** building a contract with the `--json` flag will suppress all
+  output (#237)
+- **core:** renamed the flag `--force` to `--no-confirm` in several commands (#226)
+- **core:** fixed processing order for stdin pipes (#227)
+
 ## 2.0.0-alpha.2 (2023-09-15)
 
 ### ⚠ BREAKING CHANGES
