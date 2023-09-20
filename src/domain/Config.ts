@@ -82,19 +82,19 @@ export class Config {
   }
 
   get deploymentsInstance(): Deployments {
-    return this._contracts.deployments;
+    return this.contractsInstance.deployments;
   }
 
   get chainRegistry(): ChainRegistry {
     return this._chainRegistry;
   }
 
-  get contracts(): Contract[] {
-    return this._contracts.listContracts();
+  get contracts(): readonly Contract[] {
+    return this.contractsInstance.contracts;
   }
 
   get deployments(): Deployment[] {
-    return this._contracts.deployments.listDeployments();
+    return this.contractsInstance.deployments.listDeployments();
   }
 
   get globalData(): ConfigData {
@@ -103,6 +103,18 @@ export class Config {
 
   get localData(): ConfigData {
     return this._localConfigData;
+  }
+
+  /**
+   * Get an object representation of the config file data + the contracts data
+   *
+   * @returns Instance of {@link ConfigDataWithContracts}
+   */
+  get dataWithContracts(): ConfigDataWithContracts {
+    return {
+      ...this.data,
+      contracts: this.contracts,
+    };
   }
 
   /** Returns the resolved version with precedence of local \> global \> default */
@@ -394,18 +406,6 @@ export class Config {
     const explorerTxUrl = this._chainRegistry.getChainById(this.chainId)?.explorers?.find(item => Boolean(item.tx_page))?.tx_page;
 
     return prettyPrintTransaction(txHash, explorerTxUrl);
-  }
-
-  /**
-   * Get an object representation of the config file data + the contracts data
-   *
-   * @returns Instance of {@link ConfigDataWithContracts}
-   */
-  async dataWithContracts(): Promise<ConfigDataWithContracts> {
-    return {
-      ...this.data,
-      contracts: this.contractsInstance.listContracts(),
-    };
   }
 
   /**

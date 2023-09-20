@@ -1,6 +1,6 @@
 import ow from 'ow';
 
-import { KeystoreBackendType, Contract } from '@/types';
+import { Contract, KeystoreBackendType } from '@/types';
 
 /**
  * Config data information
@@ -17,7 +17,7 @@ export interface ConfigData {
  * Config data with contracts data for displaying purposes
  */
 export interface ConfigDataWithContracts extends ConfigData {
-  contracts: Contract[];
+  contracts: readonly Contract[];
 }
 
 /**

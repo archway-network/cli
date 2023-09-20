@@ -1,5 +1,6 @@
-import { BaseCommand } from '@/lib/base';
 import { Config } from '@/domain';
+import { BaseCommand } from '@/lib/base';
+import { ConfigDataWithContracts } from '@/types';
 
 /**
  * Command 'config show'
@@ -20,17 +21,11 @@ export default class ConfigShow extends BaseCommand<typeof ConfigShow> {
    *
    * @returns Empty promise
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<ConfigDataWithContracts> {
     const configFile = await Config.init();
 
-    await this.successMessage(configFile);
-  }
-
-  protected async successMessage(configFile: Config): Promise<void> {
     this.log(await configFile.prettyPrint());
 
-    if (this.jsonEnabled()) {
-      this.logJson(await configFile.dataWithContracts());
-    }
+    return configFile.dataWithContracts;
   }
 }

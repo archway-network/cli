@@ -6,7 +6,7 @@ import toml from 'toml';
 
 import { StargateClient } from '@cosmjs/stargate';
 
-import { ConsoleError, ErrorCodes, ExecuteError, InstantiateError, NotFoundError, QueryError } from '@/exceptions';
+import { ConsoleError, ErrorCodes, ExecuteError, InstantiateError, QueryError } from '@/exceptions';
 import { AccountBalancesJSON, Contract, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
 import { bold, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright, sanitizeDirName } from '@/utils';
 
@@ -32,9 +32,6 @@ export const QUERY_SCHEMA_RELATIVE_PATH = './schema/raw/query.json';
  */
 export class Contracts {
   private _data: Contract[];
-  private _workspaceRoot: string;
-  private _contractsRoot: string;
-  private _deployments: Deployments;
   private _schemaValidator: SchemaValidator;
 
   /**
@@ -43,28 +40,27 @@ export class Contracts {
    * @param contractsRoot - Path of the directory where contracts will be found
    * @param deployments - Instance of {@link Deployments} of the project
    */
-  constructor(data: Contract[], workspaceRoot: string, contractsRoot: string, deployments: Deployments) {
+  constructor(
+    data: Contract[],
+    public readonly workspaceRoot: string,
+    public readonly contractsRoot: string,
+    public readonly deployments: Deployments
+  ) {
     this._data = data;
-    this._workspaceRoot = workspaceRoot;
-    this._contractsRoot = contractsRoot;
-    this._deployments = deployments;
     this._schemaValidator = new SchemaValidator();
   }
 
-  get data(): Contract[] {
+  /**
+   * Return the list of all contracts
+   *
+   * @returns Array containing all the contracts
+   */
+  get contracts(): readonly Contract[] {
     return this._data;
   }
 
-  get workspaceRoot(): string {
-    return this._workspaceRoot;
-  }
-
-  get contractsRoot(): string {
-    return this._contractsRoot;
-  }
-
-  get deployments(): Deployments {
-    return this._deployments;
+  private addContract(contract: Contract): void {
+    this._data.push(contract);
   }
 
   get schemaValidator(): SchemaValidator {
@@ -118,8 +114,8 @@ export class Contracts {
    * @returns Empty promise
    */
   async assertIsValidWorkspace(): Promise<void> {
-    const relativeContracts = `${path.relative(this._workspaceRoot, this._contractsRoot)}/*`;
-    const cargoFilePath = path.join(this._workspaceRoot, './Cargo.toml');
+    const relativeContracts = `${path.relative(this.workspaceRoot, this.contractsRoot)}/*`;
+    const cargoFilePath = path.join(this.workspaceRoot, './Cargo.toml');
 
     const fileContent = await fs.readFile(cargoFilePath, 'utf-8');
     const data = toml.parse(fileContent);
@@ -156,25 +152,10 @@ export class Contracts {
     await generatedCrate.build({ quiet });
     await generatedCrate.schema({ quiet });
 
-    const result = this._deployments.makeContractFromMetadata(metadata);
-    this._data.push(result);
+    const result = this.deployments.makeContractFromMetadata(metadata);
+    this.addContract(result);
 
     return result;
-  }
-
-  /**
-   * Build a contract
-   *
-   * @param name - Contract name
-   * @returns Path of the output file
-   */
-  async build(name: string): Promise<string> {
-    const cargo = this.cargoByContractName(name);
-    const { wasm } = await cargo.projectMetadata();
-
-    await cargo.wasm();
-
-    return wasm.filePath;
   }
 
   /**
@@ -218,20 +199,8 @@ export class Contracts {
    * @returns Empty Promise
    */
   private cargoByContractName(name: string): Cargo {
-    const contract = this._data.find(item => item.name === name);
-
-    if (!contract) throw new NotFoundError('Contract', name);
-
+    const contract = this.getContractByName(name);
     return new Cargo(contract.root);
-  }
-
-  /**
-   * Return the list of all contracts
-   *
-   * @returns Array containing all the contracts
-   */
-  listContracts(): Contract[] {
-    return this._data;
   }
 
   /**
@@ -241,9 +210,11 @@ export class Contracts {
    * @returns The contract matching the name
    */
   getContractByName(contractName: string): Contract {
-    const result = this._data.find(item => item.name === contractName);
+    const result = this.contracts.find(item => item.name === contractName);
 
-    if (!result) throw new ContractNameNotFoundError(contractName);
+    if (!result) {
+      throw new ContractNameNotFoundError(contractName)
+    }
 
     return result;
   }
@@ -255,11 +226,13 @@ export class Contracts {
    */
   async prettyPrint(): Promise<string> {
     let contractsList = '';
-    for (const item of this._data) {
+    for (const item of this.contracts) {
       contractsList += `\n  ${greenBright(item.name)} (${item.version})`;
     }
 
-    if (!contractsList) contractsList = '(none)';
+    if (!contractsList) {
+      contractsList = '(none)'
+    }
 
     return `${bold('Available contracts: ')}${contractsList}`;
   }
@@ -347,7 +320,7 @@ export class Contracts {
   async isChecksumAlreadyDeployed(contractName: string, chainId: string): Promise<StoreDeployment | undefined> {
     const checksum = await this.generateChecksum(contractName);
 
-    const deployments = this._deployments.filterFlat(chainId, undefined, contractName);
+    const deployments = this.deployments.filterFlat(chainId, undefined, contractName);
 
     return deployments.find(
       item => item.action === DeploymentAction.STORE && checksum === (item as StoreDeployment).wasm.checksum
@@ -400,8 +373,8 @@ export class Contracts {
    * @param chainId - Chain id to search by
    * @returns An array of instances of {@link InstantiateDeployment}
    */
-  getAllInstantiateDeployments(chainId: string): InstantiateDeployment[] {
-    const instantiatedDeployments = this._data.map(
+  getAllInstantiateDeployments(chainId: string): readonly InstantiateDeployment[] {
+    const instantiatedDeployments = this.contracts.map(
       contract =>
         contract.deployments.find(item => {
           const pastDeploy = item as InstantiateDeployment;
@@ -424,7 +397,7 @@ export class Contracts {
    * @param instantiateDeployements - An array of instances of {@link InstantiateDeployment} to query
    * @returns Promise containing the balances result
    */
-  async queryAllBalances(client: StargateClient, instantiatedDeployments: InstantiateDeployment[]): Promise<AccountBalancesJSON[]> {
+  async queryAllBalances(client: StargateClient, instantiatedDeployments: readonly InstantiateDeployment[]): Promise<AccountBalancesJSON[]> {
     const balances = await Promise.all(instantiatedDeployments.map(item => client.getAllBalances(item.contract.address)));
 
     return instantiatedDeployments.map((item, index) => ({
