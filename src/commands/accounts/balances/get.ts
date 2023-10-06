@@ -37,23 +37,28 @@ export default class AccountsBalancesGet extends BaseCommand<typeof AccountsBala
    *
    * @returns Empty promise
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<AccountBalancesJSON> {
     const config = await Config.init();
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
     const result = await showDisappearingSpinner(async () => {
       const client = await config.getStargateClient();
 
-      return accountsDomain.queryBalance(client, this.args.account!);
+      const { name, address } = await accountsDomain.accountBaseFromAddress(this.args.account!);
+      const balances = await client.getAllBalances(address);
+
+      return {
+        account: {
+          name,
+          address,
+          balances,
+        },
+      };
     }, 'Querying balance');
 
-    await this.successMessage(result);
-  }
+    this.log(`Balances for account ${greenBright(result.account.name)} (${green(result.account.address)})\n`);
+    this.log(prettyPrintBalancesList(result.account.balances, 'Empty wallet'));
 
-  protected async successMessage(balance: AccountBalancesJSON): Promise<void> {
-    this.log(`Balances for account ${greenBright(balance.account.name)} (${green(balance.account.address)})\n`);
-    this.log(prettyPrintBalancesList(balance.account.balances, 'Empty wallet'));
-
-    if (this.jsonEnabled()) this.logJson(balance);
+    return result;
   }
 }

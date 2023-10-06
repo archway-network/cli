@@ -3,14 +3,12 @@ import _ from 'lodash';
 
 import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
-import { StargateClient } from '@cosmjs/stargate';
 
 import { Config, Ledger } from '@/domain';
 import { AlreadyExistsError, InvalidFormatError } from '@/exceptions';
 import { Prompts } from '@/services';
 import {
   Account,
-  AccountBalancesJSON,
   AccountBase,
   AccountType,
   AccountWithSigner,
@@ -247,26 +245,6 @@ export class Accounts {
    */
   async remove(nameOrAddress: string): Promise<void> {
     return this.keystore.remove(nameOrAddress);
-  }
-
-  /**
-   * Query the balance of an account
-   *
-   * @param client - Stargate client to use when querying
-   * @param nameOrAddress - Account name or account address to search by
-   * @returns Promise containing the balances result
-   */
-  async queryBalance(client: StargateClient, nameOrAddress: string): Promise<AccountBalancesJSON> {
-    const { name, address } = await this.keystore.get(nameOrAddress);
-    const balances = await client.getAllBalances(address);
-
-    return {
-      account: {
-        name,
-        address,
-        balances,
-      },
-    };
   }
 
   /**

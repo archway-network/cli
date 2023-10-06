@@ -1,7 +1,7 @@
 import { expect, test } from '@oclif/test';
 import prompts from 'prompts';
 
-import { aliceAccountName, dummyAmount, dummyAmountString, bobAddress } from '../../dummies';
+import { aliceAccountName, dummyAmount, dummyAmountString, bobAddress, aliceAddress } from '../../dummies';
 import { AccountsStubs, ConfigStubs, SigningArchwayClientStubs, StargateClientStubs } from '../../stubs';
 
 describe('accounts balances', () => {
@@ -34,8 +34,18 @@ describe('accounts balances', () => {
     test
       .stdout()
       .command(['accounts balances get', aliceAccountName])
-      .it('displays the accounts balance', ctx => {
+      .it('displays the balance of an account by name', ctx => {
         expect(ctx.stdout).to.contain(aliceAccountName);
+        expect(ctx.stdout).to.contain(aliceAddress);
+        expect(ctx.stdout).to.contain(dummyAmount.amount);
+        expect(ctx.stdout).to.contain(dummyAmount.denom);
+      });
+
+    test
+      .stdout()
+      .command(['accounts balances get', bobAddress])
+      .it('displays the balance of a valid address', ctx => {
+        expect(ctx.stdout).to.contain(bobAddress);
         expect(ctx.stdout).to.contain(dummyAmount.amount);
         expect(ctx.stdout).to.contain(dummyAmount.denom);
       });
@@ -44,8 +54,8 @@ describe('accounts balances', () => {
       .stdout()
       .stderr()
       .command(['accounts balances get', nonExistentAccount])
-      .catch(/(Account).*(not found)/)
-      .it('fails on invalid account');
+      .catch(/(Address).*(doesn't have a valid format)/)
+      .it('fails on invalid address format');
   });
 
   describe('accounts balances send', () => {
