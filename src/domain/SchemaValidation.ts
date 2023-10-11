@@ -94,5 +94,5 @@ function validateInt32(value: number): boolean {
 }
 
 function validateInt64(value: number): boolean {
-  return Number.isInteger(value) && value >= -MAX_INT64 && BigInt(value) <= MAX_INT64;
+  return Number.isInteger(value) && BigInt(value) >= -MAX_INT64 && BigInt(value) <= MAX_INT64;
 }
