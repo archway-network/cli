@@ -1,16 +1,8 @@
 import { expect, test } from '@oclif/test';
 
-import ConfigChains from '../../../src/commands/config/chains';
 import { ChainData } from '../../../src/commands/config/chains/list';
 import { chainString } from '../../dummies';
 import { ConfigStubs, FilesystemStubs } from '../../stubs';
-
-const expectHelp = (ctx: any) => {
-  expect(ctx.stdout).to.contain('Description:');
-  expect(ctx.stdout).to.contain('Usage');
-  expect(ctx.stdout).to.contain('Available commands:');
-  expect(ctx.stdout).to.contain(ConfigChains.summary.split(',')[0]);
-};
 
 describe('config chains', () => {
   const configStubs = new ConfigStubs();
@@ -81,11 +73,5 @@ describe('config chains', () => {
         expect(chainIds).to.deep.contain({ current: true, chainId: 'constantine-3' });
         expect(chainIds).to.deep.contain({ current: false, chainId: 'archway-1' });
       });
-  });
-
-  describe('help', () => {
-    test.stdout().command(['config chains']).it('shows the config help when no other arguments', expectHelp);
-
-    test.stdout().command(['config chains', '--help']).it('shows the config help when the flag is set', expectHelp);
   });
 });

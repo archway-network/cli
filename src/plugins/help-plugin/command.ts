@@ -65,7 +65,7 @@ export default class CustomCommandHelp extends CommandHelp {
 
             if (a === 'GLOBAL') return 1;
 
-            return b === 'GLOBAL' ? -1 : a > b ? 1 : -1;
+            return b === 'GLOBAL' ? -1 : (a > b ? 1 : -1);
           });
 
           for (const name of sortedFlagGroups) {
