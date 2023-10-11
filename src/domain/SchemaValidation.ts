@@ -13,6 +13,10 @@ const cosmWasmFormatsDefinition: CosmWasmFormats = {
   uint16: { type: 'number', validate: validateUInt16 },
   uint32: { type: 'number', validate: validateUInt32 },
   uint64: { type: 'number', validate: validateUInt64 },
+  int8: { type: 'number', validate: validateInt8 },
+  int16: { type: 'number', validate: validateInt16 },
+  int32: { type: 'number', validate: validateInt32 },
+  int64: { type: 'number', validate: validateInt64 },
 };
 
 export class SchemaValidationError extends Error {
@@ -55,6 +59,10 @@ const MAX_UINT8 = 2 ** 8 - 1;
 const MAX_UINT16 = 2 ** 16 - 1;
 const MAX_UINT32 = 2 ** 32 - 1;
 const MAX_UINT64 = BigInt(2) ** BigInt(64) - BigInt(1);
+const MAX_INT8 = 2 ** 7 - 1;
+const MAX_INT16 = 2 ** 15 - 1;
+const MAX_INT32 = 2 ** 31 - 1;
+const MAX_INT64 = BigInt(2) ** BigInt(63) - BigInt(1);
 /* eslint-enable no-mixed-operators */
 
 function validateUInt8(value: number): boolean {
@@ -71,4 +79,20 @@ function validateUInt32(value: number): boolean {
 
 function validateUInt64(value: number): boolean {
   return Number.isInteger(value) && value >= ZERO && BigInt(value) <= MAX_UINT64;
+}
+
+function validateInt8(value: number): boolean {
+  return Number.isInteger(value) && value >= -MAX_INT8 && value <= MAX_INT8;
+}
+
+function validateInt16(value: number): boolean {
+  return Number.isInteger(value) && value >= -MAX_INT16 && value <= MAX_INT16;
+}
+
+function validateInt32(value: number): boolean {
+  return Number.isInteger(value) && value >= -MAX_INT32 && value <= MAX_INT32;
+}
+
+function validateInt64(value: number): boolean {
+  return Number.isInteger(value) && BigInt(value) >= -MAX_INT64 && BigInt(value) <= MAX_INT64;
 }
