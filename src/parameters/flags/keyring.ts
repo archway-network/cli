@@ -13,6 +13,7 @@ export const ParamsKeyringBackendFlag = {
   default: KeystoreBackendType.os,
   options: Object.values(KeystoreBackendType),
   parse: async (val: string): Promise<KeystoreBackendType> => val as KeystoreBackendType,
+  helpGroup: 'Keyring'
 };
 
 /**
@@ -25,6 +26,7 @@ export const KeyringBackendFlag = Flags.custom(ParamsKeyringBackendFlag)();
  */
 export const ParamsKeyringPathFlag = {
   description: KeyringPathDescription,
+  helpGroup: 'Keyring'
 };
 
 /**

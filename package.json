@@ -77,8 +77,6 @@
     "@cosmjs/tendermint-rpc": "^0.31.0",
     "@ledgerhq/hw-transport-node-hid": "^6.27.18",
     "@oclif/core": "^2.8",
-    "@oclif/plugin-help": "^5.2",
-    "@oclif/plugin-warn-if-update-available": "^2.0",
     "ajv": "^8.12.0",
     "ajv-formats": "^2.1.1",
     "bech32": "^2.0.0",
@@ -147,6 +145,15 @@
     "helpClass": "./dist/plugins/help-plugin/help",
     "plugins": [],
     "topicSeparator": " ",
+    "topics": {
+      "accounts": { "description": "Manages a local keyring with wallets to sign transactions" },
+      "accounts:balances": { "description": "Manage the token balance of an account" },
+      "config": { "description": "Manage the configuration of the Archway CLI" },
+      "config:chains": { "description": "Chain management commands, the chain files follow the Cosmos chain registry schema" },
+      "contracts": { "description": "Perform actions with the contracts on a project" },
+      "contracts:query": { "description": "Run queries against a contract" },
+      "rewards": { "description": "Queries and transactions in the Archway network's Rewards module" }
+    },
     "macos": {
       "identifier": "io.archway.cli"
     },
