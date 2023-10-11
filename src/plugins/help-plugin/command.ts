@@ -7,14 +7,22 @@ export default class CustomCommandHelp extends CommandHelp {
   protected args(args: Command.Arg.Any[]): [string, string | undefined][] | undefined {
     if (args.filter(a => a.description).length === 0) return;
 
-    return args.map(a => {
-      const name = a.name.toUpperCase();
-      let description = a.description || '';
-      if (a.default) description = `[default: ${a.default}] ${description}`;
-      if (a.options) description = `(${a.options.join('|')}) ${description}`;
-      if (a.required) description = `(required) ${description}`;
-      return [name, description ? dim(description) : undefined];
-    });
+    return args
+      .sort((a, b) => {
+        if (a.required === b.required) return 0;
+
+        if (a.required) return 1;
+
+        return -1;
+      })
+      .map(a => {
+        const name = a.name.toUpperCase();
+        let description = a.description || '';
+        if (a.default) description = `[default: ${a.default}] ${description}`;
+        if (a.options) description = `(${a.options.join('|')}) ${description}`;
+        if (a.required) description = `(required) ${description}`;
+        return [name, description ? dim(description) : undefined];
+      });
   }
 
   protected sections(): Array<{ header: string; generate: HelpSectionRenderer }> {
@@ -57,7 +65,7 @@ export default class CustomCommandHelp extends CommandHelp {
 
             if (a === 'GLOBAL') return 1;
 
-            return b === 'GLOBAL' ? -1 : (a > b ? 1 : -1);
+            return b === 'GLOBAL' ? -1 : a > b ? 1 : -1;
           });
 
           for (const name of sortedFlagGroups) {
