@@ -5,7 +5,7 @@ import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 
 import { Config, Ledger } from '@/domain';
-import { AlreadyExistsError, InvalidFormatError } from '@/exceptions';
+import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
 import { Prompts } from '@/services';
 import {
   Account,
@@ -179,6 +179,17 @@ export class Accounts {
   async assertAccountDoesNotExist(nameOrAddress: string): Promise<void> {
     if (this.keystore.exists(nameOrAddress)) {
       throw new AlreadyExistsError('Account', nameOrAddress)
+    }
+  }
+
+  /**
+   * Check if an account exists, by name or address, if it doesn't exist throws an error
+   *
+   * @param nameOrAddress - Account name or address to search by
+   */
+  async assertAccountExists(nameOrAddress: string): Promise<void> {
+    if (!this.keystore.exists(nameOrAddress)) {
+      throw new NotFoundError('Account', nameOrAddress)
     }
   }
 
