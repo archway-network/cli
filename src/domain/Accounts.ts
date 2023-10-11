@@ -200,6 +200,7 @@ export class Accounts {
    * @returns Promise containing an instance of {@link Account}
    */
   async get(nameOrAddress: string): Promise<Account> {
+    await this.assertAccountExists(nameOrAddress);
     const account = await this.keystore.get(nameOrAddress);
     return redactAccount(account);
   }
@@ -255,6 +256,7 @@ export class Accounts {
    * @returns Empty promise
    */
   async remove(nameOrAddress: string): Promise<void> {
+    await this.assertAccountExists(nameOrAddress);
     return this.keystore.remove(nameOrAddress);
   }
 
@@ -273,5 +275,20 @@ export class Accounts {
     }
 
     return _.merge({ type: AccountType.LOCAL, name: address, address }, account);
+  }
+
+  /**
+   * Create an instance of {@link AccountBase} from a name or address, throws error if not found
+   *
+   * @param nameOrAddress - Account name or address to search by
+   * @returns Promise containing an instance of {@link AccountBase}
+   */
+  async findAccountBase(nameOrAddress: string): Promise<AccountBase> {
+    const account = this.keystore.findAccountBase(nameOrAddress);
+    if (!account) {
+      throw new NotFoundError('Account', nameOrAddress)
+    }
+
+    return account
   }
 }

@@ -66,7 +66,7 @@ export class Keystore {
    * Gets a single account by name or address
    *
    * @param nameOrAddress - Account name or account address to search by
-   * @returns Promise containing the account's data, or undefined if it doesn't exist
+   * @returns Promise containing the account's data
    * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
    * @throws {@link NotFoundError} if the account does not exist
    */
