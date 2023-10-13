@@ -52,7 +52,7 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise containing the completed transaction details
    */
   public async run(): Promise<SendResultJSON> {
     const config = await Config.init();
