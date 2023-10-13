@@ -116,6 +116,7 @@ export class DockerOptimizer {
         }
 
         await kill;
+        await container.wait(); // Sometimes container takes additional milliseconds to be deleted
       }
     } catch {
       debug('killIfRunning', 'container not found', containerName);
