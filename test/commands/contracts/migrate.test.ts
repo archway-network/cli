@@ -1,6 +1,13 @@
 import { expect, test } from '@oclif/test';
 
-import { aliceAccountName, contractArgument, contractProjectMetadata, dummyMigrateTransaction, instantiateDeployment } from '../../dummies';
+import {
+  aliceAccountName,
+  contractArgument,
+  contractArgumentSchema,
+  contractProjectMetadata,
+  dummyMigrateTransaction,
+  instantiateDeployment,
+} from '../../dummies';
 
 import { AccountsStubs, ConfigStubs, FilesystemStubs, SigningArchwayClientStubs } from '../../stubs';
 
@@ -17,6 +24,7 @@ describe('contracts migrate', () => {
     accountsStubs.init();
     configStubs.init();
     configStubs.assertIsValidWorkspace();
+    filesystemStubs.readFile(contractArgumentSchema);
     filesystemStubs.writeFile();
     signingArchwayClientStubs.connectWithSigner();
   });
@@ -53,4 +61,18 @@ describe('contracts migrate', () => {
     .command(['contracts migrate', 'thisDoesntExist', `--args=${contractArgument}`, `--code=${codeId}`, `--from=${aliceAccountName}`])
     .catch(/(Contract).*(not found)/)
     .it('fails on invalid contract');
+
+  test
+    .stdout()
+    .stderr()
+    .command(['contracts migrate', contractName, '--args={}', `--code=${codeId}`, `--from=${aliceAccountName}`])
+    .catch(/(Failed to migrate).*(do not match the schema)/)
+    .it('fails on invalid arguments');
+
+  test
+    .stdout()
+    .command(['contracts migrate', contractName, '--args={}', `--code=${codeId}`, `--from=${aliceAccountName}`, '--no-validation'])
+    .it("Skips validation of args and doesn't fail", ctx => {
+      expect(ctx.stdout).to.contain(dummyMigrateTransaction.transactionHash);
+    });
 });

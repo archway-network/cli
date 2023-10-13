@@ -1,16 +1,15 @@
 import { Flags } from '@oclif/core';
 
-const SkipValidationDescription = 'Skip schema validation of the arguments';
+const NoValidationDescription = 'Skip schema validation of the arguments';
 
 /**
- * Definition of Amount optional flag
+ * Definition of no-validation flag
  */
-export const ParamsSkipValidationFlag = {
-  description: SkipValidationDescription,
-  default: false
+export const ParamsNoValidationFlag = {
+  description: NoValidationDescription,
 };
 
 /**
- * Amount optional flag
+ * No-validation flag
  */
-export const SkipValidationFlag = Flags.boolean(ParamsSkipValidationFlag);
+export const NoValidationFlag = Flags.boolean(ParamsNoValidationFlag);

@@ -7,6 +7,7 @@ export * from './InstantiateError';
 export * from './InvalidFormatError';
 export * from './InvalidPasswordError';
 export * from './InvalidValueError';
+export * from './MigrateError';
 export * from './NotFoundError';
 export * from './OnlyOneArgSourceError';
 export * from './QueryError';

@@ -8,7 +8,7 @@ import { Config } from '@/domain';
 import { showDisappearingSpinner } from '@/ui';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { dim } from '@/utils';
-import { SkipValidationFlag } from '@/parameters/flags';
+import { NoValidationFlag } from '@/parameters/flags';
 
 /**
  * Command 'contracts query smart'
@@ -26,7 +26,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
       description: 'JSON string with the query to run',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a query for the smart contract' }),
-    'skip-validation': SkipValidationFlag,
+    'no-validation': NoValidationFlag,
   };
 
   static examples = [
@@ -51,9 +51,9 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise containing the result from the Contract smart query
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<JsonObject> {
     // Validate that we only get migration message args from one source of all 3 possible inputs
     if (
       (this.flags['args-file'] && this.args.stdinInput) ||
@@ -78,7 +78,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
 
     const queryMsg = JSON.parse(this.args.stdinInput || this.flags.args ||  (await fs.readFile(this.flags['args-file']!, 'utf-8')));
 
-    if (!this.flags['skip-validation']) {
+    if (!this.flags['no-validation']) {
       await config.contractsInstance.assertValidQueryArgs(contract.name, queryMsg);
     }
 
@@ -88,10 +88,8 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
       return client.queryContractSmart(contractAddress, queryMsg);
     }, 'Waiting for query response...');
 
-    await this.successMessage(result);
-  }
+    this.log(result);
 
-  protected async successMessage(result: JsonObject): Promise<void> {
-    this.logJson(result);
+    return result;
   }
 }

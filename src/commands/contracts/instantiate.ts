@@ -6,7 +6,7 @@ import { Accounts, Config } from '@/domain';
 import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameOptionalArg, StdinInputArg } from '@/parameters/arguments';
-import { KeyringFlags, ParamsAmountOptionalFlag, SkipValidationFlag, TransactionFlags } from '@/parameters/flags';
+import { KeyringFlags, NoValidationFlag, ParamsAmountOptionalFlag, TransactionFlags } from '@/parameters/flags';
 import { showDisappearingSpinner } from '@/ui';
 import { blueBright, buildStdFee, dim, greenBright } from '@/utils';
 
@@ -36,7 +36,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       description: 'JSON string with a valid instantiate schema for the contract',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a valid instantiate schema for the contract' }),
-    'skip-validation': SkipValidationFlag,
+    'no-validation': NoValidationFlag,
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -83,9 +83,9 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise containing the result of the Contract Instantiate transaction
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<InstantiateResult> {
     // Validate that we only get init args from one source of all 3 possible inputs
     if (
       (this.flags['args-file'] && this.args.stdinInput) ||
@@ -128,7 +128,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
 
       if (!label) label = contractInstance.label;
 
-      if (!this.flags['skip-validation']) {
+      if (!this.flags['no-validation']) {
         await config.contractsInstance.assertValidInstantiateArgs(contractInstance.name, instArgs);
       }
     }
@@ -170,7 +170,11 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       );
     }
 
-    await this.successMessage(result!, label, config);
+    this.success(`${greenBright('Contract')} ${blueBright(label)} ${greenBright('instantiated')}`);
+    this.log(`  Address: ${blueBright(result.contractAddress)}`);
+    this.log(`  Transaction: ${await config.prettyPrintTxHash(result.transactionHash)}`);
+
+    return result;
   }
 
   // eslint-disable-next-line max-params
@@ -188,15 +192,5 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     this.log(`  Label: ${blueBright(label)}`);
     this.log(`  Admin: ${blueBright(admin)}`);
     this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
-  }
-
-  protected async successMessage(result: InstantiateResult, label: string, configInstance: Config): Promise<void> {
-    if (this.jsonEnabled()) {
-      this.logJson(result);
-    } else {
-      this.success(`${greenBright('Contract')} ${blueBright(label)} ${greenBright('instantiated')}`);
-      this.log(`  Address: ${blueBright(result.contractAddress)}`);
-      this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
-    }
   }
 }

@@ -34,7 +34,7 @@ describe('contracts query smart', () => {
   test
     .stdout()
     .env({ ARCHWAY_SKIP_VERSION_CHECK: 'true' })
-    .command(['contracts query smart', contractName, `--args=${contractArgument}`])
+    .command(['contracts query smart', contractName, `--args=${contractArgument}`, '--json'])
     .it('Query result is JSON formatted', expectOutputJSON);
 
   test
@@ -48,12 +48,12 @@ describe('contracts query smart', () => {
     .stdout()
     .stderr()
     .command(['contracts query smart', contractName, '--args={}'])
-    .catch(/(Failed to query).*(does not match the schema)/)
+    .catch(/(Failed to query).*(do not match the schema)/)
     .it('fails on invalid arguments');
 
   test
     .stdout()
-    .command(['contracts query smart', contractName, '--args={}', '--skip-validation'])
+    .command(['contracts query smart', contractName, '--args={}', '--no-validation'])
     .it("Skips validation of args and doesn't fail", ctx => {
       expect(ctx.stdout).to.contain(dummyQueryResult.msg);
     });
