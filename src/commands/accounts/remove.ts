@@ -35,7 +35,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise containing the name and address of the deleted account
    */
   public async run(): Promise<AccountBase> {
     const config = await Config.init();
