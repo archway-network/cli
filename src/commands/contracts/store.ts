@@ -8,11 +8,12 @@ import { AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
 import { Accounts, Config, DEFAULT_ADDRESS_BECH_32_PREFIX } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
-import { KeyringFlags, NoConfirmFlag, TransactionFlags } from '@/parameters/flags';
+import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { Prompts } from '@/services';
-import { Account, Contract, DeploymentAction, InstantiatePermission, StoreDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { assertIsValidAddress, blueBright, buildStdFee, greenBright, white, yellow } from '@/utils';
+
+import { Account, Contract, DeploymentAction, InstantiatePermission, StoreDeployment } from '@/types';
 
 /**
  * Command 'contracts store'
@@ -35,7 +36,6 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       description:
         'List of addresses that can instantiate a contract from the code; works only if the instantiate permission is set to "any-of"',
     })(),
-    'no-confirm': NoConfirmFlag,
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -51,7 +51,8 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
     },
     {
       description: 'Store a contract on-chain, with list of addresses allowed to instantiate',
-      command: '<%= config.bin %> <%= command.id %> my-project --instantiate-permission "any-of" --allowed-addresses "archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm,archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz"',
+      command:
+        '<%= config.bin %> <%= command.id %> my-project --instantiate-permission "any-of" --allowed-addresses "archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm,archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz"',
     },
     {
       description: 'Store a contract on-chain, with nobody allowed to instantiate',
@@ -64,7 +65,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
    *
    * @returns Empty promise
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<UploadResult> {
     const config = await Config.init();
 
     await config.assertIsValidWorkspace();
@@ -126,22 +127,16 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       config.chainId
     );
 
-    await this.successMessage(result!, contract, config);
+    this.success(`${greenBright('Contract')} ${blueBright(path.basename(contract.wasm.optimizedFilePath))} ${greenBright('uploaded')}`);
+    this.log(`  Code Id: ${blueBright(result.codeId)}`);
+    this.log(`  Transaction: ${await config.prettyPrintTxHash(result.transactionHash)}`);
+
+    return result;
   }
 
   protected async logTransactionDetails(config: Config, contract: Contract, fromAccount: Account): Promise<void> {
     this.log(`Uploading optimized wasm for contract ${blueBright(contract.name)}`);
     this.log(`  Chain: ${blueBright(config.chainId)}`);
     this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
-  }
-
-  protected async successMessage(result: UploadResult, contractInstance: Contract, configInstance: Config): Promise<void> {
-    if (this.jsonEnabled()) {
-      this.logJson(result);
-    } else {
-      this.success(`${greenBright('Contract')} ${blueBright(path.basename(contractInstance.wasm.optimizedFilePath))} ${greenBright('uploaded')}`);
-      this.log(`  Code Id: ${blueBright(result.codeId)}`);
-      this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
-    }
   }
 }
