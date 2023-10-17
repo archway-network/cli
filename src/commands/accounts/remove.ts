@@ -40,21 +40,20 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
   public async run(): Promise<AccountBase> {
     const config = await Config.init();
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);
-
-    const accountBaseInfo = await accountsDomain.findAccountBase(this.args.account!);
+    const account = accountsDomain.getAccountBase(this.args.account!);
 
     this.warning(
-      `${yellow('Attention:')} this will permanently delete the account ${bold.green(accountBaseInfo.name)} (${green(
-        accountBaseInfo.address
+      `${yellow('Attention:')} this will permanently delete the account ${bold.green(account.name)} (${green(
+        account.address
       )})\n`
     );
 
     await Prompts.askForConfirmation(this.flags['no-confirm']);
 
-    await accountsDomain.remove(accountBaseInfo.address);
+    await accountsDomain.remove(account);
 
-    this.success(`${green('Account')} ${bold.green(accountBaseInfo.name)} ${green('deleted')}`);
+    this.success(`${green('Account')} ${bold.green(account.name)} ${green('deleted')}`);
 
-    return accountBaseInfo;
+    return account;
   }
 }

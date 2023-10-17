@@ -141,6 +141,10 @@ const accountValidator = ow.any(
   ledgerAccountValidator
 )
 
+export function isAccountBase(a: AccountBase | string): a is AccountBase {
+  return (a as AccountBase).address !== undefined
+}
+
 /**
  * Asserts if an object has the valid format of an {@link AccountBase}
  *

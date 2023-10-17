@@ -5,7 +5,7 @@ import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 
 import { Config, Ledger } from '@/domain';
-import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
+import { AlreadyExistsError, InvalidFormatError } from '@/exceptions';
 import { Prompts } from '@/services';
 import {
   Account,
@@ -183,26 +183,24 @@ export class Accounts {
   }
 
   /**
-   * Check if an account exists, by name or address, if it doesn't exist throws an error
-   *
-   * @param nameOrAddress - Account name or address to search by
-   */
-  async assertAccountExists(nameOrAddress: string): Promise<void> {
-    if (!this.keystore.exists(nameOrAddress)) {
-      throw new NotFoundError('Account', nameOrAddress)
-    }
-  }
-
-  /**
-   * Get a single account by name or address, without private key
+   * Gets a single account by name or address, without private key
    *
    * @param nameOrAddress - Account name or account address to search by
    * @returns Promise containing an instance of {@link Account}
    */
   async get(nameOrAddress: string): Promise<Account> {
-    await this.assertAccountExists(nameOrAddress);
     const account = await this.keystore.get(nameOrAddress);
     return redactAccount(account);
+  }
+
+  /**
+   * Gets a single base account by name or address
+   *
+   * @param nameOrAddress - Account name or account address to search by
+   * @returns The {@link AccountBase} data
+   */
+  getAccountBase(nameOrAddress: string): AccountBase {
+    return this.keystore.getAccountBase(nameOrAddress);
   }
 
   /**
@@ -243,21 +241,20 @@ export class Accounts {
 
   /**
    * Get a list of the accounts in the keystore, only by name and address
-   * @returns Promise containing an array with all the accounts in the keystore
+   * @returns An array with all the accounts in the keystore
    */
-  async listNameAndAddress(): Promise<readonly AccountBase[]> {
+  listNameAndAddress(): readonly AccountBase[] {
     return this.keystore.listNameAndAddress();
   }
 
   /**
-   * Remove an account by name or address
+   * Removes an account from the keystore
    *
-   * @param nameOrAddress - Account name or account address to remove by
+   * @param account - An {@link AccountBase} instance or a string with the account name or account address
    * @returns Empty promise
    */
-  async remove(nameOrAddress: string): Promise<void> {
-    await this.assertAccountExists(nameOrAddress);
-    return this.keystore.remove(nameOrAddress);
+  async remove(account: AccountBase | string): Promise<void> {
+    return this.keystore.remove(account);
   }
 
   /**
@@ -275,20 +272,5 @@ export class Accounts {
     }
 
     return _.merge({ type: AccountType.LOCAL, name: address, address }, account);
-  }
-
-  /**
-   * Create an instance of {@link AccountBase} from a name or address, throws error if not found
-   *
-   * @param nameOrAddress - Account name or address to search by
-   * @returns Promise containing an instance of {@link AccountBase}
-   */
-  async findAccountBase(nameOrAddress: string): Promise<AccountBase> {
-    const account = this.keystore.findAccountBase(nameOrAddress);
-    if (!account) {
-      throw new NotFoundError('Account', nameOrAddress)
-    }
-
-    return account
   }
 }
