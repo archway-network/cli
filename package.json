@@ -142,7 +142,7 @@
     "bin": "archway",
     "dirname": "archway",
     "commands": "./dist/commands",
-    "helpClass": "./dist/plugins/help-plugin/help",
+    "helpClass": "./dist/plugins/help/help",
     "plugins": [],
     "topicSeparator": " ",
     "topics": {

@@ -1,7 +1,7 @@
 import { BaseCommand } from '@/lib/base';
 import { Args } from '@oclif/core';
 
-import Help from '@/plugins/help-plugin/help';
+import Help from '@/plugins/help/help';
 
 /**
  * Command 'help'
