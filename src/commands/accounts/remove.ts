@@ -35,32 +35,25 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise containing the name and address of the deleted account
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<AccountBase> {
     const config = await Config.init();
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);
-    const accountInfo = await accountsDomain.get(this.args.account!);
+    const account = accountsDomain.getAccountBase(this.args.account!);
 
-    if (!this.jsonEnabled()) {
-      this.warning(
-        `${yellow('Attention:')} this will permanently delete the account ${bold.green(accountInfo.name)} (${green(
-          accountInfo.address
-        )})\n`
-      );
-    }
+    this.warning(
+      `${yellow('Attention:')} this will permanently delete the account ${bold.green(account.name)} (${green(
+        account.address
+      )})\n`
+    );
 
     await Prompts.askForConfirmation(this.flags['no-confirm']);
 
-    await accountsDomain.remove(accountInfo.address);
+    await accountsDomain.remove(account);
 
-    await this.successMessage(accountInfo);
-  }
-
-  protected async successMessage(account: AccountBase): Promise<void> {
     this.success(`${green('Account')} ${bold.green(account.name)} ${green('deleted')}`);
-    if (this.jsonEnabled()) {
-      this.logJson(account)
-    }
+
+    return account;
   }
 }

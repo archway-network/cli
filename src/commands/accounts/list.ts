@@ -36,7 +36,7 @@ export default class AccountsList extends BaseCommand<typeof AccountsList> {
       return;
     }
 
-    const accounts = await accountsDomain.listNameAndAddress();
+    const accounts = accountsDomain.listNameAndAddress();
     if (accounts.length === 0) {
       this.log(yellow('No accounts found'));
       return;

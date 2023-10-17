@@ -183,7 +183,7 @@ export class Accounts {
   }
 
   /**
-   * Get a single account by name or address, without private key
+   * Gets a single account by name or address, without private key
    *
    * @param nameOrAddress - Account name or account address to search by
    * @returns Promise containing an instance of {@link Account}
@@ -191,6 +191,16 @@ export class Accounts {
   async get(nameOrAddress: string): Promise<Account> {
     const account = await this.keystore.get(nameOrAddress);
     return redactAccount(account);
+  }
+
+  /**
+   * Gets a single base account by name or address
+   *
+   * @param nameOrAddress - Account name or account address to search by
+   * @returns The {@link AccountBase} data
+   */
+  getAccountBase(nameOrAddress: string): AccountBase {
+    return this.keystore.getAccountBase(nameOrAddress);
   }
 
   /**
@@ -231,20 +241,20 @@ export class Accounts {
 
   /**
    * Get a list of the accounts in the keystore, only by name and address
-   * @returns Promise containing an array with all the accounts in the keystore
+   * @returns An array with all the accounts in the keystore
    */
-  async listNameAndAddress(): Promise<readonly AccountBase[]> {
+  listNameAndAddress(): readonly AccountBase[] {
     return this.keystore.listNameAndAddress();
   }
 
   /**
-   * Remove an account by name or address
+   * Removes an account from the keystore
    *
-   * @param nameOrAddress - Account name or account address to remove by
+   * @param account - An {@link AccountBase} instance or a string with the account name or account address
    * @returns Empty promise
    */
-  async remove(nameOrAddress: string): Promise<void> {
-    return this.keystore.remove(nameOrAddress);
+  async remove(account: AccountBase | string): Promise<void> {
+    return this.keystore.remove(account);
   }
 
   /**

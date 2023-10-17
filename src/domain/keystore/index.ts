@@ -1,6 +1,6 @@
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
 import { Prompts } from '@/services';
-import { Account, AccountBase, AccountType, KeystoreBackendType, assertIsValidAccount, assertIsValidAccountBase } from '@/types';
+import { Account, AccountBase, AccountType, KeystoreBackendType, assertIsValidAccount, assertIsValidAccountBase, isAccountBase } from '@/types';
 
 import { KeystoreActionOptions, KeystoreBackend } from './backend';
 import { FileBackend } from './file';
@@ -66,7 +66,8 @@ export class Keystore {
    * Gets a single account by name or address
    *
    * @param nameOrAddress - Account name or account address to search by
-   * @returns Promise containing the account's data, or undefined if it doesn't exist
+   * @returns Promise containing the account's data
+   *
    * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
    * @throws {@link NotFoundError} if the account does not exist
    */
@@ -75,6 +76,24 @@ export class Keystore {
     return this.getByTag(tag, nameOrAddress);
   }
 
+  /**
+   * Gets a single base account by name or address
+   *
+   * @param nameOrAddress - Account name or account address to search by
+   * @returns The base account's data
+   *
+   * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
+   * @throws {@link NotFoundError} if the account does not exist
+   */
+  public getAccountBase(nameOrAddress: string): AccountBase {
+    const tag = this.getTag(nameOrAddress);
+    return fromEntryTag(tag);
+  }
+
+  /**
+   * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
+   * @throws {@link NotFoundError} if the account does not exist
+   */
   private getTag(nameOrAddress: string): string  {
     const [tag] = this.findTag(nameOrAddress) || [];
     if (!tag) {
@@ -90,6 +109,7 @@ export class Keystore {
    * @param tag - Tag to get the account by
    * @param nameOrAddress - Account name or account address to search by
    * @returns Promise containing the account's data
+   *
    * @throws InvalidFormatError if the tag is not in the correct format or the serialized account is not valid
    */
   private async getByTag(tag: string, nameOrAddress: string): Promise<Account> {
@@ -119,7 +139,7 @@ export class Keystore {
    * Searches for an account base data by name or address
    *
    * @param nameOrAddress - Account name or account address to search by
-   * @returns Promise containing the account's base data, or undefined if it doesn't exist
+   * @returns The account's base data, or undefined if it doesn't exist
    */
   public findAccountBase(nameOrAddress: string): AccountBase | undefined {
     const [, account] = this.findTag(nameOrAddress) || [];
@@ -156,7 +176,7 @@ export class Keystore {
   /**
    * Get a list of the accounts in the keystore, only getting their basic info
    *
-   * @returns Promise containing an array with all the accounts in the keystore
+   * @returns An array with all the accounts in the keystore
    */
   public listNameAndAddress(): readonly AccountBase[] {
     const accountsWithTags = this.listAccountsWithTags();
@@ -185,10 +205,13 @@ export class Keystore {
   /**
    * Remove an account from the keyring
    *
-   * @param nameOrAddress - Account name or address to search by
+   * @param account - An {@link AccountBase} instance or a string with the account name or account address
+   *
+   * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
+   * @throws {@link NotFoundError} if the account does not exist
    */
-  public remove(nameOrAddress: string): void {
-    const tag = this.getTag(nameOrAddress);
+  public remove(account: AccountBase | string): void {
+    const tag = isAccountBase(account) ? toEntryTag(account as AccountBase) : this.getTag(account.toString());
     this.backend.remove(tag);
   }
 
@@ -228,6 +251,7 @@ export function toEntryTag({ type, name, address }: AccountBase): string {
  *
  * @param account - Account to be used in the tag
  * @returns Tag with hex encoded name and address
+ *
  * @throws InvalidFormatError if the tag is not in the correct format
  */
 export function fromEntryTag(tag: string): AccountBase {
