@@ -5,6 +5,8 @@ import { KeystoreBackendType } from '@/types';
 const KeyringBackendDescription = 'Backend for the keyring';
 const KeyringPathDescription = 'File-based keyring path';
 
+const HelpGroup = 'Keyring';
+
 /**
  * Definition of Keyring Backend flag
  */
@@ -13,7 +15,7 @@ export const ParamsKeyringBackendFlag = {
   default: KeystoreBackendType.os,
   options: Object.values(KeystoreBackendType),
   parse: async (val: string): Promise<KeystoreBackendType> => val as KeystoreBackendType,
-  helpGroup: 'Keyring'
+  helpGroup: HelpGroup
 };
 
 /**
@@ -26,7 +28,7 @@ export const KeyringBackendFlag = Flags.custom(ParamsKeyringBackendFlag)();
  */
 export const ParamsKeyringPathFlag = {
   description: KeyringPathDescription,
-  helpGroup: 'Keyring'
+  helpGroup: HelpGroup
 };
 
 /**

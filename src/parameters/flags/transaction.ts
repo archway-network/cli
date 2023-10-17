@@ -11,13 +11,15 @@ const FeeAccountDescription = 'Account used to pays fees for the transaction ins
 const ConfirmDescription = 'Asks for confirmation before broadcasting the tx or skips the prompt completely';
 const GasAdjustmentDescription = 'Multiplier that is applied to the default estimated gas to avoid running out of gas exceptions';
 
+const HelpGroup = 'Transaction';
+
 /**
  * Definition of Transaction From flag
  */
 export const ParamsTransactionFromFlag = {
   description: FromDescription,
   char: 'f' as AlphabetLowercase,
-  helpGroup: 'Transaction'
+  helpGroup: HelpGroup
 };
 
 /**
@@ -31,7 +33,7 @@ export const TransactionFromFlag = Flags.string(ParamsTransactionFromFlag);
 export const ParamsTransactionFeeFlag = {
   description: FeeDescription,
   parse: async (val: string): Promise<Amount> => parseAmount(val),
-  helpGroup: 'Transaction'
+  helpGroup: HelpGroup
 };
 
 /**
@@ -44,7 +46,7 @@ export const TransactionFeeFlag = Flags.custom<Amount>(ParamsTransactionFeeFlag)
  */
 export const ParamsTransactionFeeAccountFlag = {
   description: FeeAccountDescription,
-  helpGroup: 'Transaction'
+  helpGroup: HelpGroup
 };
 
 /**
@@ -59,7 +61,7 @@ export const ParamsTransactionConfirmFlag = {
   default: true,
   description: ConfirmDescription,
   allowNo: true,
-  helpGroup: 'Transaction'
+  helpGroup: HelpGroup
 };
 
 /**
@@ -74,7 +76,7 @@ export const ParamsTransactionGasAdjustmentFlag = {
   default: 1.3,
   description: GasAdjustmentDescription,
   parse: async (val: string): Promise<number> => Number(val),
-  helpGroup: 'Transaction'
+  helpGroup: HelpGroup
 };
 
 /**
