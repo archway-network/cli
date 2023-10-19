@@ -1,14 +1,13 @@
 import { Flags } from '@oclif/core';
 import { AlphabetLowercase } from '@oclif/core/lib/interfaces';
 
-import { parseAmount } from '@/utils';
-
 import { Amount } from '@/types';
+import { parseAmount } from '@/utils';
+import { NoConfirmFlag } from './noConfirm';
 
 const FromDescription = 'Signer of the tx';
 const FeeDescription = 'Extra fees to pay along with the transaction';
-const FeeAccountDescription = 'Account used to pays fees for the transaction instead of the signer';
-const ConfirmDescription = 'Asks for confirmation before broadcasting the tx or skips the prompt completely';
+const FeeAccountDescription = 'Account used to pay fees for the transaction instead of the signer';
 const GasAdjustmentDescription = 'Multiplier that is applied to the default estimated gas to avoid running out of gas exceptions';
 
 const HelpGroup = 'Transaction';
@@ -55,21 +54,6 @@ export const ParamsTransactionFeeAccountFlag = {
 export const TransactionFeeAccountFlag = Flags.string(ParamsTransactionFeeAccountFlag);
 
 /**
- * Definition of Transaction Confirm flag
- */
-export const ParamsTransactionConfirmFlag = {
-  default: true,
-  description: ConfirmDescription,
-  allowNo: true,
-  helpGroup: HelpGroup
-};
-
-/**
- * Transaction Confirm flag
- */
-export const TransactionConfirmFlag = Flags.boolean(ParamsTransactionConfirmFlag);
-
-/**
  * Definition of Transaction Gas Adjustment flag
  */
 export const ParamsTransactionGasAdjustmentFlag = {
@@ -92,7 +76,7 @@ export const TransactionFlags = {
   fee: TransactionFeeFlag,
   // Currently not being used anywhere, commenting out so it doesn't appear on the helper
   // 'fee-account': TransactionFeeAccountFlag,
-  confirm: TransactionConfirmFlag,
+  'no-confirm': NoConfirmFlag,
   // eslint-disable-next-line new-cap
   'gas-adjustment': TransactionGasAdjustmentFlag(),
 };
