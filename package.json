@@ -146,13 +146,27 @@
     "plugins": [],
     "topicSeparator": " ",
     "topics": {
-      "accounts": { "description": "Manages a local keyring with wallets to sign transactions" },
-      "accounts:balances": { "description": "Manage the token balance of an account" },
-      "config": { "description": "Manage the configuration of the Archway CLI" },
-      "config:chains": { "description": "Chain management commands, the chain files follow the Cosmos chain registry schema" },
-      "contracts": { "description": "Perform actions with the contracts on a project" },
-      "contracts:query": { "description": "Run queries against a contract" },
-      "rewards": { "description": "Queries and transactions in the Archway network's Rewards module" }
+      "accounts": {
+        "description": "Manages a local keyring with wallets to sign transactions"
+      },
+      "accounts:balances": {
+        "description": "Manage the token balance of an account"
+      },
+      "config": {
+        "description": "Manage the configuration of the Archway CLI"
+      },
+      "config:chains": {
+        "description": "Chain management commands, the chain files follow the Cosmos chain registry schema"
+      },
+      "contracts": {
+        "description": "Perform actions with the contracts on a project"
+      },
+      "contracts:query": {
+        "description": "Run queries against a contract"
+      },
+      "rewards": {
+        "description": "Queries and transactions in the Archway network's Rewards module"
+      }
     },
     "macos": {
       "identifier": "io.archway.cli"
@@ -166,5 +180,6 @@
   },
   "os": [
     "!win32"
-  ]
+  ],
+  "packageManager": "yarn@3.6.4"
 }
