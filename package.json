@@ -116,7 +116,7 @@
     "elliptic": "^6.5.4",
     "eslint": "^7.32.0",
     "eslint-config-oclif": "^4.0.0",
-    "eslint-config-oclif-typescript": "^1.0.3",
+    "eslint-config-oclif-typescript": "^3.0.6",
     "eslint-plugin-tsdoc": "^0.2.17",
     "fancy-test": "^2.0.18",
     "husky": "^8.0.0",
@@ -128,10 +128,10 @@
     "spawk": "^1.8.0",
     "ts-alias": "^0.0.7",
     "ts-node": "^10.9.1",
-    "tsc-alias": "^1.8.5",
+    "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^4.2.0",
-    "tslib": "^2.6.1",
-    "typescript": "^5.0.4"
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
   },
   "oclif": {
     "additionalVersionFlags": [
@@ -146,13 +146,27 @@
     "plugins": [],
     "topicSeparator": " ",
     "topics": {
-      "accounts": { "description": "Manages a local keyring with wallets to sign transactions" },
-      "accounts:balances": { "description": "Manage the token balance of an account" },
-      "config": { "description": "Manage the configuration of the Archway CLI" },
-      "config:chains": { "description": "Chain management commands, the chain files follow the Cosmos chain registry schema" },
-      "contracts": { "description": "Perform actions with the contracts on a project" },
-      "contracts:query": { "description": "Run queries against a contract" },
-      "rewards": { "description": "Queries and transactions in the Archway network's Rewards module" }
+      "accounts": {
+        "description": "Manages a local keyring with wallets to sign transactions"
+      },
+      "accounts:balances": {
+        "description": "Manage the token balance of an account"
+      },
+      "config": {
+        "description": "Manage the configuration of the Archway CLI"
+      },
+      "config:chains": {
+        "description": "Chain management commands, the chain files follow the Cosmos chain registry schema"
+      },
+      "contracts": {
+        "description": "Perform actions with the contracts on a project"
+      },
+      "contracts:query": {
+        "description": "Run queries against a contract"
+      },
+      "rewards": {
+        "description": "Queries and transactions in the Archway network's Rewards module"
+      }
     },
     "macos": {
       "identifier": "io.archway.cli"
@@ -166,5 +180,6 @@
   },
   "os": [
     "!win32"
-  ]
+  ],
+  "packageManager": "yarn@3.6.4"
 }
