@@ -6,7 +6,7 @@ import _ from 'lodash';
 import { ChildProcessPromise, PromisifySpawnOptions, spawn } from 'promisify-child-process';
 
 import { DockerOptimizer } from '@/domain';
-import { BaseError, ConsoleError, ErrorCodes } from '@/exceptions';
+import { ConsoleError, ErrorCodes } from '@/exceptions';
 import { CargoProjectMetadata } from '@/types';
 import { bold, redBright } from '@/utils';
 
@@ -150,7 +150,7 @@ export class Cargo {
   static OptimizedOutputDir = 'artifacts';
 
   // eslint-disable-next-line no-useless-constructor
-  constructor(public readonly workingDir = process.cwd()) {}
+  constructor(public readonly workingDir = process.cwd()) { }
 
   /**
    * Get absolute path of the project location
@@ -279,10 +279,7 @@ export class Cargo {
 
     const optimizer = new DockerOptimizer({});
     const contractRoot = params.all ? undefined : root;
-    const { error, statusCode } = await optimizer.run(workspaceRoot, contractRoot, params.quiet);
-    if (statusCode !== 0) {
-      throw error instanceof Error ? error : new BaseError(error);
-    }
+    await optimizer.run(workspaceRoot, contractRoot, params.quiet);
 
     return params.all ? path.join(workspaceRoot, Cargo.OptimizedOutputDir) : wasm.optimizedFilePath;
   }
