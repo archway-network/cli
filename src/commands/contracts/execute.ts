@@ -7,7 +7,7 @@ import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/argum
 import { Accounts, Config } from '@/domain';
 import { buildStdFee, blueBright, greenBright, isValidAddress, dim } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag, SkipValidationFlag } from '@/parameters/flags';
+import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag, NoValidationFlag } from '@/parameters/flags';
 import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 
 import { Account, Amount, Contract } from '@/types';
@@ -32,7 +32,7 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       description: 'JSON string with a valid execute schema for the contract',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a valid execute schema for the contract' }),
-    'skip-validation': SkipValidationFlag,
+    'no-validation': NoValidationFlag,
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -67,9 +67,9 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise containing the result of the Contract Execute transaction
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<ExecuteResult> {
     // Validate that we only get init args from one source of all 3 possible inputs
     if (
       (this.flags['args-file'] && this.args.stdinInput) ||
@@ -104,7 +104,7 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
 
       contractAddress = instantiated.contract.address;
 
-      if (!this.flags['skip-validation']) {
+      if (!this.flags['no-validation']) {
         await config.contractsInstance.assertValidExecuteArgs(contractInstance.name, executeArgs);
       }
     }
@@ -128,21 +128,15 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       }
     }, 'Waiting for tx to confirm...');
 
-    await this.successMessage(result!, contractInstance?.label || contractAddress, config);
+    this.success(`${greenBright('Executed contract ')} ${blueBright(contractInstance?.label || contractAddress)}`);
+    this.log(`  Transaction: ${await config.prettyPrintTxHash(result.transactionHash)}`);
+
+    return result;
   }
 
   protected async logTransactionDetails(config: Config, contractName: string, fromAccount: Account): Promise<void> {
     this.log(`Executing contract ${blueBright(contractName)}`);
     this.log(`  Chain: ${blueBright(config.chainId)}`);
     this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
-  }
-
-  protected async successMessage(result: ExecuteResult, contractLabel: string, configInstance: Config): Promise<void> {
-    if (this.jsonEnabled()) {
-      this.logJson(result);
-    } else {
-      this.success(`${greenBright('Executed contract ')} ${blueBright(contractLabel)}`);
-      this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
-    }
   }
 }

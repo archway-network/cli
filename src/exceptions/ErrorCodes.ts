@@ -16,4 +16,5 @@ export enum ErrorCodes {
   INSTANTIATE_FAILED = 14,
   EXECUTE_FAILED = 15,
   QUERY_FAILED = 16,
+  MIGRATE_FAILED = 17,
 }

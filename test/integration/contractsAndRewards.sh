@@ -91,7 +91,7 @@ cp -r "$(scriptRelativePath files/migrate/artifacts)" "$PROJECT_DIR"
 output="$(archway contracts store $CONTRACT_FOO --from $ALICE --keyring-backend test --json)"
 CODE_ID_MIGRATE=$(jq -r ".codeId" <<<"${output}")
 echo "Stored new version of contract with codeId ${CODE_ID_MIGRATE}"
-output="$(archway contracts migrate $CONTRACT_FOO --code $CODE_ID_MIGRATE --from $ALICE --keyring-backend test --json)"
+output="$(archway contracts migrate $CONTRACT_FOO --code $CODE_ID_MIGRATE --from $ALICE --keyring-backend test --no-validation --json)"
 validate "$output" "has(\"transactionHash\")"
 
 printf "\n***** contracts metadata ***** \n"

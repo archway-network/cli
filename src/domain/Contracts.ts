@@ -6,7 +6,7 @@ import toml from 'toml';
 
 import { StargateClient } from '@cosmjs/stargate';
 
-import { ConsoleError, ErrorCodes, ExecuteError, InstantiateError, QueryError } from '@/exceptions';
+import { ConsoleError, ErrorCodes, ExecuteError, InstantiateError, MigrateError, QueryError } from '@/exceptions';
 import { AccountBalancesJSON, Contract, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
 import { bold, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright, sanitizeDirName } from '@/utils';
 
@@ -26,6 +26,7 @@ export const DEFAULT_WORKSPACE_TEMPLATE = 'base-workspace';
 export const INSTANTIATE_SCHEMA_RELATIVE_PATH = './schema/raw/instantiate.json';
 export const EXECUTE_SCHEMA_RELATIVE_PATH = './schema/raw/execute.json';
 export const QUERY_SCHEMA_RELATIVE_PATH = './schema/raw/query.json';
+export const MIGRATE_SCHEMA_RELATIVE_PATH = './schema/raw/migrate.json';
 
 /**
  * Manages the contracts' data in the project
@@ -246,7 +247,7 @@ export class Contracts {
     try {
       await this.schemaValidator.assertValidJSONSchema(schemaPath, instArgs);
     } catch (error: Error | any) {
-      throw new InstantiateError(`the instantiate arguments does not match the schema: ${error.message}`);
+      throw new InstantiateError(`the instantiate arguments do not match the schema: ${error.message}`);
     }
   }
 
@@ -265,7 +266,7 @@ export class Contracts {
     try {
       await this.schemaValidator.assertValidJSONSchema(schemaPath, executeArgs);
     } catch (error: Error | any) {
-      throw new ExecuteError(`the message arguments does not match the schema: ${error.message}`);
+      throw new ExecuteError(`the message arguments do not match the schema: ${error.message}`);
     }
   }
 
@@ -284,7 +285,26 @@ export class Contracts {
     try {
       await this.schemaValidator.assertValidJSONSchema(schemaPath, queryArgs);
     } catch (error: Error | any) {
-      throw new QueryError(`the query arguments does not match the schema: ${error.message}`);
+      throw new QueryError(`the query arguments do not match the schema: ${error.message}`);
+    }
+  }
+
+  /**
+   * Verifies that a migrate argument is valid for a specific contract, throws an error if not
+   *
+   * @param contractName - Contract name
+   * @param migrateArgs - Migrate arguments to be validated
+   * @returns Empty promise
+   */
+  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+  async assertValidMigrateArgs(contractName: string, migrateArgs: any): Promise<void> {
+    const contract = this.getContractByName(contractName);
+    const schemaPath = path.join(contract.root, MIGRATE_SCHEMA_RELATIVE_PATH);
+
+    try {
+      await this.schemaValidator.assertValidJSONSchema(schemaPath, migrateArgs);
+    } catch (error: Error | any) {
+      throw new MigrateError(`the migrate arguments do not match the schema: ${error.message}`);
     }
   }
 

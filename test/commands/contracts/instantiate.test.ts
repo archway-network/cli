@@ -46,7 +46,7 @@ describe('contracts instantiate', () => {
   test
     .stdout()
     .command(['contracts instantiate', contractName, `--args=${contractArgument}`, `--from=${aliceAccountName}`, '--json'])
-    .it('Prints json outputt', ctx => {
+    .it('Prints json output', ctx => {
       expect(ctx.stdout).to.not.contain('uploaded');
       expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
       expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
@@ -64,11 +64,12 @@ describe('contracts instantiate', () => {
     .stdout()
     .stderr()
     .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`])
-    .catch(/(Failed to instantiate).*(does not match the schema)/)
+    .catch(/(Failed to instantiate).*(do not match the schema)/)
     .it('fails on invalid arguments');
+
   test
     .stdout()
-    .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`, '--skip-validation'])
+    .command(['contracts instantiate', contractName, '--args={}', `--from=${aliceAccountName}`, '--no-validation'])
     .it("Skips validation of args and doesn't fail", ctx => {
       expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
     });

@@ -7,7 +7,7 @@ import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/argum
 import { Accounts, Config } from '@/domain';
 import { buildStdFee, blueBright, greenBright, isValidAddress, dim } from '@/utils';
 import { showDisappearingSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
+import { KeyringFlags, NoValidationFlag, TransactionFlags } from '@/parameters/flags';
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 
 import { Account, Contract, DeploymentAction, InstantiateDeployment, MigrateDeployment } from '@/types';
@@ -31,6 +31,7 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
       description: 'JSON string with a message to be passed to the contract on migration',
     }),
     'args-file': Flags.string({ description: 'Path to a JSON file with a message to be passed to the contract on migration' }),
+    'no-validation': NoValidationFlag,
   };
 
   static examples = [
@@ -59,9 +60,9 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise containing the result of the Contract Migrate transaction
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<MigrateResult> {
     // Validate that we only get migration message args from one source of all 3 possible inputs
     if (
       (this.flags['args-file'] && this.args.stdinInput) ||
@@ -99,6 +100,10 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
       if (!instantiateDeployment) throw new NotFoundError('Instantiated deployment with a contract address');
 
       contractAddress = instantiateDeployment.contract.address;
+
+      if (!this.flags['no-validation']) {
+        await config.contractsInstance.assertValidMigrateArgs(contractInstance.name, migrationMessage);
+      }
     }
 
     this.logTransactionDetails(config, contractInstance?.name || contractAddress, contractAddress, from.account);
@@ -135,7 +140,10 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
       );
     }
 
-    await this.successMessage(result!, contractInstance?.label || contractAddress, config);
+    this.success(`${greenBright('Contract')} ${blueBright(contractInstance?.label)} ${greenBright('migrated')}`);
+    this.log(`  Transaction: ${await config.prettyPrintTxHash(result.transactionHash)}`);
+
+    return result;
   }
 
   protected async logTransactionDetails(
@@ -149,14 +157,5 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
     this.log(`  Contract: ${blueBright(contractAddress)}`);
     this.log(`  Code: ${blueBright(this.flags.code)}`);
     this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
-  }
-
-  protected async successMessage(result: MigrateResult, label: string, configInstance: Config): Promise<void> {
-    if (this.jsonEnabled()) {
-      this.logJson(result);
-    } else {
-      this.success(`${greenBright('Contract')} ${blueBright(label)} ${greenBright('migrated')}`);
-      this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
-    }
   }
 }
