@@ -5,12 +5,11 @@ import { BaseCommand } from '@/lib/base';
 import { AmountRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { Prompts } from '@/services';
+import { AccountBase } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { buildStdFee, green, greenBright, prettyPrintCoin, white } from '@/utils';
 
-import { Account, AccountBase } from '@/types';
-
-interface SendResultJSON {
+export interface SendResult {
   amount: string;
   from: {
     name: string;
@@ -44,8 +43,8 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
       command: '<%= config.bin %> <%= command.id %> 1aconst --to "archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz"',
     },
     {
-      description: 'Send tokens to an address from a specific account',
-      command: '<%= config.bin %> <%= command.id %> 1aconst --to "archway1dstndnaelj95ksruudc2ww4s9epn8m59xft7jz" --from "alice"',
+      description: 'Transfger tokens between accounts in the keyring',
+      command: '<%= config.bin %> <%= command.id %> 1aconst --from alice --to bob',
     },
   ];
 
@@ -54,23 +53,27 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
    *
    * @returns Promise containing the completed transaction details
    */
-  public async run(): Promise<SendResultJSON> {
+  public async run(): Promise<SendResult> {
     const config = await Config.init();
     const accountsDomain = await Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
+    const fromAccount = from.account;
     const toAccount: AccountBase = await accountsDomain.accountBaseFromAddress(this.flags.to);
 
-    await this.logTransactionDetails(from.account, toAccount);
+    this.log(`Sending ${prettyPrintCoin(this.args.amount!.coin)}`);
+    this.log(`From ${greenBright(fromAccount.name)} (${green(fromAccount.address)})`);
+    this.log(`To ${toAccount.name ? `${greenBright(toAccount.name)} (${green(toAccount.address)})` : greenBright(toAccount.address)}\n`);
 
     await Prompts.askForConfirmation(this.flags['no-confirm']);
+
     this.log();
 
     try {
       await showDisappearingSpinner(async () => {
         const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
         await signingClient.sendTokens(
-          from.account.address,
+          fromAccount.address,
           toAccount.address,
           [this.args.amount!.coin],
           buildStdFee(this.flags.fee?.coin)
@@ -78,13 +81,13 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
       }, 'Sending tokens');
     } catch (error: Error | any) {
       throw error?.message?.toString?.()?.includes('insufficient funds') ?
-        new Error(`Insufficient funds to send ${white.reset(prettyPrintCoin(this.args.amount!.coin))} from ${greenBright(from.account.name)}`) :
+        new Error(`Insufficient funds to send ${white.reset(prettyPrintCoin(this.args.amount!.coin))} from ${greenBright(fromAccount.name)}`) :
         error;
     }
 
     this.success(
       green(
-        `Sent ${white.reset(prettyPrintCoin(this.args.amount!.coin))} from ${greenBright(from.account.name)} to ${greenBright(
+        `Sent ${white.reset(prettyPrintCoin(this.args.amount!.coin))} from ${greenBright(fromAccount.name)} to ${greenBright(
           toAccount.name || toAccount.address
         )}`
       )
@@ -93,19 +96,13 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
     return {
       amount: this.args.amount!.plainText,
       from: {
-        name: from.account.name,
-        address: from.account.address,
+        name: fromAccount.name,
+        address: fromAccount.address,
       },
       to: {
         name: toAccount.name,
         address: toAccount.address,
       },
     };
-  }
-
-  protected async logTransactionDetails(fromAccount: Account, toAccount: AccountBase): Promise<void> {
-    this.log(`Sending ${prettyPrintCoin(this.args.amount!.coin)}`);
-    this.log(`From ${greenBright(fromAccount.name)} (${green(fromAccount.address)})`);
-    this.log(`To ${toAccount.name ? `${greenBright(toAccount.name)} (${green(toAccount.address)})` : greenBright(toAccount.address)}\n`);
   }
 }

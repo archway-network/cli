@@ -10,10 +10,9 @@ import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { Prompts } from '@/services';
+import { DeploymentAction, InstantiatePermission, StoreDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { assertIsValidAddress, blueBright, buildStdFee, greenBright, white, yellow } from '@/utils';
-
-import { Account, Contract, DeploymentAction, InstantiatePermission, StoreDeployment } from '@/types';
 
 /**
  * Command 'contracts store'
@@ -96,7 +95,9 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       assertIsValidAddress(auxAddress, DEFAULT_ADDRESS_BECH_32_PREFIX);
     }
 
-    await this.logTransactionDetails(config, contract, from.account);
+    this.log(`Uploading optimized wasm for contract ${blueBright(contract.name)}`);
+    this.log(`  Chain: ${blueBright(config.chainId)}`);
+    this.log(`  Signer: ${blueBright(from.account.name)}\n`);
 
     const result = await showDisappearingSpinner(async () => {
       const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
@@ -132,11 +133,5 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
     this.log(`  Transaction: ${await config.prettyPrintTxHash(result.transactionHash)}`);
 
     return result;
-  }
-
-  protected async logTransactionDetails(config: Config, contract: Contract, fromAccount: Account): Promise<void> {
-    this.log(`Uploading optimized wasm for contract ${blueBright(contract.name)}`);
-    this.log(`  Chain: ${blueBright(config.chainId)}`);
-    this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
   }
 }

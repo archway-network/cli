@@ -1,10 +1,9 @@
 import { Flags } from '@oclif/core';
 import { AlphabetLowercase } from '@oclif/core/lib/interfaces';
 
+import { Amount } from '@/types';
 import { parseAmount } from '@/utils';
 import { NoConfirmFlag } from './noConfirm';
-
-import { Amount } from '@/types';
 
 const FromDescription = 'Signer of the tx';
 const FeeDescription = 'Extra fees to pay along with the transaction';

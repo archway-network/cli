@@ -3,9 +3,8 @@ import { BaseCommand } from '@/lib/base';
 import { AccountRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags, NoConfirmFlag } from '@/parameters/flags';
 import { Prompts } from '@/services';
-import { bold, green, yellow } from '@/utils';
-
 import { AccountBase } from '@/types';
+import { bold, green, yellow } from '@/utils';
 
 /**
  * Command 'accounts remove'
