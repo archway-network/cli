@@ -1,3 +1,6 @@
+/* eslint-disable perfectionist/sort-imports */
+/* eslint-disable perfectionist/sort-classes */
+
 import * as bip39 from 'bip39';
 import _ from 'lodash';
 
@@ -14,11 +17,13 @@ import {
   AccountWithSigner,
   ExtendedHdPath,
   KeystoreBackendType,
+  LocalAccount,
   PublicKey,
   redactAccount
 } from '@/types';
 import { assertIsValidAddress, bold, convertUnarmoredHexToPrivateKey, derivePrivateKey, isHex, yellow } from '@/utils';
 
+import { InvalidAccountError } from '@/exceptions/InvalidAccountError';
 import { Keystore, KeystoreBackendParams } from './keystore';
 
 export const DEFAULT_ADDRESS_BECH_32_PREFIX = 'archway';
@@ -81,9 +86,8 @@ export class Accounts {
    * @returns Pretty formatted string
    */
   static prettyPrintNameAndAddress(account: AccountBase): string {
-    return `${bold('Name:')} ${account.name}\n${bold('Address:')} ${account.address}${
-      account.type === AccountType.LEDGER ? `\n${yellow('Ledger account')}` : ''
-    }`;
+    const ledgerWarn = account.type === AccountType.LEDGER ? `\n${yellow('Ledger account')}` : '';
+    return `${bold('Name:')} ${account.name}\n${bold('Address:')} ${account.address}${ledgerWarn}`;
   }
 
   /**
@@ -111,6 +115,24 @@ export class Accounts {
    */
   async import(name: string, hdPath: ExtendedHdPath, mnemonicOrUnarmoredHex: string): Promise<Account> {
     return this.createOrImport(name, AccountType.LOCAL, hdPath, mnemonicOrUnarmoredHex);
+  }
+
+  /**
+   * Exports an account with the unarmored hex private key
+   *
+   * @param nameOrAddress - Account name or account address to search by
+   * @returns Promise containing an {@link LocalAccount} instance with the hex encoded private key
+   */
+  async export(nameOrAddress: string): Promise<LocalAccount> {
+    const { privateKey, ...account } = await this.keystore.get(nameOrAddress);
+    if (account.type !== AccountType.LOCAL) {
+      throw new InvalidAccountError('Only local accounts can be exported', account.name);
+    }
+
+    const unarmoredHexBytes = fromBase64(privateKey!);
+    const unarmoredHex = Buffer.from(unarmoredHexBytes).toString('hex');
+
+    return { ...account, privateKey: unarmoredHex };
   }
 
   /**
@@ -158,14 +180,14 @@ export class Accounts {
     const { address, algo, pubkey } = (await wallet.getAccounts())[0];
 
     const account = {
-      type: AccountType.LOCAL,
-      name,
       address,
+      name,
+      privateKey: toBase64(privKey),
       publicKey: {
         algo,
         key: toBase64(pubkey),
       },
-      privateKey: toBase64(privKey),
+      type: AccountType.LOCAL,
     };
 
     return account;
@@ -271,6 +293,6 @@ export class Accounts {
       assertIsValidAddress(address, prefix);
     }
 
-    return _.merge({ type: AccountType.LOCAL, name: address, address }, account);
+    return _.merge({ address, name: address, type: AccountType.LOCAL }, account);
   }
 }
