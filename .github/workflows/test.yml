@@ -31,16 +31,32 @@ jobs:
     name: Integration Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
         with:
           node-version: 16
           cache: yarn
-      - run: sudo apt update && sudo apt install -y jq
-      - run: cargo install cargo-generate
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo
+          restore-keys: ${{ runner.os }}-cargo
+      - name: Install jq
+        run: sudo apt update && sudo apt install -y jq
+      - name: Install cargo-generate
+        run: which cargo-generate || cargo install cargo-generate
       - run: yarn install --immutable
       - run: yarn build
-      - run: scripts/start-local-node.sh
+      - name: Bootstrap local node
+        run: scripts/start-local-node.sh
       - run: yarn test:integration
         env:
           ARCHWAY_SKIP_VERSION_CHECK: 1
