@@ -297,13 +297,13 @@ function configureStreamAndInput(
 
 async function resizeTty(container: Docker.Container): Promise<void> {
   var dimensions = {
-    h: process.stdout.rows,
-    w: process.stderr.columns
+    h: process.stdout.rows || 0,
+    w: process.stdout.columns || 0
   };
 
   debug('resizing container tty', { id: container.id, dimensions });
 
-  if (dimensions.h != 0 && dimensions.w != 0) {
+  if (dimensions.h > 0 && dimensions.w > 0) {
     await container.resize(dimensions);
   }
 }
