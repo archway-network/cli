@@ -24,6 +24,8 @@ jobs:
       - run: yarn install --immutable
       - run: yarn build
       - run: yarn test
+        env:
+          ARCHWAY_SKIP_VERSION_CHECK: 1
 
   integration-test:
     name: Integration Test
@@ -40,3 +42,5 @@ jobs:
       - run: yarn build
       - run: scripts/start-local-node.sh
       - run: yarn test:integration
+        env:
+          ARCHWAY_SKIP_VERSION_CHECK: 1

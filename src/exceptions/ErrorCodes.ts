@@ -1,3 +1,4 @@
+/* eslint-disable perfectionist/sort-enums */
 export enum ErrorCodes {
   BASE = 0,
   ALREADY_EXISTS = 1,
@@ -17,4 +18,5 @@ export enum ErrorCodes {
   EXECUTE_FAILED = 15,
   QUERY_FAILED = 16,
   MIGRATE_FAILED = 17,
+  INVALID_ACCOUNT = 18,
 }
