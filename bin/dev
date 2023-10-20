@@ -21,5 +21,9 @@ require('ts-node').register({ project });
 // In dev mode, always show stack traces
 oclif.settings.debug = true;
 
+process.on('SIGINT', () => {
+  process.exit(1);
+});
+
 // Start the CLI
 oclif.run().then(oclif.flush).catch(oclif.Errors.handle);
