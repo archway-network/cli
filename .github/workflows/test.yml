@@ -52,7 +52,7 @@ jobs:
       - name: Install jq
         run: sudo apt update && sudo apt install -y jq
       - name: Install cargo-generate
-        run: cargo install cargo-generate
+        run: which cargo-generate || cargo install cargo-generate
       - run: yarn install --immutable
       - run: yarn build
       - name: Bootstrap local node
