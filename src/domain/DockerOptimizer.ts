@@ -8,7 +8,7 @@ import { cyan, dim } from '@/utils';
 
 const debug = debugInstance('docker-optimizer');
 
-const CtrlC = '\u0003';
+type StreamResult = { closeStream: () => void };
 
 export class OptimizerError extends Error {
   constructor(message: string, public readonly statusCode?: number) {
@@ -27,8 +27,12 @@ export class OptimizerError extends Error {
 
   private static statusCodeToMessage(statusCode: number): string {
     switch (statusCode) {
+      case 130:
+        return 'Container terminated by Control-C';
       case 137:
-        return 'Process killed by the user';
+        return 'Container killed by the user';
+      case 143:
+        return 'Container terminated by the user';
       default:
         return `Process exited with status code ${statusCode}`;
     }
@@ -72,21 +76,23 @@ export class DockerOptimizer {
     const { containerName, container } = await this.createContainer(workspaceRoot, contractRoot, quiet);
     debug('run', 'container created', { name: containerName, id: container.id });
 
-    const resetStream = await this.attachToStream(container, quiet);
+    const { closeStream } = await this.attachToStream(container, quiet);
 
     try {
-      const startResult = await container.start();
-      debug('run', 'container started', { name: containerName, id: container.id, startResult });
+      await container.start();
+      debug('run', 'container started', { name: containerName, id: container.id });
 
-      resizeTty(container);
-      process.stdout.on('resize', () => resizeTty(container));
+      if (!quiet) {
+        resizeTty(container);
+        process.stdout.on('resize', () => resizeTty(container));
+      }
 
       const { Error: error, StatusCode: statusCode } = await container.wait();
       if (statusCode !== 0) {
         throw error instanceof Error ? OptimizerError.fromError(error) : OptimizerError.fromStatusCode(statusCode);
       }
     } finally {
-      resetStream();
+      closeStream();
     }
   }
 
@@ -112,15 +118,18 @@ export class DockerOptimizer {
     await this.killIfRunning(containerName, quiet);
 
     const cmd = contractRoot ? [path.relative(workspaceRoot, contractRoot)] : [];
+
+    // Check the Docker API docs for details and more options:
+    // https://docs.docker.com/engine/api/v1.43/#tag/Container/operation/ContainerCreate
     const createOptions = {
       name: containerName,
       Image: image,
       Cmd: cmd,
-      Tty: false,
-      OpenStdin: true,
+      Tty: true,
       AttachStdin: true,
       AttachStdout: true,
       AttachStderr: true,
+      OpenStdin: true,
       StdinOnce: false,
       Env: [
         'CARGO_TERM_COLOR=always',
@@ -246,9 +255,9 @@ export class DockerOptimizer {
    *
    * @param container - The container to attach to the input/output stream.
    * @param quiet - If true, it will not print any output.
-   * @returns A promise containing a function to reset the stream.
+   * @returns A promise containing a function to close the stream.
    */
-  private async attachToStream(container: Docker.Container, quiet: boolean) {
+  private async attachToStream(container: Docker.Container, quiet: boolean): Promise<StreamResult> {
     var attachOptions = {
       stream: true,
       stdin: true,
@@ -257,43 +266,30 @@ export class DockerOptimizer {
     };
     const stream = await container.attach(attachOptions);
 
-    return configureStreamAndInput(container, stream, quiet);
+    return configureStreamAndInput(stream, quiet);
   }
 }
 
-function configureStreamAndInput(
-  container: Docker.Container,
-  stream: NodeJS.ReadWriteStream,
-  quiet: boolean,
-): () => void {
+function configureStreamAndInput(stream: NodeJS.ReadWriteStream, quiet: boolean): StreamResult {
   if (!quiet) {
-    container.modem.demuxStream(stream, process.stdout, process.stderr);
+    stream.pipe(process.stdout);
   }
 
   const isRaw = process.stdin.isRaw;
 
-  process.stdin.resume();
   process.stdin.setEncoding('utf8');
-  process.stdin.setRawMode(true);
+  process.stdin.setRawMode && process.stdin.setRawMode(true);
   process.stdin.pipe(stream);
 
-  process.stdin.on('data', async (key: string) => {
-    // Kill container
-    if (key == CtrlC) {
-      debug('killing container', { id: container.id });
-      await container.kill();
-    }
-  });
-
-  const resetStream = () => {
-    process.stdout.removeListener('resize', resizeTty);
+  const closeStream = () => {
+    process.stdin.unpipe(stream);
     process.stdin.removeAllListeners();
-    process.stdin.setRawMode(isRaw);
-    process.stdin.resume();
+    process.stdin.setRawMode && process.stdin.setRawMode(isRaw);
+    process.stdout.removeListener('resize', resizeTty);
     stream.end();
   }
 
-  return resetStream;
+  return { closeStream };
 }
 
 async function resizeTty(container: Docker.Container): Promise<void> {
