@@ -49,11 +49,14 @@ jobs:
             ~/.cargo/git/db/
           key: ${{ runner.os }}-cargo
           restore-keys: ${{ runner.os }}-cargo
-      - run: sudo apt update && sudo apt install -y jq
-      - run: cargo install cargo-generate
+      - name: Install jq
+        run: sudo apt update && sudo apt install -y jq
+      - name: Install cargo-generate
+        run: cargo install cargo-generate
       - run: yarn install --immutable
       - run: yarn build
-      - run: scripts/start-local-node.sh
+      - name: Bootstrap local node
+        run: scripts/start-local-node.sh
       - run: yarn test:integration
         env:
           ARCHWAY_SKIP_VERSION_CHECK: 1
