@@ -104,7 +104,8 @@ export class DockerOptimizer {
     contractRoot?: string,
     quiet = false,
   ): Promise<{ containerName: string, container: Docker.Container }> {
-    const image = await this.fetchImage(!contractRoot, quiet);
+    const useWorkspace = !contractRoot;
+    const image = await this.fetchImage(useWorkspace, quiet);
     const projectName = path.basename(workspaceRoot);
     const containerName = `${projectName}-optimizer`;
 
@@ -135,7 +136,7 @@ export class DockerOptimizer {
         AutoRemove: true,
         Binds: [
           `${workspaceRoot}:/code`,
-          `${projectName}_cache:/code/target`,
+          `${projectName}_cache:/target`,
           'cosmwasm_sccache:/root/.cache/sccache',
           'cosmwasm_registry_cache:/usr/local/cargo/registry',
         ],
