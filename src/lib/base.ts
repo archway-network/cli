@@ -74,7 +74,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
       return;
     }
 
-    this.logToStderr(`${yellow(WARNING_PREFIX)} ${message}`);
+    this.logToStderr(yellow(`${WARNING_PREFIX} ${message}`));
   }
 
   /**
