@@ -1,16 +1,16 @@
-import fs from 'node:fs/promises';
 
 import { ExecuteResult } from '@cosmjs/cosmwasm-stargate';
 import { Args, Flags } from '@oclif/core';
 
 import { Accounts, Config } from '@/domain';
-import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
+import { ExecuteError, NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
-import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
-import { KeyringFlags, NoValidationFlag, ParamsAmountOptionalFlag, TransactionFlags } from '@/parameters/flags';
-import { Account, Amount, Contract } from '@/types';
+import { ParamsContractNameRequiredArg } from '@/parameters/arguments';
+import { ContractMsgArg, ContractMsgFlags, KeyringFlags, NoValidationFlag, ParamsAmountOptionalFlag, TransactionFlags, parseContractMsgArgs } from '@/parameters/flags';
+import { ArchwayClientBuilder } from '@/services';
+import { AccountWithSigner, Amount, Contract, JsonObject } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
-import { blueBright, buildStdFee, dim, greenBright, isValidAddress } from '@/utils';
+import { blueBright, buildStdFee, dim, getErrorMessage, greenBright, isValidAddress } from '@/utils';
 
 /**
  * Command 'contracts execute'
@@ -20,7 +20,7 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
   static summary = 'Executes a transaction in a smart contract';
   static args = {
     contract: Args.string({ ...ParamsContractNameRequiredArg, ignoreStdin: true }),
-    stdinInput: StdinInputArg,
+    ...ContractMsgArg,
   };
 
   static flags = {
@@ -28,11 +28,8 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       ...ParamsAmountOptionalFlag,
       description: 'Funds to send to the contract on the transaction',
     })(),
-    args: Flags.string({
-      description: 'JSON string with a valid execute schema for the contract',
-    }),
-    'args-file': Flags.string({ description: 'Path to a JSON file with a valid execute schema for the contract' }),
     'no-validation': NoValidationFlag,
+    ...ContractMsgFlags,
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -67,78 +64,79 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
   /**
    * Runs the command.
    *
-   * @returns Promise containing the result of the Contract Execute transaction
+   * @returns Promise containing an {@link ExecuteResult}
    */
   public async run(): Promise<ExecuteResult> {
-    // Validate that we only get init args from one source of all 3 possible inputs
-    if (
-      (this.flags['args-file'] && this.args.stdinInput)
-      || (this.flags['args-file'] && this.flags.args)
-      || (this.flags.args && this.args.stdinInput)
-    ) {
-      throw new OnlyOneArgSourceError('Execute');
-    } else if (!this.flags['args-file'] && !this.args.stdinInput && !this.flags.args) {
-      throw new NotFoundError('Args to execute in the contract');
-    }
-
     const config = await Config.init();
     const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    const executeArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf8')));
+    const { contractAddress, contractInstance } = await this.getContractInfo(config);
+    const executeMsg = await parseContractMsgArgs(this.args, this.flags);
 
-    // Load contract info
-    let contractAddress: string;
-    let contractInstance: Contract | undefined;
-
-    if (isValidAddress(this.args.contract!)) {
-      contractAddress = this.args.contract!;
-    } else {
-      await config.assertIsValidWorkspace();
-
-      contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
-      const instantiated = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
-
-      if (!instantiated) {
-        throw new NotFoundError('Instantiated deployment with a contract address');
-      }
-
-      contractAddress = instantiated.contract.address;
-
-      if (!this.flags['no-validation']) {
-        await config.contractsInstance.assertValidExecuteArgs(contractInstance.name, executeArgs);
-      }
+    if (!this.flags['no-validation'] && executeMsg && contractInstance) {
+      await config.contractsInstance.assertValidExecuteArgs(contractInstance.name, executeMsg);
     }
 
-    await this.logTransactionDetails(config, contractInstance?.name || contractAddress, from.account);
+    const contractName = contractInstance?.name || contractAddress;
+    this.log(`Executing contract ${blueBright(contractName)}`);
+    this.log(`  Chain: ${blueBright(config.chainId)}`);
+    this.log(`  Signer: ${blueBright(from.account.name)}\n`);
 
-    const result = await showDisappearingSpinner(async () => {
-      try {
-        const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
-
-        return signingClient.execute(
-          from.account.address,
-          contractAddress,
-          executeArgs,
-          buildStdFee(this.flags.fee?.coin),
-          undefined,
-          this.flags.amount?.coin ? [this.flags.amount.coin] : undefined
-        );
-      } catch (error: Error | any) {
-        throw new ExecuteError(error?.message);
-      }
-    }, 'Waiting for tx to confirm...');
+    const result = await showDisappearingSpinner(
+      async () => this.execute(config, from, contractAddress, executeMsg)
+      , 'Waiting for tx to confirm...'
+    );
 
     this.success(`${greenBright('Executed contract ')} ${blueBright(contractInstance?.label || contractAddress)}`);
-    this.log(`  Transaction: ${await config.prettyPrintTxHash(result.transactionHash)}`);
+    this.log(`  Transaction: ${config.prettyPrintTxHash(result.transactionHash)}`);
 
     return result;
   }
 
-  protected async logTransactionDetails(config: Config, contractName: string, fromAccount: Account): Promise<void> {
-    this.log(`Executing contract ${blueBright(contractName)}`);
-    this.log(`  Chain: ${blueBright(config.chainId)}`);
-    this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
+  private async getContractInfo(config: Config): Promise<{
+    contractAddress: string;
+    contractInstance?: Contract;
+  }> {
+    if (isValidAddress(this.args.contract!)) {
+      const contractAddress = this.args.contract!;
+      return { contractAddress };
+    }
+
+    await config.assertIsValidWorkspace();
+
+    const contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
+    const instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
+
+    if (!instantiateDeployment) {
+      throw new NotFoundError('Instantiated deployment with a contract address');
+    }
+
+    const contractAddress = instantiateDeployment.contract.address;
+
+    return { contractAddress, contractInstance };
+  }
+
+  private async execute(
+    config: Config,
+    from: AccountWithSigner,
+    contractAddress: string,
+    executeMsg: JsonObject
+  ): Promise<ExecuteResult> {
+    try {
+      const signingClient = await ArchwayClientBuilder.getSigningArchwayClient(config, from, this.flags['gas-adjustment']);
+
+      return signingClient.execute(
+        from.account.address,
+        contractAddress,
+        executeMsg,
+        buildStdFee(this.flags.fee?.coin),
+        undefined,
+        this.flags.amount?.coin ? [this.flags.amount.coin] : undefined
+      );
+    } catch (error) {
+      throw new ExecuteError(getErrorMessage(error));
+    }
   }
 }

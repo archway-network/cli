@@ -1,16 +1,16 @@
-import fs from 'node:fs/promises';
 
 import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 import { Args, Flags } from '@oclif/core';
 
 import { Accounts, Config } from '@/domain';
-import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
+import { InstantiateError, NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
-import { ParamsContractNameOptionalArg, StdinInputArg } from '@/parameters/arguments';
-import { KeyringFlags, NoValidationFlag, ParamsAmountOptionalFlag, TransactionFlags } from '@/parameters/flags';
-import { Account, Amount, Contract, DeploymentAction, InstantiateDeployment } from '@/types';
+import { ParamsContractNameOptionalArg } from '@/parameters/arguments';
+import { ContractMsgArg, ContractMsgFlags, KeyringFlags, NoValidationFlag, ParamsAmountOptionalFlag, TransactionFlags, parseContractMsgArgs } from '@/parameters/flags';
+import { ArchwayClientBuilder } from '@/services';
+import { AccountWithSigner, Amount, Contract, DeploymentAction, InstantiateDeployment, JsonObject } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
-import { blueBright, buildStdFee, dim, greenBright } from '@/utils';
+import { blueBright, buildStdFee, dim, getErrorMessage, greenBright } from '@/utils';
 
 /**
  * Command 'contracts instantiate'
@@ -20,7 +20,7 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
   static summary = 'Instantiates code stored on-chain with the given arguments';
   static args = {
     contract: Args.string({ ...ParamsContractNameOptionalArg, ignoreStdin: true }),
-    stdinInput: StdinInputArg,
+    ...ContractMsgArg,
   };
 
   static flags = {
@@ -32,11 +32,8 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       ...ParamsAmountOptionalFlag,
       description: 'Funds to send to the contract during instantiation',
     })(),
-    args: Flags.string({
-      description: 'JSON string with a valid instantiate schema for the contract',
-    }),
-    'args-file': Flags.string({ description: 'Path to a JSON file with a valid instantiate schema for the contract' }),
     'no-validation': NoValidationFlag,
+    ...ContractMsgFlags,
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -83,120 +80,142 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
   /**
    * Runs the command.
    *
-   * @returns Promise containing the result of the Contract Instantiate transaction
+   * @returns Promise containing an {@link InstantiateResult}
    */
   public async run(): Promise<InstantiateResult> {
-    // Validate that we only get init args from one source of all 3 possible inputs
-    if (
-      (this.flags['args-file'] && this.args.stdinInput)
-      || (this.flags['args-file'] && this.flags.args)
-      || (this.flags.args && this.args.stdinInput)
-    ) {
-      throw new OnlyOneArgSourceError('Init');
-    } else if (!this.flags['args-file'] && !this.args.stdinInput && !this.flags.args) {
-      throw new NotFoundError('Init args to instantiate the contract');
-    }
-
     const config = await Config.init();
     const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    const getAdmin = async (): Promise<string> => this.flags.admin ? (await accountsDomain.accountBaseFromAddress(this.flags.admin)).address : from.account.address;
-    const admin = this.flags['no-admin'] ? undefined : await getAdmin();
+    const { contractInstance, codeId, label } = await this.getContractInfo(config);
+    const instantiateMsg = await parseContractMsgArgs(this.args, this.flags);
 
-    const instArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf8')));
-
-    let { label } = this.flags;
-
-    let contractInstance: Contract | undefined;
-
-    // If code id is not set as flag, try to get it from deployments history
-    let codeId = this.flags.code;
-    if (!codeId) {
-      if (!this.args.contract) {
-        throw new NotFoundError("Please pass either the Contract name in the arguments, or the '--code' flag.");
-      }
-
-      await config.assertIsValidWorkspace();
-
-      contractInstance = config.contractsInstance.getContractByName(this.args.contract);
-
-      codeId = config.contractsInstance.findStoreDeployment(this.args.contract, config.chainId)?.wasm.codeId;
-
-      if (!codeId) {
-        throw new NotFoundError("Code id of contract's store deployment");
-      }
-
-      if (!label) {
-        label = contractInstance.label;
-      }
-
-      if (!this.flags['no-validation']) {
-        await config.contractsInstance.assertValidInstantiateArgs(contractInstance.name, instArgs);
-      }
+    if (!this.flags['no-validation'] && instantiateMsg && contractInstance) {
+      await config.contractsInstance.assertValidInstantiateArgs(contractInstance.name, instantiateMsg);
     }
 
-    if (!label) {
-      throw new NotFoundError("Please pass the label of the contract in the '--label' flag.");
-    }
+    const admin = this.flags['no-admin'] ? undefined : this.getAdmin(accountsDomain, from);
 
-    await this.logTransactionDetails(config, codeId, admin!, from.account, label, contractInstance?.name);
+    this.log(`Instantiating contract ${blueBright(contractInstance?.name)}`);
+    this.log(`  Chain: ${blueBright(config.chainId)}`);
+    this.log(`  Code: ${blueBright(codeId)}`);
+    this.log(`  Label: ${blueBright(label)}`);
+    this.log(`  Admin: ${blueBright(admin)}`);
+    this.log(`  Signer: ${blueBright(from.account.name)}\n`);
 
-    const result = await showDisappearingSpinner(async () => {
-      try {
-        const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
+    const result = await showDisappearingSpinner(
+      async () => this.instantiate(config, from, codeId, instantiateMsg, label, admin),
+      'Waiting for tx to confirm...'
+    );
 
-        return signingClient.instantiate(from.account.address, codeId!, instArgs, label!, buildStdFee(this.flags.fee?.coin), {
-          funds: this.flags.amount?.coin ? [this.flags.amount.coin] : undefined,
-          admin,
-        });
-      } catch (error: Error | any) {
-        throw new InstantiateError(error?.message);
-      }
-    }, 'Waiting for tx to confirm...');
-
-    if (contractInstance) {
-      await config.deploymentsInstance.addDeployment(
-        {
-          action: DeploymentAction.INSTANTIATE,
-          txhash: result.transactionHash,
-          wasm: {
-            codeId,
-          },
-          contract: {
-            name: contractInstance.name,
-            version: contractInstance.version,
-            address: result.contractAddress,
-            admin,
-          },
-          msg: instArgs,
-        } as InstantiateDeployment,
-        config.chainId
-      );
-    }
+    await this.addDeployment(config, result, codeId, instantiateMsg, contractInstance, admin);
 
     this.success(`${greenBright('Contract')} ${blueBright(label)} ${greenBright('instantiated')}`);
     this.log(`  Address: ${blueBright(result.contractAddress)}`);
-    this.log(`  Transaction: ${await config.prettyPrintTxHash(result.transactionHash)}`);
+    this.log(`  Transaction: ${config.prettyPrintTxHash(result.transactionHash)}`);
 
     return result;
   }
 
   // eslint-disable-next-line max-params
-  protected async logTransactionDetails(
+  private async addDeployment(
     config: Config,
+    result: InstantiateResult,
     codeId: number,
-    admin: string,
-    fromAccount: Account,
-    label?: string,
-    contractName?: string
+    instantiateMsg: JsonObject,
+    contractInstance?: Contract,
+    admin?: string
   ): Promise<void> {
-    this.log(`Instantiating contract ${blueBright(contractName)}`);
-    this.log(`  Chain: ${blueBright(config.chainId)}`);
-    this.log(`  Code: ${blueBright(codeId)}`);
-    this.log(`  Label: ${blueBright(label)}`);
-    this.log(`  Admin: ${blueBright(admin)}`);
-    this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
+    if (!contractInstance) {
+      return;
+    }
+
+    await config.deploymentsInstance.addDeployment(
+      {
+        action: DeploymentAction.INSTANTIATE,
+        txhash: result.transactionHash,
+        wasm: {
+          codeId,
+        },
+        contract: {
+          name: contractInstance.name,
+          version: contractInstance.version,
+          address: result.contractAddress,
+          admin,
+        },
+
+        msg: instantiateMsg,
+      } as InstantiateDeployment,
+      config.chainId
+    );
+  }
+
+  // eslint-disable-next-line max-params
+  private async instantiate(
+    config: Config,
+    from: AccountWithSigner,
+    codeId: number,
+    msg: JsonObject,
+    label: string,
+    admin?: string
+  ): Promise<InstantiateResult> {
+    try {
+      const signingClient = await ArchwayClientBuilder.getSigningArchwayClient(config, from, this.flags['gas-adjustment']);
+
+      const funds = this.flags.amount?.coin ? [this.flags.amount.coin] : undefined;
+
+      return signingClient.instantiate(
+        from.account.address,
+        codeId,
+        msg,
+        label,
+        buildStdFee(this.flags.fee?.coin),
+        {
+          funds,
+          admin,
+        }
+      );
+    } catch (error) {
+      throw new InstantiateError(getErrorMessage(error));
+    }
+  }
+
+  private async getContractInfo(config: Config): Promise<{
+    codeId: number;
+    contractInstance?: Contract;
+    label: string;
+  }> {
+    if (!this.flags.code && !this.args.contract) {
+      throw new NotFoundError("Pass either the Contract name in the arguments, or the '--code' flag.");
+    }
+
+    await config.assertIsValidWorkspace();
+
+    const codeId = this.getCodeId(config);
+    const contractInstance = this.args.contract ? config.contractsInstance.getContractByName(this.args.contract) : undefined;
+
+    const label = this.flags.label || contractInstance?.label as string;
+    if (!label) {
+      throw new NotFoundError("Pass the label of the contract in the '--label' flag.");
+    }
+
+    return { codeId, contractInstance, label };
+  }
+
+  private getCodeId(config: Config): number {
+    const codeId = this.flags.code || config.contractsInstance.findStoreDeployment(this.args.contract!, config.chainId)?.wasm.codeId;
+    if (!codeId) {
+      throw new NotFoundError("Code id of contract's store deployment");
+    }
+
+    return codeId;
+  }
+
+  private getAdmin(accountsDomain: Accounts, from: AccountWithSigner): string {
+    const { address } = this.flags.admin
+      ? accountsDomain.accountBaseFromAddress(this.flags.admin)
+      : from.account;
+    return address;
   }
 }

@@ -24,7 +24,7 @@ describe('rewards withdraw', () => {
     .stdout()
     .command(['rewards withdraw', `--from=${aliceAddress}`])
     .it('Query outstanding rewards balance of a contract', ctx => {
-      expect(ctx.stdout).to.contain('Successfully claimed the following rewards');
+      expect(ctx.stdout).to.contain('Rewards claimed:');
       expect(ctx.stdout).to.contain(dummyRewardsWithdrawResult.rewards[0].amount);
       expect(ctx.stdout).to.contain(dummyRewardsWithdrawResult.rewards[0].denom);
     });

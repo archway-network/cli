@@ -1,14 +1,14 @@
-import fs from 'node:fs/promises';
 
 import { MigrateResult } from '@cosmjs/cosmwasm-stargate';
 import { Args, Flags } from '@oclif/core';
 
 import { Accounts, Config } from '@/domain';
-import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
+import { NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
-import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
-import { KeyringFlags, NoValidationFlag, TransactionFlags } from '@/parameters/flags';
-import { Account, Contract, DeploymentAction, InstantiateDeployment, MigrateDeployment } from '@/types';
+import { ParamsContractNameRequiredArg } from '@/parameters/arguments';
+import { ContractMsgArg, ContractMsgFlags, KeyringFlags, NoValidationFlag, TransactionFlags, parseContractMsgArgs } from '@/parameters/flags';
+import { ArchwayClientBuilder } from '@/services';
+import { AccountWithSigner, Contract, DeploymentAction, InstantiateDeployment, JsonObject, MigrateDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { blueBright, buildStdFee, dim, greenBright, isValidAddress } from '@/utils';
 
@@ -20,18 +20,15 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
   static summary = 'Runs a smart contract migration';
   static args = {
     contract: Args.string({ ...ParamsContractNameRequiredArg, ignoreStdin: true }),
-    stdinInput: StdinInputArg,
+    ...ContractMsgArg,
   };
 
   static flags = {
+    code: Flags.integer({ description: 'Code id of the new version that will be migrated to', required: true }),
+    'no-validation': NoValidationFlag,
+    ...ContractMsgFlags,
     ...KeyringFlags,
     ...TransactionFlags,
-    code: Flags.integer({ description: 'Code id of the new version that will be migrated to', required: true }),
-    args: Flags.string({
-      description: 'JSON string with a message to be passed to the contract on migration',
-    }),
-    'args-file': Flags.string({ description: 'Path to a JSON file with a message to be passed to the contract on migration' }),
-    'no-validation': NoValidationFlag,
   };
 
   static examples = [
@@ -60,67 +57,32 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
   /**
    * Runs the command.
    *
-   * @returns Promise containing the result of the Contract Migrate transaction
+   * @returns Promise containing a {@link MigrateResult}
    */
   public async run(): Promise<MigrateResult> {
-    // Validate that we only get migration message args from one source of all 3 possible inputs
-    if (
-      (this.flags['args-file'] && this.args.stdinInput)
-      || (this.flags['args-file'] && this.flags.args)
-      || (this.flags.args && this.args.stdinInput)
-    ) {
-      throw new OnlyOneArgSourceError('Migration message');
-    }
-
     const config = await Config.init();
     const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    // Load contract info
-    let contractAddress: string;
-    let contractInstance: Contract | undefined;
-    let instantiateDeployment: InstantiateDeployment | undefined;
+    const { contractAddress, contractInstance, instantiateDeployment } = await this.getContractInfo(config);
+    const migrateMsg = await parseContractMsgArgs(this.args, this.flags, false);
 
-    // Parse migrate message (if exists)
-    const migrationMessage
-      = this.args.stdinInput || this.flags.args || this.flags['args-file']
-        ? JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf8')))
-        : {};
-
-    if (isValidAddress(this.args.contract!)) {
-      contractAddress = this.args.contract!;
-    } else {
-      await config.assertIsValidWorkspace();
-
-      contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
-
-      instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
-
-      if (!instantiateDeployment) {
-        throw new NotFoundError('Instantiated deployment with a contract address');
-      }
-
-      contractAddress = instantiateDeployment.contract.address;
-
-      if (!this.flags['no-validation']) {
-        await config.contractsInstance.assertValidMigrateArgs(contractInstance.name, migrationMessage);
-      }
+    if (!this.flags['no-validation'] && migrateMsg && contractInstance) {
+      await config.contractsInstance.assertValidMigrateArgs(contractInstance.name, migrateMsg);
     }
 
-    this.logTransactionDetails(config, contractInstance?.name || contractAddress, contractAddress, from.account);
+    const contractName = contractInstance?.name || contractAddress;
+    this.log(`Migrating contract ${blueBright(contractName)}`);
+    this.log(`  Chain: ${blueBright(config.chainId)}`);
+    this.log(`  Contract: ${blueBright(contractAddress)}`);
+    this.log(`  Code: ${blueBright(this.flags.code)}`);
+    this.log(`  Signer: ${blueBright(from.account.name)}\n`);
 
-    const result = await showDisappearingSpinner(async () => {
-      const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
-
-      return signingClient.migrate(
-        from.account.address,
-        contractAddress,
-        this.flags.code,
-        migrationMessage,
-        buildStdFee(this.flags.fee?.coin)
-      );
-    }, 'Waiting for tx to confirm...');
+    const result = await showDisappearingSpinner(
+      async () => this.migrate(config, from, contractAddress, migrateMsg),
+      'Waiting for tx to confirm...'
+    );
 
     if (contractInstance && instantiateDeployment) {
       await config.deploymentsInstance.addDeployment(
@@ -136,28 +98,51 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
             address: contractAddress,
             admin: instantiateDeployment.contract.admin,
           },
-          msg: migrationMessage,
+          msg: migrateMsg,
         } as MigrateDeployment,
         config.chainId
       );
     }
 
     this.success(`${greenBright('Contract')} ${blueBright(contractInstance?.label)} ${greenBright('migrated')}`);
-    this.log(`  Transaction: ${await config.prettyPrintTxHash(result.transactionHash)}`);
+    this.log(`  Transaction: ${config.prettyPrintTxHash(result.transactionHash)}`);
 
     return result;
   }
 
-  protected async logTransactionDetails(
-    config: Config,
-    contractName: string,
-    contractAddress: string,
-    fromAccount: Account
-  ): Promise<void> {
-    this.log(`Migrating contract ${blueBright(contractName)}`);
-    this.log(`  Chain: ${blueBright(config.chainId)}`);
-    this.log(`  Contract: ${blueBright(contractAddress)}`);
-    this.log(`  Code: ${blueBright(this.flags.code)}`);
-    this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
+  private async migrate(config: Config, from: AccountWithSigner, contractAddress: string, migrationMessage: JsonObject): Promise<MigrateResult> {
+    const signingClient = await ArchwayClientBuilder.getSigningArchwayClient(config, from, this.flags['gas-adjustment']);
+
+    return signingClient.migrate(
+      from.account.address,
+      contractAddress,
+      this.flags.code,
+      migrationMessage,
+      buildStdFee(this.flags.fee?.coin)
+    );
+  }
+
+  private async getContractInfo(config: Config): Promise<{
+    contractAddress: string;
+    contractInstance?: Contract;
+    instantiateDeployment?: InstantiateDeployment;
+  }> {
+    if (isValidAddress(this.args.contract!)) {
+      const contractAddress = this.args.contract!;
+      return { contractAddress };
+    }
+
+    await config.assertIsValidWorkspace();
+
+    const contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
+    const instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
+
+    if (!instantiateDeployment) {
+      throw new NotFoundError('Instantiated deployment with a contract address');
+    }
+
+    const contractAddress = instantiateDeployment.contract.address;
+
+    return { contractAddress, contractInstance, instantiateDeployment };
   }
 }

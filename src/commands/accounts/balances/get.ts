@@ -2,6 +2,7 @@ import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { AccountRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags } from '@/parameters/flags';
+import { ArchwayClientBuilder } from '@/services';
 import { AccountBalances } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { green, greenBright, prettyPrintBalancesList } from '@/utils';
@@ -41,7 +42,7 @@ export default class AccountsBalancesGet extends BaseCommand<typeof AccountsBala
     const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const result = await showDisappearingSpinner(async () => {
-      const client = await config.getStargateClient();
+      const client = await ArchwayClientBuilder.getStargateClient(config);
 
       const { name, address } = accountsDomain.accountBaseFromAddress(this.args.account!);
       const balances = await client.getAllBalances(address);
