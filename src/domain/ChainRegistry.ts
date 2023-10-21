@@ -1,13 +1,18 @@
 import path from 'node:path';
 
-import ow from 'ow';
+import { Schema } from 'ajv';
+import debugInstance from 'debug';
 
 import { AlreadyExistsError, ConsoleError, ErrorCodes, InvalidFormatError } from '@/exceptions';
+import CosmosChainSchema from '@/repositories/chain.schema.json';
 import { BuiltInChains } from '@/services';
-import { CosmosChain, cosmosChainValidator } from '@/types';
-import { bold, pathExists, readFilesFromDirectory, redBright, writeFileWithDir, yellow } from '@/utils';
+import { CosmosChain } from '@/types';
+import { bold, getErrorMessage, pathExists, readFilesFromDirectory, redBright, writeFileWithDir, yellow } from '@/utils';
 
 import { GLOBAL_CONFIG_PATH } from './Config';
+import { SchemaValidator } from './SchemaValidation';
+
+const debug = debugInstance('chain-registry');
 
 export const GLOBAL_CHAINS_PATH = `${GLOBAL_CONFIG_PATH}/chains`;
 
@@ -43,6 +48,44 @@ export class ChainRegistry {
   }
 
   /**
+   * Get a chain from the registry by chain id
+   *
+   * @param chainId - Chain Id to get
+   * @returns The {@link CosmosChain} that matches the id, or undefined if not found
+   */
+  getChainById(chainId: string): CosmosChain | undefined {
+    return this.chainsMap[chainId];
+  }
+
+  /**
+   * Check if a chain exists in the registry by chain id, if not found throws an error
+   *
+   * @param chainId - Chain Id to get
+   */
+  assertGetChainById(chainId: string): void {
+    if (!this.getChainById(chainId)) {
+      throw new ChainIdNotFoundError(chainId);
+    }
+  }
+
+  /**
+   * Get the absolute path of the file of a specific chain in the imported chains directory
+   *
+   * @param chainId - Chain id of the file (will match the name of the file)
+   * @returns The absolute path of the chain file
+   */
+  getFilePath(chainId: string): string {
+    return path.join(this.dirPath, `${chainId}${CHAIN_FILE_EXTENSION}`);
+  }
+
+  private addChain(chainId: string, chainInfo: CosmosChain): void {
+    // Remove from warnings if it is listed there
+    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+    delete this.warningsMap[chainId];
+    this.chainsMap[chainId] = chainInfo;
+  }
+
+  /**
    * Initializes the Chain Registry, by loading the built-in chains and reading the imported chain files.
    *
    * @param chainsDir - Optional - Path to the directory where the imported chains are. Defaults to '~/.config/archway/chains'
@@ -67,7 +110,6 @@ export class ChainRegistry {
       const fileNameChainId = path.basename(fileName, CHAIN_FILE_EXTENSION);
       const parsed = JSON.parse(file) as CosmosChain;
 
-      // If file has a valid format, continue
       if (this.isValidChain(parsed)) {
         // If filename is different than parsed chain id, add to warning
         if (fileNameChainId !== parsed.chain_id) {
@@ -101,52 +143,35 @@ export class ChainRegistry {
   /**
    * Verify if an object has the valid format of a {@link CosmosChain}, throws error if not
    *
-   * @param data - Object instance to validate
+   * @param chainInfo - Chain info to validate
    * @param name - Optional - Name of the file, will be used in the possible error
    */
-  static assertIsValidChain(data: unknown, name?: string): void {
-    if (!this.isValidChain(data)) {
-      throw new InvalidFormatError(name || 'Chain file');
+  static assertIsValidChain(chainInfo: unknown, name?: string): void {
+    try {
+      const schemaValidator = new SchemaValidator().withOptions({
+        strictSchema: false,
+        strictTypes: false,
+      });
+      schemaValidator.assertValid(CosmosChainSchema as Schema, chainInfo);
+    } catch (error) {
+      debug('Invalid chain file', { name, chainInfo, error });
+      throw new InvalidFormatError(`the chain file${name ? ` "${name}"` : ''} does not match the schema: ${getErrorMessage(error)}`);
     }
   }
 
   /**
    * Verify if an object has the valid format of a {@link CosmosChain}
    *
-   * @param data - Object instance to validate
+   * @param chainInfo - Chain info to validate
    * @returns Boolean, whether it is valid or not
    */
-  static isValidChain = (data: unknown): boolean => ow.isValid(data, cosmosChainValidator);
-
-  /**
-   * Get the absolute path of the file of a specific chain in the imported chains directory
-   *
-   * @param chainId - Chain id of the file (will match the name of the file)
-   * @returns The absolute path of the chain file
-   */
-  getFilePath(chainId: string): string {
-    return path.join(this.dirPath, `${chainId}${CHAIN_FILE_EXTENSION}`);
-  }
-
-  /**
-   * Check if a chain exists in the registry by chain id, if not found throws an error
-   *
-   * @param chainId - Chain Id to get
-   */
-  assertGetChainById(chainId: string): void {
-    if (!this.getChainById(chainId)) {
-      throw new ChainIdNotFoundError(chainId);
+  static isValidChain(chainInfo: unknown): boolean {
+    try {
+      this.assertIsValidChain(chainInfo);
+      return true;
+    } catch {
+      return false;
     }
-  }
-
-  /**
-   * Get a chain from the registry by chain id
-   *
-   * @param chainId - Chain Id to get
-   * @returns The {@link CosmosChain} that matches the id, or undefined if not found
-   */
-  getChainById(chainId: string): CosmosChain | undefined {
-    return this.chains.find(item => item.chain_id === chainId);
   }
 
   /**
@@ -158,24 +183,20 @@ export class ChainRegistry {
    * @throws An {@link AlreadyExistsError} if the chain file already exists and overwrite is false
    */
   async import(chainInfo: CosmosChain, overwrite = false): Promise<void> {
+    debug('Importing chain', { chainInfo, overwrite });
     ChainRegistry.assertIsValidChain(chainInfo);
 
-    const newChainId = chainInfo.chain_id;
-
-    const chainInfoPath = this.getFilePath(newChainId);
+    const chainId = chainInfo.chain_id;
+    const chainInfoPath = this.getFilePath(chainId);
 
     if (!overwrite && await pathExists(chainInfoPath)) {
-      throw new AlreadyExistsError('Chain info file', `${newChainId}${CHAIN_FILE_EXTENSION}`);
+      throw new AlreadyExistsError('Chain info file', `${chainId}${CHAIN_FILE_EXTENSION}`);
     }
 
     const json = JSON.stringify(chainInfo, null, 2);
     await writeFileWithDir(chainInfoPath, json);
 
-    // Remove from warnings if it is listed there
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    delete this.warningsMap[newChainId];
-    // Add to inner data
-    this.chainsMap[newChainId] = chainInfo;
+    this.addChain(chainId, chainInfo);
   }
 
   /**

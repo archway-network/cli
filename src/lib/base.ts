@@ -8,6 +8,7 @@ import { getErrorMessage, redBright, yellow } from '@/utils';
 const debug = debugInstance('base-command');
 
 enum LogLevel {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
   debug = 'debug',
   error = 'error',
   info = 'info',
@@ -66,9 +67,8 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * Log one or more warnings to console
    *
    * @param message - One or more messages to be displayed as warnings in the console
-   * @returns void
    */
-  public warning(message: string | string[]): void {
+  public warning(message: readonly string[] | string | string[]): void {
     if (typeof message !== 'string') {
       for (const item of message) {
         this.warning(item);
@@ -84,7 +84,6 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * Logs a success message to console
    *
    * @param message - Success message to be printed
-   * @returns void
    */
   public success(message: string): void {
     this.log(`${SUCCESS_PREFIX} ${message}`);
@@ -94,7 +93,6 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * Log a JSON object
    *
    * @param json - JSON object to be logged
-   * @returns void
    */
   public logJson(json: unknown): void {
     super.logJson(json);
