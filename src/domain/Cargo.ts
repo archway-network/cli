@@ -1,4 +1,4 @@
-/* eslint-disable camelcase */
+
 import path from 'node:path';
 
 import debugInstance from 'debug';
@@ -12,76 +12,78 @@ import { bold, redBright } from '@/utils';
 
 const debug = debugInstance('cargo');
 
+/* eslint-disable @typescript-eslint/naming-convention */
+
 /**
  * Cargo metadata information
  */
 export interface Metadata {
+  metadata: any;
   packages: Package[];
-  workspace_members: string[];
   resolve: any;
   target_directory: string;
   version: number;
+  workspace_members: string[];
   workspace_root: string;
-  metadata: any;
 }
 
 /**
  * Cargo package information
  */
 export interface Package {
-  name: string;
-  version: string;
-  id: string;
-  license: any;
-  license_file: any;
-  description: any;
-  source: any;
-  dependencies: Dependency[];
-  targets: Target[];
-  features: Features;
-  manifest_path: string;
-  metadata: PackageMetadata;
-  publish: any;
   authors: string[];
   categories: any[];
-  keywords: any[];
-  readme: string;
-  repository: any;
-  homepage: any;
+  default_run: any;
+  dependencies: Dependency[];
+  description: any;
   documentation: any;
   edition: string;
+  features: Features;
+  homepage: any;
+  id: string;
+  keywords: any[];
+  license: any;
+  license_file: any;
   links: any;
-  default_run: any;
+  manifest_path: string;
+  metadata: PackageMetadata;
+  name: string;
+  publish: any;
+  readme: string;
+  repository: any;
   rust_version: any;
+  source: any;
+  targets: Target[];
+  version: string;
 }
 
 /**
  * Cargo dependency information
  */
 export interface Dependency {
-  name: string;
-  source: string;
-  req: string;
-  kind?: string;
-  rename: any;
-  optional: boolean;
-  uses_default_features: boolean;
   features: string[];
-  target: any;
+  kind?: string;
+  name: string;
+  optional: boolean;
   registry: any;
+  rename: any;
+  req: string;
+  source: string;
+  target: any;
+  uses_default_features: boolean;
 }
 
 /**
  * Cargo target information
  */
 export interface Target {
-  kind: string[];
   crate_types: string[];
-  name: string;
-  src_path: string;
-  edition: string;
   doc: boolean;
   doctest: boolean;
+  edition: string;
+  kind: string[];
+  name: string;
+  src_path: string;
   test: boolean;
 }
 
@@ -111,23 +113,23 @@ export interface Scripts {
  * Parameters for the {@link Cargo.generate} function
  */
 interface GenerateParams {
-  name: string;
-  repository: string;
   branch: string;
-  template: string;
   destinationDir?: string;
+  name: string;
   quiet?: boolean;
+  repository: string;
+  template: string;
 }
 
 /**
  * Parameters for the {@link Cargo.build} function
  */
 interface BuildParams {
-  release?: boolean;
-  locked?: boolean;
-  target?: string;
   lib?: boolean;
+  locked?: boolean;
   quiet?: boolean;
+  release?: boolean;
+  target?: string;
 }
 
 /**
@@ -142,6 +144,8 @@ interface OptimizeParams {
   quiet?: boolean;
 }
 
+/* eslint-enable @typescript-eslint/naming-convention */
+
 /**
  * Facade Class for the cargo shell command
  */
@@ -150,7 +154,7 @@ export class Cargo {
   static OptimizedOutputDir = 'artifacts';
 
   // eslint-disable-next-line no-useless-constructor
-  constructor(public readonly workingDir = process.cwd()) { }
+  constructor(public readonly workingDir = process.cwd()) {}
 
   /**
    * Get absolute path of the project location
@@ -213,7 +217,7 @@ export class Cargo {
    */
   async metadata(): Promise<Metadata> {
     const { stdout } = await this.run(['metadata', '--quiet', '--no-deps', '--format-version=1'], { stdio: 'pipe' });
-    return JSON.parse(stdout?.toString() || '');
+    return JSON.parse(stdout?.toString() || '') as Metadata;
   }
 
   /**
@@ -227,10 +231,10 @@ export class Cargo {
     const { packages = [], target_directory: targetDirectory, workspace_root: workspaceRoot } = await this.metadata();
     const currentManifestPath = await this.locateProject();
 
-    const findPackageInPath = (searchPath: string) =>
-      packages.find(({ manifest_path: manifestPath }) => path.dirname(manifestPath) === searchPath);
+    const findPackageInPath = (searchPath: string): Package | undefined => packages
+      .find(({ manifest_path: manifestPath }) => path.dirname(manifestPath) === searchPath);
 
-    const firstPackageInWorkspace = (searchPath: string) => (workspaceRoot === searchPath ? _.head(packages) : undefined);
+    const firstPackageInWorkspace = (searchPath: string): Package | undefined => (workspaceRoot === searchPath ? _.head(packages) : undefined);
 
     const {
       name,

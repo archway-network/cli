@@ -50,7 +50,7 @@ export default class ConfigDefaultAccount extends BaseCommand<typeof ConfigDefau
   public async run(): Promise<void> {
     const configFile = await Config.init();
 
-    const global = this.flags.global;
+    const { global } = this.flags;
     const defaultAccount = this.args['default-account'];
 
     if (defaultAccount) {
@@ -61,13 +61,17 @@ export default class ConfigDefaultAccount extends BaseCommand<typeof ConfigDefau
       const currentValue = global ? configFile.globalData['default-account'] : configFile.localData['default-account'];
       this.log(greenBright(currentValue || `Empty, ${reset.bold('default-account')} is not set`));
 
-      if (this.jsonEnabled()) this.logJson({ 'default-account': currentValue || '' });
+      if (this.jsonEnabled()) {
+        this.logJson({ 'default-account': currentValue || '' });
+      }
     }
   }
 
   protected async successMessage(defaultAccount: string, global: boolean): Promise<void> {
     this.success(`${greenBright(`Updated default-account ${global ? 'global' : 'local'} config to`)} ${bold(defaultAccount)}`);
 
-    if (this.jsonEnabled()) this.logJson({ 'default-account': defaultAccount });
+    if (this.jsonEnabled()) {
+      this.logJson({ 'default-account': defaultAccount });
+    }
   }
 }

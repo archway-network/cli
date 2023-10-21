@@ -11,9 +11,6 @@ export class NotFoundError extends ConsoleError {
     super(ErrorCodes.NOT_FOUND);
   }
 
-  /**
-   * {@inheritDoc ConsoleError.toConsoleString}
-   */
   toConsoleString(): string {
     return `${redBright(this.description)}${this.valueSearched ? bold(` ${this.valueSearched}`) : ''} ${redBright('not found')}`;
   }

@@ -11,9 +11,6 @@ export class OnlyOneArgSourceError extends ConsoleError {
     super(ErrorCodes.ONLY_ONE_ARG_SOURCE);
   }
 
-  /**
-   * {@inheritDoc ConsoleError.toConsoleString}
-   */
   toConsoleString(): string {
     return `${redBright(`Please specify only one ${this.name} args input`)}`;
   }

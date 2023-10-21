@@ -11,20 +11,9 @@ export interface KeystoreActionOptions {
 }
 
 /**
-  * Definition to be used on different backend implementations
-  */
+ * Definition to be used on different backend implementations
+ */
 export interface KeystoreBackend {
-  type: KeystoreBackendType;
-
-  /**
-   * Saves raw data to the keyring
-   *
-   * @param tag - Tag used to save the account
-   * @param data - Data to be saved
-   * @param options - Options to be used when saving the data
-   */
-  save(tag: string, data: string, options?: KeystoreActionOptions): void;
-
   /**
    * Get the raw data from the key storage by tag
    *
@@ -47,4 +36,15 @@ export interface KeystoreBackend {
    * @param tag - Tag to be removed
    */
   remove(tag: string): void;
+
+  /**
+   * Saves raw data to the keyring
+   *
+   * @param tag - Tag used to save the account
+   * @param data - Data to be saved
+   * @param options - Options to be used when saving the data
+   */
+  save(tag: string, data: string, options?: KeystoreActionOptions): void;
+
+  type: KeystoreBackendType;
 }

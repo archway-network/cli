@@ -2,8 +2,9 @@
 import path from 'node:path';
 
 import { Cargo, Config } from '@/domain';
-import { DEFAULT_TEMPLATE_BRANCH, DEFAULT_WORKSPACE_TEMPLATE, TEMPLATES_REPOSITORY } from './Contracts';
 import { sanitizeDirName } from '@/utils';
+
+import { DEFAULT_TEMPLATE_BRANCH, DEFAULT_WORKSPACE_TEMPLATE, TEMPLATES_REPOSITORY } from './Contracts';
 
 /**
  * Type of project
@@ -16,10 +17,10 @@ export enum ProjectType {
  * Parameters for a new project
  */
 export interface ProjectParams {
-  name: string;
-  contractTemplate?: string;
   chainId: string;
   contractName?: string;
+  contractTemplate?: string;
+  name: string;
 }
 
 /**
@@ -44,9 +45,10 @@ export class NewProject {
 
     // Create project depending on type
     switch (type) {
-      case ProjectType.RUST:
+      case ProjectType.RUST: {
         await RustProject.create(sanitizedProjectName, quiet);
         break;
+      }
     }
 
     // Create config file

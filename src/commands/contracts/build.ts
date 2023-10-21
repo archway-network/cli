@@ -1,8 +1,9 @@
+import { relative } from 'node:path';
+
 import { Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameOptionalArg } from '@/parameters/arguments';
 import { cyan } from '@/utils';
-import { relative } from 'node:path';
 
 export interface ContractsBuildResult {
   outputPath: string;
@@ -36,9 +37,9 @@ export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
     await config.assertIsValidWorkspace();
 
     this.log(
-      this.args.contract ?
-        `Building ${cyan('optimized wasm')} file for ${cyan(this.args.contract)} using Docker...` :
-        `Building ${cyan('optimized wasm')} file for all contracts in the workspace using Docker...`
+      this.args.contract
+        ? `Building ${cyan('optimized wasm')} file for ${cyan(this.args.contract)} using Docker...`
+        : `Building ${cyan('optimized wasm')} file for all contracts in the workspace using Docker...`
     );
 
     const outputPath = await config.contractsInstance.optimize(this.args.contract, this.jsonEnabled());
@@ -47,9 +48,9 @@ export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
     this.success(`Optimized WASM binary saved to ${cyan(relative(config.workspaceRoot, outputPath))}\n`);
 
     this.log(
-      this.args.contract ?
-        `Building ${cyan('schemas')} for ${cyan(this.args.contract)}...` :
-        `Building ${cyan('schemas')} for all contracts in the workspace...`
+      this.args.contract
+        ? `Building ${cyan('schemas')} for ${cyan(this.args.contract)}...`
+        : `Building ${cyan('schemas')} for all contracts in the workspace...`
     );
 
     await config.contractsInstance.schemas(this.args.contract, this.jsonEnabled());
@@ -57,6 +58,6 @@ export default class ContractsBuild extends BaseCommand<typeof ContractsBuild> {
     this.log();
     this.success('Schemas generated');
 
-    return { outputPath }
+    return { outputPath };
   }
 }

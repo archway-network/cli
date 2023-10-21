@@ -1,6 +1,6 @@
-import { BaseCommand } from '@/lib/base';
 import { Args } from '@oclif/core';
 
+import { BaseCommand } from '@/lib/base';
 import Help from '@/plugins/help/help';
 
 /**

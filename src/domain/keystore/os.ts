@@ -2,6 +2,7 @@ import keyring from '@archwayhq/keyring-go';
 
 import { InvalidPasswordError } from '@/exceptions';
 import { KeystoreBackendType } from '@/types';
+
 import { KeystoreActionOptions, KeystoreBackend } from './backend';
 
 const DEFAULT_SERVICE_NAME = 'io.archway.cli';
@@ -15,7 +16,7 @@ export class OsBackend implements KeystoreBackend {
   /**
    * @param serviceName - Service name to group the account entries in the OS keystore
    */
-  public constructor(private serviceName: string = DEFAULT_SERVICE_NAME) {
+  public constructor(private readonly serviceName: string = DEFAULT_SERVICE_NAME) {
     this.serviceName = serviceName;
   }
 
@@ -28,7 +29,7 @@ export class OsBackend implements KeystoreBackend {
       return keyring.OsStore.get(this.serviceName, tag) || undefined;
     } catch (error: Error | any) {
       if (error?.message?.includes?.('Keyring backend access denied by user')) {
-        throw new InvalidPasswordError()
+        throw new InvalidPasswordError();
       }
 
       throw error;
@@ -48,7 +49,7 @@ export class OsBackend implements KeystoreBackend {
       keyring.OsStore.remove(this.serviceName, tag);
     } catch (error: Error | any) {
       if (error?.message?.includes?.('Keyring backend access denied by user')) {
-        throw new InvalidPasswordError()
+        throw new InvalidPasswordError();
       }
 
       throw error;

@@ -1,16 +1,16 @@
+import fs from 'node:fs/promises';
+
 import { InstantiateResult } from '@cosmjs/cosmwasm-stargate';
 import { Args, Flags } from '@oclif/core';
-import fs from 'node:fs/promises';
 
 import { Accounts, Config } from '@/domain';
 import { InstantiateError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameOptionalArg, StdinInputArg } from '@/parameters/arguments';
 import { KeyringFlags, NoValidationFlag, ParamsAmountOptionalFlag, TransactionFlags } from '@/parameters/flags';
+import { Account, Amount, Contract, DeploymentAction, InstantiateDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { blueBright, buildStdFee, dim, greenBright } from '@/utils';
-
-import { Account, Amount, Contract, DeploymentAction, InstantiateDeployment } from '@/types';
 
 /**
  * Command 'contracts instantiate'
@@ -88,9 +88,9 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
   public async run(): Promise<InstantiateResult> {
     // Validate that we only get init args from one source of all 3 possible inputs
     if (
-      (this.flags['args-file'] && this.args.stdinInput) ||
-      (this.flags['args-file'] && this.flags.args) ||
-      (this.flags.args && this.args.stdinInput)
+      (this.flags['args-file'] && this.args.stdinInput)
+      || (this.flags['args-file'] && this.flags.args)
+      || (this.flags.args && this.args.stdinInput)
     ) {
       throw new OnlyOneArgSourceError('Init');
     } else if (!this.flags['args-file'] && !this.args.stdinInput && !this.flags.args) {
@@ -98,42 +98,48 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     }
 
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    const getAdmin = async (): Promise<string> =>
-      this.flags.admin ? (await accountsDomain.accountBaseFromAddress(this.flags.admin)).address : from.account.address;
+    const getAdmin = async (): Promise<string> => this.flags.admin ? (await accountsDomain.accountBaseFromAddress(this.flags.admin)).address : from.account.address;
     const admin = this.flags['no-admin'] ? undefined : await getAdmin();
 
-    const instArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
+    const instArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf8')));
 
-    let label = this.flags.label;
+    let { label } = this.flags;
 
     let contractInstance: Contract | undefined;
 
     // If code id is not set as flag, try to get it from deployments history
     let codeId = this.flags.code;
     if (!codeId) {
-      if (!this.args.contract)
+      if (!this.args.contract) {
         throw new NotFoundError("Please pass either the Contract name in the arguments, or the '--code' flag.");
+      }
 
       await config.assertIsValidWorkspace();
 
       contractInstance = config.contractsInstance.getContractByName(this.args.contract);
 
-      codeId = config.contractsInstance.findStoreDeployment(this.args.contract!, config.chainId)?.wasm.codeId;
+      codeId = config.contractsInstance.findStoreDeployment(this.args.contract, config.chainId)?.wasm.codeId;
 
-      if (!codeId) throw new NotFoundError("Code id of contract's store deployment");
+      if (!codeId) {
+        throw new NotFoundError("Code id of contract's store deployment");
+      }
 
-      if (!label) label = contractInstance.label;
+      if (!label) {
+        label = contractInstance.label;
+      }
 
       if (!this.flags['no-validation']) {
         await config.contractsInstance.assertValidInstantiateArgs(contractInstance.name, instArgs);
       }
     }
 
-    if (!label) throw new NotFoundError("Please pass the label of the contract in the '--label' flag.");
+    if (!label) {
+      throw new NotFoundError("Please pass the label of the contract in the '--label' flag.");
+    }
 
     await this.logTransactionDetails(config, codeId, admin!, from.account, label, contractInstance?.name);
 
@@ -154,15 +160,15 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       await config.deploymentsInstance.addDeployment(
         {
           action: DeploymentAction.INSTANTIATE,
-          txhash: result!.transactionHash,
+          txhash: result.transactionHash,
           wasm: {
             codeId,
           },
           contract: {
             name: contractInstance.name,
             version: contractInstance.version,
-            address: result!.contractAddress,
-            admin: admin,
+            address: result.contractAddress,
+            admin,
           },
           msg: instArgs,
         } as InstantiateDeployment,

@@ -1,11 +1,10 @@
+import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { AccountRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags } from '@/parameters/flags';
-import { Accounts, Config } from '@/domain';
+import { AccountBalances } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { green, greenBright, prettyPrintBalancesList } from '@/utils';
-
-import { AccountBalancesJSON } from '@/types';
 
 /**
  * Command 'accounts balances get'
@@ -37,14 +36,14 @@ export default class AccountsBalancesGet extends BaseCommand<typeof AccountsBala
    *
    * @returns Empty promise
    */
-  public async run(): Promise<AccountBalancesJSON> {
+  public async run(): Promise<AccountBalances> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const result = await showDisappearingSpinner(async () => {
       const client = await config.getStargateClient();
 
-      const { name, address } = await accountsDomain.accountBaseFromAddress(this.args.account!);
+      const { name, address } = accountsDomain.accountBaseFromAddress(this.args.account!);
       const balances = await client.getAllBalances(address);
 
       return {

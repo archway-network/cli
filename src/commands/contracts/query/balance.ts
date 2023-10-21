@@ -4,7 +4,7 @@ import { Config, Contracts } from '@/domain';
 import { NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameOptionalArg } from '@/parameters/arguments';
-import { AccountBalancesJSON, InstantiateDeployment } from '@/types';
+import { AccountBalances, InstantiateDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 
 /**
@@ -51,7 +51,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
 
     const contractsToQuery = this.getContractsToQuery(config);
     if (contractsToQuery.length === 0) {
-      throw new NotFoundError('Instantiated contract with a contract address')
+      throw new NotFoundError('Instantiated contract with a contract address');
     }
 
     const result = await showDisappearingSpinner(async () => {
@@ -73,7 +73,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     return instantiated ? [instantiated] : [];
   }
 
-  protected async successMessage(balances: AccountBalancesJSON[]): Promise<void> {
+  protected async successMessage(balances: AccountBalances[]): Promise<void> {
     if (this.jsonEnabled()) {
       this.logJson({ contracts: balances });
     } else {

@@ -4,7 +4,6 @@ import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { AccountRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags } from '@/parameters/flags';
-
 import { Account } from '@/types';
 
 /**
@@ -38,21 +37,19 @@ export default class AccountsGet extends BaseCommand<typeof AccountsGet> {
    *
    * @returns Empty promise
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<{ account: { address: string } } | Account> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
     const account = await accountsDomain.get(this.args.account!);
 
-    await this.successMessage(account, this.flags.address);
-  }
-
-  protected async successMessage(account: Account, showAddress?: boolean): Promise<void> {
-    if (showAddress) {
+    if (this.flags.address) {
       this.log(account.address);
-      if (this.jsonEnabled()) this.logJson({ account: { address: account.address } });
-    } else {
-      this.log(`${Accounts.prettyPrintNameAndAddress(account)}\n\n${Accounts.prettyPrintPublicKey(account.publicKey)}`);
-      if (this.jsonEnabled()) this.logJson(account);
+      return { account: { address: account.address } };
     }
+
+    this.log(`${Accounts.prettyPrintNameAndAddress(account)}\n\n`);
+    this.log(Accounts.prettyPrintPublicKey(account.publicKey));
+
+    return account;
   }
 }

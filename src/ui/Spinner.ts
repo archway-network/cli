@@ -31,10 +31,10 @@ export const showDisappearingSpinner = async <T>(func: () => Promise<T>, text?: 
  * @param options - Optional - Either a string with the text to be displayed, or an instance of {@link ora.Options}
  * @returns Promise containing the output of the function passed in the first parameter
  */
-export const showSpinner = async <T>(func: () => Promise<T>, options?: string | ora.Options): Promise<T> => {
-  const auxPromise = func()
+export const showSpinner = async <T>(func: () => Promise<T>, options?: ora.Options | string): Promise<T> => {
+  const auxPromise = func();
 
-  ora.promise(auxPromise, options)
+  ora.promise(auxPromise, options);
 
-  return auxPromise
+  return auxPromise;
 };

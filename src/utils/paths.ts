@@ -1,14 +1,15 @@
-import _ from 'lodash';
 import { exec } from 'node:child_process';
 import path from 'node:path';
 import { promisify } from 'node:util';
+
+import _ from 'lodash';
 
 /**
  * Get the git repository root path
  *
  * @returns Promise containing the path or undefined if not found
  */
-async function _getRepositoryRoot(): Promise<string | undefined> {
+export const getRepositoryRoot = _.memoize(async (): Promise<string | undefined> => {
   try {
     const result = await promisify(exec)('git rev-parse --show-toplevel');
     if (result.stderr) {
@@ -19,12 +20,7 @@ async function _getRepositoryRoot(): Promise<string | undefined> {
   } catch {
     return undefined;
   }
-}
-
-/**
- * {@inheritDoc _getRepositoryRoot}
- */
-export const getRepositoryRoot = _.memoize(_getRepositoryRoot);
+});
 
 /**
  * Get the workspace root, which is the git repository root or otherwise the current directory

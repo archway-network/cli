@@ -5,6 +5,7 @@ import keyring from '@archwayhq/keyring-go';
 
 import { InvalidPasswordError } from '@/exceptions';
 import { KeystoreBackendType } from '@/types';
+
 import { KeystoreActionOptions, KeystoreBackend } from './backend';
 
 /**

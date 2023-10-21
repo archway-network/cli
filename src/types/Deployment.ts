@@ -1,5 +1,5 @@
-import ow from 'ow';
 import { ContractMetadata } from '@archwayhq/arch3.js';
+import ow from 'ow';
 
 import { Coin, coinValidator } from '@/types';
 
@@ -22,8 +22,8 @@ export interface DeploymentWithChain extends Deployment {
  */
 export interface Deployment {
   action: DeploymentAction;
-  txhash: string;
   contract: BaseContract;
+  txhash: string;
   wasm: BaseWasm
 }
 
@@ -100,11 +100,11 @@ export interface MigrateDeployment extends DeploymentWithChain {
  * Deployment action types
  */
 export enum DeploymentAction {
-  STORE = 'store',
   INSTANTIATE = 'instantiate',
   METADATA = 'metadata',
-  PREMIUM = 'premium',
   MIGRATE = 'migrate',
+  PREMIUM = 'premium',
+  STORE = 'store',
 }
 
 /**

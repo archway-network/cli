@@ -1,13 +1,12 @@
 import { OutstandingRewards } from '@archwayhq/arch3.js/build';
 
-import { green, greenBright, prettyPrintBalancesList } from '@/utils';
+import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { AccountRequiredArg } from '@/parameters/arguments';
-import { Accounts, Config } from '@/domain';
 import { KeyringFlags } from '@/parameters/flags';
-import { showDisappearingSpinner } from '@/ui';
-
 import { AccountBase } from '@/types';
+import { showDisappearingSpinner } from '@/ui';
+import { green, greenBright, prettyPrintBalancesList } from '@/utils';
 
 /**
  * Command 'rewards query'
@@ -41,7 +40,7 @@ export default class RewardsQuery extends BaseCommand<typeof RewardsQuery> {
    */
   public async run(): Promise<void> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const account = await accountsDomain.accountBaseFromAddress(this.args.account!);
 
@@ -58,8 +57,10 @@ export default class RewardsQuery extends BaseCommand<typeof RewardsQuery> {
     this.log(
       `Outstanding rewards for ${account.name ? `${greenBright(account.name)} (${green(account.address)})` : greenBright(account.address)}\n`
     );
-    this.log(prettyPrintBalancesList(result.totalRewards, 'No outstanding rewards'))
+    this.log(prettyPrintBalancesList(result.totalRewards, 'No outstanding rewards'));
 
-    if (this.jsonEnabled()) this.logJson(result);
+    if (this.jsonEnabled()) {
+      this.logJson(result);
+    }
   }
 }

@@ -1,8 +1,9 @@
-import { Command, Help as BaseHelp, Interfaces, CommandHelp } from '@oclif/core';
+import { Help as BaseHelp, Command, CommandHelp, Interfaces } from '@oclif/core';
 
-import RootHelp from './root';
 import { blueBright, green, yellow } from '@/utils';
+
 import CustomCommandHelp from './command';
+import RootHelp from './root';
 
 const preferredOrder: Record<string, string[]> = {
   NO_TOPIC: ['new'],
@@ -24,9 +25,9 @@ const preferredOrder: Record<string, string[]> = {
 };
 
 interface TopicWithCommands {
-  name?: string;
-  description?: string;
   commands: Command.Loadable[];
+  description?: string;
+  name?: string;
 }
 
 export default class Help extends BaseHelp {
@@ -46,7 +47,9 @@ export default class Help extends BaseHelp {
       NO_TOPIC: {},
     };
 
-    for (const auxTopic of rootTopics) mapTopicCommands[auxTopic.name] = {};
+    for (const auxTopic of rootTopics) {
+      mapTopicCommands[auxTopic.name] = {};
+    }
 
     for (const auxCommand of validCommands) {
       const name = auxCommand.id;
@@ -80,7 +83,9 @@ export default class Help extends BaseHelp {
         }
       }
 
-      for (const leftoverCommand of Object.values(mapTopicCommands[auxTopicName])) resultCommands.push(leftoverCommand);
+      for (const leftoverCommand of Object.values(mapTopicCommands[auxTopicName])) {
+        resultCommands.push(leftoverCommand);
+      }
 
       const topicInfo = rootTopics.find(item => item.name === auxTopicName);
 
@@ -94,7 +99,10 @@ export default class Help extends BaseHelp {
     for (const topic of result) {
       const body = this.renderList(
         topic.commands.map(c => {
-          if (this.config.topicSeparator !== ':') c.id = c.id.replace(/:/g, this.config.topicSeparator);
+          if (this.config.topicSeparator !== ':') {
+            c.id = c.id.replace(/:/g, this.config.topicSeparator);
+          }
+
           return [green(c.id.padEnd(maxIdLength, ' ')), this.summary(c)];
         }),
         {
@@ -111,10 +119,16 @@ export default class Help extends BaseHelp {
   }
 
   protected formatTopics(topics: Interfaces.Topic[]): string {
-    if (topics.length === 0) return '';
+    if (topics.length === 0) {
+      return '';
+    }
+
     const body = this.renderList(
       topics.map(c => {
-        if (this.config.topicSeparator !== ':') c.name = c.name.replace(/:/g, this.config.topicSeparator);
+        if (this.config.topicSeparator !== ':') {
+          c.name = c.name.replace(/:/g, this.config.topicSeparator);
+        }
+
         return [blueBright(c.name), c.description && this.render(c.description.split('\n')[0])];
       }),
       {
@@ -126,11 +140,11 @@ export default class Help extends BaseHelp {
     return this.section(yellow('Subcommands:'), body);
   }
 
-  protected getCommandHelpClass(command: Command.Class | Command.Loadable | Command.Cached): CommandHelp {
+  protected getCommandHelpClass(command: Command.Cached | Command.Class | Command.Loadable): CommandHelp {
     return new CustomCommandHelp(command, this.config, this.opts);
   }
 
-  public async showCommandHelp(command: Command.Class | Command.Loadable | Command.Cached): Promise<void> {
+  public async showCommandHelp(command: Command.Cached | Command.Class | Command.Loadable): Promise<void> {
     const name = command.id;
     const depth = name.split(':').length;
 
@@ -162,13 +176,19 @@ export default class Help extends BaseHelp {
     }
   }
 
-  protected formatCommands(commands: Array<Command.Class | Command.Loadable | Command.Cached>): string {
+  protected formatCommands(commands: Array<Command.Cached | Command.Class | Command.Loadable>): string {
     const filteredCommands = commands.filter(item => !this.sortedTopics.some(topic => topic.name === item.id));
 
-    if (filteredCommands.length === 0) return '';
+    if (filteredCommands.length === 0) {
+      return '';
+    }
+
     const body = this.renderList(
       filteredCommands.map(c => {
-        if (this.config.topicSeparator !== ':') c.id = c.id.replace(/:/g, this.config.topicSeparator);
+        if (this.config.topicSeparator !== ':') {
+          c.id = c.id.replace(/:/g, this.config.topicSeparator);
+        }
+
         return [green(c.id), this.summary(c)];
       }),
       {

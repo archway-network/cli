@@ -1,41 +1,40 @@
-import ow, { ArgumentError } from 'ow';
-
 import { KdfConfiguration } from '@cosmjs/amino';
 import { HdPath, pathToString, stringToPath } from '@cosmjs/crypto';
 import { OfflineSigner } from '@cosmjs/proto-signing';
+import ow, { ArgumentError } from 'ow';
 
 import { InvalidFormatError } from '@/exceptions';
 import { Coin } from '@/types';
 import { isValidAddress } from '@/utils';
 
 export enum AccountType {
-  LOCAL = 'local',
   LEDGER = 'ledger',
+  LOCAL = 'local',
 }
 
 /**
  * Account base information
  */
 export interface AccountBase {
-  type: AccountType;
-  name: string;
   address: string;
+  name: string;
+  type: AccountType;
 }
 
 /**
  * Account information with private key
  */
 export interface LocalAccount extends AccountBase {
-  publicKey: PublicKey;
   privateKey?: string;
+  publicKey: PublicKey;
 }
 
 /**
  * Account information with optional private key
  */
 export interface LedgerAccount extends AccountBase {
-  publicKey: PublicKey;
   hdPath?: string;
+  publicKey: PublicKey;
 }
 
 export type Account = LocalAccount & LedgerAccount;
@@ -60,19 +59,19 @@ export interface PublicKey {
  * Types of backends to be used in the keystore
  */
 export enum KeystoreBackendType {
-  test = 'test',
   file = 'file',
   os = 'os',
+  test = 'test',
 }
 
 /**
  * Account balances information for json export
  */
-export interface AccountBalancesJSON {
+export interface AccountBalances {
   account: {
-    name: string;
     address: string;
     balances: readonly Coin[];
+    name: string;
   };
 }
 
@@ -80,12 +79,12 @@ export interface AccountBalancesJSON {
  * Serialized key with kdf and encryption information
  */
 export interface SerializedKey {
-  type: string;
-  kdf: KdfConfiguration;
+  data: string;
   encryption: {
     algorithm: string;
   };
-  data: string;
+  kdf: KdfConfiguration;
+  type: string;
 }
 
 /**
@@ -102,10 +101,12 @@ const publicKeyValidator = ow.object.exactShape({
 const AccountBaseShape = {
   type: ow.string.oneOf(Object.values(AccountType)),
   name: ow.string.matches(/^[\w#+./:@[\]-]{1,64}$/),
-  address: ow.string.validate((value: string) => ({
-    validator: isValidAddress(value),
-    message: (label: string) => `Expected ${label} to be a valid address`,
-  }))
+  address: ow.string.validate((value: string) => {
+    return {
+      validator: isValidAddress(value),
+      message: (label: string) => `Expected ${label} to be a valid address`,
+    };
+  })
 };
 
 /**
@@ -139,10 +140,10 @@ const ledgerAccountValidator = ow.object.exactShape({
 const accountValidator = ow.any(
   localAccountValidator,
   ledgerAccountValidator
-)
+);
 
 export function isAccountBase(a: AccountBase | string): a is AccountBase {
-  return (a as AccountBase).address !== undefined
+  return (a as AccountBase).address !== undefined;
 }
 
 /**
@@ -194,7 +195,7 @@ export function redactAccount(account: Account): Account {
   };
 }
 
-const DEFAULT_HD_PATH = "m/44'/118'/0'/0/0";
+const DefaultHdPath = "m/44'/118'/0'/0/0";
 
 /**
  * Utility to quickly convert between a HdPath and its string representation.
@@ -202,17 +203,13 @@ const DEFAULT_HD_PATH = "m/44'/118'/0'/0/0";
 export class ExtendedHdPath {
   public static readonly Default = new ExtendedHdPath();
 
-  private _value: HdPath;
+  public readonly value: HdPath;
 
-  constructor(readonly input: string = DEFAULT_HD_PATH) {
-    this._value = stringToPath(input);
+  constructor(readonly input: string = DefaultHdPath) {
+    this.value = stringToPath(input);
   }
 
   toString(): string {
-    return pathToString(this._value);
-  }
-
-  public get value(): HdPath {
-    return this._value;
+    return pathToString(this.value);
   }
 }

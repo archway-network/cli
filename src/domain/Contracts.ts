@@ -2,13 +2,12 @@ import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
+import { StargateClient } from '@cosmjs/stargate';
 import toml from 'toml';
 
-import { StargateClient } from '@cosmjs/stargate';
-
 import { ConsoleError, ErrorCodes, ExecuteError, InstantiateError, MigrateError, QueryError } from '@/exceptions';
-import { AccountBalancesJSON, Contract, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
-import { bold, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright, sanitizeDirName } from '@/utils';
+import { AccountBalances, Contract, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
+import { bold, getErrorMessage, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright, sanitizeDirName } from '@/utils';
 
 import { Cargo } from './Cargo';
 import { Deployments } from './Deployments';
@@ -32,8 +31,8 @@ export const MIGRATE_SCHEMA_RELATIVE_PATH = './schema/raw/migrate.json';
  * Manages the contracts' data in the project
  */
 export class Contracts {
-  private _data: Contract[];
-  private _schemaValidator: SchemaValidator;
+  private readonly data: Contract[];
+  public readonly schemaValidator: SchemaValidator;
 
   /**
    * @param data - Array of {@link Contract}
@@ -47,8 +46,8 @@ export class Contracts {
     public readonly contractsRoot: string,
     public readonly deployments: Deployments
   ) {
-    this._data = data;
-    this._schemaValidator = new SchemaValidator();
+    this.data = data;
+    this.schemaValidator = new SchemaValidator();
   }
 
   /**
@@ -57,15 +56,11 @@ export class Contracts {
    * @returns Array containing all the contracts
    */
   get contracts(): readonly Contract[] {
-    return this._data;
+    return this.data;
   }
 
   private addContract(contract: Contract): void {
-    this._data.push(contract);
-  }
-
-  get schemaValidator(): SchemaValidator {
-    return this._schemaValidator;
+    this.data.push(contract);
   }
 
   /**
@@ -118,11 +113,14 @@ export class Contracts {
     const relativeContracts = `${path.relative(this.workspaceRoot, this.contractsRoot)}/*`;
     const cargoFilePath = path.join(this.workspaceRoot, './Cargo.toml');
 
-    const fileContent = await fs.readFile(cargoFilePath, 'utf-8');
+    const fileContent = await fs.readFile(cargoFilePath, 'utf8');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const data = toml.parse(fileContent);
 
-    if (!data?.workspace?.members?.some((item: string) => item === relativeContracts))
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call
+    if (!data?.workspace?.members?.some((item: string) => item === relativeContracts)) {
       throw new InvalidWorkspaceError(cargoFilePath, relativeContracts);
+    }
   }
 
   /**
@@ -141,7 +139,7 @@ export class Contracts {
       name: sanitizedName,
       repository: TEMPLATES_REPOSITORY,
       branch: DEFAULT_TEMPLATE_BRANCH,
-      template: template,
+      template,
       destinationDir: this.contractsRoot,
       quiet,
     });
@@ -164,6 +162,7 @@ export class Contracts {
    * if a name is passed, generates the schema of that contract only
    *
    * @param name - Optional - Contract name
+   * @param quiet - Optional - Execute the cargo commands on quiet mode. Defaults to false
    * @returns Empty Promise
    */
   async schemas(name?: string, quiet = false): Promise<void> {
@@ -180,7 +179,8 @@ export class Contracts {
    * if a name is passed, builds the optimized version of that contract only
    *
    * @param name - Optional - Contract name
-   * @returns Path of the optimized file
+   * @param quiet - Optional - Execute the cargo commands on quiet mode. Defaults to false
+   * @returns Promise containing the path of the optimized wasm file
    */
   async optimize(name?: string, quiet = false): Promise<string> {
     const cargo = name ? this.cargoByContractName(name) : new Cargo(this.workspaceRoot);
@@ -208,7 +208,7 @@ export class Contracts {
     const result = this.contracts.find(item => item.name === contractName);
 
     if (!result) {
-      throw new ContractNameNotFoundError(contractName)
+      throw new ContractNameNotFoundError(contractName);
     }
 
     return result;
@@ -219,14 +219,14 @@ export class Contracts {
    *
    * @returns Promise containing the formatted contracts data
    */
-  async prettyPrint(): Promise<string> {
+  prettyPrint(): string {
     let contractsList = '';
     for (const item of this.contracts) {
       contractsList += `\n  ${greenBright(item.name)} (${item.version})`;
     }
 
     if (!contractsList) {
-      contractsList = '(none)'
+      contractsList = '(none)';
     }
 
     return `${bold('Available contracts: ')}${contractsList}`;
@@ -239,15 +239,15 @@ export class Contracts {
    * @param initArgs - Instantiate arguments to be validated
    * @returns Empty promise
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+
   async assertValidInstantiateArgs(contractName: string, instArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);
     const schemaPath = path.join(contract.root, INSTANTIATE_SCHEMA_RELATIVE_PATH);
 
     try {
       await this.schemaValidator.assertValidJSONSchema(schemaPath, instArgs);
-    } catch (error: Error | any) {
-      throw new InstantiateError(`the instantiate arguments do not match the schema: ${error.message}`);
+    } catch (error) {
+      throw new InstantiateError(`the instantiate arguments do not match the schema: ${getErrorMessage(error)}`);
     }
   }
 
@@ -258,15 +258,15 @@ export class Contracts {
    * @param executeArgs - Execute arguments to be validated
    * @returns Empty promise
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+
   async assertValidExecuteArgs(contractName: string, executeArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);
     const schemaPath = path.join(contract.root, EXECUTE_SCHEMA_RELATIVE_PATH);
 
     try {
       await this.schemaValidator.assertValidJSONSchema(schemaPath, executeArgs);
-    } catch (error: Error | any) {
-      throw new ExecuteError(`the message arguments do not match the schema: ${error.message}`);
+    } catch (error) {
+      throw new ExecuteError(`the message arguments do not match the schema: ${getErrorMessage(error)}`);
     }
   }
 
@@ -277,15 +277,15 @@ export class Contracts {
    * @param queryArgs - Query arguments to be validated
    * @returns Empty promise
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+
   async assertValidQueryArgs(contractName: string, queryArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);
     const schemaPath = path.join(contract.root, QUERY_SCHEMA_RELATIVE_PATH);
 
     try {
       await this.schemaValidator.assertValidJSONSchema(schemaPath, queryArgs);
-    } catch (error: Error | any) {
-      throw new QueryError(`the query arguments do not match the schema: ${error.message}`);
+    } catch (error) {
+      throw new QueryError(`the query arguments do not match the schema: ${getErrorMessage(error)}`);
     }
   }
 
@@ -296,15 +296,15 @@ export class Contracts {
    * @param migrateArgs - Migrate arguments to be validated
    * @returns Empty promise
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+
   async assertValidMigrateArgs(contractName: string, migrateArgs: any): Promise<void> {
     const contract = this.getContractByName(contractName);
     const schemaPath = path.join(contract.root, MIGRATE_SCHEMA_RELATIVE_PATH);
 
     try {
       await this.schemaValidator.assertValidJSONSchema(schemaPath, migrateArgs);
-    } catch (error: Error | any) {
-      throw new MigrateError(`the migrate arguments do not match the schema: ${error.message}`);
+    } catch (error) {
+      throw new MigrateError(`the migrate arguments do not match the schema: ${getErrorMessage(error)}`);
     }
   }
 
@@ -374,9 +374,9 @@ export class Contracts {
       const pastDeploy = item as InstantiateDeployment;
 
       return (
-        pastDeploy.contract.version === contract.version &&
-        pastDeploy.action === DeploymentAction.INSTANTIATE &&
-        pastDeploy.chainId === chainId
+        pastDeploy.contract.version === contract.version
+        && pastDeploy.action === DeploymentAction.INSTANTIATE
+        && pastDeploy.chainId === chainId
       );
     }) as InstantiateDeployment | undefined;
   }
@@ -389,16 +389,15 @@ export class Contracts {
    */
   getAllInstantiateDeployments(chainId: string): readonly InstantiateDeployment[] {
     const instantiatedDeployments = this.contracts.map(
-      contract =>
-        contract.deployments.find(item => {
-          const pastDeploy = item as InstantiateDeployment;
+      contract => contract.deployments.find(item => {
+        const pastDeploy = item as InstantiateDeployment;
 
-          return (
-            pastDeploy.contract.version === contract.version &&
-            pastDeploy.action === DeploymentAction.INSTANTIATE &&
-            pastDeploy.chainId === chainId
-          );
-        }) as InstantiateDeployment | undefined
+        return (
+          pastDeploy.contract.version === contract.version
+          && pastDeploy.action === DeploymentAction.INSTANTIATE
+          && pastDeploy.chainId === chainId
+        );
+      }) as InstantiateDeployment | undefined
     );
 
     return instantiatedDeployments.filter(item => item !== undefined) as InstantiateDeployment[];
@@ -408,19 +407,21 @@ export class Contracts {
    * Query the balance of contracts
    *
    * @param client - Stargate client to use when querying
-   * @param instantiateDeployements - An array of instances of {@link InstantiateDeployment} to query
+   * @param instantiatedDeployments - An array of instances of {@link InstantiateDeployment} to query
    * @returns Promise containing the balances result
    */
-  async queryAllBalances(client: StargateClient, instantiatedDeployments: readonly InstantiateDeployment[]): Promise<AccountBalancesJSON[]> {
+  async queryAllBalances(client: StargateClient, instantiatedDeployments: readonly InstantiateDeployment[]): Promise<AccountBalances[]> {
     const balances = await Promise.all(instantiatedDeployments.map(item => client.getAllBalances(item.contract.address)));
 
-    return instantiatedDeployments.map((item, index) => ({
-      account: {
-        name: item.contract.name,
-        address: item.contract.address,
-        balances: balances[index],
-      },
-    }));
+    return instantiatedDeployments.map((item, index) => {
+      return {
+        account: {
+          name: item.contract.name,
+          address: item.contract.address,
+          balances: balances[index],
+        },
+      };
+    });
   }
 
   /**
@@ -429,7 +430,7 @@ export class Contracts {
    * @param balance - Contract balance data
    * @returns Formatted contract address balance
    */
-  static prettyPrintBalances(balance: AccountBalancesJSON): string {
+  static prettyPrintBalances(balance: AccountBalances): string {
     return `Balances for contract ${greenBright(balance.account.name)} (${green(balance.account.address)})\n\n${prettyPrintBalancesList(
       balance.account.balances
     )}`;
@@ -447,9 +448,6 @@ class ContractNameNotFoundError extends ConsoleError {
     super(ErrorCodes.CONTRACT_NAME_NOT_FOUND);
   }
 
-  /**
-   * {@inheritDoc ConsoleError.toConsoleString}
-   */
   toConsoleString(): string {
     return `${redBright('Contract with name')} ${bold(this.contractName)} ${redBright('not found')}`;
   }
@@ -467,9 +465,6 @@ class InvalidWorkspaceError extends ConsoleError {
     super(ErrorCodes.INVALID_WORKSPACE_ERROR);
   }
 
-  /**
-   * {@inheritDoc ConsoleError.toConsoleString}
-   */
   toConsoleString(): string {
     return `${redBright('Invalid cargo file')} ${bold(this.cargoFilePath)} ${redBright(
       ' please make sure it is a workspace and that'

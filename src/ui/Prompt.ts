@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { Answers, Options, PromptObject, inject, override, prompt, prompts } from 'prompts';
+import { Answers, Options, PromptObject, prompt, } from 'prompts';
 
 import { ConsoleError, ErrorCodes } from '@/exceptions';
 import { yellow } from '@/utils';
@@ -11,9 +11,7 @@ import { yellow } from '@/utils';
  * @param options - Optional - Prompt options
  * @returns Promise containing the values that were input by the user
  */
-export const showPrompt = async (questions: PromptObject | PromptObject[], options?: Options): Promise<Answers<any>> => {
-  return prompt(questions, { onSubmit: options?.onSubmit || _.noop, onCancel: options?.onCancel || onCancel });
-};
+export const showPrompt = async (questions: PromptObject | PromptObject[], options?: Options): Promise<Answers<any>> => prompt(questions, { onSubmit: options?.onSubmit || _.noop, onCancel: options?.onCancel || onCancel });
 
 /**
  * Handle user canceling the prompt
@@ -38,4 +36,4 @@ export class PromptCanceledError extends ConsoleError {
   }
 }
 
-export { inject, override, prompts };
+export { inject, override, prompts } from 'prompts';

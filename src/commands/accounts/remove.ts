@@ -39,7 +39,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
    */
   public async run(): Promise<AccountBase> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
     const account = accountsDomain.getAccountBase(this.args.account!);
 
     this.warning(
@@ -50,7 +50,7 @@ export default class AccountsRemove extends BaseCommand<typeof AccountsRemove> {
 
     await Prompts.askForConfirmation(this.flags['no-confirm']);
 
-    await accountsDomain.remove(account);
+    accountsDomain.remove(account);
 
     this.success(`${green('Account')} ${bold.green(account.name)} ${green('deleted')}`);
 

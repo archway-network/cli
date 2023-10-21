@@ -53,7 +53,7 @@ export default class ConfigKeyringPath extends BaseCommand<typeof ConfigKeyringP
   public async run(): Promise<void> {
     const configFile = await Config.init();
 
-    const global = this.flags.global;
+    const { global } = this.flags;
     const keyringPath = this.args['keyring-path'];
 
     if (keyringPath) {
@@ -64,13 +64,17 @@ export default class ConfigKeyringPath extends BaseCommand<typeof ConfigKeyringP
       const currentValue = global ? configFile.globalData['keyring-path'] : configFile.localData['keyring-path'];
       this.log(greenBright(currentValue || `Empty, defaults to: ${reset.bold(DEFAULT_CONFIG_DATA['keyring-path'])}`));
 
-      if (this.jsonEnabled()) this.logJson({ 'keyring-path': currentValue || '' });
+      if (this.jsonEnabled()) {
+        this.logJson({ 'keyring-path': currentValue || '' });
+      }
     }
   }
 
   protected async successMessage(keyringPath: string, global: boolean): Promise<void> {
     this.success(`${greenBright(`Updated keyring-path ${global ? 'global' : 'local'} config to`)} ${bold(keyringPath)}`);
 
-    if (this.jsonEnabled()) this.logJson({ 'keyring-path': keyringPath });
+    if (this.jsonEnabled()) {
+      this.logJson({ 'keyring-path': keyringPath });
+    }
   }
 }

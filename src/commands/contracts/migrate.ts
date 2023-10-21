@@ -1,16 +1,16 @@
-import { Args, Flags } from '@oclif/core';
-import { MigrateResult } from '@cosmjs/cosmwasm-stargate';
 import fs from 'node:fs/promises';
 
+import { MigrateResult } from '@cosmjs/cosmwasm-stargate';
+import { Args, Flags } from '@oclif/core';
+
+import { Accounts, Config } from '@/domain';
+import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
-import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright, isValidAddress, dim } from '@/utils';
-import { showDisappearingSpinner } from '@/ui';
 import { KeyringFlags, NoValidationFlag, TransactionFlags } from '@/parameters/flags';
-import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
-
 import { Account, Contract, DeploymentAction, InstantiateDeployment, MigrateDeployment } from '@/types';
+import { showDisappearingSpinner } from '@/ui';
+import { blueBright, buildStdFee, dim, greenBright, isValidAddress } from '@/utils';
 
 /**
  * Command 'contracts migrate'
@@ -65,15 +65,15 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
   public async run(): Promise<MigrateResult> {
     // Validate that we only get migration message args from one source of all 3 possible inputs
     if (
-      (this.flags['args-file'] && this.args.stdinInput) ||
-      (this.flags['args-file'] && this.flags.args) ||
-      (this.flags.args && this.args.stdinInput)
+      (this.flags['args-file'] && this.args.stdinInput)
+      || (this.flags['args-file'] && this.flags.args)
+      || (this.flags.args && this.args.stdinInput)
     ) {
       throw new OnlyOneArgSourceError('Migration message');
     }
 
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
@@ -83,10 +83,10 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
     let instantiateDeployment: InstantiateDeployment | undefined;
 
     // Parse migrate message (if exists)
-    const migrationMessage =
-      this.args.stdinInput || this.flags.args || this.flags['args-file'] ?
-        JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf-8'))) :
-        {};
+    const migrationMessage
+      = this.args.stdinInput || this.flags.args || this.flags['args-file']
+        ? JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf8')))
+        : {};
 
     if (isValidAddress(this.args.contract!)) {
       contractAddress = this.args.contract!;
@@ -97,7 +97,9 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
 
       instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
 
-      if (!instantiateDeployment) throw new NotFoundError('Instantiated deployment with a contract address');
+      if (!instantiateDeployment) {
+        throw new NotFoundError('Instantiated deployment with a contract address');
+      }
 
       contractAddress = instantiateDeployment.contract.address;
 
@@ -114,7 +116,7 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
       return signingClient.migrate(
         from.account.address,
         contractAddress,
-        this.flags.code!,
+        this.flags.code,
         migrationMessage,
         buildStdFee(this.flags.fee?.coin)
       );
@@ -124,7 +126,7 @@ export default class ContractsMigrate extends BaseCommand<typeof ContractsMigrat
       await config.deploymentsInstance.addDeployment(
         {
           action: DeploymentAction.MIGRATE,
-          txhash: result!.transactionHash,
+          txhash: result.transactionHash,
           wasm: {
             codeId: this.flags.code,
           },

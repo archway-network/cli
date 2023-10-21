@@ -1,9 +1,8 @@
 import { Flags } from '@oclif/core';
 
-import { BaseCommand } from '@/lib/base';
 import { Contracts, Deployments } from '@/domain';
+import { BaseCommand } from '@/lib/base';
 import { ChainOptionalFlag } from '@/parameters/flags';
-
 import { DeploymentAction } from '@/types';
 
 /**

@@ -20,7 +20,9 @@ export const readFilesFromDirectory = async (directoryPath: string, extension?: 
   // Filter files only, exclude directories
   filesList = filesList.filter(item => item.isFile());
 
-  if (extension) filesList = filesList.filter(item => path.extname(item.name) === extension);
+  if (extension) {
+    filesList = filesList.filter(item => path.extname(item.name) === extension);
+  }
 
   const dataRead = await Promise.all<string>(filesList.map(item => fs.readFile(path.join(directoryPath, item.name), 'utf8')));
   const result: Record<string, any> = {};
@@ -59,7 +61,7 @@ export const readSubDirectories = async (directoryPath: string): Promise<string[
  * @param data - Data to be written into the file
  * @returns Empty promise
  */
-export const writeFileWithDir = async (filePath: string, data: string | NodeJS.ArrayBufferView | Iterable<string | NodeJS.ArrayBufferView> | AsyncIterable<string | NodeJS.ArrayBufferView> | Stream): Promise<void> => {
+export const writeFileWithDir = async (filePath: string, data: AsyncIterable<NodeJS.ArrayBufferView | string> | Iterable<NodeJS.ArrayBufferView | string> | NodeJS.ArrayBufferView | Stream | string): Promise<void> => {
   const dirPath = path.dirname(filePath);
 
   let dirExists = true;

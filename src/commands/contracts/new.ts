@@ -1,9 +1,9 @@
+import { Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameOptionalArg } from '@/parameters/arguments';
 import { TemplateOptionalFlag } from '@/parameters/flags';
-import { Config } from '@/domain';
-import { dim, green, greenBright } from '@/utils';
 import { Prompts } from '@/services';
+import { dim, green, greenBright } from '@/utils';
 
 /**
  * Command 'contracts new'
@@ -62,6 +62,8 @@ export default class ContractsNew extends BaseCommand<typeof ContractsNew> {
   protected async successMessage(contractName: string, template: string): Promise<void> {
     this.success(`${green('Contract')} ${greenBright(contractName)} ${green('created from template')} ${greenBright(template)}`);
 
-    if (this.jsonEnabled()) this.logJson({ name: contractName, template });
+    if (this.jsonEnabled()) {
+      this.logJson({ name: contractName, template });
+    }
   }
 }

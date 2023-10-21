@@ -1,9 +1,10 @@
-import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
-import { StargateClient } from '@cosmjs/stargate';
-import _ from 'lodash';
 import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+
+import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
+import { StargateClient } from '@cosmjs/stargate';
+import _ from 'lodash';
 import ow from 'ow';
 
 import { ChainRegistry, Contracts, Deployments } from '@/domain';
@@ -45,9 +46,9 @@ export const DEFAULT_GAS_ADJUSTMENT = 1.3;
  * Manages the config file of the project and creates instances of ChainRegistry and Contracts
  */
 export class Config {
-  private _workspaceRoot: string;
-  private _contracts: Contracts;
-  private _chainRegistry: ChainRegistry;
+  private readonly _workspaceRoot: string;
+  private readonly _contracts: Contracts;
+  private readonly _chainRegistry: ChainRegistry;
   private _globalConfigData: ConfigData;
   private _localConfigData: ConfigData;
 
@@ -264,7 +265,9 @@ export class Config {
    * @returns void
    */
   static assertIsValidConfigData = (data: unknown, name?: string): void => {
-    if (!this.isValidConfigData(data)) throw new InvalidFormatError(name || 'Config file');
+    if (!this.isValidConfigData(data)) {
+      throw new InvalidFormatError(name || 'Config file');
+    }
   };
 
   /**
@@ -273,9 +276,7 @@ export class Config {
    * @param data - Object instance to validate
    * @returns Boolean, whether it is valid or not
    */
-  static isValidConfigData = (data: unknown): boolean => {
-    return ow.isValid(data, configDataValidator);
-  };
+  static isValidConfigData = (data: unknown): boolean => ow.isValid(data, configDataValidator);
 
   /**
    * Write the data of the {@link Config} instance into the local or global config file
@@ -317,7 +318,9 @@ export class Config {
   async activeChainInfo(): Promise<CosmosChain> {
     const result = this._chainRegistry.getChainById(this.chainId);
 
-    if (!result) throw new NotFoundError("Chain in the project's configuration", this.chainId);
+    if (!result) {
+      throw new NotFoundError("Chain in the project's configuration", this.chainId);
+    }
 
     return result;
   }
@@ -331,7 +334,9 @@ export class Config {
   async activeChainRpcEndpoint(chainInfo?: CosmosChain): Promise<string> {
     const auxInfo = chainInfo || (await this.activeChainInfo());
 
-    if (!auxInfo.apis?.rpc?.[0]?.address) throw new NotFoundError('Rpc endpoint for chain', this.chainId);
+    if (!auxInfo.apis?.rpc?.[0]?.address) {
+      throw new NotFoundError('Rpc endpoint for chain', this.chainId);
+    }
 
     return auxInfo.apis.rpc[0].address;
   }
@@ -387,12 +392,12 @@ export class Config {
     }
 
     return (
-      `${bold('Chain id: ')}${this.chainId}\n` +
-      `${bold('Contracts path: ')}${this.contractsPath}\n` +
-      `${bold('Keyring backend: ')}${this.keyringBackend}\n` +
-      `${bold('Keyring files path: ')}${this.keyringPath}\n` +
-      (this.defaultAccount ? `${bold('Default account: ')}${this.defaultAccount}\n` : '') +
-      contractsStatus
+      `${bold('Chain id: ')}${this.chainId}\n`
+      + `${bold('Contracts path: ')}${this.contractsPath}\n`
+      + `${bold('Keyring backend: ')}${this.keyringBackend}\n`
+      + `${bold('Keyring files path: ')}${this.keyringPath}\n`
+      + (this.defaultAccount ? `${bold('Default account: ')}${this.defaultAccount}\n` : '')
+      + contractsStatus
     );
   }
 

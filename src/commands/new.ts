@@ -1,10 +1,10 @@
 import { Args, Flags } from '@oclif/core';
 import { spawn } from 'promisify-child-process';
 
+import { NewProject as NewProjectDomain, ProjectType } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ChainOptionalFlag } from '@/parameters/flags';
 import { Prompts } from '@/services';
-import { NewProject as NewProjectDomain, ProjectType } from '@/domain';
 import { dim, green, greenBright, sanitizeDirName } from '@/utils';
 
 /**
@@ -95,6 +95,8 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
       `${green('Project')} ${greenBright(projectName)} ${green('created and configured for the chain')} ${greenBright(chainId)}`
     );
 
-    if (this.jsonEnabled()) this.logJson({ name: projectName, 'chain-id': chainId });
+    if (this.jsonEnabled()) {
+      this.logJson({ name: projectName, 'chain-id': chainId });
+    }
   }
 }

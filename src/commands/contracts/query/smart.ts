@@ -1,14 +1,15 @@
-import { Args, Flags } from '@oclif/core';
-import { JsonObject } from '@cosmjs/cosmwasm-stargate';
 import fs from 'node:fs/promises';
 
+import { JsonObject } from '@cosmjs/cosmwasm-stargate';
+import { Args, Flags } from '@oclif/core';
+
+import { Config } from '@/domain';
+import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
-import { Config } from '@/domain';
-import { showDisappearingSpinner } from '@/ui';
-import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
-import { dim } from '@/utils';
 import { NoValidationFlag } from '@/parameters/flags';
+import { showDisappearingSpinner } from '@/ui';
+import { dim } from '@/utils';
 
 /**
  * Command 'contracts query smart'
@@ -56,9 +57,9 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
   public async run(): Promise<JsonObject> {
     // Validate that we only get migration message args from one source of all 3 possible inputs
     if (
-      (this.flags['args-file'] && this.args.stdinInput) ||
-      (this.flags['args-file'] && this.flags.args) ||
-      (this.flags.args && this.args.stdinInput)
+      (this.flags['args-file'] && this.args.stdinInput)
+      || (this.flags['args-file'] && this.flags.args)
+      || (this.flags.args && this.args.stdinInput)
     ) {
       throw new OnlyOneArgSourceError('Migration message');
     } else if (!this.flags['args-file'] && !this.args.stdinInput && !this.flags.args) {
@@ -72,11 +73,13 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
 
     const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
 
-    if (!instantiated) throw new NotFoundError('Instantiated deployment with a contract address');
+    if (!instantiated) {
+      throw new NotFoundError('Instantiated deployment with a contract address');
+    }
 
     const contractAddress = instantiated.contract.address;
 
-    const queryMsg = JSON.parse(this.args.stdinInput || this.flags.args ||  (await fs.readFile(this.flags['args-file']!, 'utf-8')));
+    const queryMsg = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf8')));
 
     if (!this.flags['no-validation']) {
       await config.contractsInstance.assertValidQueryArgs(contract.name, queryMsg);

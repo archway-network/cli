@@ -1,6 +1,7 @@
-import { Hook } from '@oclif/core';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+
+import { Hook } from '@oclif/core';
 import { spawn } from 'promisify-child-process';
 import semver from 'semver';
 

@@ -1,5 +1,6 @@
-import { ExtendedHdPath } from '@/types';
 import { Flags } from '@oclif/core';
+
+import { ExtendedHdPath } from '@/types';
 
 export namespace CustomFlags {
   /**

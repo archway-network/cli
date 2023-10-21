@@ -1,8 +1,9 @@
-import { ChainRegistry, Config } from '@/domain';
-import { BaseCommand } from '@/lib/base';
 import { ux } from '@oclif/core';
 
-export type ChainData = Record<string, string | number | boolean>;
+import { ChainRegistry, Config } from '@/domain';
+import { BaseCommand } from '@/lib/base';
+
+export type ChainData = Record<string, boolean | number | string>;
 
 /**
  * Command 'config chains list'
@@ -13,7 +14,7 @@ export default class ConfigChainsList extends BaseCommand<typeof ConfigChainsLis
 
   static flags = {
     ...ux.table.flags({ except: ['csv', 'output'] }),
-  }
+  };
 
   /**
    * Runs the command.
@@ -24,7 +25,7 @@ export default class ConfigChainsList extends BaseCommand<typeof ConfigChainsLis
     const config = await Config.init();
     const chainRegistry = await ChainRegistry.init();
 
-    const { flags } = await this.parse(ConfigChainsList)
+    const { flags } = await this.parse(ConfigChainsList);
 
     const chainsData = chainRegistry.chains.map(chain => {
       const {
@@ -41,12 +42,12 @@ export default class ConfigChainsList extends BaseCommand<typeof ConfigChainsLis
         chainName: prettyName || chainName,
         feeDenom,
         rpcUrl
-      }
+      };
     });
 
     if (!this.jsonEnabled()) {
       if (chainRegistry.warnings) {
-        this.warning(chainRegistry.prettyPrintWarnings(this.args.chain))
+        this.warning(chainRegistry.prettyPrintWarnings(this.args.chain));
       }
 
       ux.table(chainsData, {

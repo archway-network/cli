@@ -1,15 +1,14 @@
-import { Flags } from '@oclif/core';
 import { SetContractMetadataResult } from '@archwayhq/arch3.js';
+import { Flags } from '@oclif/core';
 
+import { Accounts, Config } from '@/domain';
+import { NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
-import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright, isValidAddress } from '@/utils';
-import { showDisappearingSpinner } from '@/ui';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
-import { NotFoundError } from '@/exceptions';
-
 import { Account, Contract, DeploymentAction, InstantiateDeployment, MetadataDeployment } from '@/types';
+import { showDisappearingSpinner } from '@/ui';
+import { blueBright, buildStdFee, greenBright, isValidAddress } from '@/utils';
 
 /**
  * Command 'contracts metadata'
@@ -54,16 +53,16 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
     }
 
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    const ownerAddress = this.flags['owner-address'] ?
-      (await accountsDomain.accountBaseFromAddress(this.flags['owner-address'])).address :
-      undefined;
-    const rewardsAddress = this.flags['rewards-address'] ?
-      (await accountsDomain.accountBaseFromAddress(this.flags['rewards-address'])).address :
-      undefined;
+    const ownerAddress = this.flags['owner-address']
+      ? (await accountsDomain.accountBaseFromAddress(this.flags['owner-address'])).address
+      : undefined;
+    const rewardsAddress = this.flags['rewards-address']
+      ? (await accountsDomain.accountBaseFromAddress(this.flags['rewards-address'])).address
+      : undefined;
 
     // Load contract info
     let contractAddress: string;
@@ -78,7 +77,9 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
       contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
       instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
 
-      if (!instantiateDeployment) throw new NotFoundError('Instantiated deployment with a contract address');
+      if (!instantiateDeployment) {
+        throw new NotFoundError('Instantiated deployment with a contract address');
+      }
 
       contractAddress = instantiateDeployment.contract.address;
     }
@@ -110,7 +111,7 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
       await config.deploymentsInstance.addDeployment(
         {
           action: DeploymentAction.METADATA,
-          txhash: result!.transactionHash,
+          txhash: result.transactionHash,
           wasm: {
             codeId: instantiateDeployment.wasm.codeId,
           },
@@ -120,13 +121,13 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
             address: contractAddress,
             admin: instantiateDeployment.contract.admin,
           },
-          metadata: result!.metadata,
+          metadata: result.metadata,
         } as MetadataDeployment,
         config.chainId
       );
     }
 
-    await this.successMessage(result!, contractInstance?.label || contractAddress, config);
+    await this.successMessage(result, contractInstance?.label || contractAddress, config);
   }
 
   // eslint-disable-next-line max-params
@@ -141,8 +142,14 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
     this.log(`Setting metadata for contract ${blueBright(contractName)}`);
     this.log(`  Chain: ${blueBright(config.chainId)}`);
     this.log(`  Contract: ${blueBright(contractAddress)}`);
-    if (rewardsAddress) this.log(`  Rewards: ${blueBright(rewardsAddress)}`);
-    if (ownerAddress) this.log(`  Owner: ${blueBright(ownerAddress)}`);
+    if (rewardsAddress) {
+      this.log(`  Rewards: ${blueBright(rewardsAddress)}`);
+    }
+
+    if (ownerAddress) {
+      this.log(`  Owner: ${blueBright(ownerAddress)}`);
+    }
+
     this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
   }
 

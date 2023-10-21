@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 /* eslint-disable camelcase */
 import ow from 'ow';
 
@@ -15,21 +16,21 @@ export abstract class ChainRegistrySpec {
  */
 export interface CosmosChain {
   $schema?: string;
-  chain_name: string;
-  chain_id: string;
-  pretty_name?: string;
-  website?: string;
-  update_link?: string;
-  status?: 'live' | 'upcoming' | 'killed';
-  network_type?: 'mainnet' | 'testnet' | 'devnet';
-  /**
-   * The default prefix for the human-readable part of addresses that identifies the coin type. Must be registered with SLIP-0173. E.g., 'cosmos'
-   */
-  bech32_prefix: string;
+  alternative_slip44s?: number[];
+  apis?: {
+    'evm-http-jsonrpc'?: Endpoint[];
+    grpc?: Endpoint[];
+    'grpc-web'?: Endpoint[];
+    rest?: Endpoint[];
+    rpc?: Endpoint[];
+    wss?: Endpoint[];
+  };
   /**
    * Used to override the bech32_prefix for specific uses.
    */
   bech32_config?: {
+    [k: string]: unknown;
+    additionalProperties?: false;
     /**
      * e.g., 'cosmos'
      */
@@ -39,14 +40,6 @@ export interface CosmosChain {
      */
     bech32PrefixAccPub?: string;
     /**
-     * e.g., 'cosmosvaloper'
-     */
-    bech32PrefixValAddr?: string;
-    /**
-     * e.g., 'cosmosvaloperpub'
-     */
-    bech32PrefixValPub?: string;
-    /**
      * e.g., 'cosmosvalcons'
      */
     bech32PrefixConsAddr?: string;
@@ -54,20 +47,102 @@ export interface CosmosChain {
      * e.g., 'cosmosvalconspub'
      */
     bech32PrefixConsPub?: string;
-    additionalProperties?: false;
+    /**
+     * e.g., 'cosmosvaloper'
+     */
+    bech32PrefixValAddr?: string;
+    /**
+     * e.g., 'cosmosvaloperpub'
+     */
+    bech32PrefixValPub?: string;
     minProperties?: 1;
-    [k: string]: unknown;
+  };
+  /**
+   * The default prefix for the human-readable part of addresses that identifies the coin type. Must be registered with SLIP-0173. E.g., 'cosmos'
+   */
+  bech32_prefix: string;
+  chain_id: string;
+  chain_name: string;
+  codebase?: {
+    binaries?: {
+      'darwin/amd64'?: string;
+      'darwin/arm64'?: string;
+      'linux/amd64'?: string;
+      'linux/arm64'?: string;
+      'windows/amd64'?: string;
+    };
+    compatible_versions?: string[];
+    cosmos_sdk_version?: string;
+    cosmwasm_enabled?: boolean;
+    cosmwasm_version?: string;
+    genesis?: {
+      genesis_url: string;
+      name?: string;
+    };
+    git_repo?: string;
+    ibc_go_version?: string;
+    /**
+     * List of IBC apps (usually corresponding to a ICS standard) which have been enabled on the network.
+     */
+    ics_enabled?: Array<'ics20-1' | 'ics27-1' | 'mauth'>;
+    recommended_version?: string;
+    tendermint_version?: string;
+    versions?: Array<{
+      /**
+       * Block Height
+       */
+      height?: number;
+      /**
+       * Official Upgrade Name
+       */
+      name: string;
+      /**
+       * [Optional] Name of the following version
+       */
+      next_version_name?: string;
+      /**
+       * Git Upgrade Tag
+       */
+      tag?: string;
+    }>;
   };
   daemon_name?: string;
-  node_home?: string;
-  key_algos?: ('secp256k1' | 'ethsecp256k1' | 'ed25519' | 'sr25519')[];
-  slip44?: number;
-  alternative_slip44s?: number[];
+  explorers?: Explorer[];
+  extra_codecs?: Array<'ethermint' | 'injective'>;
   fees?: {
     fee_tokens: FeeToken[];
   };
+  images?: [
+    {
+      png?: string;
+      svg?: string;
+      theme?: {
+        primary_color_hex?: string;
+      };
+    },
+    ...Array<{
+      png?: string;
+      svg?: string;
+      theme?: {
+        primary_color_hex?: string;
+      };
+    }>
+  ];
+  key_algos?: Array<'ed25519' | 'ethsecp256k1' | 'secp256k1' | 'sr25519'>;
+  keywords?: string[];
+  logo_URIs?: {
+    png?: string;
+    svg?: string;
+  };
+  network_type?: 'devnet' | 'mainnet' | 'testnet';
+  node_home?: string;
+  peers?: {
+    persistent_peers?: Peer[];
+    seeds?: Peer[];
+  };
+  pretty_name?: string;
+  slip44?: number;
   staking?: {
-    staking_tokens: StakingToken[];
     lock_duration?: {
       /**
        * The number of blocks for which the staked tokens are locked.
@@ -78,100 +153,26 @@ export interface CosmosChain {
        */
       time?: string;
     };
+    staking_tokens: StakingToken[];
   };
-  codebase?: {
-    git_repo?: string;
-    recommended_version?: string;
-    compatible_versions?: string[];
-    binaries?: {
-      'linux/amd64'?: string;
-      'linux/arm64'?: string;
-      'darwin/amd64'?: string;
-      'darwin/arm64'?: string;
-      'windows/amd64'?: string;
-    };
-    genesis?: {
-      name?: string;
-      genesis_url: string;
-    };
-    cosmos_sdk_version?: string;
-    tendermint_version?: string;
-    cosmwasm_version?: string;
-    cosmwasm_enabled?: boolean;
-    ibc_go_version?: string;
-    /**
-     * List of IBC apps (usually corresponding to a ICS standard) which have been enabled on the network.
-     */
-    ics_enabled?: ('ics20-1' | 'ics27-1' | 'mauth')[];
-    versions?: {
-      /**
-       * Official Upgrade Name
-       */
-      name: string;
-      /**
-       * Git Upgrade Tag
-       */
-      tag?: string;
-      /**
-       * Block Height
-       */
-      height?: number;
-      /**
-       * [Optional] Name of the following version
-       */
-      next_version_name?: string;
-    }[];
-  };
-  images?: [
-    {
-      png?: string;
-      svg?: string;
-      theme?: {
-        primary_color_hex?: string;
-      };
-    },
-    ...{
-      png?: string;
-      svg?: string;
-      theme?: {
-        primary_color_hex?: string;
-      };
-    }[]
-  ];
-  logo_URIs?: {
-    png?: string;
-    svg?: string;
-  };
-  peers?: {
-    seeds?: Peer[];
-    persistent_peers?: Peer[];
-  };
-  apis?: {
-    rpc?: Endpoint[];
-    rest?: Endpoint[];
-    grpc?: Endpoint[];
-    wss?: Endpoint[];
-    'grpc-web'?: Endpoint[];
-    'evm-http-jsonrpc'?: Endpoint[];
-  };
-  explorers?: Explorer[];
-  keywords?: string[];
-  extra_codecs?: ('ethermint' | 'injective')[];
+  status?: 'killed' | 'live' | 'upcoming';
+  update_link?: string;
+  website?: string;
 }
 
 /**
  * Fee token information
  */
 export interface FeeToken {
+  average_gas_price?: number;
   denom: string;
   fixed_min_gas_price?: number;
-  low_gas_price?: number;
-  average_gas_price?: number;
-  high_gas_price?: number;
   gas_costs?: {
     cosmos_send?: number;
     ibc_transfer?: number;
   };
+  high_gas_price?: number;
+  low_gas_price?: number;
 }
 
 /**
@@ -185,8 +186,8 @@ export interface StakingToken {
  * Peer data information
  */
 export interface Peer {
-  id: string;
   address: string;
+  id: string;
   provider?: string;
 }
 
@@ -195,18 +196,18 @@ export interface Peer {
  */
 export interface Endpoint {
   address: string;
-  provider?: string;
   archive?: boolean;
+  provider?: string;
 }
 
 /**
  * Block explorer information
  */
 export interface Explorer {
-  kind?: string;
-  url?: string;
-  tx_page?: string;
   account_page?: string;
+  kind?: string;
+  tx_page?: string;
+  url?: string;
 }
 
 /**

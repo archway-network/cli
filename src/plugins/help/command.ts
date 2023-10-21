@@ -4,28 +4,43 @@ import { compact } from 'lodash';
 import { dim, yellow } from '@/utils';
 
 export default class CustomCommandHelp extends CommandHelp {
-  protected args(args: Command.Arg.Any[]): [string, string | undefined][] | undefined {
-    if (args.filter(a => a.description).length === 0) return;
+  protected args(args: Command.Arg.Any[]): Array<[string, string | undefined]> | undefined {
+    if (args.filter(a => a.description).length === 0) {
+      return;
+    }
 
     return args
       .sort((a, b) => {
-        if (a.required === b.required) return 0;
+        if (a.required === b.required) {
+          return 0;
+        }
 
-        if (a.required) return 1;
+        if (a.required) {
+          return 1;
+        }
 
         return -1;
       })
       .map(a => {
         const name = a.name.toUpperCase();
         let description = a.description || '';
-        if (a.default) description = `[default: ${a.default}] ${description}`;
-        if (a.options) description = `(${a.options.join('|')}) ${description}`;
-        if (a.required) description = `(required) ${description}`;
+        if (a.default) {
+          description = `[default: ${a.default}] ${description}`;
+        }
+
+        if (a.options) {
+          description = `(${a.options.join('|')}) ${description}`;
+        }
+
+        if (a.required) {
+          description = `(required) ${description}`;
+        }
+
         return [name, description ? dim(description) : undefined];
       });
   }
 
-  protected sections(): Array<{ header: string; generate: HelpSectionRenderer }> {
+  protected sections(): Array<{ generate: HelpSectionRenderer; header: string }> {
     return [
       {
         header: this.opts.usageHeader || yellow('Usage:'),
@@ -55,15 +70,23 @@ export default class CustomCommandHelp extends CommandHelp {
           }
 
           const requiredFlagBody = this.flags(requiredFlags);
-          if (requiredFlagBody) flagSections.push({ header: `${yellow('REQUIRED')} ${header}`, body: requiredFlagBody });
+          if (requiredFlagBody) {
+            flagSections.push({ header: `${yellow('REQUIRED')} ${header}`, body: requiredFlagBody });
+          }
 
           const mainFlagBody = this.flags(otherFlags);
-          if (mainFlagBody) flagSections.push({ header, body: mainFlagBody });
+          if (mainFlagBody) {
+            flagSections.push({ header, body: mainFlagBody });
+          }
 
           const sortedFlagGroups = Object.keys(flagGroups).sort((a, b) => {
-            if (a === b) return 0;
+            if (a === b) {
+              return 0;
+            }
 
-            if (a === 'GLOBAL') return 1;
+            if (a === 'GLOBAL') {
+              return 1;
+            }
 
             return b === 'GLOBAL' ? -1 : (a > b ? 1 : -1);
           });
@@ -71,7 +94,9 @@ export default class CustomCommandHelp extends CommandHelp {
           for (const name of sortedFlagGroups) {
             const flags = flagGroups[name];
             const body = this.flags(flags);
-            if (body) flagSections.push({ header: `${yellow(name)} ${header}`, body });
+            if (body) {
+              flagSections.push({ header: `${yellow(name)} ${header}`, body });
+            }
           }
 
           return compact<HelpSection>(flagSections);

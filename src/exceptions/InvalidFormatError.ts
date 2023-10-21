@@ -25,10 +25,10 @@ export class InvalidFormatError extends ConsoleError {
     }
 
     const lines: string[] = [];
-    for (const [key, errors] of this.validationErrors!) {
+    for (const [key, errors] of this.validationErrors) {
       lines.push(`  - ${key}:`);
       for (const error of errors) {
-        lines.push(`    - ${error}`)
+        lines.push(`    - ${error}`);
       }
     }
 

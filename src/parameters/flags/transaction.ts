@@ -3,6 +3,7 @@ import { AlphabetLowercase } from '@oclif/core/lib/interfaces';
 
 import { Amount } from '@/types';
 import { parseAmount } from '@/utils';
+
 import { NoConfirmFlag } from './noConfirm';
 
 const FromDescription = 'Signer of the tx';
