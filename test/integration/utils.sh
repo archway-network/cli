@@ -3,7 +3,7 @@
 # Functions that are used in the end-to-end tests
 #
 
-if [[ "${DEBUG:-}" == "true" ]]; then
+if [[ "${DEBUG:-}" =~ (true|1|\*) ]]; then
   set -x
 fi
 
