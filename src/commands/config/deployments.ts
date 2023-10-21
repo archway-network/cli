@@ -3,7 +3,7 @@ import { Flags } from '@oclif/core';
 import { Contracts, Deployments } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ChainOptionalFlag } from '@/parameters/flags';
-import { DeploymentAction } from '@/types';
+import { DeploymentAction, DeploymentFile } from '@/types';
 
 /**
  * Command 'config deployments'
@@ -39,9 +39,9 @@ export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployme
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise with a {@link DeploymentFile}
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<DeploymentFile> {
     const deployments = await Deployments.init();
 
     // Should fail if contract flag is set and it doesn't exist in the registered Contracts
@@ -50,14 +50,8 @@ export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployme
       contracts.getContractByName(this.flags.contract);
     }
 
-    await this.successMessage(deployments);
-  }
-
-  protected async successMessage(deployments: Deployments): Promise<void> {
     this.log(await deployments.prettyPrint(this.flags.chain, this.flags.action as DeploymentAction, this.flags.contract));
 
-    if (this.jsonEnabled()) {
-      this.logJson(deployments.toSingleDeploymentFile(this.flags.chain, this.flags.action as DeploymentAction, this.flags.contract));
-    }
+    return deployments.toSingleDeploymentFile(this.flags.chain, this.flags.action as DeploymentAction, this.flags.contract);
   }
 }

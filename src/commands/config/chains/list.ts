@@ -45,11 +45,11 @@ export default class ConfigChainsList extends BaseCommand<typeof ConfigChainsLis
       };
     });
 
-    if (!this.jsonEnabled()) {
-      if (chainRegistry.warnings) {
-        this.warning(chainRegistry.prettyPrintWarnings(this.args.chain));
-      }
+    if (chainRegistry.warnings) {
+      this.warning(chainRegistry.prettyPrintWarnings(config.chainId));
+    }
 
+    if (!this.jsonEnabled()) {
       ux.table(chainsData, {
         current: {
           header: 'Current',

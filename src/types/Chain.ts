@@ -3,15 +3,6 @@
 import ow from 'ow';
 
 /**
- * Abstract definition to be used on ChainRegistry class
- */
-export abstract class ChainRegistrySpec {
-  abstract get chains(): CosmosChain[];
-
-  abstract import(chainInfo: CosmosChain): Promise<void>;
-}
-
-/**
  * Cosmos Chain contains meatadata information about a cosmos sdk based chain.
  */
 export interface CosmosChain {

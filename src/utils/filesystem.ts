@@ -1,4 +1,4 @@
-import { Dirent } from 'node:fs';
+import { Dirent, PathLike } from 'node:fs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { Stream } from 'node:stream';
@@ -6,53 +6,54 @@ import { Stream } from 'node:stream';
 /**
  * Read all the files in a directory, allows filtering by extension
  *
- * @param directoryPath - Path to the directory where we want to read files from
+ * @param dirPath - Path to the directory where we want to read files from
  * @param extension - Optional - file extension to filter the files
  * @returns Promise containing the data in the files as an array of strings
  */
-export const readFilesFromDirectory = async (directoryPath: string, extension?: string): Promise<Record<string, string>> => {
-  let filesList: Dirent[] = [];
+export async function readFilesFromDirectory(dirPath: PathLike, extension?: string): Promise<Record<string, string>> {
+  const matchesFileAndExtension = (item: Dirent): boolean => item.isFile()
+    && (!extension || path.extname(item.name) === extension);
 
-  try {
-    filesList = (await fs.readdir(directoryPath, { withFileTypes: true })) || [];
-  } catch {}
+  const filesList = await readdir(dirPath)
+    .then(files => files.filter(item => matchesFileAndExtension(item)));
 
-  // Filter files only, exclude directories
-  filesList = filesList.filter(item => item.isFile());
+  // Reads all files in parallel
+  const filesWithData = await Promise.all<string[]>(
+    filesList.map(
+      item => fs.readFile(
+        path.join(dirPath.toString(), item.name),
+        'utf8'
+      ).then(data => [item.name, data])
+    )
+  );
 
-  if (extension) {
-    filesList = filesList.filter(item => path.extname(item.name) === extension);
-  }
-
-  const dataRead = await Promise.all<string>(filesList.map(item => fs.readFile(path.join(directoryPath, item.name), 'utf8')));
-  const result: Record<string, any> = {};
-
-  for (const [index, item] of filesList.entries()) {
-    result[item.name] = dataRead[index];
-  }
-
-  return result;
-};
+  return Object.fromEntries(filesWithData.map(([name, data]) => [name, data]));
+}
 
 /**
  * Read all the names of subdirectories inside a directory
  *
- * @param directoryPath - Path to the directory where we want to read subdirectories from
+ * @param dirPath - Path to the directory where we want to read subdirectories from
  * @returns Promise containing an array of subdirectory names
  */
-export const readSubDirectories = async (directoryPath: string): Promise<string[]> => {
-  let directoriesList: Dirent[] = [];
-
-  try {
-    directoriesList = (await fs.readdir(directoryPath, { withFileTypes: true })) || [];
-  } catch {}
-
-  // Filter directories only
-  directoriesList = directoriesList.filter(item => item.isDirectory());
+export async function readSubDirectories(dirPath: PathLike): Promise<string[]> {
+  const dirList = await readdir(dirPath)
+    .then(files => files.filter(item => item.isDirectory()));
 
   // Return the names of the directories
-  return directoriesList.map(item => path.join(directoryPath, item.name));
-};
+  return dirList.map(item => path.join(dirPath.toString(), item.name));
+}
+
+async function readdir(dirPath: PathLike): Promise<Dirent[]> {
+  try {
+    const filesList = await fs.readdir(dirPath, { withFileTypes: true });
+    return filesList || [];
+  } catch {
+    return [];
+  }
+}
+
+export type FileData = AsyncIterable<NodeJS.ArrayBufferView | string> | Iterable<NodeJS.ArrayBufferView | string> | NodeJS.ArrayBufferView | Stream | string;
 
 /**
  * Writes a file to disk, creating directories in the path if they don't exist
@@ -61,35 +62,24 @@ export const readSubDirectories = async (directoryPath: string): Promise<string[
  * @param data - Data to be written into the file
  * @returns Empty promise
  */
-export const writeFileWithDir = async (filePath: string, data: AsyncIterable<NodeJS.ArrayBufferView | string> | Iterable<NodeJS.ArrayBufferView | string> | NodeJS.ArrayBufferView | Stream | string): Promise<void> => {
+export async function writeFileWithDir(filePath: string, data: FileData): Promise<void> {
   const dirPath = path.dirname(filePath);
-
-  let dirExists = true;
-
-  try {
-    await fs.access(dirPath);
-  } catch {
-    dirExists = false;
-  }
-
-  if (!dirExists) {
-    await fs.mkdir(dirPath, { recursive: true });
-  }
+  await fs.mkdir(dirPath, { recursive: true });
 
   return fs.writeFile(filePath, data);
-};
+}
 
 /**
- * Check if a chain file exists or not
+ * Check if a path exists or not
  *
- * @param path - Path of the file to verify
+ * @param pathLike - Path of the file to verify
  * @returns Promise containing true or false
  */
-export const fileExists = async (path: string): Promise<boolean> => {
+export async function pathExists(pathLike: PathLike): Promise<boolean> {
   try {
-    await fs.access(path);
+    await fs.access(pathLike);
     return true;
   } catch {
     return false;
   }
-};
+}
