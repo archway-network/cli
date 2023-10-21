@@ -52,7 +52,8 @@
   "scripts": {
     "run:bin": "node ./bin/run",
     "run:dev": "node ./bin/dev",
-    "build": "shx rm -rf dist && tsc -b && tsc-alias -p tsconfig.json",
+    "clean": "shx rm -rf ./dist",
+    "build": "yarn clean && tsc -b && tsc-alias -p tsconfig.json",
     "lint": "eslint --ext .js,.cjs,.ts --no-error-on-unmatched-pattern ./src",
     "postpack": "shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",

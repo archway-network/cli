@@ -8,6 +8,9 @@ import { ArchwayClientBuilder } from '@/services';
 import { AccountBalances, InstantiateDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 
+interface ContractsQuerySmartResult {
+  contracts: readonly AccountBalances[];
+}
 /**
  * Command 'contracts query balance'
  * Access the bank module to query the balance of smart contracts
@@ -41,7 +44,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
    *
    * @returns Promise containing a list of {@link AccountBalances}
    */
-  public async run(): Promise<readonly AccountBalances[]> {
+  public async run(): Promise<ContractsQuerySmartResult> {
     if (!this.args.contract && !this.flags.all) {
       throw new NotFoundError('Contract name or --all flag');
     }
@@ -64,7 +67,7 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
       this.log(`${Contracts.prettyPrintBalances(item)}`);
     }
 
-    return result;
+    return { contracts: result };
   }
 
   private getContractsToQuery(config: Config): readonly InstantiateDeployment[] {
