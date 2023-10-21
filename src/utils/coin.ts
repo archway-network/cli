@@ -1,8 +1,8 @@
 /* eslint-disable new-cap */
-import BigNumber from 'bignumber.js';
 
 import { Coin, parseCoins } from '@cosmjs/proto-signing';
 import { StdFee } from '@cosmjs/stargate';
+import { BigNumber } from 'bignumber.js';
 
 import { InvalidFormatError } from '@/exceptions';
 import { Amount } from '@/types';
@@ -23,7 +23,9 @@ export const DEFAULT_COIN_DENOM = 'ARCH';
 export const parseAmount = (value: string): Amount => {
   const parsed = parseCoins(value);
 
-  if (parsed.length !== 1) throw new InvalidFormatError('Amount');
+  if (parsed.length !== 1) {
+    throw new InvalidFormatError('Amount');
+  }
 
   const coin = parsed[0];
 
@@ -40,8 +42,10 @@ export const parseAmount = (value: string): Amount => {
  * @param gasPrice - Optional - Gas Price to calculate the limit (just amount, without denom)
  * @returns Instance of {@link StdFee} to be used as a transaction fee
  */
-export const buildStdFee = (coin?: Coin, gasPrice: string | number = DEFAULT_GAS_PRICE_AMOUNT): StdFee | 'auto' => {
-  if (!coin) return 'auto';
+export const buildStdFee = (coin?: Coin, gasPrice: number | string = DEFAULT_GAS_PRICE_AMOUNT): 'auto' | StdFee => {
+  if (!coin) {
+    return 'auto';
+  }
 
   const gasLimit = BigNumber(coin.amount).div(gasPrice);
 
@@ -59,16 +63,16 @@ export const buildStdFee = (coin?: Coin, gasPrice: string | number = DEFAULT_GAS
  * @param removeTrailingZeroes - Optional - Boolean, whether keep trailing zeroes after rounding decimals, or not
  * @returns String representing the formatted number
  */
-export const formatNumber = (val: number | string | BigNumber, decimals?: number, removeTrailingZeroes = true): string => {
+export const formatNumber = (val: BigNumber | number | string, decimals?: number, removeTrailingZeroes = true): string => {
   // Get formatted Number
   const formatted = BigNumber(val).toFormat(decimals);
-  return removeTrailingZeroes ?
-    formatted
-    // Remove trailing zeroes
+  return removeTrailingZeroes
+    ? formatted
+      // Remove trailing zeroes
       .replace(/(\.\d*?)0*$/, '$1')
-    // If only dot is left at the end, remove it
-      .replace(/\.$/, '') :
-    formatted;
+      // If only dot is left at the end, remove it
+      .replace(/\.$/, '')
+    : formatted;
 };
 
 /**
@@ -79,7 +83,7 @@ export const formatNumber = (val: number | string | BigNumber, decimals?: number
  * @returns Pretty formatted string
  */
 export const prettyPrintCoin = (value: Coin): string => {
-  const coinInfo: Record<string, { denom: string; decimals: number }> = {
+  const coinInfo: Record<string, { decimals: number; denom: string }> = {
     aarch: {
       denom: 'ARCH',
       decimals: 18,
@@ -104,11 +108,15 @@ export const prettyPrintCoin = (value: Coin): string => {
  * Pretty prints a list of balances
  * If it is a known minimal denom, includes both the human readable amount, and the minimal denom amount.
  *
- * @param value - Array of {@link Coin} to be displayed
+ * @param balances - Array of {@link Coin} to be displayed
+ * @param emptyMessage - Optional - Message to be displayed if the list is empty
  * @returns Pretty formatted string
  */
 export function prettyPrintBalancesList(balances: readonly Coin[], emptyMessage = 'Empty balance'): string {
-  if (balances.length === 0) return `- ${yellow(emptyMessage)}`;
+  if (balances.length === 0) {
+    return yellow(emptyMessage);
+  }
+
   // eslint-disable-next-line unicorn/no-array-reduce
   return balances.reduce((previous, current) => `${previous}- ${greenBright(prettyPrintCoin(current))}\n`, '');
 }

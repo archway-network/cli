@@ -84,7 +84,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       await Prompts.askForConfirmation(this.flags['no-confirm']);
     }
 
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
@@ -105,7 +105,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       return signingClient.upload(from.account.address, wasmCode, buildStdFee(this.flags.fee?.coin), undefined, {
         permission:
           AccessType[
-            InstantiatePermission[this.flags['instantiate-permission'] as keyof typeof InstantiatePermission] as keyof typeof AccessType
+          InstantiatePermission[this.flags['instantiate-permission'] as keyof typeof InstantiatePermission] as keyof typeof AccessType
           ],
         address: '', // Deprecated param, replaced with addresses
         addresses: allowedAddresses,
@@ -115,10 +115,10 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
     await config.deploymentsInstance.addDeployment(
       {
         action: DeploymentAction.STORE,
-        txhash: result!.transactionHash,
+        txhash: result.transactionHash,
         wasm: {
-          codeId: result!.codeId,
-          checksum: result!.checksum,
+          codeId: result.codeId,
+          checksum: result.checksum,
         },
         contract: {
           name: contract.name,

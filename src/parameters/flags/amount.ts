@@ -1,8 +1,7 @@
 import { Flags } from '@oclif/core';
 
-import { parseAmount } from '@/utils';
-
 import { Amount } from '@/types';
+import { parseAmount } from '@/utils';
 
 const AmountFlagDescription = 'Token amount';
 

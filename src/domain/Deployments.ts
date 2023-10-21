@@ -1,11 +1,9 @@
 import path from 'node:path';
+
 import ow from 'ow';
 
 import { ChainRegistry, DeploymentsByChain } from '@/domain';
 import { InvalidFormatError } from '@/exceptions';
-import { bold, getWorkspaceRoot, readFilesFromDirectory } from '@/utils';
-import { LOCAL_CONFIG_PATH } from './Config';
-
 import {
   CargoProjectMetadata,
   Contract,
@@ -15,6 +13,9 @@ import {
   DeploymentWithChain,
   deploymentFileValidator,
 } from '@/types';
+import { bold, getWorkspaceRoot, readFilesFromDirectory } from '@/utils';
+
+import { LOCAL_CONFIG_PATH } from './Config';
 
 export const DEPLOYMENTS_FILE_EXTENSION = '.json';
 export const NO_DEPLOYMENTS_MESSAGE = 'No deployments found';
@@ -23,8 +24,8 @@ export const NO_DEPLOYMENTS_MESSAGE = 'No deployments found';
  * Manages the deployments in the project
  */
 export class Deployments {
-  private _data: DeploymentsByChain[];
-  private _deploymentsRoot: string;
+  private readonly _data: DeploymentsByChain[];
+  private readonly _deploymentsRoot: string;
 
   /**
    * @param data - Array of {@link DeploymentsByChain}
@@ -90,7 +91,9 @@ export class Deployments {
    * @returns void
    */
   static assertIsValidDeploymentFile = (data: unknown, name?: string): void => {
-    if (!this.isValidDeploymentFile(data)) throw new InvalidFormatError(name || 'Deployment file');
+    if (!this.isValidDeploymentFile(data)) {
+      throw new InvalidFormatError(name || 'Deployment file');
+    }
   };
 
   /**
@@ -99,9 +102,7 @@ export class Deployments {
    * @param data - Object instance to validate
    * @returns Boolean, whether it is valid or not
    */
-  static isValidDeploymentFile = (data: unknown): boolean => {
-    return ow.isValid(data, deploymentFileValidator);
-  };
+  static isValidDeploymentFile = (data: unknown): boolean => ow.isValid(data, deploymentFileValidator);
 
   /**
    * Return the list of all deployments
@@ -188,7 +189,9 @@ export class Deployments {
     let result: DeploymentWithChain[] = [];
 
     for (const item of filtered) {
-      result = [...result, ...item.data.deployments.map(auxDepl => ({ ...auxDepl, chainId: item.chainId }))];
+      result = [...result, ...item.data.deployments.map(auxDepl => {
+        return { ...auxDepl, chainId: item.chainId };
+      })];
     }
 
     return result;

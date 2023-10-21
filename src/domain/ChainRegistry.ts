@@ -1,4 +1,5 @@
 import path from 'node:path';
+
 import ow from 'ow';
 
 import { AlreadyExistsError, ConsoleError, ErrorCodes, InvalidFormatError } from '@/exceptions';
@@ -18,7 +19,7 @@ export const CHAIN_FILE_EXTENSION = '.json';
  */
 export class ChainRegistry extends ChainRegistrySpec {
   private _chains: CosmosChain[];
-  private _dirPath: string;
+  private readonly _dirPath: string;
   private _warnings: ChainWarning[];
 
   /**
@@ -108,7 +109,9 @@ export class ChainRegistry extends ChainRegistrySpec {
    * @returns void
    */
   static assertIsValidChain = (data: unknown, name?: string): void => {
-    if (!this.isValidChain(data)) throw new InvalidFormatError(name || 'Chain file');
+    if (!this.isValidChain(data)) {
+      throw new InvalidFormatError(name || 'Chain file');
+    }
   };
 
   /**
@@ -117,9 +120,7 @@ export class ChainRegistry extends ChainRegistrySpec {
    * @param data - Object instance to validate
    * @returns Boolean, whether it is valid or not
    */
-  static isValidChain = (data: unknown): boolean => {
-    return ow.isValid(data, cosmosChainValidator);
-  };
+  static isValidChain = (data: unknown): boolean => ow.isValid(data, cosmosChainValidator);
 
   /**
    * Get the absolute path of the file of a specific chain in the imported chains directory
@@ -149,7 +150,9 @@ export class ChainRegistry extends ChainRegistrySpec {
    * @returns void
    */
   assertGetChainById(chainId: string): void {
-    if (!this.getChainById(chainId)) throw new ChainIdNotFoundError(chainId);
+    if (!this.getChainById(chainId)) {
+      throw new ChainIdNotFoundError(chainId);
+    }
   }
 
   /**
@@ -189,7 +192,9 @@ export class ChainRegistry extends ChainRegistrySpec {
 
     await writeFileWithDir(await this.getFilePath(newChainId), jsonData);
     // Remove from warnings if it is listed there
-    if (this._warnings) this._warnings = this._warnings.filter(item => item.filename !== newChainId);
+    if (this._warnings) {
+      this._warnings = this._warnings.filter(item => item.filename !== newChainId);
+    }
 
     // Add to inner data
     this._chains = this._chains.map(item => (item.chain_id === newChainId ? chain : item));

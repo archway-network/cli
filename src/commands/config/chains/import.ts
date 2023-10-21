@@ -1,5 +1,6 @@
-import { Args } from '@oclif/core';
 import fs from 'node:fs/promises';
+
+import { Args } from '@oclif/core';
 
 import { ChainRegistry } from '@/domain';
 import { ConsoleError, ErrorCodes } from '@/exceptions';
@@ -44,7 +45,7 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
     }
 
     // If it is piped, parse the received content, otherwise try to open file
-    const chainInfo: CosmosChain = JSON.parse(this.args.stdinInput || (await fs.readFile(this.args.file as string, 'utf-8')));
+    const chainInfo: CosmosChain = JSON.parse(this.args.stdinInput || (await fs.readFile(this.args.file as string, 'utf8')));
 
     const chainRegistry = await ChainRegistry.init();
 
@@ -56,7 +57,9 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
   protected async successMessage(chainId: string): Promise<void> {
     this.success(`${greenBright('Imported chain')} ${bold(chainId)}`);
 
-    if (this.jsonEnabled()) this.logJson({ 'chain-id': chainId });
+    if (this.jsonEnabled()) {
+      this.logJson({ 'chain-id': chainId });
+    }
   }
 }
 

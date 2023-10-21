@@ -4,10 +4,9 @@ import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ParamsAccountOptionalArg, StdinInputArg } from '@/parameters/arguments';
 import { CustomFlags, KeyringFlags } from '@/parameters/flags';
-import { bold, dim, green, greenBright, yellow } from '@/utils';
 import { Prompts } from '@/services';
-
 import { Account, AccountType } from '@/types';
+import { bold, dim, green, greenBright, yellow } from '@/utils';
 
 /**
  * Command 'accounts new'
@@ -82,7 +81,7 @@ export default class AccountsNew extends BaseCommand<typeof AccountsNew> {
 
   private async createOrRecoverAccount(): Promise<[Account, string?]> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const accountName = this.args['account-name'] || (await Prompts.newAccount());
     const type = this.flags.ledger ? AccountType.LEDGER : AccountType.LOCAL;

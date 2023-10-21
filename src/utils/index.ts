@@ -11,8 +11,8 @@ export * from './transactions';
  * Possible merge modes on object update
  */
 export enum MergeMode {
-  OVERWRITE = 'OVERWRITE',
   APPEND = 'APPEND',
+  OVERWRITE = 'OVERWRITE',
   PREPEND = 'PREPEND',
 }
 
@@ -23,6 +23,7 @@ export enum MergeMode {
  * @returns Merged object
  */
 export function mergeCustomizer(arrayMergeMode = MergeMode.OVERWRITE): any {
+  /* eslint-disable @typescript-eslint/unbound-method */
   return _.cond([
     [_.overEvery(_.isArray, _.constant(arrayMergeMode === MergeMode.OVERWRITE)), _.nthArg(1)],
     [_.overEvery(_.isArray, _.constant(arrayMergeMode === MergeMode.APPEND)), _.concat],
@@ -31,4 +32,13 @@ export function mergeCustomizer(arrayMergeMode = MergeMode.OVERWRITE): any {
       (objValue = [], srcValue = []) => [...srcValue, ...objValue],
     ],
   ]);
+  /* eslint-enable @typescript-eslint/unbound-method */
+}
+
+export function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
 }

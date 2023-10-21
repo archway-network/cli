@@ -1,12 +1,11 @@
 import { WithdrawContractRewardsResult } from '@archwayhq/arch3.js/build';
 
-import { BaseCommand } from '@/lib/base';
 import { Accounts, Config } from '@/domain';
+import { BaseCommand } from '@/lib/base';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
-import { bold, buildStdFee, green, greenBright, yellow } from '@/utils';
-import { showDisappearingSpinner } from '@/ui';
-
 import { Account } from '@/types';
+import { showDisappearingSpinner } from '@/ui';
+import { bold, buildStdFee, green, greenBright, yellow } from '@/utils';
 
 /**
  * Command 'rewards withdraw'
@@ -38,9 +37,9 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
    */
   public async run(): Promise<void> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
-    const accountWithSigner = await accountsDomain.getWithSigner(this.flags.from!);
+    const accountWithSigner = await accountsDomain.getWithSigner(this.flags.from);
 
     await this.logTransactionDetails(accountWithSigner.account);
 
@@ -62,9 +61,13 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
       this.log(yellow('No outstanding rewards'));
     } else {
       this.success(green('Successfully claimed the following rewards:\n'));
-      for (const item of result.rewards) this.log(`- ${bold(item.amount)}${item.denom}`);
+      for (const item of result.rewards) {
+        this.log(`- ${bold(item.amount)}${item.denom}`);
+      }
     }
 
-    if (this.jsonEnabled()) this.logJson(result);
+    if (this.jsonEnabled()) {
+      this.logJson(result);
+    }
   }
 }

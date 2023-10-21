@@ -4,7 +4,7 @@ import TransportNodeHid from '@ledgerhq/hw-transport-node-hid';
 
 import { Account, AccountType, ExtendedHdPath } from '@/types';
 
-const OPEN_TIMEOUT = 5000;     // 5 seconds
+const OPEN_TIMEOUT = 5000; // 5 seconds
 const LISTEN_TIMEOUT = 60_000; // 60 seconds
 
 /**

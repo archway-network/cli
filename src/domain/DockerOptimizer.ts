@@ -27,14 +27,21 @@ export class OptimizerError extends Error {
 
   private static statusCodeToMessage(statusCode: number): string {
     switch (statusCode) {
-      case 130:
+      case 130: {
         return 'Container terminated by Control-C';
-      case 137:
+      }
+
+      case 137: {
         return 'Container killed by the user';
-      case 143:
+      }
+
+      case 143: {
         return 'Container terminated by the user';
-      default:
+      }
+
+      default: {
         return `Process exited with status code ${statusCode}`;
+      }
     }
   }
 }
@@ -50,7 +57,7 @@ export class DockerOptimizer {
   /**
    * Docker instance
    */
-  private docker: Docker;
+  private readonly docker: Docker;
 
   /**
    * @param options - Optional - Docker options
@@ -103,13 +110,14 @@ export class DockerOptimizer {
    * @param workspaceRoot - Path where the workspace is located.
    * @param contractRoot - Path where a single contract is located.
    * @param quiet - If true, it will not print any output.
+   *
    * @returns A promise containing the container name and a {@link Docker.Container} instance.
    */
   private async createContainer(
     workspaceRoot: string,
     contractRoot?: string,
     quiet = false,
-  ): Promise<{ containerName: string, container: Docker.Container }> {
+  ): Promise<{ container: Docker.Container, containerName: string }> {
     const useWorkspace = !contractRoot;
     const image = await this.fetchImage(useWorkspace, quiet);
     const projectName = path.basename(workspaceRoot);
@@ -161,9 +169,10 @@ export class DockerOptimizer {
   /**
    * Kills a container if it is running.
    *
-   * @param container - Name of the container to kill.
+   * @param containerName - Name of the container to kill.
+   * @param quiet - If true, it will not print any output.
    */
-  private async killIfRunning(containerName: string, quiet: boolean = false) {
+  private async killIfRunning(containerName: string, quiet: boolean = false): Promise<void> {
     debug('killIfRunning', 'checking if container is running', { name: containerName });
     const container = this.docker.getContainer(containerName);
     try {
@@ -203,6 +212,8 @@ export class DockerOptimizer {
    * Resolves the correct image to use and pulls it if not available locally.
    *
    * @param useWorkspaceImage - Fetch the workspace image instead of the single rust image
+   * @param quiet - If true, it will not print any output
+   *
    * @returns Promise containing the image name
    */
   private async fetchImage(useWorkspaceImage = false, quiet = false): Promise<string> {
@@ -228,6 +239,7 @@ export class DockerOptimizer {
    * Pulls a docker image.
    *
    * @param image - Image name and tag in the format `name:tag`.
+   *
    * @returns the pull stream output.
    */
   private async pullImage(image: string) {
@@ -255,10 +267,11 @@ export class DockerOptimizer {
    *
    * @param container - The container to attach to the input/output stream.
    * @param quiet - If true, it will not print any output.
+   *
    * @returns A promise containing a function to close the stream.
    */
   private async attachToStream(container: Docker.Container, quiet: boolean): Promise<StreamResult> {
-    var attachOptions = {
+    const attachOptions = {
       stream: true,
       stdin: true,
       stdout: true,
@@ -275,7 +288,7 @@ function configureStreamAndInput(stream: NodeJS.ReadWriteStream, quiet: boolean)
     stream.pipe(process.stdout);
   }
 
-  const isRaw = process.stdin.isRaw;
+  const { isRaw } = process.stdin;
 
   process.stdin.setEncoding('utf8');
   process.stdin.setRawMode && process.stdin.setRawMode(true);
@@ -287,13 +300,13 @@ function configureStreamAndInput(stream: NodeJS.ReadWriteStream, quiet: boolean)
     process.stdin.setRawMode && process.stdin.setRawMode(isRaw);
     process.stdout.removeListener('resize', resizeTty);
     stream.end();
-  }
+  };
 
   return { closeStream };
 }
 
 async function resizeTty(container: Docker.Container): Promise<void> {
-  var dimensions = {
+  const dimensions = {
     h: process.stdout.rows || 0,
     w: process.stdout.columns || 0
   };

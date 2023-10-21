@@ -35,7 +35,7 @@ export default class AccountsExport extends BaseCommand<typeof AccountsExport> {
 
   public async run(): Promise<Account> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
     const account = await accountsDomain.export(this.args.account!);
 
     const accountData = `${bold.green(account.name)} (${green(account.address)})`;

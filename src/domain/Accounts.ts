@@ -1,14 +1,11 @@
-/* eslint-disable perfectionist/sort-imports */
-/* eslint-disable perfectionist/sort-classes */
-
+import { fromBase64, toBase64 } from '@cosmjs/encoding';
+import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import * as bip39 from 'bip39';
 import _ from 'lodash';
 
-import { fromBase64, toBase64 } from '@cosmjs/encoding';
-import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
-
 import { Config, Ledger } from '@/domain';
 import { AlreadyExistsError, InvalidFormatError } from '@/exceptions';
+import { InvalidAccountError } from '@/exceptions/InvalidAccountError';
 import { Prompts } from '@/services';
 import {
   Account,
@@ -23,27 +20,30 @@ import {
 } from '@/types';
 import { assertIsValidAddress, bold, convertUnarmoredHexToPrivateKey, derivePrivateKey, isHex, yellow } from '@/utils';
 
-import { InvalidAccountError } from '@/exceptions/InvalidAccountError';
 import { Keystore, KeystoreBackendParams } from './keystore';
 
 export const DEFAULT_ADDRESS_BECH_32_PREFIX = 'archway';
 
 // Generates a mnemonic with 256 bits of entropy (24 words)
-const MNEMONIC_ENTROPY_STRENGTH = 256;
+export const MnemonicEntropyStrength = 256;
 
+/* eslint-disable @typescript-eslint/naming-convention */
 type KeyringFlags = {
   'keyring-backend'?: KeystoreBackendType;
   'keyring-path'?: string
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 /**
  * Accounts manager
  */
 export class Accounts {
+  private readonly keystore: Keystore;
+
   /**
    * @param keystore - Keystore facade to interface with the keyring serialization and deserialization
    */
-  constructor(private readonly keystore: Keystore) {
+  constructor(keystore: Keystore) {
     this.keystore = keystore;
   }
 
@@ -53,17 +53,12 @@ export class Accounts {
    * @param keystoreParams - Parameters for getting the accounts {@link KeystoreBackendParams}
    * @returns Promise containing an instance of {@link Accounts}
    */
-  static async init(keystoreParams: KeystoreBackendParams): Promise<Accounts> {
+  static init(keystoreParams: KeystoreBackendParams): Accounts {
     const keystore = Keystore.build(keystoreParams);
     return new Accounts(keystore);
   }
 
-  /**
-   * Initializes the account management class by receiving the flags from a command and an instance of {@link Config}
-   *
-   * @returns Promise containing an instance of {@link Accounts}
-   */
-  static async initFromFlags(flags: KeyringFlags, config: Config): Promise<Accounts> {
+  static initFromFlags(flags: KeyringFlags, config: Config): Accounts {
     const backendType = flags['keyring-backend'] || config.keyringBackend;
     const filesPath = flags['keyring-path'] || config.keyringPath;
     return Accounts.init({ backendType, filesPath });
@@ -82,7 +77,7 @@ export class Accounts {
   /**
    * Get a formatted version of the name and address
    *
-   * @param publicKey - Instance of {@link AccountBase} to be printed
+   * @param account - Instance of {@link AccountBase} to be printed
    * @returns Pretty formatted string
    */
   static prettyPrintNameAndAddress(account: AccountBase): string {
@@ -99,7 +94,7 @@ export class Accounts {
    * @returns Promise with the newly created {@link Account} and the mnemonic used
    */
   async new(name: string, type: AccountType, hdPath: ExtendedHdPath): Promise<[Account, string]> {
-    const mnemonic = bip39.generateMnemonic(MNEMONIC_ENTROPY_STRENGTH);
+    const mnemonic = bip39.generateMnemonic(MnemonicEntropyStrength);
     const account = await this.createOrImport(name, type, hdPath, mnemonic);
     return [account, mnemonic];
   }
@@ -108,7 +103,6 @@ export class Accounts {
    * Recovers an account from an existing mnemonic or private key and stores it in the keyring
    *
    * @param name - Account name
-   * @param type - {@link AccountType} value
    * @param hdPath - HD path of the account
    * @param mnemonicOrUnarmoredHex - Existing mnemonic or private key hex to use for the new account
    * @returns Promise containing an instance of {@link Account}
@@ -129,8 +123,8 @@ export class Accounts {
       throw new InvalidAccountError('Only local accounts can be exported', account.name);
     }
 
-    const unarmoredHexBytes = fromBase64(privateKey!);
-    const unarmoredHex = Buffer.from(unarmoredHexBytes).toString('hex');
+    const privKeyBytes = fromBase64(privateKey!);
+    const unarmoredHex = Buffer.from(privKeyBytes).toString('hex');
 
     return { ...account, privateKey: unarmoredHex };
   }
@@ -140,8 +134,8 @@ export class Accounts {
    *
    * @param name - Account name
    * @param type - {@link AccountType} value
-   * @param mnemonicOrUnarmoredHex - Existing mnemonic or private key to use
    * @param hdPath - HD path of the account
+   * @param mnemonicOrUnarmoredHex - Existing mnemonic or private key to use
    * @param prefix - Optional - Bech 32 prefix for the generated address, defaults to 'archway'
    * @returns Promise containing the {@link Account}
    */
@@ -151,13 +145,13 @@ export class Accounts {
     hdPath: ExtendedHdPath,
     mnemonicOrUnarmoredHex: string
   ): Promise<Account> {
-    await this.assertAccountDoesNotExist(name);
+    this.assertAccountDoesNotExist(name);
 
-    const account = (type === AccountType.LEDGER) ?
-      await Ledger.getAccount(name, hdPath, DEFAULT_ADDRESS_BECH_32_PREFIX) :
-      await this.createLocalAccount(name, hdPath, mnemonicOrUnarmoredHex);
+    const account = (type === AccountType.LEDGER)
+      ? await Ledger.getAccount(name, hdPath, DEFAULT_ADDRESS_BECH_32_PREFIX)
+      : await this.createLocalAccount(name, hdPath, mnemonicOrUnarmoredHex);
 
-    await this.assertAccountDoesNotExist(account.address);
+    this.assertAccountDoesNotExist(account.address);
     await this.keystore.save(account);
 
     return account;
@@ -172,9 +166,9 @@ export class Accounts {
       throw new InvalidFormatError('Mnemonic or private key');
     }
 
-    const privKey = bip39.validateMnemonic(mnemonicOrUnarmoredHex) ?
-      await derivePrivateKey(mnemonicOrUnarmoredHex, hdPath.value) :
-      await convertUnarmoredHexToPrivateKey(mnemonicOrUnarmoredHex);
+    const privKey = bip39.validateMnemonic(mnemonicOrUnarmoredHex)
+      ? await derivePrivateKey(mnemonicOrUnarmoredHex, hdPath.value)
+      : await convertUnarmoredHexToPrivateKey(mnemonicOrUnarmoredHex);
 
     const wallet = await DirectSecp256k1Wallet.fromKey(privKey, DEFAULT_ADDRESS_BECH_32_PREFIX);
     const { address, algo, pubkey } = (await wallet.getAccounts())[0];
@@ -198,9 +192,9 @@ export class Accounts {
    *
    * @param nameOrAddress - Account name or address to search by
    */
-  async assertAccountDoesNotExist(nameOrAddress: string): Promise<void> {
+  assertAccountDoesNotExist(nameOrAddress: string): void {
     if (this.keystore.exists(nameOrAddress)) {
-      throw new AlreadyExistsError('Account', nameOrAddress)
+      throw new AlreadyExistsError('Account', nameOrAddress);
     }
   }
 
@@ -242,9 +236,9 @@ export class Accounts {
     const searchAccount = nameOrAddress || defaultAccount || (await Prompts.fromAccount());
     const account = await this.keystore.get(searchAccount);
 
-    const signer = account.type === AccountType.LEDGER ?
-      await Ledger.getLedgerSigner(new ExtendedHdPath(account.hdPath), prefix) :
-      await DirectSecp256k1Wallet.fromKey(fromBase64(account.privateKey!), prefix);
+    const signer = account.type === AccountType.LEDGER
+      ? await Ledger.getLedgerSigner(new ExtendedHdPath(account.hdPath), prefix)
+      : await DirectSecp256k1Wallet.fromKey(fromBase64(account.privateKey!), prefix);
 
     return {
       account: redactAccount(account),
@@ -254,6 +248,7 @@ export class Accounts {
 
   /**
    * Get a list of the accounts in the keystore
+   *
    * @returns Promise containing an array with all the accounts in the keystore
    */
   async list(): Promise<readonly Account[]> {
@@ -263,6 +258,7 @@ export class Accounts {
 
   /**
    * Get a list of the accounts in the keystore, only by name and address
+   *
    * @returns An array with all the accounts in the keystore
    */
   listNameAndAddress(): readonly AccountBase[] {
@@ -275,8 +271,8 @@ export class Accounts {
    * @param account - An {@link AccountBase} instance or a string with the account name or account address
    * @returns Empty promise
    */
-  async remove(account: AccountBase | string): Promise<void> {
-    return this.keystore.remove(account);
+  remove(account: AccountBase | string): void {
+    this.keystore.remove(account);
   }
 
   /**
@@ -286,7 +282,7 @@ export class Accounts {
    * @param prefix - Optional - Bech 32 prefix for the address, defaults to 'archway'
    * @returns Promise containing an instance of {@link AccountBase}
    */
-  async accountBaseFromAddress(address: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): Promise<AccountBase> {
+  accountBaseFromAddress(address: string, prefix = DEFAULT_ADDRESS_BECH_32_PREFIX): AccountBase {
     const account = this.keystore.findAccountBase(address);
     if (!account) {
       // If the account is not found in the keyring, check if it's a valid address so the tx doesn't fail

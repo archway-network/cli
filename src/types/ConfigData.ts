@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/naming-convention */
 import ow from 'ow';
 
 import { Contract, KeystoreBackendType } from '@/types';
@@ -8,9 +9,9 @@ import { Contract, KeystoreBackendType } from '@/types';
 export interface ConfigData {
   'chain-id'?: string;
   'contracts-path'?: string;
+  'default-account'?: string;
   'keyring-backend'?: KeystoreBackendType;
   'keyring-path'?: string;
-  'default-account'?: string;
 }
 
 /**

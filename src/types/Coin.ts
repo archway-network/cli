@@ -1,10 +1,9 @@
-import ow from 'ow';
 import { Coin as StargateCoin } from '@cosmjs/stargate';
+import ow from 'ow';
 
 /**
  * Cosmos Coin information
  */
-export { StargateCoin as Coin };
 
 /**
  * Format validator for the {@link Coin} interface
@@ -18,3 +17,5 @@ export interface Amount {
   coin: StargateCoin;
   plainText: string;
 }
+
+export { Coin } from '@cosmjs/stargate';

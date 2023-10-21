@@ -12,7 +12,7 @@ import { InvalidFormatError } from '@/exceptions';
  */
 export function assertIsValidAddress(address: string, prefix?: string): void {
   if (!isValidAddress(address, prefix)) {
-    throw new InvalidFormatError(`Address ${address}`)
+    throw new InvalidFormatError(`Address ${address}`);
   }
 }
 

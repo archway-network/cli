@@ -1,8 +1,7 @@
 import { Choice } from 'prompts';
 
-import { InvalidValueError } from '@/exceptions';
 import { TEMPLATES_REPOSITORY } from '@/domain';
-
+import { InvalidValueError } from '@/exceptions';
 import { ContractTemplate } from '@/types';
 
 /**
@@ -26,10 +25,12 @@ export class ContractTemplates {
    * @returns Array of {@link Choice} objects to be used as prompts
    */
   static getTemplateChoices(): Choice[] {
-    return this.allTemplates.map(item => ({
-      ...item,
-      description: `[https://github.com/${TEMPLATES_REPOSITORY}/tree/main/${item.value}]`,
-    }));
+    return this.allTemplates.map(item => {
+      return {
+        ...item,
+        description: `[https://github.com/${TEMPLATES_REPOSITORY}/tree/main/${item.value}]`,
+      };
+    });
   }
 
   /**
@@ -48,7 +49,9 @@ export class ContractTemplates {
    * @returns void
    */
   static assertIsValidTemplate(value: string): void {
-    if (!this.isValidTemplate(value)) throw new InvalidValueError(value, 'Template');
+    if (!this.isValidTemplate(value)) {
+      throw new InvalidValueError(value, 'Template');
+    }
   }
 
   /**

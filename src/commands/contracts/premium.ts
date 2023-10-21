@@ -1,14 +1,13 @@
 import { SetContractPremiumResult } from '@archwayhq/arch3.js';
 
+import { Accounts, Config } from '@/domain';
+import { NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
-import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright, prettyPrintCoin, isValidAddress } from '@/utils';
-import { showDisappearingSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, AmountRequiredFlag } from '@/parameters/flags';
-import { NotFoundError } from '@/exceptions';
-
+import { AmountRequiredFlag, KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { Account, Contract, DeploymentAction, InstantiateDeployment, PremiumDeployment } from '@/types';
+import { showDisappearingSpinner } from '@/ui';
+import { blueBright, buildStdFee, greenBright, isValidAddress, prettyPrintCoin } from '@/utils';
 
 /**
  * Command 'contracts premium'
@@ -48,7 +47,7 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
    */
   public async run(): Promise<void> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
@@ -65,7 +64,9 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
       contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
       instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
 
-      if (!instantiateDeployment) throw new NotFoundError('Instantiated deployment with a contract address');
+      if (!instantiateDeployment) {
+        throw new NotFoundError('Instantiated deployment with a contract address');
+      }
 
       contractAddress = instantiateDeployment.contract.address;
     }
@@ -87,7 +88,7 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
       await config.deploymentsInstance.addDeployment(
         {
           action: DeploymentAction.PREMIUM,
-          txhash: result!.transactionHash,
+          txhash: result.transactionHash,
           wasm: {
             codeId: instantiateDeployment.wasm.codeId,
           },
@@ -97,13 +98,13 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
             address: contractAddress,
             admin: instantiateDeployment.contract.admin,
           },
-          flatFee: result!.premium.flatFee,
+          flatFee: result.premium.flatFee,
         } as PremiumDeployment,
         config.chainId
       );
     }
 
-    await this.successMessage(result!, contractInstance?.label || contractAddress, config);
+    await this.successMessage(result, contractInstance?.label || contractAddress, config);
   }
 
   protected async logTransactionDetails(

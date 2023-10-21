@@ -3,15 +3,15 @@ import debugInstance from 'debug';
 
 import { ConsoleError } from '@/exceptions';
 import { PromptCanceledError } from '@/ui';
-import { redBright, yellow } from '@/utils';
+import { getErrorMessage, redBright, yellow } from '@/utils';
 
 const debug = debugInstance('base-command');
 
 enum LogLevel {
   debug = 'debug',
+  error = 'error',
   info = 'info',
   warn = 'warn',
-  error = 'error',
 }
 
 export type Flags<T extends typeof Command> = Interfaces.InferredFlags<(typeof BaseCommand)['baseFlags'] & T['flags']>;
@@ -70,7 +70,10 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    */
   public warning(message: string | string[]): void {
     if (typeof message !== 'string') {
-      for (const item of message) this.warning(item);
+      for (const item of message) {
+        this.warning(item);
+      }
+
       return;
     }
 
@@ -81,6 +84,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * Logs a success message to console
    *
    * @param message - Success message to be printed
+   * @returns void
    */
   public success(message: string): void {
     this.log(`${SUCCESS_PREFIX} ${message}`);
@@ -89,7 +93,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   /**
    * Log a JSON object
    *
-   * @param message - One or more messages to be displayed as warnings in the console
+   * @param json - JSON object to be logged
    * @returns void
    */
   public logJson(json: unknown): void {
@@ -111,6 +115,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
 
     debug('original error:', err);
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return super.catch(this.decorateError(err));
   }
 
@@ -124,20 +129,12 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
     return super.finally(_);
   }
 
-  /**
-   * Optional function to log information of the transaction triggered by the command
-   **/
-  protected logTransactionDetails?(...args: any[]): Promise<void>;
-
-  /**
-   * Optional success message function
-   */
-  protected successMessage?(...args: any[]): Promise<void>;
-
   private decorateError(err: Error): Error {
     if (this.jsonEnabled()) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
       err.message = err instanceof ConsoleError ? err.toConsoleString() : (err as any)?.stderr || err.message;
     } else {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       const message = err instanceof ConsoleError ? err.toConsoleString() : redBright((err as any)?.stderr || err.message);
       err.message = `${ERROR_PREFIX} ${message}`;
     }
@@ -146,13 +143,14 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
   }
 
   protected toErrorJson(err: unknown): any {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (err instanceof ConsoleError || (err as any)?.stderr) {
       return { error: err };
     }
 
     return {
       error: {
-        message: (err as any).message
+        message: getErrorMessage(err)
       }
     };
   }

@@ -2,11 +2,11 @@
  * Cargo contract metadata information
  */
 export interface CargoProjectMetadata {
-  name: string;
-  version: string;
   label: string;
-  wasm: Wasm;
+  name: string;
   root: string;
+  version: string;
+  wasm: Wasm;
   workspaceRoot: string;
 }
 

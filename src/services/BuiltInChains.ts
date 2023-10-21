@@ -1,6 +1,5 @@
 import ArchwaySchema from '@/repositories/chainSchemas/archway-1.json';
 import ConstantineSchema from '@/repositories/chainSchemas/constantine-3.json';
-
 import { CosmosChain } from '@/types';
 
 /**

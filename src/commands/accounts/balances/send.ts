@@ -12,12 +12,12 @@ import { buildStdFee, green, greenBright, prettyPrintCoin, white } from '@/utils
 export interface SendResult {
   amount: string;
   from: {
-    name: string;
     address: string;
+    name: string;
   };
   to: {
-    name: string;
     address: string;
+    name: string;
   };
 }
 
@@ -55,11 +55,11 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
    */
   public async run(): Promise<SendResult> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
     const fromAccount = from.account;
-    const toAccount: AccountBase = await accountsDomain.accountBaseFromAddress(this.flags.to);
+    const toAccount: AccountBase = accountsDomain.accountBaseFromAddress(this.flags.to);
 
     this.log(`Sending ${prettyPrintCoin(this.args.amount!.coin)}`);
     this.log(`From ${greenBright(fromAccount.name)} (${green(fromAccount.address)})`);
@@ -80,9 +80,9 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
         );
       }, 'Sending tokens');
     } catch (error: Error | any) {
-      throw error?.message?.toString?.()?.includes('insufficient funds') ?
-        new Error(`Insufficient funds to send ${white.reset(prettyPrintCoin(this.args.amount!.coin))} from ${greenBright(fromAccount.name)}`) :
-        error;
+      throw error?.message?.toString?.()?.includes('insufficient funds')
+        ? new Error(`Insufficient funds to send ${white.reset(prettyPrintCoin(this.args.amount!.coin))} from ${greenBright(fromAccount.name)}`)
+        : error;
     }
 
     this.success(

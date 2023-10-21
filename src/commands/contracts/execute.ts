@@ -1,16 +1,16 @@
-import { Args, Flags } from '@oclif/core';
 import fs from 'node:fs/promises';
-import { ExecuteResult } from '@cosmjs/cosmwasm-stargate';
 
+import { ExecuteResult } from '@cosmjs/cosmwasm-stargate';
+import { Args, Flags } from '@oclif/core';
+
+import { Accounts, Config } from '@/domain';
+import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
-import { Accounts, Config } from '@/domain';
-import { buildStdFee, blueBright, greenBright, isValidAddress, dim } from '@/utils';
-import { showDisappearingSpinner } from '@/ui';
-import { KeyringFlags, TransactionFlags, ParamsAmountOptionalFlag, NoValidationFlag } from '@/parameters/flags';
-import { ExecuteError, NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
-
+import { KeyringFlags, NoValidationFlag, ParamsAmountOptionalFlag, TransactionFlags } from '@/parameters/flags';
 import { Account, Amount, Contract } from '@/types';
+import { showDisappearingSpinner } from '@/ui';
+import { blueBright, buildStdFee, dim, greenBright, isValidAddress } from '@/utils';
 
 /**
  * Command 'contracts execute'
@@ -72,9 +72,9 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
   public async run(): Promise<ExecuteResult> {
     // Validate that we only get init args from one source of all 3 possible inputs
     if (
-      (this.flags['args-file'] && this.args.stdinInput) ||
-      (this.flags['args-file'] && this.flags.args) ||
-      (this.flags.args && this.args.stdinInput)
+      (this.flags['args-file'] && this.args.stdinInput)
+      || (this.flags['args-file'] && this.flags.args)
+      || (this.flags.args && this.args.stdinInput)
     ) {
       throw new OnlyOneArgSourceError('Execute');
     } else if (!this.flags['args-file'] && !this.args.stdinInput && !this.flags.args) {
@@ -82,11 +82,11 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
     }
 
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    const executeArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf-8')));
+    const executeArgs = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf8')));
 
     // Load contract info
     let contractAddress: string;
@@ -100,7 +100,9 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
       contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
       const instantiated = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
 
-      if (!instantiated) throw new NotFoundError('Instantiated deployment with a contract address');
+      if (!instantiated) {
+        throw new NotFoundError('Instantiated deployment with a contract address');
+      }
 
       contractAddress = instantiated.contract.address;
 

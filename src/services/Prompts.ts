@@ -193,7 +193,7 @@ export namespace Prompts {
   /**
    * Util function to ask for confirmation
    *
-   * @param skipConfirmation - Optional - Skips the confirmation prompt
+   * @param force - Optional - Skips the confirmation prompt
    */
   export async function askForConfirmation(force = false): Promise<void> {
     if (force) {
@@ -202,7 +202,7 @@ export namespace Prompts {
 
     const promptedConfirmation = await Prompts.confirmation();
     if (!promptedConfirmation) {
-      throw new PromptCanceledError()
+      throw new PromptCanceledError();
     }
   }
 }

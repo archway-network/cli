@@ -35,9 +35,9 @@ export class SchemaValidator {
    *
    * @throws A {@link SchemaValidationError} if the data is not valid.
    */
-  // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+
   async assertValidJSONSchema(schemaPath: string, data: any): Promise<void> {
-    const schemaFile = await fs.readFile(path.resolve(schemaPath), 'utf-8');
+    const schemaFile = await fs.readFile(path.resolve(schemaPath), 'utf8');
     const schema: Schema = JSON.parse(schemaFile);
     const ajv = addFormats(
       new Ajv({

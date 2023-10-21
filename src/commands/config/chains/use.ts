@@ -1,8 +1,8 @@
-import { BaseCommand } from '@/lib/base';
-import { bold, greenBright } from '@/utils';
 import { ChainRegistry, Config } from '@/domain';
+import { BaseCommand } from '@/lib/base';
 import { ChainRequiredArg } from '@/parameters/arguments';
 import { GlobalFlag } from '@/parameters/flags';
+import { bold, greenBright } from '@/utils';
 
 /**
  * Command 'config chains use'
@@ -38,7 +38,9 @@ export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse>
     const configFile = await Config.init();
     const chainRegistry = await ChainRegistry.init();
 
-    if (chainRegistry.warnings) this.warning(chainRegistry.prettyPrintWarnings(this.args.chain));
+    if (chainRegistry.warnings) {
+      this.warning(chainRegistry.prettyPrintWarnings(this.args.chain));
+    }
 
     configFile.update({ 'chain-id': this.args.chain }, this.flags.global);
 
@@ -48,6 +50,8 @@ export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse>
   protected async successMessage(chainId: string): Promise<void> {
     this.success(`${greenBright('Switched chain to')} ${bold(chainId)}`);
 
-    if (this.jsonEnabled()) this.logJson({ 'chain-id': chainId });
+    if (this.jsonEnabled()) {
+      this.logJson({ 'chain-id': chainId });
+    }
   }
 }

@@ -6,3 +6,4 @@ export * from './ConfigData';
 export * from './Contract';
 export * from './ContractTemplate';
 export * from './Deployment';
+export * from './json';

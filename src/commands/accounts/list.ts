@@ -28,7 +28,7 @@ export default class AccountsList extends BaseCommand<typeof AccountsList> {
    */
   public async run(): Promise<void> {
     const config = await Config.init();
-    const accountsDomain = await Accounts.initFromFlags(this.flags, config);
+    const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     if (this.jsonEnabled()) {
       const accounts = await accountsDomain.list();

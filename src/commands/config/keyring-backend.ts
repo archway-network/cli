@@ -53,7 +53,7 @@ export default class ConfigKeyringBackend extends BaseCommand<typeof ConfigKeyri
   public async run(): Promise<void> {
     const configFile = await Config.init();
 
-    const global = this.flags.global;
+    const { global } = this.flags;
     const keyringBackend = this.args['keyring-backend'];
 
     if (keyringBackend) {
@@ -64,13 +64,17 @@ export default class ConfigKeyringBackend extends BaseCommand<typeof ConfigKeyri
       const currentValue = global ? configFile.globalData['keyring-backend'] : configFile.localData['keyring-backend'];
       this.log(greenBright(currentValue || `Empty, defaults to: ${reset.bold(DEFAULT_CONFIG_DATA['keyring-backend'])}`));
 
-      if (this.jsonEnabled()) this.logJson({ 'keyring-backend': currentValue || '' });
+      if (this.jsonEnabled()) {
+        this.logJson({ 'keyring-backend': currentValue || '' });
+      }
     }
   }
 
   protected async successMessage(keyringBackend: string, global: boolean): Promise<void> {
     this.success(`${greenBright(`Updated keyring-backend ${global ? 'global' : 'local'} config to`)} ${bold(keyringBackend)}`);
 
-    if (this.jsonEnabled()) this.logJson({ 'keyring-backend': keyringBackend });
+    if (this.jsonEnabled()) {
+      this.logJson({ 'keyring-backend': keyringBackend });
+    }
   }
 }

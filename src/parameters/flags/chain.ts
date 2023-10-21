@@ -6,6 +6,7 @@ const ChainFlagDescription = 'ID of the chain';
 
 /**
  * Util function to validate if a chain id exists, throws error if not
+ *
  * @param value - Chain id to validate
  * @returns Promise containing the chain id
  */

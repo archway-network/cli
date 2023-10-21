@@ -1,3 +1,4 @@
+
 import { InvalidFormatError, NotFoundError } from '@/exceptions';
 import { Prompts } from '@/services';
 import { Account, AccountBase, AccountType, KeystoreBackendType, assertIsValidAccount, assertIsValidAccountBase, isAccountBase } from '@/types';
@@ -11,6 +12,67 @@ export const ENTRY_TAG_SEPARATOR = '$';
 export const ENTRY_TAG_SUFFIX = 'account';
 export const ENTRY_TAG_ENCODING: BufferEncoding = 'base64';
 
+const entryTagRegex = new RegExp(`^[a-zA-Z0-9+/]+={0,2}\\.${ENTRY_TAG_SUFFIX}$`);
+
+/**
+ * Create an account's keyring entry tag based on the name and address
+ *
+ * @param account - Account to be used in the tag
+ * @returns Tag with hex encoded name and address
+ */
+export function toEntryTag({ type, name, address }: AccountBase): string {
+  const tag = [name, address, type].join(ENTRY_TAG_SEPARATOR);
+  const hexEncodedTag = Buffer.from(tag).toString(ENTRY_TAG_ENCODING);
+  return `${hexEncodedTag}.${ENTRY_TAG_SUFFIX}`;
+}
+
+/**
+ * Create an account's keyring entry tag based on the name and address
+ *
+ * @param tag - Tag string to be converted into an account
+ * @returns Tag with hex encoded name and address
+ *
+ * @throws InvalidFormatError if the tag is not in the correct format
+ */
+export function fromEntryTag(tag: string): AccountBase {
+  if (!entryTagRegex.test(tag)) {
+    throw new InvalidFormatError(`Tag ${tag}`);
+  }
+
+  const [encodedTag] = tag.split('.');
+  const decoded = Buffer.from(encodedTag, ENTRY_TAG_ENCODING).toString();
+  const [name, address, type] = decoded.split(ENTRY_TAG_SEPARATOR);
+
+  const account = {
+    name,
+    type: type as AccountType,
+    address
+  };
+  assertIsValidAccountBase(account, account.name);
+
+  return account;
+}
+
+function buildBackend(params: KeystoreBackendParams): KeystoreBackend {
+  switch (params.backendType) {
+    case KeystoreBackendType.os: {
+      return new OsBackend(params.serviceName);
+    }
+
+    case KeystoreBackendType.file: {
+      return new FileBackend(params.filesPath);
+    }
+
+    case KeystoreBackendType.test: {
+      return new TestBackend(params.filesPath);
+    }
+
+    default: {
+      throw new Error('Invalid backend type');
+    }
+  }
+}
+
 /**
  * Params to be used when creating an instance of the Accounts domain that will be used in the keyring
  */
@@ -21,26 +83,18 @@ export interface KeystoreBackendParams {
 }
 
 /**
-  * Facade to access the underlying keyring backend. This class is responsible for
-  * serializing and deserializing the accounts to be stored in the keyring.
-  */
+ * Facade to access the underlying keyring backend. This class is responsible for
+ * serializing and deserializing the accounts to be stored in the keyring.
+ */
 export class Keystore {
-  constructor(private readonly backend: KeystoreBackend) {
+  private readonly backend: KeystoreBackend;
+
+  constructor(backend: KeystoreBackend) {
     this.backend = backend;
   }
 
   public static build(params: KeystoreBackendParams): Keystore {
-    const backend = (() => {
-      switch (params.backendType) {
-        case KeystoreBackendType.os:
-          return new OsBackend(params.serviceName);
-        case KeystoreBackendType.file:
-          return new FileBackend(params.filesPath);
-        case KeystoreBackendType.test:
-          return new TestBackend(params.filesPath);
-      }
-    })();
-
+    const backend = buildBackend(params);
     return new Keystore(backend);
   }
 
@@ -94,7 +148,7 @@ export class Keystore {
    * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
    * @throws {@link NotFoundError} if the account does not exist
    */
-  private getTag(nameOrAddress: string): string  {
+  private getTag(nameOrAddress: string): string {
     const [tag] = this.findTag(nameOrAddress) || [];
     if (!tag) {
       throw new NotFoundError('Account', nameOrAddress);
@@ -211,7 +265,7 @@ export class Keystore {
    * @throws {@link NotFoundError} if the account does not exist
    */
   public remove(account: AccountBase | string): void {
-    const tag = isAccountBase(account) ? toEntryTag(account as AccountBase) : this.getTag(account.toString());
+    const tag = isAccountBase(account) ? toEntryTag(account) : this.getTag(account.toString());
     this.backend.remove(tag);
   }
 
@@ -220,6 +274,8 @@ export class Keystore {
       const password = await this.promptPassword(nameOrAddress);
       return { password };
     }
+
+    return undefined;
   }
 
   /**
@@ -232,44 +288,4 @@ export class Keystore {
     const promptedPassword = await Prompts.accountPassword(nameOrAddress);
     return promptedPassword || '';
   }
-}
-
-/**
- * Create an account's keyring entry tag based on the name and address
- *
- * @param account - Account to be used in the tag
- * @returns Tag with hex encoded name and address
- */
-export function toEntryTag({ type, name, address }: AccountBase): string {
-  const tag = [name, address, type].join(ENTRY_TAG_SEPARATOR);
-  const hexEncodedTag = Buffer.from(tag).toString(ENTRY_TAG_ENCODING);
-  return `${hexEncodedTag}.${ENTRY_TAG_SUFFIX}`;
-}
-
-/**
- * Create an account's keyring entry tag based on the name and address
- *
- * @param account - Account to be used in the tag
- * @returns Tag with hex encoded name and address
- *
- * @throws InvalidFormatError if the tag is not in the correct format
- */
-export function fromEntryTag(tag: string): AccountBase {
-  const ENTRY_TAG_REGEX = new RegExp(`^[a-zA-Z0-9+/]+={0,2}\\.${ENTRY_TAG_SUFFIX}$`);
-  if (!ENTRY_TAG_REGEX.test(tag)) {
-    throw new InvalidFormatError(`Tag ${tag}`);
-  }
-
-  const [encodedTag] = tag.split('.');
-  const decoded = Buffer.from(encodedTag, ENTRY_TAG_ENCODING).toString();
-  const [name, address, type] = decoded.split(ENTRY_TAG_SEPARATOR);
-
-  const account = {
-    name,
-    type: type as AccountType,
-    address
-  };
-  assertIsValidAccountBase(account, account.name);
-
-  return account;
 }

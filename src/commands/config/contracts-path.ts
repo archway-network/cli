@@ -13,7 +13,7 @@ import { bold, greenBright, reset } from '@/utils';
 export default class ConfigContractsPath extends BaseCommand<typeof ConfigContractsPath> {
   static summary = "Query or update the 'contracts-path' in the config file (local or global)";
   static args = {
-    'contracts-path': Args.string({description: 'New value for the relative Path where the contracts are found in a project'}),
+    'contracts-path': Args.string({ description: 'New value for the relative Path where the contracts are found in a project' }),
   };
 
   static flags = {
@@ -47,7 +47,7 @@ export default class ConfigContractsPath extends BaseCommand<typeof ConfigContra
   public async run(): Promise<void> {
     const configFile = await Config.init();
 
-    const global = this.flags.global;
+    const { global } = this.flags;
     const contractsPath = this.args['contracts-path'];
 
     if (contractsPath) {
@@ -58,13 +58,17 @@ export default class ConfigContractsPath extends BaseCommand<typeof ConfigContra
       const currentValue = global ? configFile.globalData['contracts-path'] : configFile.localData['contracts-path'];
       this.log(greenBright(currentValue || `Empty, defaults to: ${reset.bold(DEFAULT_CONFIG_DATA['contracts-path'])}`));
 
-      if (this.jsonEnabled()) this.logJson({ 'contracts-path': currentValue || '' });
+      if (this.jsonEnabled()) {
+        this.logJson({ 'contracts-path': currentValue || '' });
+      }
     }
   }
 
   protected async successMessage(contractsPath: string, global: boolean): Promise<void> {
     this.success(`${greenBright(`Updated contracts-path ${global ? 'global' : 'local'} config to`)} ${bold(contractsPath)}`);
 
-    if (this.jsonEnabled()) this.logJson({ 'contracts-path': contractsPath });
+    if (this.jsonEnabled()) {
+      this.logJson({ 'contracts-path': contractsPath });
+    }
   }
 }

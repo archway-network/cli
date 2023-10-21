@@ -1,20 +1,20 @@
-import ow from 'ow';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+
 import _ from 'lodash';
+import ow from 'ow';
 
-import { prettyPrintTransaction, writeFileWithDir, blueBright, bold, greenBright } from '@/utils';
 import { InvalidFormatError } from '@/exceptions';
-
-import { DeploymentAction, Deployment, DeploymentFile, deploymentValidator } from '@/types';
+import { Deployment, DeploymentAction, DeploymentFile, deploymentValidator } from '@/types';
+import { blueBright, bold, greenBright, prettyPrintTransaction, writeFileWithDir } from '@/utils';
 
 /**
  * Manage the deployments of a specific chain, represented in a deployment file by chain id
  */
 export class DeploymentsByChain {
-  private _chainId: string;
-  private _data: DeploymentFile;
-  private _path: string;
+  private readonly _chainId: string;
+  private readonly _data: DeploymentFile;
+  private readonly _path: string;
 
   /**
    * @param chainId - Chain id of the chain where the deployments belong
@@ -88,7 +88,9 @@ export class DeploymentsByChain {
    * @returns void
    */
   static assertIsValidDeployment = (data: unknown, name?: string): void => {
-    if (this.isValidDeployment(data)) throw new InvalidFormatError(name || 'Deployment ');
+    if (this.isValidDeployment(data)) {
+      throw new InvalidFormatError(name || 'Deployment ');
+    }
   };
 
   /**
@@ -97,9 +99,7 @@ export class DeploymentsByChain {
    * @param data - Object instance to validate
    * @returns Boolean, whether it is valid or not
    */
-  static isValidDeployment = (data: unknown): boolean => {
-    return ow.isValid(data, deploymentValidator);
-  };
+  static isValidDeployment = (data: unknown): boolean => ow.isValid(data, deploymentValidator);
 
   /**
    * Add a deployment to the deployments list
@@ -148,18 +148,18 @@ export class DeploymentsByChain {
     // Loop through deployments of a contract version
     for (const version of Object.values(mappedVersions)) {
       result += `\n\n${greenBright(version[0].contract.name)} (${version[0].contract.version})`;
-      for (const auxDeploy of version as Array<any>) {
-        result +=
-          `\n\n${bold(_.capitalize(auxDeploy.action))}` +
-          (auxDeploy.action === DeploymentAction.STORE ?
-            `\nCode ID: ${auxDeploy.wasm.codeId}` :
-            `\nContract: ${auxDeploy.contract.address}`) +
-          (auxDeploy.action === DeploymentAction.PREMIUM ? `\nFlat fee: ${auxDeploy.flatFee?.amount}${auxDeploy.flatFee?.denom}` : '') +
-          (auxDeploy.action === DeploymentAction.METADATA ?
-            `\nOwner address: ${auxDeploy.metadata?.ownerAddress}\nRewards address: ${auxDeploy.metadata?.rewardsAddress}` :
-            '') +
-          (auxDeploy.action === DeploymentAction.INSTANTIATE ? `\nAdmin: ${auxDeploy.contract.admin}` : '') +
-          `\nTransaction: ${prettyPrintTransaction(auxDeploy.txhash, explorerTxUrl)}`;
+      for (const auxDeploy of version as any[]) {
+        result
+          += `\n\n${bold(_.capitalize(auxDeploy.action))}`
+          + (auxDeploy.action === DeploymentAction.STORE
+            ? `\nCode ID: ${auxDeploy.wasm.codeId}`
+            : `\nContract: ${auxDeploy.contract.address}`)
+          + (auxDeploy.action === DeploymentAction.PREMIUM ? `\nFlat fee: ${auxDeploy.flatFee?.amount}${auxDeploy.flatFee?.denom}` : '')
+          + (auxDeploy.action === DeploymentAction.METADATA
+            ? `\nOwner address: ${auxDeploy.metadata?.ownerAddress}\nRewards address: ${auxDeploy.metadata?.rewardsAddress}`
+            : '')
+          + (auxDeploy.action === DeploymentAction.INSTANTIATE ? `\nAdmin: ${auxDeploy.contract.admin}` : '')
+          + `\nTransaction: ${prettyPrintTransaction(auxDeploy.txhash, explorerTxUrl)}`;
       }
     }
 
