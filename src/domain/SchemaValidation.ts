@@ -35,10 +35,9 @@ export class SchemaValidator {
    *
    * @throws A {@link SchemaValidationError} if the data is not valid.
    */
-
   async assertValidJSONSchema(schemaPath: string, data: any): Promise<void> {
     const schemaFile = await fs.readFile(path.resolve(schemaPath), 'utf8');
-    const schema: Schema = JSON.parse(schemaFile);
+    const schema = JSON.parse(schemaFile) as Schema;
     const ajv = addFormats(
       new Ajv({
         allErrors: true,

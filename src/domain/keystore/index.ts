@@ -122,8 +122,8 @@ export class Keystore {
    * @param nameOrAddress - Account name or account address to search by
    * @returns Promise containing the account's data
    *
-   * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
-   * @throws {@link NotFoundError} if the account does not exist
+   * @throws A {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
+   * @throws A {@link NotFoundError} if the account does not exist
    */
   public async get(nameOrAddress: string): Promise<Account> {
     const tag = this.getTag(nameOrAddress);
@@ -136,8 +136,8 @@ export class Keystore {
    * @param nameOrAddress - Account name or account address to search by
    * @returns The base account's data
    *
-   * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
-   * @throws {@link NotFoundError} if the account does not exist
+   * @throws A {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
+   * @throws A {@link NotFoundError} if the account does not exist
    */
   public getAccountBase(nameOrAddress: string): AccountBase {
     const tag = this.getTag(nameOrAddress);
@@ -145,8 +145,11 @@ export class Keystore {
   }
 
   /**
-   * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
-   * @throws {@link NotFoundError} if the account does not exist
+   * @param nameOrAddress - Account name or account address to search by
+   * @returns The account's tag
+   *
+   * @throws A {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
+   * @throws A {@link NotFoundError} if the account does not exist
    */
   private getTag(nameOrAddress: string): string {
     const [tag] = this.findTag(nameOrAddress) || [];
@@ -173,7 +176,7 @@ export class Keystore {
       throw new NotFoundError('Account', tag);
     }
 
-    const account = JSON.parse(data);
+    const account = JSON.parse(data) as Account;
     assertIsValidAccount(account, account.name);
 
     return account;
@@ -214,9 +217,9 @@ export class Keystore {
       try {
         const account = fromEntryTag(tag);
         return [tag, account];
-      } catch (error: Error | any) {
+      } catch (error) {
         // Ignore invalid tags
-        console.error(error);
+        console.error(`Could not parse the tag "${tag}"`, error);
       }
 
       return null;
@@ -261,8 +264,8 @@ export class Keystore {
    *
    * @param account - An {@link AccountBase} instance or a string with the account name or account address
    *
-   * @throws {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
-   * @throws {@link NotFoundError} if the account does not exist
+   * @throws A {@link InvalidFormatError} if the tag is not in the correct format or the serialized account is not valid
+   * @throws A {@link NotFoundError} if the account does not exist
    */
   public remove(account: AccountBase | string): void {
     const tag = isAccountBase(account) ? toEntryTag(account) : this.getTag(account.toString());

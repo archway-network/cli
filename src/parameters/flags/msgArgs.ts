@@ -51,8 +51,8 @@ export async function parseContractMsgArgs(args: Args, flags: Flags, mandatory =
  * @param flags - The flags from the command
  * @param mandatory - If the args are mandatory or not
  *
- * @throws {@link OnlyOneArgSourceError} If we get args from more than one source
- * @throws {@link NotFoundError} If we don't get args from any source
+ * @throws A {@link OnlyOneArgSourceError} If we get args from more than one source
+ * @throws A {@link NotFoundError} If we don't get args from any source
  */
 function validate(args: Args, flags: Flags, mandatory: boolean): void {
   const filteredArgs = _.compact([args.stdinInput, flags.args, flags['args-file']]);

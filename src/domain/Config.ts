@@ -42,7 +42,7 @@ export const DEFAULT_CONFIG_DATA = {
 export class Config {
   /**
    * @param workspaceRoot - Absolute path of the project's workspace root
-   * @param contracts - Instance of {@link Contracts} of the project
+   * @param contractsInstance - Instance of {@link Contracts} of the project
    * @param chainRegistry - Instance of {@link ChainRegistry} of the project
    * @param globalConfigData - Instance of {@link ConfigData} representing the global data of the project
    * @param localConfigData - Instance of {@link ConfigData} representing the local data of the project
@@ -54,7 +54,7 @@ export class Config {
     readonly chainRegistry: ChainRegistry,
     private globalConfigData: ConfigData,
     private localConfigData: ConfigData
-  ) {}
+  ) { }
 
   get contracts(): readonly Contract[] {
     return this.contractsInstance.contracts;
@@ -77,7 +77,7 @@ export class Config {
   }
 
   /**
-   * Get an object representation of the config file data + the contracts data
+   * Get a representation of the config file data + the contracts data
    *
    * @returns Instance of {@link ConfigDataWithContracts}
    */
@@ -88,28 +88,44 @@ export class Config {
     };
   }
 
-  /** Returns the resolved version with precedence of local \> global \> default */
+  /**
+   * @returns The merged {@link ConfigData}, processed in this order: local config → global config → CLI default.
+   */
   get data(): ConfigData {
     return _.merge(DEFAULT_CONFIG_DATA, this.globalConfigData, this.localConfigData);
   }
 
-  /** Getters for the fields from ConfigData */
+  /**
+   * @returns The parsed chain ID
+   */
   get chainId(): string {
     return this.data['chain-id']!;
   }
 
+  /**
+   * @returns The parsed contracts path
+   */
   get contractsPath(): string {
     return this.data['contracts-path']!;
   }
 
+  /**
+   * @returns The parsed keyring backend
+   */
   get keyringBackend(): KeystoreBackendType {
     return this.data['keyring-backend']!;
   }
 
+  /**
+   * @returns The parsed keyring path
+   */
   get keyringPath(): string {
     return this.data['keyring-path']!;
   }
 
+  /**
+   * @returns The default account used for transactions, if defined
+   */
   get defaultAccount(): string | undefined {
     return this.data['default-account'];
   }
@@ -232,13 +248,12 @@ export class Config {
    *
    * @param data - Object instance to validate
    * @param name - Optional - Name of the file, will be used in the possible error
-   * @returns void
    */
-  static assertIsValidConfigData = (data: unknown, name?: string): void => {
+  static assertIsValidConfigData(data: unknown, name?: string): void {
     if (!this.isValidConfigData(data)) {
       throw new InvalidFormatError(name || 'Config file');
     }
-  };
+  }
 
   /**
    * Verify if an object has the valid format of a {@link ConfigData}
@@ -348,7 +363,9 @@ export class Config {
   }
 
   /**
-   * {@inheritDoc Contracts.assertIsValidWorkspace}
+   * Verifies that a project has a valid workspace, throws an error if not
+   *
+   * @returns Empty promise
    */
   async assertIsValidWorkspace(): Promise<void> {
     return this.contractsInstance.assertIsValidWorkspace();

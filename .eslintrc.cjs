@@ -14,6 +14,7 @@ module.exports = {
     '@typescript-eslint',
     'eslint-plugin-tsdoc',
     'import',
+    'jsdoc',
   ],
   extends: [
     'eslint:recommended',
@@ -38,6 +39,9 @@ module.exports = {
         alwaysTryTypes: true,
       },
       node: true
+    },
+    jsdoc: {
+      mode: 'typescript'
     }
   },
   reportUnusedDisableDirectives: true,
@@ -116,6 +120,7 @@ module.exports = {
       }
     }],
     'unicorn/prefer-string-replace-all': 'off',
+    'unicorn/empty-brace-spaces': 'off',
     'node/exports-style': ['error', 'exports'],
     'node/file-extension-in-import': ['error', 'never'],
     'node/no-missing-import': 'off',
@@ -137,7 +142,7 @@ module.exports = {
       'error',
       {
         selector: 'default',
-        format: ['strictCamelCase'],
+        format: ['camelCase'],
       },
       {
         selector: 'typeLike',
@@ -153,7 +158,7 @@ module.exports = {
       },
       {
         selector: 'classProperty',
-        format: ['strictCamelCase', 'StrictPascalCase'],
+        format: ['camelCase', 'StrictPascalCase'],
       },
       {
         selector: ['enum'],
@@ -161,26 +166,26 @@ module.exports = {
       },
       {
         selector: ['enumMember'],
-        format: ['strictCamelCase', 'StrictPascalCase', 'UPPER_CASE'],
+        format: ['camelCase', 'StrictPascalCase', 'UPPER_CASE'],
       },
       {
         selector: 'variable',
-        format: ['strictCamelCase'],
+        format: ['camelCase'],
         leadingUnderscore: 'allow',
       },
       {
         selector: 'variable',
         modifiers: ['const'],
-        format: ['strictCamelCase', 'StrictPascalCase'],
+        format: ['camelCase', 'StrictPascalCase', 'UPPER_CASE'],
       },
       {
         selector: 'variable',
         modifiers: ['const', 'exported'],
-        format: ['strictCamelCase', 'StrictPascalCase', 'UPPER_CASE'],
+        format: ['camelCase', 'StrictPascalCase', 'UPPER_CASE'],
       },
       {
         selector: 'parameter',
-        format: ['strictCamelCase'],
+        format: ['camelCase'],
         leadingUnderscore: 'allow',
       },
       {
@@ -192,7 +197,7 @@ module.exports = {
     '@typescript-eslint/no-empty-function': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
-    '@typescript-eslint/no-floating-promises': 'warn',
+    '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/no-shadow': 'warn',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
     '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
@@ -223,19 +228,26 @@ module.exports = {
     'perfectionist/sort-classes': 'off',
     'perfectionist/sort-imports': 'off',
     'perfectionist/sort-objects': 'off',
-    'tsdoc/syntax': 'warn',
     'valid-jsdoc': 'off',
+    'tsdoc/syntax': 'warn',
     'jsdoc/require-jsdoc': 'off',
+    'jsdoc/require-param': ['warn', {
+      'checkRestProperty': false,
+      'checkDestructured': false,
+    }],
     'jsdoc/tag-lines': ['warn', 'any', { 'startLines': 1 }],
     'jsdoc/check-tag-names': ['warn', {
       'definedTags': ['remarks']
+    }],
+    'jsdoc/check-param-names': ['warn', {
+      'checkRestProperty': false,
+      'checkDestructured': false,
     }],
   },
   overrides: [
     {
       files: ['src/domain/**/*.ts'],
       rules: {
-        'valid-jsdoc': 'warn',
         'jsdoc/require-jsdoc': ['warn', { 'publicOnly': true }],
       },
     },

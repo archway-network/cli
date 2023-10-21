@@ -153,8 +153,11 @@ export class Cargo {
   static WasmTarget = 'wasm32-unknown-unknown';
   static OptimizedOutputDir = 'artifacts';
 
-  // eslint-disable-next-line no-useless-constructor
-  constructor(public readonly workingDir = process.cwd()) {}
+  public readonly workingDir: string;
+
+  constructor(workingDir = process.cwd()) {
+    this.workingDir = workingDir;
+  }
 
   /**
    * Get absolute path of the project location
@@ -170,6 +173,7 @@ export class Cargo {
    * Generate a new cargo project, from a template in a git repository
    *
    * @param params - Object of type {@link GenerateParams}
+   * @returns void
    */
   async generate(params: GenerateParams): Promise<void> {
     const extraArgs = [
@@ -187,6 +191,7 @@ export class Cargo {
    *
    * @param params - Optional - Object of type {@link BuildParams}
    * @param options - Node child process options
+   * @returns void
    */
   async build(params?: BuildParams, options?: PromisifySpawnOptions): Promise<void> {
     const extraArgs = [
@@ -203,6 +208,7 @@ export class Cargo {
    * Build the project with a wasm target
    *
    * @param quiet - Optional - Hide output messages
+   * @returns void
    */
   async wasm(quiet = false): Promise<void> {
     const extraArgs = [quiet ? ['--quiet'] : []].flat();
@@ -225,7 +231,7 @@ export class Cargo {
    * If ran from a workspace, it will return the first package in the workspace.
    * If ran from a package folder, it will return the current package metadata.
    *
-   * @returns Promise containing object of type {@link ProjectMetadata}
+   * @returns Promise containing object of type {@link CargoProjectMetadata}
    */
   async projectMetadata(): Promise<CargoProjectMetadata> {
     const { packages = [], target_directory: targetDirectory, workspace_root: workspaceRoot } = await this.metadata();
@@ -263,6 +269,7 @@ export class Cargo {
    *
    * @param params - Optional - Object of type {@link SchemaParams}
    * @param options - Node child process options
+   * @returns void
    */
   async schema(params?: SchemaParams, options?: PromisifySpawnOptions): Promise<void> {
     const { name: contractName } = await this.projectMetadata();
@@ -275,7 +282,7 @@ export class Cargo {
   /**
    * Generate the optimized wasm version of a contract
    *
-   * @param all - Optional - Optimize all contracts in workspace
+   * @param params - Optional - {@link OptimizeParams} for the optimization
    * @returns - Promise containing the path where the optimized version was saved
    */
   async optimize(params: OptimizeParams = {}): Promise<string> {
@@ -293,7 +300,7 @@ export class Cargo {
    *
    * @param args - Array of arguments to be passed to the cargo command
    * @param options - Node child process options
-   * @returns - Output of command, with classs {@link ChildProcessPromise} that contains stdout, and stderr
+   * @returns - Output of command, with a {@link ChildProcessPromise} that contains stdout, and stderr
    */
   private run(args: string[], options?: PromisifySpawnOptions): ChildProcessPromise {
     debug('cargo', ...args);
@@ -318,10 +325,8 @@ class CargoMetadataError extends ConsoleError {
     super(ErrorCodes.CARGO_METADATA_ERROR);
   }
 
-  /**
-   * {@inheritDoc ConsoleError.toConsoleString}
-   */
   toConsoleString(): string {
-    return `${redBright('Failed to resolve project metadata')}${this.workingDir ? bold(` from ${this.workingDir}`) : ''}`;
+    const pwdMessage = this.workingDir ? bold(` from ${this.workingDir}`) : '';
+    return `${redBright('Failed to resolve project metadata')}${pwdMessage}`;
   }
 }

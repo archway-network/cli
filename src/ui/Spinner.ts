@@ -9,7 +9,7 @@ import ora from 'ora';
  * @param text - Optional - Text to be displayed next to the spinner
  * @returns Promise containing the output of the function passed in the first parameter
  */
-export const showDisappearingSpinner = async <T>(func: () => Promise<T>, text?: string): Promise<T> => {
+export async function showDisappearingSpinner<T>(func: () => Promise<T>, text?: string): Promise<T> {
   const spinner = ora(text && `${text}\n`).start();
 
   try {
@@ -18,11 +18,11 @@ export const showDisappearingSpinner = async <T>(func: () => Promise<T>, text?: 
     spinner.stop();
 
     return result;
-  } catch (error: Error | any) {
+  } catch (error) {
     spinner.fail();
     throw error;
   }
-};
+}
 
 /**
  * Shows the spinner with an optional text. Wrapper around ora.promise() to reduce the number of lines needed to display correctly.
@@ -31,10 +31,10 @@ export const showDisappearingSpinner = async <T>(func: () => Promise<T>, text?: 
  * @param options - Optional - Either a string with the text to be displayed, or an instance of {@link ora.Options}
  * @returns Promise containing the output of the function passed in the first parameter
  */
-export const showSpinner = async <T>(func: () => Promise<T>, options?: ora.Options | string): Promise<T> => {
+export async function showSpinner<T>(func: () => Promise<T>, options?: ora.Options | string): Promise<T> {
   const auxPromise = func();
 
   ora.promise(auxPromise, options);
 
   return auxPromise;
-};
+}
