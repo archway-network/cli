@@ -1,13 +1,14 @@
+import { DeliverTxResponse } from '@cosmjs/cosmwasm-stargate';
 import { Flags } from '@oclif/core';
 
 import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { AmountRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
-import { Prompts } from '@/services';
-import { AccountBase } from '@/types';
+import { ArchwayClientBuilder, Prompts } from '@/services';
+import { AccountBase, AccountWithSigner } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
-import { buildStdFee, green, greenBright, prettyPrintCoin, white } from '@/utils';
+import { buildStdFee, getErrorMessage, green, greenBright, prettyPrintCoin, white } from '@/utils';
 
 export interface SendResult {
   amount: string;
@@ -51,7 +52,7 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
   /**
    * Runs the command.
    *
-   * @returns Promise containing the completed transaction details
+   * @returns Promise containing a {@link SendResult}
    */
   public async run(): Promise<SendResult> {
     const config = await Config.init();
@@ -70,17 +71,12 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
     this.log();
 
     try {
-      await showDisappearingSpinner(async () => {
-        const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
-        await signingClient.sendTokens(
-          fromAccount.address,
-          toAccount.address,
-          [this.args.amount!.coin],
-          buildStdFee(this.flags.fee?.coin)
-        );
-      }, 'Sending tokens');
-    } catch (error: Error | any) {
-      throw error?.message?.toString?.()?.includes('insufficient funds')
+      await showDisappearingSpinner(
+        () => this.sendTokens(config, from, toAccount),
+        'Sending tokens'
+      );
+    } catch (error) {
+      throw getErrorMessage(error).includes('insufficient funds')
         ? new Error(`Insufficient funds to send ${white.reset(prettyPrintCoin(this.args.amount!.coin))} from ${greenBright(fromAccount.name)}`)
         : error;
     }
@@ -104,5 +100,15 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
         address: toAccount.address,
       },
     };
+  }
+
+  private async sendTokens(config: Config, from: AccountWithSigner, toAccount: AccountBase): Promise<DeliverTxResponse> {
+    const signingClient = await ArchwayClientBuilder.getSigningArchwayClient(config, from, this.flags['gas-adjustment']);
+    return signingClient.sendTokens(
+      from.account.address,
+      toAccount.address,
+      [this.args.amount!.coin],
+      buildStdFee(this.flags.fee?.coin)
+    );
   }
 }

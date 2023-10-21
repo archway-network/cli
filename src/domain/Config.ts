@@ -2,15 +2,12 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { ArchwayClient, SigningArchwayClient } from '@archwayhq/arch3.js';
-import { StargateClient } from '@cosmjs/stargate';
 import _ from 'lodash';
 import ow from 'ow';
 
 import { ChainRegistry, Contracts, Deployments } from '@/domain';
 import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
 import {
-  AccountWithSigner,
   ConfigData,
   ConfigDataWithContracts,
   Contract,
@@ -39,59 +36,32 @@ export const DEFAULT_CONFIG_DATA = {
   'keyring-path': `${GLOBAL_CONFIG_PATH}/keys`,
 };
 
-/** Default signer constants */
-export const DEFAULT_GAS_ADJUSTMENT = 1.3;
-
 /**
  * Manages the config file of the project and creates instances of ChainRegistry and Contracts
  */
 export class Config {
-  private readonly _workspaceRoot: string;
-  private readonly _contracts: Contracts;
-  private readonly _chainRegistry: ChainRegistry;
-  private _globalConfigData: ConfigData;
-  private _localConfigData: ConfigData;
-
   /**
    * @param workspaceRoot - Absolute path of the project's workspace root
-   * @param contracts - Instance of {@link Contracts} of the project
+   * @param contractsInstance - Instance of {@link Contracts} of the project
    * @param chainRegistry - Instance of {@link ChainRegistry} of the project
    * @param globalConfigData - Instance of {@link ConfigData} representing the global data of the project
    * @param localConfigData - Instance of {@link ConfigData} representing the local data of the project
    */
-  // eslint-disable-next-line max-params
+  // eslint-disable-next-line max-params, no-useless-constructor
   constructor(
-    workspaceRoot: string,
-    contracts: Contracts,
-    chainRegistry: ChainRegistry,
-    globalConfigData: ConfigData,
-    localConfigData: ConfigData
-  ) {
-    this._workspaceRoot = workspaceRoot;
-    this._contracts = contracts;
-    this._chainRegistry = chainRegistry;
-    this._globalConfigData = globalConfigData;
-    this._localConfigData = localConfigData;
-  }
+    readonly workspaceRoot: string,
+    readonly contractsInstance: Contracts,
+    readonly chainRegistry: ChainRegistry,
+    private globalConfigData: ConfigData,
+    private localConfigData: ConfigData
+  ) { }
 
-  get workspaceRoot(): string {
-    return this._workspaceRoot;
-  }
-
-  get contractsInstance(): Contracts {
-    return this._contracts;
+  get contracts(): readonly Contract[] {
+    return this.contractsInstance.contracts;
   }
 
   get deploymentsInstance(): Deployments {
     return this.contractsInstance.deployments;
-  }
-
-  get chainRegistry(): ChainRegistry {
-    return this._chainRegistry;
-  }
-
-  get contracts(): readonly Contract[] {
-    return this.contractsInstance.contracts;
   }
 
   get deployments(): Deployment[] {
@@ -99,15 +69,15 @@ export class Config {
   }
 
   get globalData(): ConfigData {
-    return this._globalConfigData;
+    return this.globalConfigData;
   }
 
   get localData(): ConfigData {
-    return this._localConfigData;
+    return this.localConfigData;
   }
 
   /**
-   * Get an object representation of the config file data + the contracts data
+   * Get a representation of the config file data + the contracts data
    *
    * @returns Instance of {@link ConfigDataWithContracts}
    */
@@ -118,28 +88,44 @@ export class Config {
     };
   }
 
-  /** Returns the resolved version with precedence of local \> global \> default */
+  /**
+   * @returns The merged {@link ConfigData}, processed in this order: local config → global config → CLI default.
+   */
   get data(): ConfigData {
-    return _.merge(DEFAULT_CONFIG_DATA, this._globalConfigData, this._localConfigData);
+    return _.merge(DEFAULT_CONFIG_DATA, this.globalConfigData, this.localConfigData);
   }
 
-  /** Getters for the fields from ConfigData */
+  /**
+   * @returns The parsed chain ID
+   */
   get chainId(): string {
     return this.data['chain-id']!;
   }
 
+  /**
+   * @returns The parsed contracts path
+   */
   get contractsPath(): string {
     return this.data['contracts-path']!;
   }
 
+  /**
+   * @returns The parsed keyring backend
+   */
   get keyringBackend(): KeystoreBackendType {
     return this.data['keyring-backend']!;
   }
 
+  /**
+   * @returns The parsed keyring path
+   */
   get keyringPath(): string {
     return this.data['keyring-path']!;
   }
 
+  /**
+   * @returns The default account used for transactions, if defined
+   */
   get defaultAccount(): string | undefined {
     return this.data['default-account'];
   }
@@ -244,17 +230,17 @@ export class Config {
    */
   static async readConfigFile(workingDir?: string, global = false): Promise<ConfigData> {
     const configPath = await this.getFilePath(workingDir, global);
-
-    let data: ConfigData = {};
-
     const exists = await fileExists(configPath);
-
     if (exists) {
-      data = JSON.parse(await fs.readFile(configPath, 'utf8'));
+      const file = await fs.readFile(configPath, 'utf8');
+      const data = JSON.parse(file) as ConfigData;
+
       this.assertIsValidConfigData(data, configPath);
+
+      return data;
     }
 
-    return data;
+    return {};
   }
 
   /**
@@ -262,13 +248,12 @@ export class Config {
    *
    * @param data - Object instance to validate
    * @param name - Optional - Name of the file, will be used in the possible error
-   * @returns void
    */
-  static assertIsValidConfigData = (data: unknown, name?: string): void => {
+  static assertIsValidConfigData(data: unknown, name?: string): void {
     if (!this.isValidConfigData(data)) {
       throw new InvalidFormatError(name || 'Config file');
     }
-  };
+  }
 
   /**
    * Verify if an object has the valid format of a {@link ConfigData}
@@ -276,7 +261,9 @@ export class Config {
    * @param data - Object instance to validate
    * @returns Boolean, whether it is valid or not
    */
-  static isValidConfigData = (data: unknown): boolean => ow.isValid(data, configDataValidator);
+  static isValidConfigData(data: unknown): boolean {
+    return ow.isValid(data, configDataValidator);
+  }
 
   /**
    * Write the data of the {@link Config} instance into the local or global config file
@@ -285,9 +272,9 @@ export class Config {
    * @returns Empty promise
    */
   async write(global = false): Promise<void> {
-    const configPath = await Config.getFilePath(this._workspaceRoot, global);
+    const configPath = await Config.getFilePath(this.workspaceRoot, global);
 
-    await writeFileWithDir(configPath, JSON.stringify(global ? this._globalConfigData : this._localConfigData, undefined, 2));
+    await writeFileWithDir(configPath, JSON.stringify(global ? this.globalConfigData : this.localConfigData, undefined, 2));
   }
 
   /**
@@ -297,12 +284,13 @@ export class Config {
    * @param global - Optional - Update the global config, defaults to false
    * @param writeAfterUpdate - Optional - Allows the function to write to the file after updating the object's data, defaults to true
    * @param arrayMergeMode - Optional - Different merge modes, can be OVERWRITE, APPEND, or PREPEND
+   * @returns Empty promise
    */
   async update(newData: Partial<ConfigData>, global = false, writeAfterUpdate = true, arrayMergeMode = MergeMode.OVERWRITE): Promise<void> {
     if (global) {
-      this._globalConfigData = _.mergeWith(this._globalConfigData, newData, mergeCustomizer(arrayMergeMode));
+      this.globalConfigData = _.mergeWith(this.globalConfigData, newData, mergeCustomizer(arrayMergeMode)) as ConfigData;
     } else {
-      this._localConfigData = _.mergeWith(this._localConfigData, newData, mergeCustomizer(arrayMergeMode));
+      this.localConfigData = _.mergeWith(this.localConfigData, newData, mergeCustomizer(arrayMergeMode)) as ConfigData;
     }
 
     if (writeAfterUpdate) {
@@ -315,14 +303,13 @@ export class Config {
    *
    * @returns Promise containing the {@link CosmosChain} data
    */
-  async activeChainInfo(): Promise<CosmosChain> {
-    const result = this._chainRegistry.getChainById(this.chainId);
-
-    if (!result) {
-      throw new NotFoundError("Chain in the project's configuration", this.chainId);
+  activeChainInfo(): CosmosChain {
+    const result = this.chainRegistry.getChainById(this.chainId);
+    if (result) {
+      return result;
     }
 
-    return result;
+    throw new NotFoundError("Chain in the project's configuration", this.chainId);
   }
 
   /**
@@ -331,9 +318,8 @@ export class Config {
    * @param chainInfo - Optional - Instance of {@link CosmosChain} to extract the endpoint from
    * @returns Promise containing the rpc endpoint, throws an error if not found
    */
-  async activeChainRpcEndpoint(chainInfo?: CosmosChain): Promise<string> {
-    const auxInfo = chainInfo || (await this.activeChainInfo());
-
+  activeChainRpcEndpoint(chainInfo?: CosmosChain): string {
+    const auxInfo = chainInfo || this.activeChainInfo();
     if (!auxInfo.apis?.rpc?.[0]?.address) {
       throw new NotFoundError('Rpc endpoint for chain', this.chainId);
     }
@@ -342,53 +328,16 @@ export class Config {
   }
 
   /**
-   * Get a Stargate client of the currently active chain in the project
-   *
-   * @returns Promise containing the {@link StargateClient}
-   */
-  async getStargateClient(): Promise<StargateClient> {
-    const rpcEndpoint = await this.activeChainRpcEndpoint();
-
-    return StargateClient.connect(rpcEndpoint);
-  }
-
-  /**
-   * Get an Archway client of the currently active chain in the project
-   *
-   * @returns Promise containing the {@link ArchwayClient}
-   */
-  async getArchwayClient(): Promise<ArchwayClient> {
-    const rpcEndpoint = await this.activeChainRpcEndpoint();
-
-    return ArchwayClient.connect(rpcEndpoint);
-  }
-
-  /**
-   * Get a Signing Archway client of the currently active chain in the project
-   *
-   * @returns Promise containing the {@link StargateClient}
-   */
-  async getSigningArchwayClient(
-    { signer }: AccountWithSigner,
-    gasAdjustment = DEFAULT_GAS_ADJUSTMENT
-  ): Promise<SigningArchwayClient> {
-    const chainInfo = await this.activeChainInfo();
-    const rpcEndpoint = await this.activeChainRpcEndpoint(chainInfo);
-
-    return SigningArchwayClient.connectWithSigner(rpcEndpoint, signer, { gasAdjustment });
-  }
-
-  /**
    * Get a formatted version of config file
    *
-   * @param withContracts - Optional - Fetchs the contract data and adds it to the formatted message
+   * @param withContracts - Optional - Fetches the contract data and adds it to the formatted message
    * @returns Promise containing the formatted config file
    */
-  async prettyPrint(withContracts = true): Promise<string> {
+  prettyPrint(withContracts = true): string {
     let contractsStatus = '';
 
     if (withContracts) {
-      contractsStatus = `\n${await this.contractsInstance.prettyPrint()}`;
+      contractsStatus = `\n${this.contractsInstance.prettyPrint()}`;
     }
 
     return (
@@ -407,14 +356,16 @@ export class Config {
    * @param txHash - Hash of the transaction
    * @returns Transaction hash, with clickable tx link when available
    */
-  async prettyPrintTxHash(txHash: string): Promise<string> {
-    const explorerTxUrl = this._chainRegistry.getChainById(this.chainId)?.explorers?.find(item => Boolean(item.tx_page))?.tx_page;
+  prettyPrintTxHash(txHash: string): string {
+    const explorerTxUrl = this.chainRegistry.getChainById(this.chainId)?.explorers?.find(item => Boolean(item.tx_page))?.tx_page;
 
     return prettyPrintTransaction(txHash, explorerTxUrl);
   }
 
   /**
-   * {@inheritDoc Contracts.assertIsValidWorkspace}
+   * Verifies that a project has a valid workspace, throws an error if not
+   *
+   * @returns Empty promise
    */
   async assertIsValidWorkspace(): Promise<void> {
     return this.contractsInstance.assertIsValidWorkspace();

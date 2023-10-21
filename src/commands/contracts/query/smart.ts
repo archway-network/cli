@@ -1,13 +1,13 @@
-import fs from 'node:fs/promises';
 
-import { JsonObject } from '@cosmjs/cosmwasm-stargate';
-import { Args, Flags } from '@oclif/core';
+import { Args } from '@oclif/core';
 
 import { Config } from '@/domain';
-import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
+import { NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
-import { ParamsContractNameRequiredArg, StdinInputArg } from '@/parameters/arguments';
-import { NoValidationFlag } from '@/parameters/flags';
+import { ParamsContractNameRequiredArg } from '@/parameters/arguments';
+import { ContractMsgArg, ContractMsgFlags, NoValidationFlag, parseContractMsgArgs } from '@/parameters/flags';
+import { ArchwayClientBuilder } from '@/services';
+import { JsonObject } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { dim } from '@/utils';
 
@@ -19,15 +19,12 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
   static summary = 'Queries a single smart contract';
   static args = {
     contract: Args.string({ ...ParamsContractNameRequiredArg, ignoreStdin: true }),
-    stdinInput: StdinInputArg,
+    ...ContractMsgArg,
   };
 
   static flags = {
-    args: Flags.string({
-      description: 'JSON string with the query to run',
-    }),
-    'args-file': Flags.string({ description: 'Path to a JSON file with a query for the smart contract' }),
     'no-validation': NoValidationFlag,
+    ...ContractMsgFlags,
   };
 
   static examples = [
@@ -52,46 +49,35 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
   /**
    * Runs the command.
    *
-   * @returns Promise containing the result from the Contract smart query
+   * @returns Promise containing a {@link JsonObject}
    */
   public async run(): Promise<JsonObject> {
-    // Validate that we only get migration message args from one source of all 3 possible inputs
-    if (
-      (this.flags['args-file'] && this.args.stdinInput)
-      || (this.flags['args-file'] && this.flags.args)
-      || (this.flags.args && this.args.stdinInput)
-    ) {
-      throw new OnlyOneArgSourceError('Migration message');
-    } else if (!this.flags['args-file'] && !this.args.stdinInput && !this.flags.args) {
-      throw new NotFoundError('Query args');
-    }
-
     // Load config and contract info
     const config = await Config.init();
     await config.assertIsValidWorkspace();
+
     const contract = config.contractsInstance.getContractByName(this.args.contract!);
-
     const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
-
     if (!instantiated) {
       throw new NotFoundError('Instantiated deployment with a contract address');
     }
 
     const contractAddress = instantiated.contract.address;
-
-    const queryMsg = JSON.parse(this.args.stdinInput || this.flags.args || (await fs.readFile(this.flags['args-file']!, 'utf8')));
+    const queryMsg = await parseContractMsgArgs(this.args, this.flags);
 
     if (!this.flags['no-validation']) {
       await config.contractsInstance.assertValidQueryArgs(contract.name, queryMsg);
     }
 
     const result = await showDisappearingSpinner(async () => {
-      const client = await config.getArchwayClient();
-
-      return client.queryContractSmart(contractAddress, queryMsg);
+      const client = await ArchwayClientBuilder.getArchwayClient(config);
+      return client.queryContractSmart(contractAddress, queryMsg) as unknown as JsonObject;
     }, 'Waiting for query response...');
 
-    this.log(result);
+    // Ensures that the result is printed to the console independent of the --json flag
+    if (!this.jsonEnabled()) {
+      this.logJson(result);
+    }
 
     return result;
   }

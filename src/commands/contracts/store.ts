@@ -3,16 +3,16 @@ import path from 'node:path';
 
 import { UploadResult } from '@cosmjs/cosmwasm-stargate';
 import { Flags } from '@oclif/core';
-import { AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
+import { AccessConfig, AccessType } from 'cosmjs-types/cosmwasm/wasm/v1/types';
 
 import { Accounts, Config, DEFAULT_ADDRESS_BECH_32_PREFIX } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
-import { Prompts } from '@/services';
-import { DeploymentAction, InstantiatePermission, StoreDeployment } from '@/types';
+import { ArchwayClientBuilder, Prompts } from '@/services';
+import { AccountWithSigner, DeploymentAction, InstantiatePermission, StoreDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
-import { assertIsValidAddress, blueBright, buildStdFee, greenBright, white, yellow } from '@/utils';
+import { assertIsValidAddress, blueBright, buildStdFee, greenBright, white } from '@/utils';
 
 /**
  * Command 'contracts store'
@@ -31,7 +31,7 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
       description: 'Controls the instantiation permissions for the stored wasm file',
     }),
     'allowed-addresses': Flags.custom<string[]>({
-      parse: async (val: string) => val.split(','),
+      parse: (val: string): Promise<string[]> => Promise.resolve(val.split(',')),
       description:
         'List of addresses that can instantiate a contract from the code; works only if the instantiate permission is set to "any-of"',
     })(),
@@ -62,55 +62,38 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns A promise containing a {@link UploadResult}
    */
   public async run(): Promise<UploadResult> {
     const config = await Config.init();
-
     await config.assertIsValidWorkspace();
 
-    const contract = config.contractsInstance.getContractByName(this.args.contract!);
-
-    const existingDeployment = await config.contractsInstance.isChecksumAlreadyDeployed(this.args.contract!, config.chainId);
-
-    if (existingDeployment) {
-      this.warning(
-        yellow(
-          `The current optimized build of the contract ${this.args.contract} with checksum ${white.reset(
-            existingDeployment.wasm.checksum
-          )} has already been deployed to ${white.reset(config.chainId)}`
-        )
-      );
-      await Prompts.askForConfirmation(this.flags['no-confirm']);
-    }
+    await this.checkExistingDeployment(config);
 
     const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    const wasmCode = await fs.readFile(contract.wasm.optimizedFilePath);
     const allowedAddresses = this.flags['allowed-addresses'] || [];
-
     for (const auxAddress of allowedAddresses) {
       assertIsValidAddress(auxAddress, DEFAULT_ADDRESS_BECH_32_PREFIX);
     }
+
+    const contract = config.contractsInstance.getContractByName(this.args.contract!);
+
+    const wasmCode = await showDisappearingSpinner(
+      async () => fs.readFile(contract.wasm.optimizedFilePath),
+      `Reading WASM file ${contract.wasm.optimizedFilePath}`
+    );
 
     this.log(`Uploading optimized wasm for contract ${blueBright(contract.name)}`);
     this.log(`  Chain: ${blueBright(config.chainId)}`);
     this.log(`  Signer: ${blueBright(from.account.name)}\n`);
 
-    const result = await showDisappearingSpinner(async () => {
-      const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
-
-      return signingClient.upload(from.account.address, wasmCode, buildStdFee(this.flags.fee?.coin), undefined, {
-        permission:
-          AccessType[
-          InstantiatePermission[this.flags['instantiate-permission'] as keyof typeof InstantiatePermission] as keyof typeof AccessType
-          ],
-        address: '', // Deprecated param, replaced with addresses
-        addresses: allowedAddresses,
-      });
-    }, 'Waiting for tx to confirm...');
+    const result = await showDisappearingSpinner(
+      async () => this.upload(config, from, wasmCode, allowedAddresses),
+      'Waiting for tx to confirm...'
+    );
 
     await config.deploymentsInstance.addDeployment(
       {
@@ -130,8 +113,44 @@ export default class ContractsStore extends BaseCommand<typeof ContractsStore> {
 
     this.success(`${greenBright('Contract')} ${blueBright(path.basename(contract.wasm.optimizedFilePath))} ${greenBright('uploaded')}`);
     this.log(`  Code Id: ${blueBright(result.codeId)}`);
-    this.log(`  Transaction: ${await config.prettyPrintTxHash(result.transactionHash)}`);
+    this.log(`  Transaction: ${config.prettyPrintTxHash(result.transactionHash)}`);
 
     return result;
+  }
+
+  private async checkExistingDeployment(config: Config): Promise<void> {
+    const existingDeployment = await config.contractsInstance.isChecksumAlreadyDeployed(this.args.contract!, config.chainId);
+    if (existingDeployment) {
+      this.warning(
+        `The current build of the contract ${blueBright(this.args.contract)} with checksum ${white.reset(
+          existingDeployment.wasm.checksum
+        )} has already been deployed to ${blueBright(config.chainId)}`
+      );
+      await Prompts.askForConfirmation(this.flags['no-confirm']);
+    }
+  }
+
+  private async upload(
+    config: Config,
+    from: AccountWithSigner,
+    wasmCode: Buffer,
+    allowedAddresses: string[]
+  ): Promise<UploadResult> {
+    const signingClient = await ArchwayClientBuilder.getSigningArchwayClient(config, from, this.flags['gas-adjustment']);
+
+    const permission = AccessType[InstantiatePermission[this.flags['instantiate-permission'] as keyof typeof InstantiatePermission] as keyof typeof AccessType];
+    const instantiatePermission: AccessConfig = {
+      permission,
+      address: '',
+      addresses: allowedAddresses,
+    };
+
+    return signingClient.upload(
+      from.account.address,
+      wasmCode,
+      buildStdFee(this.flags.fee?.coin),
+      undefined,
+      instantiatePermission
+    );
   }
 }

@@ -16,7 +16,7 @@ export class BuiltInChains {
    * Get a {@link CosmosChain} object, by the chain id
    *
    * @param chainId - Chain id that we are looking for
-   * @returns {@link CosmosChain} instance found, or undefined if not found
+   * @returns A {@link CosmosChain} instance, or undefined if not found
    */
   static getChainById(chainId: string): CosmosChain | undefined {
     return this.chainMap[chainId];

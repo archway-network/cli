@@ -1,4 +1,4 @@
-import { SetContractMetadataResult } from '@archwayhq/arch3.js';
+import { ContractMetadata, SetContractMetadataResult } from '@archwayhq/arch3.js';
 import { Flags } from '@oclif/core';
 
 import { Accounts, Config } from '@/domain';
@@ -6,7 +6,8 @@ import { NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
-import { Account, Contract, DeploymentAction, InstantiateDeployment, MetadataDeployment } from '@/types';
+import { ArchwayClientBuilder } from '@/services';
+import { Account, AccountWithSigner, Contract, DeploymentAction, InstantiateDeployment, MetadataDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { blueBright, buildStdFee, greenBright, isValidAddress } from '@/utils';
 
@@ -45,68 +46,109 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns A promise containing a {@link SetContractMetadataResult}
    */
-  public async run(): Promise<void> {
-    if (!this.flags['owner-address'] && !this.flags['rewards-address']) {
-      throw new NotFoundError('Metadata values in flags "owner-address" and "rewards-address');
-    }
+  public async run(): Promise<SetContractMetadataResult> {
+    this.validateArgs();
 
     const config = await Config.init();
     const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const from = await accountsDomain.getWithSigner(this.flags.from, config.defaultAccount);
 
-    const ownerAddress = this.flags['owner-address']
-      ? (await accountsDomain.accountBaseFromAddress(this.flags['owner-address'])).address
-      : undefined;
-    const rewardsAddress = this.flags['rewards-address']
-      ? (await accountsDomain.accountBaseFromAddress(this.flags['rewards-address'])).address
-      : undefined;
+    const ownerAddress = this.getOwnerAddress(accountsDomain);
+    const rewardsAddress = this.getRewardsAddress(accountsDomain);
+    const { contractAddress, contractInstance, instantiateDeployment } = await this.getContractInfo(config);
 
-    // Load contract info
-    let contractAddress: string;
-    let contractInstance: Contract | undefined;
-    let instantiateDeployment: InstantiateDeployment | undefined;
+    const metadata: ContractMetadata = {
+      contractAddress,
+      ownerAddress,
+      rewardsAddress,
+    };
 
-    if (isValidAddress(this.args.contract!)) {
-      contractAddress = this.args.contract!;
-    } else {
-      await config.assertIsValidWorkspace();
-
-      contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
-      instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
-
-      if (!instantiateDeployment) {
-        throw new NotFoundError('Instantiated deployment with a contract address');
-      }
-
-      contractAddress = instantiateDeployment.contract.address;
-    }
-
-    await this.logTransactionDetails(
+    this.logTransactionDetails(
       config,
       contractInstance?.name || contractAddress,
       from.account,
-      contractAddress,
-      rewardsAddress,
-      ownerAddress
+      metadata
     );
 
-    const result = await showDisappearingSpinner(async () => {
-      const signingClient = await config.getSigningArchwayClient(from, this.flags['gas-adjustment']);
+    const result = await showDisappearingSpinner(
+      async () => this.setContractMetadata(config, from, metadata),
+      'Waiting for tx to confirm...'
+    );
 
-      return signingClient.setContractMetadata(
-        from.account.address,
-        {
-          contractAddress,
-          ownerAddress,
-          rewardsAddress,
-        },
-        buildStdFee(this.flags.fee?.coin)
-      );
-    }, 'Waiting for tx to confirm...');
+    await this.addDeployment(config, result, contractInstance, instantiateDeployment);
 
+    const label = contractInstance?.label || contractAddress;
+    this.success(`${greenBright('Metadata for the contract')} ${blueBright(label)} ${greenBright('updated')}`);
+    this.log(`  Transaction: ${config.prettyPrintTxHash(result.transactionHash)}`);
+
+    return result;
+  }
+
+  private async getContractInfo(config: Config): Promise<{
+    contractAddress: string;
+    contractInstance?: Contract;
+    instantiateDeployment?: InstantiateDeployment;
+  }> {
+    if (isValidAddress(this.args.contract!)) {
+      const contractAddress = this.args.contract!;
+      return { contractAddress };
+    }
+
+    await config.assertIsValidWorkspace();
+
+    const contractInstance = config.contractsInstance.getContractByName(this.args.contract!);
+    const instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
+
+    if (!instantiateDeployment) {
+      throw new NotFoundError('Instantiated deployment with a contract address');
+    }
+
+    const contractAddress = instantiateDeployment.contract.address;
+
+    return { contractAddress, contractInstance, instantiateDeployment };
+  }
+
+  private getRewardsAddress(accountsDomain: Accounts): string | undefined {
+    return this.flags['rewards-address']
+      ? accountsDomain.accountBaseFromAddress(this.flags['rewards-address']).address
+      : undefined;
+  }
+
+  private getOwnerAddress(accountsDomain: Accounts): string | undefined {
+    return this.flags['owner-address']
+      ? accountsDomain.accountBaseFromAddress(this.flags['owner-address']).address
+      : undefined;
+  }
+
+  private validateArgs(): void {
+    if (!this.flags['owner-address'] && !this.flags['rewards-address']) {
+      throw new NotFoundError('Metadata values in flags "owner-address" and "rewards-address');
+    }
+  }
+
+  private async setContractMetadata(
+    config: Config,
+    from: AccountWithSigner,
+    metadata: ContractMetadata
+  ): Promise<SetContractMetadataResult> {
+    const signingClient = await ArchwayClientBuilder.getSigningArchwayClient(config, from, this.flags['gas-adjustment']);
+
+    return signingClient.setContractMetadata(
+      from.account.address,
+      metadata,
+      buildStdFee(this.flags.fee?.coin)
+    );
+  }
+
+  private async addDeployment(
+    config: Config,
+    result: SetContractMetadataResult,
+    contractInstance?: Contract,
+    instantiateDeployment?: InstantiateDeployment
+  ): Promise<void> {
     if (contractInstance && instantiateDeployment) {
       await config.deploymentsInstance.addDeployment(
         {
@@ -118,7 +160,7 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
           contract: {
             name: contractInstance.name,
             version: contractInstance.version,
-            address: contractAddress,
+            address: result.metadata.contractAddress,
             admin: instantiateDeployment.contract.admin,
           },
           metadata: result.metadata,
@@ -126,39 +168,26 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
         config.chainId
       );
     }
-
-    await this.successMessage(result, contractInstance?.label || contractAddress, config);
   }
 
-  // eslint-disable-next-line max-params
-  protected async logTransactionDetails(
+  private logTransactionDetails(
     config: Config,
     contractName: string,
     fromAccount: Account,
-    contractAddress: string,
-    rewardsAddress?: string,
-    ownerAddress?: string
-  ): Promise<void> {
+    metadata: ContractMetadata
+  ): void {
     this.log(`Setting metadata for contract ${blueBright(contractName)}`);
     this.log(`  Chain: ${blueBright(config.chainId)}`);
-    this.log(`  Contract: ${blueBright(contractAddress)}`);
-    if (rewardsAddress) {
-      this.log(`  Rewards: ${blueBright(rewardsAddress)}`);
+    this.log(`  Contract: ${blueBright(metadata.contractAddress)}`);
+
+    if (metadata.rewardsAddress) {
+      this.log(`  Rewards: ${blueBright(metadata.rewardsAddress)}`);
     }
 
-    if (ownerAddress) {
-      this.log(`  Owner: ${blueBright(ownerAddress)}`);
+    if (metadata.ownerAddress) {
+      this.log(`  Owner: ${blueBright(metadata.ownerAddress)}`);
     }
 
     this.log(`  Signer: ${blueBright(fromAccount.name)}\n`);
-  }
-
-  protected async successMessage(result: SetContractMetadataResult, label: string, configInstance: Config): Promise<void> {
-    if (this.jsonEnabled()) {
-      this.logJson(result);
-    } else {
-      this.success(`${greenBright('Metadata for the contract')} ${blueBright(label)} ${greenBright('updated')}`);
-      this.log(`  Transaction: ${await configInstance.prettyPrintTxHash(result.transactionHash)}`);
-    }
   }
 }

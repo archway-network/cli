@@ -4,9 +4,13 @@ import { Config, Contracts } from '@/domain';
 import { NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameOptionalArg } from '@/parameters/arguments';
+import { ArchwayClientBuilder } from '@/services';
 import { AccountBalances, InstantiateDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 
+interface ContractsQuerySmartResult {
+  contracts: readonly AccountBalances[];
+}
 /**
  * Command 'contracts query balance'
  * Access the bank module to query the balance of smart contracts
@@ -38,9 +42,9 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise containing a list of {@link AccountBalances}
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<ContractsQuerySmartResult> {
     if (!this.args.contract && !this.flags.all) {
       throw new NotFoundError('Contract name or --all flag');
     }
@@ -55,12 +59,15 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     }
 
     const result = await showDisappearingSpinner(async () => {
-      const client = await config.getStargateClient();
-
+      const client = await ArchwayClientBuilder.getStargateClient(config);
       return config.contractsInstance.queryAllBalances(client, contractsToQuery);
     }, 'Querying contract balances...');
 
-    await this.successMessage(result);
+    for (const item of result) {
+      this.log(`${Contracts.prettyPrintBalances(item)}`);
+    }
+
+    return { contracts: result };
   }
 
   private getContractsToQuery(config: Config): readonly InstantiateDeployment[] {
@@ -71,15 +78,5 @@ export default class ContractsQuerySmart extends BaseCommand<typeof ContractsQue
     const instantiated = config.contractsInstance.findInstantiateDeployment(this.args.contract!, config.chainId);
 
     return instantiated ? [instantiated] : [];
-  }
-
-  protected async successMessage(balances: AccountBalances[]): Promise<void> {
-    if (this.jsonEnabled()) {
-      this.logJson({ contracts: balances });
-    } else {
-      for (const item of balances) {
-        this.log(`${Contracts.prettyPrintBalances(item)}`);
-      }
-    }
   }
 }

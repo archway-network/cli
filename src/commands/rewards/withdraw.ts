@@ -1,11 +1,13 @@
+
 import { WithdrawContractRewardsResult } from '@archwayhq/arch3.js/build';
 
 import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
-import { Account } from '@/types';
+import { ArchwayClientBuilder } from '@/services';
+import { AccountWithSigner } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
-import { bold, buildStdFee, green, greenBright, yellow } from '@/utils';
+import { bold, buildStdFee, green, greenBright } from '@/utils';
 
 /**
  * Command 'rewards withdraw'
@@ -33,41 +35,44 @@ export default class RewardsWithdraw extends BaseCommand<typeof RewardsWithdraw>
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise containing a {@link WithdrawContractRewardsResult}
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<WithdrawContractRewardsResult> {
     const config = await Config.init();
     const accountsDomain = Accounts.initFromFlags(this.flags, config);
 
     const accountWithSigner = await accountsDomain.getWithSigner(this.flags.from);
 
-    await this.logTransactionDetails(accountWithSigner.account);
+    this.log(`Withdrawing rewards from ${greenBright(accountWithSigner.account.name)} (${green(accountWithSigner.account.address)})\n`);
 
-    const result = await showDisappearingSpinner(async () => {
-      const signingClient = await config.getSigningArchwayClient(accountWithSigner, this.flags['gas-adjustment']);
+    const result = await showDisappearingSpinner(
+      async () => this.withdraw(config, accountWithSigner),
+      'Waiting for tx to confirm...'
+    );
 
-      return signingClient.withdrawContractRewards(accountWithSigner.account.address, 0, buildStdFee(this.flags.fee?.coin));
-    }, 'Waiting for tx to confirm...');
-
-    await this.successMessage(result);
-  }
-
-  protected async logTransactionDetails(account: Account): Promise<void> {
-    this.log(`Withdrawing rewards from ${greenBright(account.name)} (${green(account.address)})\n`);
-  }
-
-  protected async successMessage(result: WithdrawContractRewardsResult): Promise<void> {
     if (result.rewards.length === 0) {
-      this.log(yellow('No outstanding rewards'));
+      this.log('💸 No outstanding rewards');
     } else {
-      this.success(green('Successfully claimed the following rewards:\n'));
+      this.success(green('Rewards claimed:'));
       for (const item of result.rewards) {
         this.log(`- ${bold(item.amount)}${item.denom}`);
       }
     }
 
-    if (this.jsonEnabled()) {
-      this.logJson(result);
-    }
+    return result;
+  }
+
+  private async withdraw(config: Config, accountWithSigner: AccountWithSigner): Promise<WithdrawContractRewardsResult> {
+    const signingClient = await ArchwayClientBuilder.getSigningArchwayClient(
+      config,
+      accountWithSigner,
+      this.flags['gas-adjustment']
+    );
+
+    return signingClient.withdrawContractRewards(
+      accountWithSigner.account.address,
+      0,
+      buildStdFee(this.flags.fee?.coin)
+    );
   }
 }
