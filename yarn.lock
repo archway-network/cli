@@ -81,6 +81,7 @@ __metadata:
     "@cosmjs/tendermint-rpc": ^0.31.0
     "@ledgerhq/hw-transport-node-hid": ^6.27.18
     "@oclif/core": ^2.8
+    "@oclif/plugin-autocomplete": ^2.3.10
     "@oclif/test": ^2.4
     "@types/chai": ^4.3.4
     "@types/debug": ^4.1.7
@@ -1513,6 +1514,17 @@ __metadata:
     wordwrap: ^1.0.0
     wrap-ansi: ^7.0.0
   checksum: a4ef8ad00d9bc7cb48e5847bad7def6947f913875f4b0ecec65ab423a3c2a82c87df173c709c3c25396d545f60d20d17d562c474f66230d76de43061ce22ba90
+  languageName: node
+  linkType: hard
+
+"@oclif/plugin-autocomplete@npm:^2.3.10":
+  version: 2.3.10
+  resolution: "@oclif/plugin-autocomplete@npm:2.3.10"
+  dependencies:
+    "@oclif/core": ^2.15.0
+    chalk: ^4.1.0
+    debug: ^4.3.4
+  checksum: 294f21679a1dfec7f7cd593e704f160a8137733215b58158cb4bf0b6855684f4e27e0df118bf803e894fc52e7f1184ecae3026ce96057a19c6dbdd9318c7e2f9
   languageName: node
   linkType: hard
 
