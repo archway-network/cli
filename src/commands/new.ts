@@ -3,7 +3,7 @@ import { spawn } from 'promisify-child-process';
 
 import { NewProject as NewProjectDomain, ProjectType } from '@/domain';
 import { BaseCommand } from '@/lib/base';
-import { ChainOptionalFlag } from '@/parameters/flags';
+import { CustomFlags } from '@/parameters/flags';
 import { Prompts } from '@/services';
 import { dim, green, greenBright, sanitizeDirName } from '@/utils';
 
@@ -18,7 +18,7 @@ export default class NewProject extends BaseCommand<typeof NewProject> {
   };
 
   static flags = {
-    chain: ChainOptionalFlag,
+    chain: CustomFlags.chainId(),
     contract: Flags.boolean({
       default: true,
       description: 'Boolean flag to choose if you want to also create a contract with the project. Defaults to true',

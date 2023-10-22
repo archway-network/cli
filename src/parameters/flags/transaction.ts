@@ -2,7 +2,8 @@ import { Flags } from '@oclif/core';
 import { AlphabetLowercase } from '@oclif/core/lib/interfaces';
 
 import { Amount } from '@/types';
-import { parseAmount } from '@/utils';
+
+import { parseAmount } from '../shared/amount';
 
 import { NoConfirmFlag } from './noConfirm';
 

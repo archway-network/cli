@@ -1,16 +1,13 @@
 import { Args } from '@oclif/core';
 
-import { ParamsChainOptionalFlag } from '@/parameters/flags/chain';
+import { parseChainId } from '../shared/chain';
 
-/**
- * Definition of Chain id argument that is required
- */
-export const ParamsChainRequiredArg = {
-  ...ParamsChainOptionalFlag,
-  required: true,
+export const ChainArgs = {
+  /**
+   * Argument that validates a chain ID
+   */
+  chainId: Args.custom<string>({
+    description: 'ID of the chain',
+    parse: parseChainId,
+  })
 };
-
-/**
- * Chain id argument that is required
- */
-export const ChainRequiredArg = Args.string(ParamsChainRequiredArg);

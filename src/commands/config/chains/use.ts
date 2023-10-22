@@ -1,6 +1,6 @@
 import { Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
-import { ChainRequiredArg } from '@/parameters/arguments';
+import { CustomArgs } from '@/parameters/arguments';
 import { GlobalFlag } from '@/parameters/flags';
 import { ConfigData } from '@/types';
 import { bold, greenBright } from '@/utils';
@@ -12,7 +12,7 @@ import { bold, greenBright } from '@/utils';
 export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse> {
   static summary = 'Switches the current chain in use and updates the config file appropriately';
   static args = {
-    chain: ChainRequiredArg,
+    chain: CustomArgs.chainId({ required: true }),
   };
 
   static flags = {
@@ -43,7 +43,7 @@ export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse>
       this.warning(chainRegistry.prettyPrintWarnings(this.args.chain));
     }
 
-    const chainId = this.args.chain!;
+    const chainId = this.args.chain;
     const partialConfig = { 'chain-id': chainId };
 
     await config.update(partialConfig, this.flags.global);

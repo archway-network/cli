@@ -6,9 +6,9 @@ import { Accounts, Config } from '@/domain';
 import { InstantiateError, NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameOptionalArg } from '@/parameters/arguments';
-import { ContractMsgArg, ContractMsgFlags, KeyringFlags, NoValidationFlag, ParamsAmountOptionalFlag, TransactionFlags, parseContractMsgArgs } from '@/parameters/flags';
+import { ContractMsgArg, ContractMsgFlags, CustomFlags, KeyringFlags, NoValidationFlag, TransactionFlags, parseContractMsgArgs } from '@/parameters/flags';
 import { ArchwayClientBuilder } from '@/services';
-import { AccountWithSigner, Amount, Contract, DeploymentAction, InstantiateDeployment, JsonObject } from '@/types';
+import { AccountWithSigner, Contract, DeploymentAction, InstantiateDeployment, JsonObject } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { blueBright, buildStdFee, dim, getErrorMessage, greenBright } from '@/utils';
 
@@ -28,10 +28,9 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
     'no-admin': Flags.boolean({ description: 'Instantiates the contract without an admin', default: false }),
     label: Flags.string({ description: 'A human-readable name for this contract, displayed on explorers' }),
     code: Flags.integer({ description: 'Code stored' }),
-    amount: Flags.custom<Amount | undefined>({
-      ...ParamsAmountOptionalFlag,
+    amount: CustomFlags.amount({
       description: 'Funds to send to the contract during instantiation',
-    })(),
+    }),
     'no-validation': NoValidationFlag,
     ...ContractMsgFlags,
     ...KeyringFlags,

@@ -1,20 +1,15 @@
 import { Args } from '@oclif/core';
 
 import { Amount } from '@/types';
-import { parseAmount } from '@/utils';
 
-const AmountArgumentDescription = 'Token amount';
+import { parseAmount } from '../shared/amount';
 
-/**
- * Definition of Amount required argument
- */
-export const ParamsAmountRequiredArg = {
-  required: true,
-  description: AmountArgumentDescription,
-  parse: async (val: string): Promise<Amount> => parseAmount(val),
+export const AmountArgs = {
+  /**
+   * Argument that parses a token amount
+   */
+  amount: Args.custom<Amount>({
+    description: 'Token amount',
+    parse: (val: string): Promise<Amount> => Promise.resolve(parseAmount(val)),
+  })
 };
-
-/**
- * Amount required argument
- */
-export const AmountRequiredArg = Args.custom<Amount>(ParamsAmountRequiredArg)();

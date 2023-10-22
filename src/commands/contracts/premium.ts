@@ -4,7 +4,7 @@ import { Accounts, Config } from '@/domain';
 import { NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
-import { AmountRequiredFlag, KeyringFlags, TransactionFlags } from '@/parameters/flags';
+import { CustomFlags, KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { ArchwayClientBuilder } from '@/services';
 import { AccountWithSigner, Contract, DeploymentAction, InstantiateDeployment, PremiumDeployment } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
@@ -21,7 +21,10 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
   };
 
   static flags = {
-    'premium-fee': AmountRequiredFlag,
+    'premium-fee': CustomFlags.amount({
+      description: 'Premium flat fee',
+      required: true
+    }),
     ...KeyringFlags,
     ...TransactionFlags,
   };

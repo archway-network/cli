@@ -2,7 +2,7 @@ import { Flags } from '@oclif/core';
 
 import { Contracts, Deployments } from '@/domain';
 import { BaseCommand } from '@/lib/base';
-import { ChainOptionalFlag } from '@/parameters/flags';
+import { CustomFlags } from '@/parameters/flags';
 import { DeploymentAction, DeploymentFile } from '@/types';
 
 /**
@@ -12,7 +12,7 @@ import { DeploymentAction, DeploymentFile } from '@/types';
 export default class ConfigDeployments extends BaseCommand<typeof ConfigDeployments> {
   static summary = 'Displays the list of deployments, allows filtering by chain, action and contract';
   static flags = {
-    chain: ChainOptionalFlag,
+    chain: CustomFlags.chainId(),
     action: Flags.string({ options: Object.values(DeploymentAction), description: 'Deployment action to filter by' }),
     contract: Flags.string({ aliases: ['c'], description: 'Contract name to filter by' }),
   };

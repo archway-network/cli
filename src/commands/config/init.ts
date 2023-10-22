@@ -2,7 +2,7 @@ import path from 'node:path';
 
 import { Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
-import { ChainOptionalFlag } from '@/parameters/flags';
+import { CustomFlags } from '@/parameters/flags';
 import { Prompts } from '@/services';
 import { ConfigData } from '@/types';
 import { bold, green } from '@/utils';
@@ -14,7 +14,7 @@ import { bold, green } from '@/utils';
 export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
   static summary = 'Initializes a config file for the current project';
   static flags = {
-    chain: ChainOptionalFlag,
+    chain: CustomFlags.chainId(),
   };
 
   static examples = [

@@ -1,15 +1,10 @@
 import { Args } from '@oclif/core';
 
 /**
- * Definition of Standard input argument
+ * Standard input argument
  */
-export const ParamsStdinInputArg = {
+export const StdinInputArg = Args.string({
   name: 'stdInput',
   required: false,
   hidden: true,
-};
-
-/**
- * Standard input argument
- */
-export const StdinInputArg = Args.string(ParamsStdinInputArg);
+});

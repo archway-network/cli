@@ -3,7 +3,7 @@ import { Flags } from '@oclif/core';
 
 import { Accounts, Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
-import { AmountRequiredArg } from '@/parameters/arguments';
+import { CustomArgs } from '@/parameters/arguments';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { ArchwayClientBuilder, Prompts } from '@/services';
 import { AccountBase, AccountWithSigner } from '@/types';
@@ -29,7 +29,7 @@ export interface SendResult {
 export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBalancesSend> {
   static summary = 'Send tokens from one address or account to another';
   static args = {
-    amount: AmountRequiredArg,
+    amount: CustomArgs.amount({ required: true }),
   };
 
   static flags = {
@@ -62,7 +62,7 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
     const fromAccount = from.account;
     const toAccount: AccountBase = accountsDomain.accountBaseFromAddress(this.flags.to);
 
-    this.log(`Sending ${prettyPrintCoin(this.args.amount!.coin)}`);
+    this.log(`Sending ${prettyPrintCoin(this.args.amount.coin)}`);
     this.log(`From ${greenBright(fromAccount.name)} (${green(fromAccount.address)})`);
     this.log(`To ${toAccount.name ? `${greenBright(toAccount.name)} (${green(toAccount.address)})` : greenBright(toAccount.address)}\n`);
 
@@ -77,20 +77,20 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
       );
     } catch (error) {
       throw getErrorMessage(error).includes('insufficient funds')
-        ? new Error(`Insufficient funds to send ${white.reset(prettyPrintCoin(this.args.amount!.coin))} from ${greenBright(fromAccount.name)}`)
+        ? new Error(`Insufficient funds to send ${white.reset(prettyPrintCoin(this.args.amount.coin))} from ${greenBright(fromAccount.name)}`)
         : error;
     }
 
     this.success(
       green(
-        `Sent ${white.reset(prettyPrintCoin(this.args.amount!.coin))} from ${greenBright(fromAccount.name)} to ${greenBright(
+        `Sent ${white.reset(prettyPrintCoin(this.args.amount.coin))} from ${greenBright(fromAccount.name)} to ${greenBright(
           toAccount.name || toAccount.address
         )}`
       )
     );
 
     return {
-      amount: this.args.amount!.plainText,
+      amount: this.args.amount.plainText,
       from: {
         name: fromAccount.name,
         address: fromAccount.address,
@@ -107,7 +107,7 @@ export default class AccountsBalancesSend extends BaseCommand<typeof AccountsBal
     return signingClient.sendTokens(
       from.account.address,
       toAccount.address,
-      [this.args.amount!.coin],
+      [this.args.amount.coin],
       buildStdFee(this.flags.fee?.coin)
     );
   }

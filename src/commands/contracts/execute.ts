@@ -1,14 +1,14 @@
 
 import { ExecuteResult } from '@cosmjs/cosmwasm-stargate';
-import { Args, Flags } from '@oclif/core';
+import { Args } from '@oclif/core';
 
 import { Accounts, Config } from '@/domain';
 import { ExecuteError, NotFoundError } from '@/exceptions';
 import { BaseCommand } from '@/lib/base';
 import { ParamsContractNameRequiredArg } from '@/parameters/arguments';
-import { ContractMsgArg, ContractMsgFlags, KeyringFlags, NoValidationFlag, ParamsAmountOptionalFlag, TransactionFlags, parseContractMsgArgs } from '@/parameters/flags';
+import { ContractMsgArg, ContractMsgFlags, CustomFlags, KeyringFlags, NoValidationFlag, TransactionFlags, parseContractMsgArgs } from '@/parameters/flags';
 import { ArchwayClientBuilder } from '@/services';
-import { AccountWithSigner, Amount, Contract, JsonObject } from '@/types';
+import { AccountWithSigner, Contract, JsonObject } from '@/types';
 import { showDisappearingSpinner } from '@/ui';
 import { blueBright, buildStdFee, dim, getErrorMessage, greenBright, isValidAddress } from '@/utils';
 
@@ -24,10 +24,9 @@ export default class ContractsExecute extends BaseCommand<typeof ContractsExecut
   };
 
   static flags = {
-    amount: Flags.custom<Amount | undefined>({
-      ...ParamsAmountOptionalFlag,
+    amount: CustomFlags.amount({
       description: 'Funds to send to the contract on the transaction',
-    })(),
+    }),
     'no-validation': NoValidationFlag,
     ...ContractMsgFlags,
     ...KeyringFlags,
