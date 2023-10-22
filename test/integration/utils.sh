@@ -68,7 +68,7 @@ function initConfig() {
 function useLocalChain() {
   echo "Setting local chain config"
   rm -rf ~/.config/archway/chains/integration-test-1.json
-  archway config chains import "$(scriptRelativePath files/integration-test-1.json)" --json >/dev/null 2>&1
+  archway config chains import "$(scriptRelativePath ../fixtures/integration-test-1.json)" --json >/dev/null 2>&1
   archway config chains use integration-test-1
 }
 

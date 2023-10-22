@@ -1,8 +1,12 @@
+import path from 'node:path';
+
 import { expect, test } from '@oclif/test';
 
 import { ChainData } from '../../../src/commands/config/chains/list';
 import { chainString } from '../../dummies';
 import { ConfigStubs, FilesystemStubs } from '../../stubs';
+
+const chainSpecPath = path.join(__dirname, '../../fixtures/integration-test-1.json');
 
 describe('config chains', () => {
   const configStubs = new ConfigStubs();
@@ -24,7 +28,7 @@ describe('config chains', () => {
   describe('import', () => {
     test
       .stdout()
-      .command(['config chains import', 'constantine-3'])
+      .command(['config chains import', chainSpecPath])
       .it('imports chain and writes file', ctx => {
         expect(ctx.stdout).to.contain('Imported chain');
         expect(filesystemStubs.stubbedWriteFile?.called).to.be.true;
@@ -40,7 +44,7 @@ describe('config chains', () => {
     test
       .stdout()
       .stderr()
-      .command(['config chains import', 'constantine-3', '"{}"'])
+      .command(['config chains import', 'package.json', '"{}"'])
       .catch(/(Please specify only one file to import)/)
       .it('fails on double input');
   });
