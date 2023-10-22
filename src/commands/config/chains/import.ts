@@ -18,7 +18,13 @@ export default class ConfigChainsImport extends BaseCommand<typeof ConfigChainsI
   static summary = 'Import a chain registry file and save it to the global configuration';
 
   static args = {
-    file: Args.file({ name: 'file', required: false, ignoreStdin: true, description: 'Path to file to be imported' }),
+    file: Args.file({
+      name: 'file',
+      required: false,
+      ignoreStdin: true,
+      exists: true,
+      description: 'Path to file to be imported'
+    }),
     stdinInput: StdinInputArg,
   };
 
