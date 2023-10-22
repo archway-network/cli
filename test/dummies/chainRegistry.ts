@@ -3,7 +3,7 @@ import { ChainRegistry, GLOBAL_CHAINS_PATH } from '../../src/domain';
 import { BuiltInChains } from '../../src/services';
 import { CosmosChain } from '../../src/types';
 
-import integrationTestChainSpec from '../fixtures/integration-test-1.json';
+import integrationTestChainSpec from '../../scripts/local-1.json';
 
 export const chainFile = integrationTestChainSpec as CosmosChain;
 

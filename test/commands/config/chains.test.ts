@@ -6,7 +6,7 @@ import { ChainData } from '../../../src/commands/config/chains/list';
 import { chainString } from '../../dummies';
 import { ConfigStubs, FilesystemStubs } from '../../stubs';
 
-const chainSpecPath = path.join(__dirname, '../../fixtures/integration-test-1.json');
+const chainSpecPath = path.join(__dirname, '../../../scripts/local-1.json');
 
 describe('config chains', () => {
   const configStubs = new ConfigStubs();
