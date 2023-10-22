@@ -1,5 +1,5 @@
 {
-  "$schema": "https://raw.githubusercontent.com/cosmos/chain-registry/master/chain.schema.json",
+  "$schema": "../chain.schema.json",
   "chain_name": "archway",
   "status": "live",
   "network_type": "mainnet",
@@ -45,7 +45,10 @@
       "linux/arm64": "https://github.com/archway-network/archway/releases/download/v1.0.0/archwayd_linux_arm64"
     },
     "cosmos_sdk_version": "v0.45.16",
-    "tendermint_version": "v0.34.27",
+    "consensus": {
+      "type": "tendermint",
+      "version": "v0.34.27"
+    },
     "cosmwasm_version": "v0.32.0",
     "cosmwasm_enabled": true,
     "ibc_go_version": "v4.3.1",
@@ -90,6 +93,16 @@
         "id": "6471ac9ff8474373e8055d45b6246fd8c5204890",
         "address": "archway.seed.mzonder.com:10756",
         "provider": "MZONDER"
+      },
+      {
+        "id": "bd9332cd0a99f5830ea457a32a56b32790f68716",
+        "address": "135.181.58.28:27456",
+        "provider": "Validatrium"
+      },
+      {
+        "id": "17d6cb2601b67ad916d5433a404bfc000b0b6ef1",
+        "address": "rpc.archway.nodestake.top:666",
+        "provider": "NodeStake"
       }
     ]
   },
@@ -154,6 +167,10 @@
       {
         "address": "https://rpc-archway.mzonder.com",
         "provider": "MZONDER"
+      },
+      {
+        "address": "https://rpc-archway.mainnet.validatrium.club",
+        "provider": "Validatrium"
       }
     ],
     "rest": [
@@ -216,6 +233,10 @@
       {
         "address": "https://api-archway.mzonder.com",
         "provider": "MZONDER"
+      },
+      {
+        "address": "https://api-archway.mainnet.validatrium.club",
+        "provider": "Validatrium"
       }
     ],
     "grpc": [
@@ -258,6 +279,10 @@
       {
         "address": "grpc-archway.mzonder.com:443",
         "provider": "MZONDER"
+      },
+      {
+        "address": "grpc-archway.mainnet.validatrium.club:27490",
+        "provider": "Validatrium"
       }
     ]
   },
