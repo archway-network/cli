@@ -77,6 +77,13 @@ export class Config {
   }
 
   /**
+   * @returns The merged {@link ConfigData}, processed in this order: local config → global config → CLI default.
+   */
+  get data(): ConfigData {
+    return _.merge(DEFAULT_CONFIG_DATA, this.globalConfigData, this.localConfigData);
+  }
+
+  /**
    * Get a representation of the config file data + the contracts data
    *
    * @returns Instance of {@link ConfigDataWithContracts}
@@ -86,13 +93,6 @@ export class Config {
       ...this.data,
       contracts: this.contracts,
     };
-  }
-
-  /**
-   * @returns The merged {@link ConfigData}, processed in this order: local config → global config → CLI default.
-   */
-  get data(): ConfigData {
-    return _.merge(DEFAULT_CONFIG_DATA, this.globalConfigData, this.localConfigData);
   }
 
   /**
