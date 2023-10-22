@@ -16,7 +16,7 @@ import {
   KeystoreBackendType,
   configDataValidator
 } from '@/types';
-import { MergeMode, bold, fileExists, getWorkspaceRoot, mergeCustomizer, prettyPrintTransaction, writeFileWithDir } from '@/utils';
+import { MergeMode, bold, getWorkspaceRoot, mergeCustomizer, pathExists, prettyPrintTransaction, writeFileWithDir } from '@/utils';
 
 import { DEFAULT_CHAIN_ID } from './ChainRegistry';
 import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
@@ -77,6 +77,13 @@ export class Config {
   }
 
   /**
+   * @returns The merged {@link ConfigData}, processed in this order: local config → global config → CLI default.
+   */
+  get data(): ConfigData {
+    return _.merge(DEFAULT_CONFIG_DATA, this.globalConfigData, this.localConfigData);
+  }
+
+  /**
    * Get a representation of the config file data + the contracts data
    *
    * @returns Instance of {@link ConfigDataWithContracts}
@@ -86,13 +93,6 @@ export class Config {
       ...this.data,
       contracts: this.contracts,
     };
-  }
-
-  /**
-   * @returns The merged {@link ConfigData}, processed in this order: local config → global config → CLI default.
-   */
-  get data(): ConfigData {
-    return _.merge(DEFAULT_CONFIG_DATA, this.globalConfigData, this.localConfigData);
   }
 
   /**
@@ -158,7 +158,7 @@ export class Config {
       workingDir,
       localConfigData['contracts-path'] || globalConfigData['contracts-path'] || DEFAULT_CONFIG_DATA['contracts-path']
     );
-    const chainRegistry = await ChainRegistry.init(workingDir);
+    const chainRegistry = await ChainRegistry.init();
 
     return new Config(workspaceRoot, contracts, chainRegistry, globalConfigData, localConfigData);
   }
@@ -230,7 +230,7 @@ export class Config {
    */
   static async readConfigFile(workingDir?: string, global = false): Promise<ConfigData> {
     const configPath = await this.getFilePath(workingDir, global);
-    const exists = await fileExists(configPath);
+    const exists = await pathExists(configPath);
     if (exists) {
       const file = await fs.readFile(configPath, 'utf8');
       const data = JSON.parse(file) as ConfigData;
@@ -266,14 +266,23 @@ export class Config {
   }
 
   /**
+   * Get the absolute path of the config file
+   *
+   * @param global - Optional - Get the path for the global config, defaults to false
+   * @returns Promise containing the absolute path of the config file
+   */
+  async getConfigPath(global = false): Promise<string> {
+    return Config.getFilePath(this.workspaceRoot, global);
+  }
+
+  /**
    * Write the data of the {@link Config} instance into the local or global config file
    *
    * @param global - Optional - Write the data into the global config, defaults to false
    * @returns Empty promise
    */
   async write(global = false): Promise<void> {
-    const configPath = await Config.getFilePath(this.workspaceRoot, global);
-
+    const configPath = await this.getConfigPath(global);
     await writeFileWithDir(configPath, JSON.stringify(global ? this.globalConfigData : this.localConfigData, undefined, 2));
   }
 

@@ -43,12 +43,12 @@ output="$(archway config deployments --json)"
 validate "$output" ".deployments == []"
 
 printf "\n***** config chains import ***** \n"
-output="$(archway config chains import "$(scriptRelativePath files/integration-test-1.json)" --json)"
-validate "$output" '.["chain-id"] == "integration-test-1"'
+output="$(archway config chains import "$(scriptRelativePath ../../scripts/local-1.json)" --json --force)"
+validate "$output" '.["chain-id"] == "local-1"'
 
 printf "\n***** config chains use ***** \n"
-output="$(archway config chains use integration-test-1 --json)"
-validate "$output" '.["chain-id"] == "integration-test-1"'
+output="$(archway config chains use local-1 --json)"
+validate "$output" '.["chain-id"] == "local-1"'
 
 echo
 ok SUCCESS

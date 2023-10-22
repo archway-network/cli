@@ -11,8 +11,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 ALICE=ALICE_INTEGRATION_FILE_TEST
 export ARCHWAY_SKIP_VERSION_CHECK=true
 
-rm -rf ~/.config/archway/chains/integration-test-1.json
-
 function ok() {
   echo " ✔ $1"
 }
@@ -67,9 +65,8 @@ function initConfig() {
 
 function useLocalChain() {
   echo "Setting local chain config"
-  rm -rf ~/.config/archway/chains/integration-test-1.json
-  archway config chains import "$(scriptRelativePath files/integration-test-1.json)" --json >/dev/null 2>&1
-  archway config chains use integration-test-1
+  archway config chains import "$(scriptRelativePath ../fixtures/local-1.json)" --json >/dev/null 2>&1
+  archway config chains use local-1
 }
 
 function createAlice() {
@@ -85,9 +82,6 @@ function getAliceAddress() {
 # shellcheck disable=SC2317
 function cleanup() {
   error "Unexpected error"
-
-  # cleanup test chain
-  rm -rf ~/.config/archway/chains/integration-test-1.json
 
   # remove alice's account
   archway accounts remove "${ALICE}" --force --keyring-backend test >/dev/null 2>&1 || true

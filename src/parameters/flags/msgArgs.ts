@@ -16,9 +16,10 @@ export const ContractMsgFlags = {
     description: 'JSON string with the message to send the smart contract',
     exclusive: ['args-file', 'stdin-input'],
   }),
-  'args-file': Flags.string({
+  'args-file': Flags.file({
     description: 'Path to a JSON file with a message to send to the smart contract',
     exclusive: ['args', 'stdin-input'],
+    exists: true,
   }),
 };
 

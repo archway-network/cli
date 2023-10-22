@@ -60,7 +60,7 @@ regex "$output" "Optimized WASM binary saved"
 regex "$output" "Schemas generated"
 
 ### Alternative optimized: This line copies a prebuilt and preoptimized wasm file, use when you don't want to test the "build --optimize" command which is slow
-# cp -r "$(scriptRelativePath files/optimized/artifacts)" "$PROJECT_DIR"
+# cp -r "$(scriptRelativePath ../fixtures/optimized/artifacts)" "$PROJECT_DIR"
 
 # Needed on github workflow only (https://github.com/actions/runner/issues/434)
 if [ -n "${CI:-}" ]; then
@@ -87,7 +87,7 @@ echo "Contract instantiated into address ${CONTRACT_ADDRESS}"
 
 printf "\n***** contracts migrate ***** \n"
 ### Copy optimized wasm file with the migratable new version of the contract, so we can store it and then migrate to it
-cp -r "$(scriptRelativePath files/migrate/artifacts)" "$PROJECT_DIR"
+cp -r "$(scriptRelativePath ../fixtures/migrate/artifacts)" "$PROJECT_DIR"
 output="$(archway contracts store $CONTRACT_FOO --from $ALICE --keyring-backend test --json)"
 CODE_ID_MIGRATE=$(jq -r ".codeId" <<<"${output}")
 echo "Stored new version of contract with codeId ${CODE_ID_MIGRATE}"

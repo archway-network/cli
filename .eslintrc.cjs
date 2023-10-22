@@ -122,7 +122,9 @@ module.exports = {
     'unicorn/prefer-string-replace-all': 'off',
     'unicorn/empty-brace-spaces': 'off',
     'node/exports-style': ['error', 'exports'],
-    'node/file-extension-in-import': ['error', 'never'],
+    'node/file-extension-in-import': ['error', 'never', {
+      'tryExtensions': ['.ts', '.d.ts', '.js', '.json']
+    }],
     'node/no-missing-import': 'off',
     'node/no-unsupported-features/es-syntax': 'off',
     'node/prefer-global/buffer': ['error', 'always'],

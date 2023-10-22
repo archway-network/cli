@@ -14,6 +14,21 @@ export interface ConfigData {
   'keyring-path'?: string;
 }
 
+export type ConfigDataKey = keyof ConfigData;
+export type ConfigDataValue = ConfigData[ConfigDataKey];
+
+function createKeys<T extends [keyof ConfigData] | ReadonlyArray<keyof ConfigData>>(t: T): T {
+  return t;
+}
+
+export const ConfigDataKeys = createKeys([
+  'chain-id',
+  'contracts-path',
+  'default-account',
+  'keyring-backend',
+  'keyring-path'
+]);
+
 /**
  * Config data with contracts data for displaying purposes
  */

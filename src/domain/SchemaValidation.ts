@@ -1,23 +1,17 @@
+/* eslint-disable import/order */
+
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import Ajv, { Format, Schema } from 'ajv';
+import debugInstance from 'debug';
+
+import Ajv, { Format, Options, Schema } from 'ajv';
 import addFormats from 'ajv-formats';
+import Ajv2019 from 'ajv/dist/2019';
+// eslint-disable-next-line node/file-extension-in-import
+import draft7MetaSchema from 'ajv/dist/refs/json-schema-draft-07.json';
 
-type CosmWasmFormats = {
-  [Name in string]?: Format;
-};
-
-const cosmWasmFormatsDefinition: CosmWasmFormats = {
-  uint8: { type: 'number', validate: validateUInt8 },
-  uint16: { type: 'number', validate: validateUInt16 },
-  uint32: { type: 'number', validate: validateUInt32 },
-  uint64: { type: 'number', validate: validateUInt64 },
-  int8: { type: 'number', validate: validateInt8 },
-  int16: { type: 'number', validate: validateInt16 },
-  int32: { type: 'number', validate: validateInt32 },
-  int64: { type: 'number', validate: validateInt64 },
-};
+const debug = debugInstance('schema-validation');
 
 export class SchemaValidationError extends Error {
   constructor(ajv: Ajv) {
@@ -27,6 +21,26 @@ export class SchemaValidationError extends Error {
 }
 
 export class SchemaValidator {
+  private extraOpts: Options = {};
+
+  public withOptions(opts: Options): this {
+    this.extraOpts = { ...this.extraOpts, ...opts };
+    return this;
+  }
+
+  public addFormats(formats: CustomFormats): this {
+    return this.withOptions({
+      formats: {
+        ...this.extraOpts.formats,
+        ...formats
+      }
+    });
+  }
+
+  public withCosmWasmFormats(): this {
+    return this.addFormats(CosmWasmFormatsDefinition);
+  }
+
   /**
    * Validates a JSON schema against a given data.
    *
@@ -38,19 +52,54 @@ export class SchemaValidator {
   async assertValidJSONSchema(schemaPath: string, data: any): Promise<void> {
     const schemaFile = await fs.readFile(path.resolve(schemaPath), 'utf8');
     const schema = JSON.parse(schemaFile) as Schema;
-    const ajv = addFormats(
-      new Ajv({
-        allErrors: true,
-        verbose: true,
-        formats: cosmWasmFormatsDefinition,
-      })
-    );
+    this.assertValid(schema, data);
+  }
 
+  /**
+   * Validates a JSON schema against a given data.
+   *
+   * @param schema - The schema to validate against.
+   * @param data - The data to validate.
+   *
+   * @throws A {@link SchemaValidationError} if the data is not valid.
+   */
+  assertValid(schema: Schema, data: any): void {
+    const ajv = this.createAjv();
     if (!ajv.validate(schema, data)) {
+      debug('Schema validation failed', { errors: ajv.errors });
       throw new SchemaValidationError(ajv);
     }
   }
+
+  private createAjv(): Ajv {
+    const ajv = addFormats(
+      new Ajv2019({
+        allErrors: true,
+        verbose: true,
+        ...this.extraOpts
+      })
+    );
+
+    ajv.addMetaSchema(draft7MetaSchema);
+
+    return ajv;
+  }
 }
+
+type CustomFormats = {
+  [Name in string]?: Format;
+};
+
+const CosmWasmFormatsDefinition: CustomFormats = {
+  uint8: { type: 'number', validate: validateUInt8 },
+  uint16: { type: 'number', validate: validateUInt16 },
+  uint32: { type: 'number', validate: validateUInt32 },
+  uint64: { type: 'number', validate: validateUInt64 },
+  int8: { type: 'number', validate: validateInt8 },
+  int16: { type: 'number', validate: validateInt16 },
+  int32: { type: 'number', validate: validateInt32 },
+  int64: { type: 'number', validate: validateInt64 },
+};
 
 /* eslint-disable no-mixed-operators */
 const ZERO = 0;

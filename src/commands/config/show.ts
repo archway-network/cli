@@ -19,12 +19,12 @@ export default class ConfigShow extends BaseCommand<typeof ConfigShow> {
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise with a {@link ConfigDataWithContracts}
    */
   public async run(): Promise<ConfigDataWithContracts> {
     const configFile = await Config.init();
 
-    this.log(await configFile.prettyPrint());
+    this.log(configFile.prettyPrint());
 
     return configFile.dataWithContracts;
   }

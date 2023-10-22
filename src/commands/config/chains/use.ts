@@ -1,7 +1,8 @@
-import { ChainRegistry, Config } from '@/domain';
+import { Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ChainRequiredArg } from '@/parameters/arguments';
 import { GlobalFlag } from '@/parameters/flags';
+import { ConfigData } from '@/types';
 import { bold, greenBright } from '@/utils';
 
 /**
@@ -32,26 +33,23 @@ export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse>
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise with a partial {@link ConfigData}
    */
-  public async run(): Promise<void> {
-    const configFile = await Config.init();
-    const chainRegistry = await ChainRegistry.init();
+  public async run(): Promise<Partial<ConfigData>> {
+    const config = await Config.init();
+    const { chainRegistry } = config;
 
     if (chainRegistry.warnings) {
       this.warning(chainRegistry.prettyPrintWarnings(this.args.chain));
     }
 
-    configFile.update({ 'chain-id': this.args.chain }, this.flags.global);
+    const chainId = this.args.chain!;
+    const partialConfig = { 'chain-id': chainId };
 
-    await this.successMessage(this.args.chain!);
-  }
+    await config.update(partialConfig, this.flags.global);
 
-  protected async successMessage(chainId: string): Promise<void> {
     this.success(`${greenBright('Switched chain to')} ${bold(chainId)}`);
 
-    if (this.jsonEnabled()) {
-      this.logJson({ 'chain-id': chainId });
-    }
+    return partialConfig;
   }
 }

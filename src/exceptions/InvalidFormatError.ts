@@ -11,9 +11,6 @@ export class InvalidFormatError extends ConsoleError {
     super(ErrorCodes.INVALID_FORMAT);
   }
 
-  /**
-   * {@inheritDoc ConsoleError.toConsoleString}
-   */
   toConsoleString(): string {
     const message = `${bold(this.name)} ${redBright("doesn't have a valid format")}`;
     return `${message}${this.formatValidationErrors()}`;

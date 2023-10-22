@@ -47,7 +47,7 @@ export class Contracts {
     public readonly deployments: Deployments
   ) {
     this.data = data;
-    this.schemaValidator = new SchemaValidator();
+    this.schemaValidator = new SchemaValidator().withCosmWasmFormats();
   }
 
   /**

@@ -1,5 +1,5 @@
-import ArchwaySchema from '@/repositories/chainSchemas/archway-1.json';
-import ConstantineSchema from '@/repositories/chainSchemas/constantine-3.json';
+import ArchwaySchema from '@/repositories/chain-registry/archway-1.json';
+import ConstantineSchema from '@/repositories/chain-registry/constantine-3.json';
 import { CosmosChain } from '@/types';
 
 /**
@@ -27,7 +27,7 @@ export class BuiltInChains {
    *
    * @returns Array of the chain ids
    */
-  static getChainIds(): string[] {
+  static getChainIds(): readonly string[] {
     return Object.keys(this.chainMap);
   }
 
@@ -36,7 +36,7 @@ export class BuiltInChains {
    *
    * @returns Array containing the {@link CosmosChain} representation of the built-in chains
    */
-  static getChainList(): CosmosChain[] {
+  static getChainList(): readonly CosmosChain[] {
     return Object.values(this.chainMap);
   }
 }

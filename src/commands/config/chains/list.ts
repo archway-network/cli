@@ -1,6 +1,6 @@
 import { ux } from '@oclif/core';
 
-import { ChainRegistry, Config } from '@/domain';
+import { Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 
 export type ChainData = Record<string, boolean | number | string>;
@@ -23,7 +23,7 @@ export default class ConfigChainsList extends BaseCommand<typeof ConfigChainsLis
    */
   public async run(): Promise<readonly ChainData[]> {
     const config = await Config.init();
-    const chainRegistry = await ChainRegistry.init();
+    const { chainRegistry, chainId: currentChainId } = config;
 
     const { flags } = await this.parse(ConfigChainsList);
 
@@ -37,7 +37,7 @@ export default class ConfigChainsList extends BaseCommand<typeof ConfigChainsLis
       } = chain;
 
       return {
-        current: config.chainId === chainId,
+        current: chainId === currentChainId,
         chainId,
         chainName: prettyName || chainName,
         feeDenom,
@@ -45,11 +45,11 @@ export default class ConfigChainsList extends BaseCommand<typeof ConfigChainsLis
       };
     });
 
-    if (!this.jsonEnabled()) {
-      if (chainRegistry.warnings) {
-        this.warning(chainRegistry.prettyPrintWarnings(this.args.chain));
-      }
+    if (chainRegistry.warnings) {
+      this.warning(chainRegistry.prettyPrintWarnings(currentChainId));
+    }
 
+    if (!this.jsonEnabled()) {
       ux.table(chainsData, {
         current: {
           header: 'Current',

@@ -1,7 +1,10 @@
-import { Config, LOCAL_CONFIG_FILE } from '@/domain';
+import path from 'node:path';
+
+import { Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ChainOptionalFlag } from '@/parameters/flags';
 import { Prompts } from '@/services';
+import { ConfigData } from '@/types';
 import { bold, green } from '@/utils';
 
 /**
@@ -28,19 +31,16 @@ export default class ConfigInit extends BaseCommand<typeof ConfigInit> {
   /**
    * Runs the command.
    *
-   * @returns Empty promise
+   * @returns Promise with a {@link ConfigData}
    */
-  public async run(): Promise<void> {
+  public async run(): Promise<ConfigData> {
     const config = await Config.create(this.flags.chain || (await Prompts.chain()));
 
-    await this.successMessage(config);
-  }
+    const configFile = await config.getConfigPath();
+    const relativePath = path.relative(process.cwd(), configFile);
 
-  protected async successMessage(config: Config): Promise<void> {
-    this.success(`${green('Config file')} ${bold(LOCAL_CONFIG_FILE)} ${green('created')}`);
+    this.success(`${green('Config file')} ${bold(relativePath)} ${green('created')}`);
 
-    if (this.jsonEnabled()) {
-      this.logJson(config.localData);
-    }
+    return config.localData;
   }
 }
