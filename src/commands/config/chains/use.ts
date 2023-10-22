@@ -1,4 +1,4 @@
-import { ChainRegistry, Config } from '@/domain';
+import { Config } from '@/domain';
 import { BaseCommand } from '@/lib/base';
 import { ChainRequiredArg } from '@/parameters/arguments';
 import { GlobalFlag } from '@/parameters/flags';
@@ -36,8 +36,8 @@ export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse>
    * @returns Promise with a partial {@link ConfigData}
    */
   public async run(): Promise<Partial<ConfigData>> {
-    const configFile = await Config.init();
-    const chainRegistry = await ChainRegistry.init();
+    const config = await Config.init();
+    const { chainRegistry } = config;
 
     if (chainRegistry.warnings) {
       this.warning(chainRegistry.prettyPrintWarnings(this.args.chain));
@@ -46,7 +46,7 @@ export default class ConfigChainsUse extends BaseCommand<typeof ConfigChainsUse>
     const chainId = this.args.chain!;
     const partialConfig = { 'chain-id': chainId };
 
-    await configFile.update(partialConfig, this.flags.global);
+    await config.update(partialConfig, this.flags.global);
 
     this.success(`${greenBright('Switched chain to')} ${bold(chainId)}`);
 

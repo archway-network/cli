@@ -158,7 +158,7 @@ export class Config {
       workingDir,
       localConfigData['contracts-path'] || globalConfigData['contracts-path'] || DEFAULT_CONFIG_DATA['contracts-path']
     );
-    const chainRegistry = await ChainRegistry.init(workingDir);
+    const chainRegistry = await ChainRegistry.init();
 
     return new Config(workspaceRoot, contracts, chainRegistry, globalConfigData, localConfigData);
   }
