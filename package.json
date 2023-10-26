@@ -1,6 +1,6 @@
 {
   "name": "@archwayhq/cli",
-  "version": "2.0.0-beta.1",
+  "version": "2.0.0",
   "description": "Develop WASM smart contracts with the Archway Network's Developer CLI",
   "homepage": "https://docs.archway.io",
   "repository": "github:archway-network/archway-cli",
@@ -61,7 +61,6 @@
     "test": "mocha",
     "test:coverage": "nyc --reporter=text yarn test",
     "test:integration": "./test/integration/all.sh",
-    "version": "oclif readme && git add README.md",
     "prepare": "husky install",
     "changelog": "conventional-changelog -p conventionalcommits"
   },
