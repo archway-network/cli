@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.0.0 (2023-10-27)
+
+### ⚠ BREAKING CHANGES
+
+- **config:** the following sub-commands under config were removed: `chain-id`,
+  `contracts-path`, `default-account`, `keyring-backend`, `keyring-path`
+
+### Added
+
+- **accounts:** command to export the private key (#266)
+- **config:** commands to get/set generic config values (#271)
+- **plugins:** added plugin for bash/zsh completion (#272)
+
+### Fixed
+
+- **accounts:** allow querying balances for any valid address (#248)
+- **accounts:** don't break when deleting an account with invalid format (#256)
+- **contracts:** added missing types for CosmWasm schema validation (#252)
+- **core:** gracefully stop running processes on Ctrl+C (#260)
+- **core:** fixed the rust optimizer build cache volume (#260)
+
+### Changed
+
+- **plugins:** improved the help command output (#253)
+- **contracts:** standardized the sub-commands flags (#261 and #262)
+- **config:** validate chain using JSON schema (#271)
+
 ## 2.0.0-beta.1 (2023-09-20)
 
 ### ⚠ BREAKING CHANGES
