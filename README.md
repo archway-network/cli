@@ -10,6 +10,44 @@
 
 Develop WASM smart contracts with the Archway Network's Developer CLI.
 
+- [Archway Developer CLI](#archway-developer-cli)
+  - [Dependencies](#dependencies)
+  - [CLI Installation](#cli-installation)
+    - [Install the latest published version](#install-the-latest-published-version)
+    - [Install the pre-release version](#install-the-pre-release-version)
+    - [Install the development version](#install-the-development-version)
+  - [Commands](#commands)
+    - [`archway accounts balances get ACCOUNT`](#archway-accounts-balances-get-account)
+    - [`archway accounts balances send AMOUNT`](#archway-accounts-balances-send-amount)
+    - [`archway accounts export ACCOUNT`](#archway-accounts-export-account)
+    - [`archway accounts get ACCOUNT`](#archway-accounts-get-account)
+    - [`archway accounts list`](#archway-accounts-list)
+    - [`archway accounts new [ACCOUNT-NAME]`](#archway-accounts-new-account-name)
+    - [`archway accounts remove ACCOUNT`](#archway-accounts-remove-account)
+    - [`archway autocomplete [SHELL]`](#archway-autocomplete-shell)
+    - [`archway config chains import [FILE]`](#archway-config-chains-import-file)
+    - [`archway config chains list`](#archway-config-chains-list)
+    - [`archway config chains use CHAIN`](#archway-config-chains-use-chain)
+    - [`archway config deployments`](#archway-config-deployments)
+    - [`archway config get KEY`](#archway-config-get-key)
+    - [`archway config init`](#archway-config-init)
+    - [`archway config set KEY VALUE`](#archway-config-set-key-value)
+    - [`archway config show`](#archway-config-show)
+    - [`archway contracts build [CONTRACT]`](#archway-contracts-build-contract)
+    - [`archway contracts execute CONTRACT`](#archway-contracts-execute-contract)
+    - [`archway contracts instantiate [CONTRACT]`](#archway-contracts-instantiate-contract)
+    - [`archway contracts metadata CONTRACT`](#archway-contracts-metadata-contract)
+    - [`archway contracts migrate CONTRACT`](#archway-contracts-migrate-contract)
+    - [`archway contracts new [CONTRACT-NAME]`](#archway-contracts-new-contract-name)
+    - [`archway contracts premium CONTRACT`](#archway-contracts-premium-contract)
+    - [`archway contracts query balance [CONTRACT]`](#archway-contracts-query-balance-contract)
+    - [`archway contracts query smart CONTRACT`](#archway-contracts-query-smart-contract)
+    - [`archway contracts store CONTRACT`](#archway-contracts-store-contract)
+    - [`archway help [COMMANDS]`](#archway-help-commands)
+    - [`archway new [PROJECT-NAME]`](#archway-new-project-name)
+    - [`archway rewards query ACCOUNT`](#archway-rewards-query-account)
+    - [`archway rewards withdraw`](#archway-rewards-withdraw)
+
 ## Dependencies
 
 Make sure you've installed and configured all dependencies. For the full
@@ -65,45 +103,7 @@ yarn global add 'github:archway-network/cli'
 ## Commands
 
 <!-- commands -->
-- [Archway Developer CLI](#archway-developer-cli)
-  - [Dependencies](#dependencies)
-  - [CLI Installation](#cli-installation)
-    - [Install the latest published version](#install-the-latest-published-version)
-    - [Install the pre-release version](#install-the-pre-release-version)
-    - [Install the development version](#install-the-development-version)
-  - [Commands](#commands)
-  - [`archway accounts balances get ACCOUNT`](#archway-accounts-balances-get-account)
-  - [`archway accounts balances send AMOUNT`](#archway-accounts-balances-send-amount)
-  - [`archway accounts export ACCOUNT`](#archway-accounts-export-account)
-  - [`archway accounts get ACCOUNT`](#archway-accounts-get-account)
-  - [`archway accounts list`](#archway-accounts-list)
-  - [`archway accounts new [ACCOUNT-NAME]`](#archway-accounts-new-account-name)
-  - [`archway accounts remove ACCOUNT`](#archway-accounts-remove-account)
-  - [`archway autocomplete [SHELL]`](#archway-autocomplete-shell)
-  - [`archway config chains import [FILE]`](#archway-config-chains-import-file)
-  - [`archway config chains list`](#archway-config-chains-list)
-  - [`archway config chains use CHAIN`](#archway-config-chains-use-chain)
-  - [`archway config deployments`](#archway-config-deployments)
-  - [`archway config get KEY`](#archway-config-get-key)
-  - [`archway config init`](#archway-config-init)
-  - [`archway config set KEY VALUE`](#archway-config-set-key-value)
-  - [`archway config show`](#archway-config-show)
-  - [`archway contracts build [CONTRACT]`](#archway-contracts-build-contract)
-  - [`archway contracts execute CONTRACT`](#archway-contracts-execute-contract)
-  - [`archway contracts instantiate [CONTRACT]`](#archway-contracts-instantiate-contract)
-  - [`archway contracts metadata CONTRACT`](#archway-contracts-metadata-contract)
-  - [`archway contracts migrate CONTRACT`](#archway-contracts-migrate-contract)
-  - [`archway contracts new [CONTRACT-NAME]`](#archway-contracts-new-contract-name)
-  - [`archway contracts premium CONTRACT`](#archway-contracts-premium-contract)
-  - [`archway contracts query balance [CONTRACT]`](#archway-contracts-query-balance-contract)
-  - [`archway contracts query smart CONTRACT`](#archway-contracts-query-smart-contract)
-  - [`archway contracts store CONTRACT`](#archway-contracts-store-contract)
-  - [`archway help [COMMANDS]`](#archway-help-commands)
-  - [`archway new [PROJECT-NAME]`](#archway-new-project-name)
-  - [`archway rewards query ACCOUNT`](#archway-rewards-query-account)
-  - [`archway rewards withdraw`](#archway-rewards-withdraw)
-
-## `archway accounts balances get ACCOUNT`
+### `archway accounts balances get ACCOUNT`
 
 Query the balance of an address or account
 
@@ -137,7 +137,7 @@ Examples:
 
 _See code: [src/commands/accounts/balances/get.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/balances/get.ts)_
 
-## `archway accounts balances send AMOUNT`
+### `archway accounts balances send AMOUNT`
 
 Send tokens from one address or account to another
 
@@ -183,7 +183,7 @@ Examples:
 
 _See code: [src/commands/accounts/balances/send.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/balances/send.ts)_
 
-## `archway accounts export ACCOUNT`
+### `archway accounts export ACCOUNT`
 
 Exports an account's private key from the keyring
 
@@ -220,7 +220,7 @@ Examples:
 
 _See code: [src/commands/accounts/export.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/export.ts)_
 
-## `archway accounts get ACCOUNT`
+### `archway accounts get ACCOUNT`
 
 Displays details about an account
 
@@ -257,7 +257,7 @@ Examples:
 
 _See code: [src/commands/accounts/get.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/get.ts)_
 
-## `archway accounts list`
+### `archway accounts list`
 
 Lists all accounts in the keyring
 
@@ -284,7 +284,7 @@ Examples:
 
 _See code: [src/commands/accounts/list.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/list.ts)_
 
-## `archway accounts new [ACCOUNT-NAME]`
+### `archway accounts new [ACCOUNT-NAME]`
 
 Adds a new wallet to the keyring
 
@@ -347,7 +347,7 @@ Examples:
 
 _See code: [src/commands/accounts/new.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/new.ts)_
 
-## `archway accounts remove ACCOUNT`
+### `archway accounts remove ACCOUNT`
 
 Removes an account from the keyring
 
@@ -384,7 +384,7 @@ Examples:
 
 _See code: [src/commands/accounts/remove.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/remove.ts)_
 
-## `archway autocomplete [SHELL]`
+### `archway autocomplete [SHELL]`
 
 display autocomplete installation instructions
 
@@ -415,7 +415,7 @@ Examples:
 
 _See code: [@oclif/plugin-autocomplete](https://github.com/oclif/plugin-autocomplete/blob/v2.3.10/src/commands/autocomplete/index.ts)_
 
-## `archway config chains import [FILE]`
+### `archway config chains import [FILE]`
 
 Import a chain registry file and save it to the global configuration
 
@@ -450,7 +450,7 @@ Examples:
 
 _See code: [src/commands/config/chains/import.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/chains/import.ts)_
 
-## `archway config chains list`
+### `archway config chains list`
 
 Lists all available chains to use
 
@@ -478,7 +478,7 @@ Examples:
 
 _See code: [src/commands/config/chains/list.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/chains/list.ts)_
 
-## `archway config chains use CHAIN`
+### `archway config chains use CHAIN`
 
 Switches the current chain in use and updates the config file appropriately
 
@@ -509,7 +509,7 @@ Examples:
 
 _See code: [src/commands/config/chains/use.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/chains/use.ts)_
 
-## `archway config deployments`
+### `archway config deployments`
 
 Displays the list of deployments, allows filtering by chain, action and contract
 
@@ -549,7 +549,7 @@ Examples:
 
 _See code: [src/commands/config/deployments.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/deployments.ts)_
 
-## `archway config get KEY`
+### `archway config get KEY`
 
 Query config settings in the local or global config files
 
@@ -580,7 +580,7 @@ Examples:
 
 _See code: [src/commands/config/get.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/get.ts)_
 
-## `archway config init`
+### `archway config init`
 
 Initializes a config file for the current project
 
@@ -608,7 +608,7 @@ Examples:
 
 _See code: [src/commands/config/init.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/init.ts)_
 
-## `archway config set KEY VALUE`
+### `archway config set KEY VALUE`
 
 Update config settings in the local or global config files
 
@@ -644,7 +644,7 @@ Examples:
 
 _See code: [src/commands/config/set.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/set.ts)_
 
-## `archway config show`
+### `archway config show`
 
 Displays the config values for the current project
 
@@ -665,7 +665,7 @@ Examples:
 
 _See code: [src/commands/config/show.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/show.ts)_
 
-## `archway contracts build [CONTRACT]`
+### `archway contracts build [CONTRACT]`
 
 Builds the smart contracts optimized Wasm file along with its schemas
 
@@ -689,7 +689,7 @@ Examples:
 
 _See code: [src/commands/contracts/build.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/build.ts)_
 
-## `archway contracts execute CONTRACT`
+### `archway contracts execute CONTRACT`
 
 Executes a transaction in a smart contract
 
@@ -753,7 +753,7 @@ Examples:
 
 _See code: [src/commands/contracts/execute.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/execute.ts)_
 
-## `archway contracts instantiate [CONTRACT]`
+### `archway contracts instantiate [CONTRACT]`
 
 Instantiates code stored on-chain with the given arguments
 
@@ -835,7 +835,7 @@ Examples:
 
 _See code: [src/commands/contracts/instantiate.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/instantiate.ts)_
 
-## `archway contracts metadata CONTRACT`
+### `archway contracts metadata CONTRACT`
 
 Sets a smart contracts rewards metadata
 
@@ -889,7 +889,7 @@ Examples:
 
 _See code: [src/commands/contracts/metadata.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/metadata.ts)_
 
-## `archway contracts migrate CONTRACT`
+### `archway contracts migrate CONTRACT`
 
 Runs a smart contract migration
 
@@ -951,7 +951,7 @@ Examples:
 
 _See code: [src/commands/contracts/migrate.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/migrate.ts)_
 
-## `archway contracts new [CONTRACT-NAME]`
+### `archway contracts new [CONTRACT-NAME]`
 
 Scaffolds a new Wasm smart contract from a template
 
@@ -991,7 +991,7 @@ Examples:
 
 _See code: [src/commands/contracts/new.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/new.ts)_
 
-## `archway contracts premium CONTRACT`
+### `archway contracts premium CONTRACT`
 
 Sets the smart contract's premium flat fee. The contract must have the rewards metadata already configured
 
@@ -1042,7 +1042,7 @@ Examples:
 
 _See code: [src/commands/contracts/premium.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/premium.ts)_
 
-## `archway contracts query balance [CONTRACT]`
+### `archway contracts query balance [CONTRACT]`
 
 Access the bank module to query the balance of smart contracts
 
@@ -1073,7 +1073,7 @@ Examples:
 
 _See code: [src/commands/contracts/query/balance.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/query/balance.ts)_
 
-## `archway contracts query smart CONTRACT`
+### `archway contracts query smart CONTRACT`
 
 Queries a single smart contract
 
@@ -1115,7 +1115,7 @@ Examples:
 
 _See code: [src/commands/contracts/query/smart.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/query/smart.ts)_
 
-## `archway contracts store CONTRACT`
+### `archway contracts store CONTRACT`
 
 Stores a Wasm file on-chain
 
@@ -1173,7 +1173,7 @@ Examples:
 
 _See code: [src/commands/contracts/store.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/store.ts)_
 
-## `archway help [COMMANDS]`
+### `archway help [COMMANDS]`
 
 Display help for archway.
 
@@ -1198,7 +1198,7 @@ Examples:
 
 _See code: [src/commands/help.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/help.ts)_
 
-## `archway new [PROJECT-NAME]`
+### `archway new [PROJECT-NAME]`
 
 Initializes a new project repository
 
@@ -1251,7 +1251,7 @@ Examples:
 
 _See code: [src/commands/new.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/new.ts)_
 
-## `archway rewards query ACCOUNT`
+### `archway rewards query ACCOUNT`
 
 Queries the outstanding rewards for a specific account or address
 
@@ -1285,7 +1285,7 @@ Examples:
 
 _See code: [src/commands/rewards/query.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/rewards/query.ts)_
 
-## `archway rewards withdraw`
+### `archway rewards withdraw`
 
 Withdraws rewards for a specific account
 
