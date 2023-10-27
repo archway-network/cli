@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "Develop WASM smart contracts with the Archway Network's Developer CLI",
   "homepage": "https://docs.archway.io",
-  "repository": "github:archway-network/archway-cli",
+  "repository": "github:archway-network/cli",
   "keywords": [
     "archway",
     "atom",
@@ -30,7 +30,7 @@
     "Elias Poroma (https://github.com/eliasmpw)"
   ],
   "license": "Apache-2.0",
-  "bugs": "https://github.com/archway-network/archway-cli-v2/issues",
+  "bugs": "https://github.com/archway-network/cli/issues",
   "publishConfig": {
     "access": "public",
     "registry": "https://registry.npmjs.org"

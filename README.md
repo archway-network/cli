@@ -3,10 +3,10 @@
 [![Archway CLI](https://img.shields.io/badge/cli-archway-brightgreen.svg)](https://docs.archway.io)
 [![Version](https://img.shields.io/npm/v/@archwayhq/cli)](https://www.npmjs.com/package/@archwayhq/cli)
 [![Downloads/Week](https://img.shields.io/npm/dw/@archwayhq/cli.svg)](https://npmjs.org/package/@archwayhq/cli)
-![Tests](https://github.com/archway-network/archway-cli/actions/workflows/test.yml/badge.svg)
-![CodeQL](https://github.com/archway-network/archway-cli/actions/workflows/codeql.yml/badge.svg)
-[![Codacy Badge](https://app.codacy.com/project/badge/Grade/070b358e0ece44c2b45867d945c46a28)](https://app.codacy.com/gh/archway-network/archway-cli/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
-[![License](https://img.shields.io/github/license/archway-network/archway-cli?label=License&logo=opensourceinitiative&logoColor=white&color=informational)](https://opensource.org/licenses/Apache-2.0)
+![Tests](https://github.com/archway-network/cli/actions/workflows/test.yml/badge.svg)
+![CodeQL](https://github.com/archway-network/cli/actions/workflows/codeql.yml/badge.svg)
+[![Codacy Badge](https://app.codacy.com/project/badge/Grade/070b358e0ece44c2b45867d945c46a28)](https://app.codacy.com/gh/archway-network/cli/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
+[![License](https://img.shields.io/github/license/archway-network/cli?label=License&logo=opensourceinitiative&logoColor=white&color=informational)](https://opensource.org/licenses/Apache-2.0)
 
 Develop WASM smart contracts with the Archway Network's Developer CLI.
 
@@ -53,48 +53,55 @@ yarn global add @archwayhq/cli@pre
 ### Install the development version
 
 ```bash
-npm i -g 'github:archway-network/archway-cli'
+npm i -g 'github:archway-network/cli'
 ```
 
 or
 
 ```bash
-yarn global add 'github:archway-network/archway-cli'
+yarn global add 'github:archway-network/cli'
 ```
 
 ## Commands
 
 <!-- commands -->
-* [`archway accounts balances get ACCOUNT`](#archway-accounts-balances-get-account)
-* [`archway accounts balances send AMOUNT`](#archway-accounts-balances-send-amount)
-* [`archway accounts export ACCOUNT`](#archway-accounts-export-account)
-* [`archway accounts get ACCOUNT`](#archway-accounts-get-account)
-* [`archway accounts list`](#archway-accounts-list)
-* [`archway accounts new [ACCOUNT-NAME]`](#archway-accounts-new-account-name)
-* [`archway accounts remove ACCOUNT`](#archway-accounts-remove-account)
-* [`archway autocomplete [SHELL]`](#archway-autocomplete-shell)
-* [`archway config chains import [FILE]`](#archway-config-chains-import-file)
-* [`archway config chains list`](#archway-config-chains-list)
-* [`archway config chains use CHAIN`](#archway-config-chains-use-chain)
-* [`archway config deployments`](#archway-config-deployments)
-* [`archway config get KEY`](#archway-config-get-key)
-* [`archway config init`](#archway-config-init)
-* [`archway config set KEY VALUE`](#archway-config-set-key-value)
-* [`archway config show`](#archway-config-show)
-* [`archway contracts build [CONTRACT]`](#archway-contracts-build-contract)
-* [`archway contracts execute CONTRACT`](#archway-contracts-execute-contract)
-* [`archway contracts instantiate [CONTRACT]`](#archway-contracts-instantiate-contract)
-* [`archway contracts metadata CONTRACT`](#archway-contracts-metadata-contract)
-* [`archway contracts migrate CONTRACT`](#archway-contracts-migrate-contract)
-* [`archway contracts new [CONTRACT-NAME]`](#archway-contracts-new-contract-name)
-* [`archway contracts premium CONTRACT`](#archway-contracts-premium-contract)
-* [`archway contracts query balance [CONTRACT]`](#archway-contracts-query-balance-contract)
-* [`archway contracts query smart CONTRACT`](#archway-contracts-query-smart-contract)
-* [`archway contracts store CONTRACT`](#archway-contracts-store-contract)
-* [`archway help [COMMANDS]`](#archway-help-commands)
-* [`archway new [PROJECT-NAME]`](#archway-new-project-name)
-* [`archway rewards query ACCOUNT`](#archway-rewards-query-account)
-* [`archway rewards withdraw`](#archway-rewards-withdraw)
+- [Archway Developer CLI](#archway-developer-cli)
+  - [Dependencies](#dependencies)
+  - [CLI Installation](#cli-installation)
+    - [Install the latest published version](#install-the-latest-published-version)
+    - [Install the pre-release version](#install-the-pre-release-version)
+    - [Install the development version](#install-the-development-version)
+  - [Commands](#commands)
+  - [`archway accounts balances get ACCOUNT`](#archway-accounts-balances-get-account)
+  - [`archway accounts balances send AMOUNT`](#archway-accounts-balances-send-amount)
+  - [`archway accounts export ACCOUNT`](#archway-accounts-export-account)
+  - [`archway accounts get ACCOUNT`](#archway-accounts-get-account)
+  - [`archway accounts list`](#archway-accounts-list)
+  - [`archway accounts new [ACCOUNT-NAME]`](#archway-accounts-new-account-name)
+  - [`archway accounts remove ACCOUNT`](#archway-accounts-remove-account)
+  - [`archway autocomplete [SHELL]`](#archway-autocomplete-shell)
+  - [`archway config chains import [FILE]`](#archway-config-chains-import-file)
+  - [`archway config chains list`](#archway-config-chains-list)
+  - [`archway config chains use CHAIN`](#archway-config-chains-use-chain)
+  - [`archway config deployments`](#archway-config-deployments)
+  - [`archway config get KEY`](#archway-config-get-key)
+  - [`archway config init`](#archway-config-init)
+  - [`archway config set KEY VALUE`](#archway-config-set-key-value)
+  - [`archway config show`](#archway-config-show)
+  - [`archway contracts build [CONTRACT]`](#archway-contracts-build-contract)
+  - [`archway contracts execute CONTRACT`](#archway-contracts-execute-contract)
+  - [`archway contracts instantiate [CONTRACT]`](#archway-contracts-instantiate-contract)
+  - [`archway contracts metadata CONTRACT`](#archway-contracts-metadata-contract)
+  - [`archway contracts migrate CONTRACT`](#archway-contracts-migrate-contract)
+  - [`archway contracts new [CONTRACT-NAME]`](#archway-contracts-new-contract-name)
+  - [`archway contracts premium CONTRACT`](#archway-contracts-premium-contract)
+  - [`archway contracts query balance [CONTRACT]`](#archway-contracts-query-balance-contract)
+  - [`archway contracts query smart CONTRACT`](#archway-contracts-query-smart-contract)
+  - [`archway contracts store CONTRACT`](#archway-contracts-store-contract)
+  - [`archway help [COMMANDS]`](#archway-help-commands)
+  - [`archway new [PROJECT-NAME]`](#archway-new-project-name)
+  - [`archway rewards query ACCOUNT`](#archway-rewards-query-account)
+  - [`archway rewards withdraw`](#archway-rewards-withdraw)
 
 ## `archway accounts balances get ACCOUNT`
 
@@ -128,7 +135,7 @@ Examples:
     $ archway accounts balances get archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm
 ```
 
-_See code: [src/commands/accounts/balances/get.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/accounts/balances/get.ts)_
+_See code: [src/commands/accounts/balances/get.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/balances/get.ts)_
 
 ## `archway accounts balances send AMOUNT`
 
@@ -174,7 +181,7 @@ Examples:
     $ archway accounts balances send 1aconst --from alice --to bob
 ```
 
-_See code: [src/commands/accounts/balances/send.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/accounts/balances/send.ts)_
+_See code: [src/commands/accounts/balances/send.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/balances/send.ts)_
 
 ## `archway accounts export ACCOUNT`
 
@@ -211,7 +218,7 @@ Examples:
     $ archway accounts export alice --no-confirm
 ```
 
-_See code: [src/commands/accounts/export.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/accounts/export.ts)_
+_See code: [src/commands/accounts/export.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/export.ts)_
 
 ## `archway accounts get ACCOUNT`
 
@@ -248,7 +255,7 @@ Examples:
     $ archway accounts get alice --address
 ```
 
-_See code: [src/commands/accounts/get.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/accounts/get.ts)_
+_See code: [src/commands/accounts/get.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/get.ts)_
 
 ## `archway accounts list`
 
@@ -275,7 +282,7 @@ Examples:
     $ archway accounts list
 ```
 
-_See code: [src/commands/accounts/list.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/accounts/list.ts)_
+_See code: [src/commands/accounts/list.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/list.ts)_
 
 ## `archway accounts new [ACCOUNT-NAME]`
 
@@ -338,7 +345,7 @@ Examples:
     $ echo "fruit rose ..." | archway accounts new alice --recover --hd-path "m/44'/330'/0'/0/0"
 ```
 
-_See code: [src/commands/accounts/new.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/accounts/new.ts)_
+_See code: [src/commands/accounts/new.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/new.ts)_
 
 ## `archway accounts remove ACCOUNT`
 
@@ -375,7 +382,7 @@ Examples:
     $ archway accounts remove alice --no-confirm
 ```
 
-_See code: [src/commands/accounts/remove.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/accounts/remove.ts)_
+_See code: [src/commands/accounts/remove.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/accounts/remove.ts)_
 
 ## `archway autocomplete [SHELL]`
 
@@ -441,7 +448,7 @@ Examples:
     $ cat other-chain.json | archway config chains import
 ```
 
-_See code: [src/commands/config/chains/import.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/config/chains/import.ts)_
+_See code: [src/commands/config/chains/import.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/chains/import.ts)_
 
 ## `archway config chains list`
 
@@ -469,7 +476,7 @@ Examples:
   $ archway config chains list
 ```
 
-_See code: [src/commands/config/chains/list.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/config/chains/list.ts)_
+_See code: [src/commands/config/chains/list.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/chains/list.ts)_
 
 ## `archway config chains use CHAIN`
 
@@ -500,7 +507,7 @@ Examples:
     $ archway config chains use constantine-3 --global
 ```
 
-_See code: [src/commands/config/chains/use.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/config/chains/use.ts)_
+_See code: [src/commands/config/chains/use.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/chains/use.ts)_
 
 ## `archway config deployments`
 
@@ -540,7 +547,7 @@ Examples:
     $ archway config deployments --contract "my-contract"
 ```
 
-_See code: [src/commands/config/deployments.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/config/deployments.ts)_
+_See code: [src/commands/config/deployments.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/deployments.ts)_
 
 ## `archway config get KEY`
 
@@ -571,7 +578,7 @@ Examples:
     $ archway config get -g chain-id
 ```
 
-_See code: [src/commands/config/get.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/config/get.ts)_
+_See code: [src/commands/config/get.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/get.ts)_
 
 ## `archway config init`
 
@@ -599,7 +606,7 @@ Examples:
     $ archway config init --chain="constantine-3"
 ```
 
-_See code: [src/commands/config/init.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/config/init.ts)_
+_See code: [src/commands/config/init.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/init.ts)_
 
 ## `archway config set KEY VALUE`
 
@@ -635,7 +642,7 @@ Examples:
     $ archway config set --global keyring-path "~/.keys"
 ```
 
-_See code: [src/commands/config/set.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/config/set.ts)_
+_See code: [src/commands/config/set.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/set.ts)_
 
 ## `archway config show`
 
@@ -656,7 +663,7 @@ Examples:
     $ archway config show
 ```
 
-_See code: [src/commands/config/show.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/config/show.ts)_
+_See code: [src/commands/config/show.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/config/show.ts)_
 
 ## `archway contracts build [CONTRACT]`
 
@@ -680,7 +687,7 @@ Examples:
     $ archway contracts build my-contract
 ```
 
-_See code: [src/commands/contracts/build.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/contracts/build.ts)_
+_See code: [src/commands/contracts/build.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/build.ts)_
 
 ## `archway contracts execute CONTRACT`
 
@@ -744,7 +751,7 @@ Examples:
     $ echo '{"example":{}}' | archway contracts execute my-contract
 ```
 
-_See code: [src/commands/contracts/execute.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/contracts/execute.ts)_
+_See code: [src/commands/contracts/execute.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/execute.ts)_
 
 ## `archway contracts instantiate [CONTRACT]`
 
@@ -826,7 +833,7 @@ Examples:
     $ echo '{"example":{}}' | archway contracts instantiate my-contract
 ```
 
-_See code: [src/commands/contracts/instantiate.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/contracts/instantiate.ts)_
+_See code: [src/commands/contracts/instantiate.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/instantiate.ts)_
 
 ## `archway contracts metadata CONTRACT`
 
@@ -880,7 +887,7 @@ Examples:
       --rewards-address="archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm" --from "alice"
 ```
 
-_See code: [src/commands/contracts/metadata.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/contracts/metadata.ts)_
+_See code: [src/commands/contracts/metadata.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/metadata.ts)_
 
 ## `archway contracts migrate CONTRACT`
 
@@ -942,7 +949,7 @@ Examples:
     $ echo '{"example":{}}' | archway contracts migrate my-contract --code 21
 ```
 
-_See code: [src/commands/contracts/migrate.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/contracts/migrate.ts)_
+_See code: [src/commands/contracts/migrate.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/migrate.ts)_
 
 ## `archway contracts new [CONTRACT-NAME]`
 
@@ -982,7 +989,7 @@ Examples:
       --template="increment"
 ```
 
-_See code: [src/commands/contracts/new.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/contracts/new.ts)_
+_See code: [src/commands/contracts/new.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/new.ts)_
 
 ## `archway contracts premium CONTRACT`
 
@@ -1033,7 +1040,7 @@ Examples:
     $ archway contracts premium my-contract --premium-fee "1aconst" --from "alice"
 ```
 
-_See code: [src/commands/contracts/premium.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/contracts/premium.ts)_
+_See code: [src/commands/contracts/premium.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/premium.ts)_
 
 ## `archway contracts query balance [CONTRACT]`
 
@@ -1064,7 +1071,7 @@ Examples:
     $ archway contracts query balance --all
 ```
 
-_See code: [src/commands/contracts/query/balance.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/contracts/query/balance.ts)_
+_See code: [src/commands/contracts/query/balance.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/query/balance.ts)_
 
 ## `archway contracts query smart CONTRACT`
 
@@ -1106,7 +1113,7 @@ Examples:
     $ echo '{"example":{}}' | archway contracts query smart my-contract
 ```
 
-_See code: [src/commands/contracts/query/smart.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/contracts/query/smart.ts)_
+_See code: [src/commands/contracts/query/smart.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/query/smart.ts)_
 
 ## `archway contracts store CONTRACT`
 
@@ -1164,7 +1171,7 @@ Examples:
     $ archway contracts store my-project --instantiate-permission "no-one"
 ```
 
-_See code: [src/commands/contracts/store.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/contracts/store.ts)_
+_See code: [src/commands/contracts/store.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/contracts/store.ts)_
 
 ## `archway help [COMMANDS]`
 
@@ -1189,7 +1196,7 @@ Examples:
   $ archway help
 ```
 
-_See code: [src/commands/help.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/help.ts)_
+_See code: [src/commands/help.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/help.ts)_
 
 ## `archway new [PROJECT-NAME]`
 
@@ -1242,7 +1249,7 @@ Examples:
       --template="increment"
 ```
 
-_See code: [src/commands/new.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/new.ts)_
+_See code: [src/commands/new.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/new.ts)_
 
 ## `archway rewards query ACCOUNT`
 
@@ -1276,7 +1283,7 @@ Examples:
     $ archway rewards query archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm
 ```
 
-_See code: [src/commands/rewards/query.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/rewards/query.ts)_
+_See code: [src/commands/rewards/query.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/rewards/query.ts)_
 
 ## `archway rewards withdraw`
 
@@ -1316,5 +1323,5 @@ Examples:
     $ archway rewards withdraw --from "archway13lq4qvmydry3p394jrrfuv2z5xemzdnsplqdrm"
 ```
 
-_See code: [src/commands/rewards/withdraw.ts](https://github.com/archway-network/archway-cli/blob/v2.0.0/src/commands/rewards/withdraw.ts)_
+_See code: [src/commands/rewards/withdraw.ts](https://github.com/archway-network/cli/blob/v2.0.0/src/commands/rewards/withdraw.ts)_
 <!-- commandsstop -->
