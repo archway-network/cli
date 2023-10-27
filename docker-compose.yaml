@@ -1,0 +1,26 @@
+services:
+  node:
+    image: archwaynetwork/archwayd:v4.0.2
+    command: start --x-crisis-skip-assert-invariants
+    entrypoint: /docker-entrypoint.sh
+    ports:
+      - 1317:1317   # API
+      - 9090:9090   # gRPC
+      - 9091:9091   # gRPC-web
+      - 26656:26656 # p2p
+      - 26657:26657 # RPC
+    volumes:
+      - ./scripts/docker-entrypoint.sh:/docker-entrypoint.sh:ro
+      - ./scripts/contracts:/contracts:ro
+      - data:/root/.archway
+    healthcheck:
+      test:
+        curl --retry 5 --retry-delay 1 --retry-all-errors -sf 'http://localhost:26657/status' |
+        jq -e '.result.sync_info | (.latest_block_height > 0 and .catching_up == false)'
+      interval: 5s
+      timeout: 30s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  data:

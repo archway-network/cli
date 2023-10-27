@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/mocharc",
+  "require": [
+    "test/helpers/init.js",
+    "ts-node/register",
+    "tsconfig-paths/register"
+  ],
+  "watch-files": [
+    "./src/**/*.ts",
+    "./tests/**/*.test.ts"
+  ],
+  "forbid-only": true,
+  "recursive": true,
+  "reporter": "spec",
+  "timeout": 60000
+}

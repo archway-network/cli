@@ -1,0 +1,62 @@
+name: Test
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    # The branches below must be a subset of the branches above
+    branches: [main, release/**]
+
+concurrency:
+  group: ${{github.workflow}}-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  unit-test-and-lint:
+    name: Unit Test and Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+      - run: yarn install --immutable
+      - run: yarn build
+      - run: yarn test
+        env:
+          ARCHWAY_SKIP_VERSION_CHECK: 1
+
+  integration-test:
+    name: Integration Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: yarn
+      - name: Set up cargo cache
+        uses: actions/cache@v3
+        continue-on-error: false
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+          key: ${{ runner.os }}-cargo
+          restore-keys: ${{ runner.os }}-cargo
+      - name: Install jq
+        run: sudo apt update && sudo apt install -y jq
+      - name: Install cargo-generate
+        run: which cargo-generate || cargo install cargo-generate
+      - run: yarn install --immutable
+      - run: yarn build
+      - name: Bootstrap local node
+        run: scripts/start-local-node.sh
+      - run: yarn test:integration
+        env:
+          ARCHWAY_SKIP_VERSION_CHECK: 1

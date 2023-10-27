@@ -1,5 +1,0 @@
-{
-  "cSpell.words": ["archonauts", "archwayd", "Binaryen", "RUSTFLAGS", "spawk", "unmock", "xdescribe"],
-  "conventionalCommits.scopes": ["cargo", "config", "build"],
-  "jest.autoRevealOutput": "on-run"
-}
