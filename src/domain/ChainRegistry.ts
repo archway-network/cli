@@ -12,7 +12,7 @@ import { bold, getErrorMessage, pathExists, readFilesFromDirectory, redBright, w
 import { GLOBAL_CONFIG_PATH } from './Config';
 import { SchemaValidator } from './SchemaValidation';
 
-const debug = debugInstance('chain-registry');
+const debug = debugInstance('archway:domain:chain-registry');
 
 export const GLOBAL_CHAINS_PATH = `${GLOBAL_CONFIG_PATH}/chains`;
 
@@ -92,6 +92,7 @@ export class ChainRegistry {
    * @returns Promise containing a {@link ChainRegistry} instance
    */
   static async init(chainsDir = GLOBAL_CHAINS_PATH): Promise<ChainRegistry> {
+    debug('init', { chainsDir });
     let filesRead: Record<string, string> = {};
 
     try {

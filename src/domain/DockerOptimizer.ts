@@ -6,7 +6,7 @@ import ora from 'ora';
 
 import { cyan, dim } from '@/utils';
 
-const debug = debugInstance('docker-optimizer');
+const debug = debugInstance('archway:domain:docker-optimizer');
 
 type StreamResult = { closeStream: () => void };
 

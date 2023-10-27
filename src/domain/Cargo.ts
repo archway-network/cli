@@ -10,7 +10,7 @@ import { ConsoleError, ErrorCodes } from '@/exceptions';
 import { CargoProjectMetadata } from '@/types';
 import { bold, redBright } from '@/utils';
 
-const debug = debugInstance('cargo');
+const debug = debugInstance('archway:domain:cargo');
 
 /* eslint-disable @typescript-eslint/naming-convention */
 

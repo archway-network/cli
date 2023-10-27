@@ -1,6 +1,7 @@
 import { fromBase64, toBase64 } from '@cosmjs/encoding';
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import * as bip39 from 'bip39';
+import debugInstance from 'debug';
 import _ from 'lodash';
 
 import { Config, Ledger } from '@/domain';
@@ -21,6 +22,8 @@ import {
 import { assertIsValidAddress, bold, convertUnarmoredHexToPrivateKey, derivePrivateKey, isHex, yellow } from '@/utils';
 
 import { Keystore, KeystoreBackendParams } from './keystore';
+
+const debug = debugInstance('archway:domain:config');
 
 export const DEFAULT_ADDRESS_BECH_32_PREFIX = 'archway';
 
@@ -54,6 +57,7 @@ export class Accounts {
    * @returns Promise containing an instance of {@link Accounts}
    */
   static init(keystoreParams: KeystoreBackendParams): Accounts {
+    debug('init', { keystoreParams });
     const keystore = Keystore.build(keystoreParams);
     return new Accounts(keystore);
   }

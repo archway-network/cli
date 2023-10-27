@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
+import debugInstance from 'debug';
 import _ from 'lodash';
 import ow from 'ow';
 
@@ -20,6 +21,8 @@ import { MergeMode, bold, getWorkspaceRoot, mergeCustomizer, pathExists, prettyP
 
 import { DEFAULT_CHAIN_ID } from './ChainRegistry';
 import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
+
+const debug = debugInstance('archway:domain:config');
 
 export const CONFIG_FILENAME = 'config.json';
 
@@ -138,6 +141,7 @@ export class Config {
    * @returns Promise containing an instance of {@link Config}
    */
   static async init(workingDir?: string, overrideConfig?: ConfigData): Promise<Config> {
+    debug('init', { workingDir, overrideConfig });
     const globalConfig = await this.readConfigFile(workingDir, true);
     const localConfig = await this.readConfigFile(workingDir);
 
@@ -188,6 +192,7 @@ export class Config {
    * @returns Promise containing an instance of {@link Config}
    */
   static async create(chainId: string, workingDir?: string): Promise<Config> {
+    debug('create', { chainId, workingDir });
     if (await Config.exists(workingDir)) {
       throw new AlreadyExistsError('Config file', LOCAL_CONFIG_FILE);
     }

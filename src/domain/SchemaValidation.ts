@@ -11,7 +11,7 @@ import Ajv2019 from 'ajv/dist/2019';
 // eslint-disable-next-line node/file-extension-in-import
 import draft7MetaSchema from 'ajv/dist/refs/json-schema-draft-07.json';
 
-const debug = debugInstance('schema-validation');
+const debug = debugInstance('archway:domain:schema-validation');
 
 export class SchemaValidationError extends Error {
   constructor(ajv: Ajv) {

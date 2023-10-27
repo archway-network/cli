@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { StargateClient } from '@cosmjs/stargate';
+import debugInstance from 'debug';
 import toml from 'toml';
 
 import { ConsoleError, ErrorCodes, ExecuteError, InstantiateError, MigrateError, QueryError } from '@/exceptions';
@@ -12,6 +13,8 @@ import { bold, getErrorMessage, getWorkspaceRoot, green, greenBright, prettyPrin
 import { Cargo } from './Cargo';
 import { Deployments } from './Deployments';
 import { SchemaValidator } from './SchemaValidation';
+
+const debug = debugInstance('archway:domain:contracts');
 
 /** Contracts file constants */
 export const DEFAULT_CONTRACTS_RELATIVE_PATH = './contracts';
@@ -71,6 +74,7 @@ export class Contracts {
    * @returns Promise containing an instance of {@link Contracts}
    */
   static async init(workingDir?: string, contractsPath?: string): Promise<Contracts> {
+    debug('init', { workingDir, contractsPath });
     const workspaceRoot = await getWorkspaceRoot(workingDir);
     const contractsRoot = await this.getContractsRoot(workingDir, contractsPath);
 
