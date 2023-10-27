@@ -5,7 +5,6 @@
     "ts-node/register",
     "tsconfig-paths/register"
   ],
-  "spec": "test/**/*.test.ts",
   "watch-files": [
     "./src/**/*.ts",
     "./tests/**/*.test.ts"
