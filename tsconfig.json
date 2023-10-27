@@ -34,7 +34,7 @@
     "target": "es2019"
   },
   "include": [
-    "src",
+    "src"
   ],
   "ts-node": {
     "files": true
