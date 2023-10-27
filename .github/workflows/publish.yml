@@ -15,6 +15,6 @@ jobs:
           registry-url: "https://registry.npmjs.org"
       - run: yarn install --immutable
       - run: yarn config set -H npmAuthToken "${{ secrets.NPM_TOKEN }}"
-      - run: yarn publish --tag ${{ github.event.release.prerelease == true && 'pre' || 'latest' }} --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: yarn npm publish --tag ${{ github.event.release.prerelease == true && 'pre' || 'latest' }} --access public
