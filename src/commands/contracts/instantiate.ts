@@ -190,7 +190,9 @@ export default class ContractsInstantiate extends BaseCommand<typeof ContractsIn
       throw new NotFoundError("Pass either the Contract name in the arguments, or the '--code' flag.");
     }
 
-    await config.assertIsValidWorkspace();
+    if (this.args.contract) {
+      await config.assertIsValidWorkspace();
+    }
 
     const codeId = this.getCodeId(config);
     const contractInstance = this.args.contract ? config.contractsInstance.getContractByName(this.args.contract) : undefined;

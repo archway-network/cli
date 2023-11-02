@@ -4,7 +4,7 @@ import { Args } from '@oclif/core';
  * Definition of Standard input argument
  */
 export const ParamsStdinInputArg = {
-  name: 'piped',
+  name: 'stdInput',
   required: false,
   hidden: true,
 };
