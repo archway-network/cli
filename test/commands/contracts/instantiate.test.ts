@@ -47,11 +47,31 @@ describe('contracts instantiate', () => {
     .stdout()
     .command(['contracts instantiate', contractName, `--args=${contractArgument}`, `--from=${aliceAccountName}`, '--json'])
     .it('Prints json output', ctx => {
-      expect(ctx.stdout).to.not.contain('uploaded');
+      expect(ctx.stdout).to.not.contain('instantiated');
       expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
       expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
       expect(ctx.stdout).to.contain(dummyInstantiateTransaction.gasUsed);
     });
+
+  describe('with code-id flag, without workspace files', () => {
+    before(() => {
+      configStubs.stubbedAssertIsValidWorkspace?.restore();
+    });
+
+    after(() => {
+      configStubs.assertIsValidWorkspace();
+    });
+
+    test
+      .stdout()
+      .command(['contracts instantiate', '--code=1', '--label=test', `--args=${contractArgument}`, `--from=${aliceAccountName}`, '--json'])
+      .it('Prints json output', ctx => {
+        expect(ctx.stdout).to.not.contain('instantiated');
+        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.transactionHash);
+        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.contractAddress);
+        expect(ctx.stdout).to.contain(dummyInstantiateTransaction.gasUsed);
+      });
+  });
 
   test
     .stdout()

@@ -1,6 +1,6 @@
 import { Args } from '@oclif/core';
 
-import { ParamsChainOptionalFlag } from '../flags';
+import { ParamsChainOptionalFlag } from '@/parameters/flags/chain';
 
 /**
  * Definition of Chain id argument that is required

@@ -4,7 +4,7 @@ import { Flags, Interfaces } from '@oclif/core';
 import _ from 'lodash';
 
 import { NotFoundError, OnlyOneArgSourceError } from '@/exceptions';
-import { StdinInputArg } from '@/parameters/arguments';
+import { StdinInputArg } from '@/parameters/arguments/stdinInput';
 import { JsonObject } from '@/types';
 
 export const ContractMsgArg = {
