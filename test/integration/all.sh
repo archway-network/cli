@@ -5,20 +5,16 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
 function failed() {
-  echo "❌ INTEGRATION TESTS FAILED"
-  exit 1
+  error "INTEGRATION TESTS FAILED"
 }
 
 trap failed ERR
 
-echo
-"${SCRIPT_DIR}"/config.sh
+declare -a tests=("config" "accounts" "contractsAndRewards")
 
-echo
-"${SCRIPT_DIR}"/accounts.sh
+for test in "${tests[@]}"; do
+  echo
+  "${SCRIPT_DIR}"/"${test}".sh
+done
 
-echo
-"${SCRIPT_DIR}"/contractsAndRewards.sh
-
-echo
-echo "✅ INTEGRATION TESTS PASSED"
+ok "INTEGRATION TESTS PASSED"

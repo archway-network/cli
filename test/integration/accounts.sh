@@ -3,8 +3,6 @@
 # End to end tests of the archway 'accounts' commands against a local node
 #
 
-echo "››› ACCOUNTS"
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
@@ -28,14 +26,17 @@ function cleanup_test_suite() {
 trap cleanup_test_suite EXIT
 trap cleanup ERR
 
+topic "Accounts"
+
+step "initializing project"
 git init "$TEMP_DIR"
 cd "$TEMP_DIR"
 
-echo "***** remove integration test accounts in case they exist  *****"
+action "remove integration test accounts in case they exist "
 output="$(archway accounts remove "${ALICE}" --no-confirm --keyring-backend test --json || true)"
 output="$(archway accounts remove "${BOB}" --no-confirm --keyring-backend test --json || true)"
 
-printf "\n***** accounts new ***** \n"
+action "accounts new"
 archway accounts remove "${ALICE}" --no-confirm --keyring-backend test >/dev/null 2>&1 || true
 output="$(echo "$ALICE_MNEMONIC" | archway accounts new "${ALICE}" --recover --keyring-backend test --json)"
 validate "$output" '.name == "'"${ALICE}"'" and has("address") and (.publicKey | has("key")) and has("privateKey") and (has("mnemonic") | not)'
@@ -43,23 +44,23 @@ validate "$output" '.name == "'"${ALICE}"'" and has("address") and (.publicKey |
 output="$(archway accounts new ${BOB} --keyring-backend test --json)"
 validate "$output" '.name == "'"${BOB}"'" and has("address") and (.publicKey | has("key")) and has("privateKey") and has("mnemonic")'
 
-printf "\n***** accounts list ***** \n"
+action "accounts list"
 output="$(archway accounts list --keyring-backend test --json)"
 validate "$output" ".accounts | .[] | select(.name == \"${ALICE}\")"
 validate "$output" ".accounts | .[] | select(.name == \"${BOB}\")"
 
-printf "\n***** accounts get ***** \n"
+action "accounts get"
 output="$(archway accounts get ${ALICE} --keyring-backend test --json)"
 validate "$output" ".name == \"${ALICE}\" and has(\"address\") and (.publicKey | has(\"key\"))"
 
-printf "\n***** accounts remove ***** \n"
+action "accounts remove"
 output="$(archway accounts remove ${BOB} --keyring-backend test --no-confirm --json)"
 validate "$output" ".name == \"${BOB}\" and has(\"address\")"
 
 output="$(archway accounts get ${BOB} --keyring-backend test --json || true)"
 jq ".error.message | contains(\"not found\") " <<<"${output}"
 
-printf "\n***** accounts balances get ***** \n"
+action "accounts balances get"
 initConfig
 useLocalChain
 output="$(archway accounts balances get $ALICE --keyring-backend test --json)"
@@ -69,7 +70,7 @@ output="$(archway accounts new ${BOB} --keyring-backend test --json)"
 output="$(archway accounts balances get $BOB --keyring-backend test --json || true)"
 validate "$output" ".account | .name == \"${BOB}\" and has(\"address\") and (.balances | length) == 0"
 
-printf "\n***** accounts balances send ***** \n"
+action "accounts balances send"
 output="$(archway accounts balances send 1aarch --to $BOB --from $ALICE --no-confirm --keyring-backend test --json)"
 validate "$output" "has(\"amount\") and .from.name == \"${ALICE}\" and .to.name == (\"${BOB}\")"
 

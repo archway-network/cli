@@ -2,6 +2,10 @@
 
 set -euo pipefail
 
+if [[ "${DEBUG:-}" =~ (true|1|\*) ]]; then
+  set -x
+fi
+
 function require() {
   if ! command -v "${1}" >/dev/null 2>&1; then
     echo "Command '${1}' is required but not installed. Aborting." >&2
@@ -36,7 +40,8 @@ function step() {
 }
 
 function archwayd() {
-  docker compose exec node archwayd "$@"
+  script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+  docker compose -f "${script_dir}/../docker-compose.yaml" exec node archwayd "$@"
 }
 
 function gas-prices-estimate() {

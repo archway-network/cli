@@ -3,22 +3,12 @@
 # Functions that are used in the end-to-end tests
 #
 
-if [[ "${DEBUG:-}" =~ (true|1|\*) ]]; then
-  set -x
-fi
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
+
 ALICE=ALICE_INTEGRATION_FILE_TEST
 export ARCHWAY_SKIP_VERSION_CHECK=true
 
-function ok() {
-  echo " ✔ $1"
-}
-
-function error() {
-  echo " 𝗑 Error: $1" >&2
-  exit 1
-}
+source "${SCRIPT_DIR}/../../scripts/_shared.sh"
 
 function scriptRelativePath() {
   echo "${SCRIPT_DIR}/${1}"
@@ -59,20 +49,21 @@ function archway() {
 }
 
 function initConfig() {
-  echo "Creating a config file"
+  step "Creating a config file"
   archway config init --chain constantine-3 --json >/dev/null 2>&1
 }
 
 function useLocalChain() {
-  echo "Setting local chain config"
+  step "Setting local chain config"
   archway config chains import "$(scriptRelativePath ../fixtures/local-1.json)" --json >/dev/null 2>&1
   archway config chains use local-1
 }
 
 function createAlice() {
-  echo "Recreating Alice Account"
+  step "Recreating Alice Account"
   archway accounts remove ${ALICE} --no-confirm --keyring-backend test >/dev/null 2>&1 || true
   echo "$ALICE_MNEMONIC" | archway accounts new ${ALICE} --recover --keyring-backend test --json
+  "$(scriptRelativePath ../../scripts/faucet.sh)" "$(getAliceAddress)"
 }
 
 function getAliceAddress() {
