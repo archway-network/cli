@@ -5,7 +5,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
 
 function failed() {
-  error "INTEGRATION TESTS FAILED"
+  echo "$(tput setaf 1)❌ INTEGRATION TESTS FAILED" >&2
+  exit 1
 }
 
 trap failed ERR
@@ -17,4 +18,4 @@ for test in "${tests[@]}"; do
   "${SCRIPT_DIR}"/"${test}".sh
 done
 
-ok "INTEGRATION TESTS PASSED"
+echo " $(tput setaf 2)✅ INTEGRATION TESTS PASSED$(tput sgr0)"
