@@ -52,7 +52,7 @@ if [ ! -f "${GENESIS_FILE}" ]; then
 
   set -x
   echo "Adding validator account with ${TOTAL_SUPPLY_AMOUNT}${DENOM}"
-  archwayd add-genesis-account validator "${TOTAL_SUPPLY_AMOUNT}${DENOM}"
+  archwayd genesis add-genesis-account validator "${TOTAL_SUPPLY_AMOUNT}${DENOM}"
 
   ACTUAL_SUPPLY_AMOUNT=$(jq -r '.app_state.bank.supply[0].amount' "${GENESIS_FILE}")
   [ "${ACTUAL_SUPPLY_AMOUNT}" = "${TOTAL_SUPPLY_AMOUNT}" ] || {
@@ -111,10 +111,10 @@ if [ ! -f "${GENESIS_FILE}" ]; then
 
   DELEGATION_AMOUNT="$((TOTAL_SUPPLY / 2))${ATTO_PAD}"
   echo "Generating the genesis tx with delegation of ${DELEGATION_AMOUNT}${DENOM}..."
-  archwayd gentx validator "${DELEGATION_AMOUNT}${DENOM}" --chain-id "${CHAIN_ID}" --fees 180000000000000000aarch
+  archwayd genesis gentx validator "${DELEGATION_AMOUNT}${DENOM}" --chain-id "${CHAIN_ID}" --fees 180000000000000000aarch
 
-  archwayd collect-gentxs
-  archwayd validate-genesis
+  archwayd genesis collect-gentxs
+  archwayd genesis validate-genesis
 
   dasel put -r toml -t string -v "900000000000${DENOM}" 'minimum-gas-prices' <"${ARCHWAY_HOME}/config/app.toml" |
     dasel put -r toml -t bool -v true 'api.enable' |

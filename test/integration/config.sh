@@ -3,8 +3,6 @@
 # End to end tests of the archway 'config' commands against a local node
 #
 
-echo "››› CONFIG"
-
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)"
@@ -25,28 +23,30 @@ trap cleanup ERR
 
 CHAIN_ID=constantine-3
 
-echo "Initializing project in $TEMP_DIR"
+topic "Config"
+
+step "initializing project"
 git init "$TEMP_DIR"
 cd "$TEMP_DIR"
 
-echo "***** config init *****"
+action "config init"
 output="$(archway config init --chain $CHAIN_ID --json)"
 validate "$output" ".[\"chain-id\"] == \"$CHAIN_ID\""
 fileExists "${TEMP_DIR}/.archway/config.json" "Config file created" "Config file not found"
 
-printf "\n***** config show ***** \n"
+action "config show"
 output="$(archway config show --json)"
 validate "$output" ".[\"chain-id\"] == \"$CHAIN_ID\""
 
-printf "\n***** config deployments ***** \n"
+action "config deployments"
 output="$(archway config deployments --json)"
 validate "$output" ".deployments == []"
 
-printf "\n***** config chains import ***** \n"
+action "config chains import"
 output="$(archway config chains import "$(scriptRelativePath ../../scripts/local-1.json)" --json --force)"
 validate "$output" '.["chain-id"] == "local-1"'
 
-printf "\n***** config chains use ***** \n"
+action "config chains use"
 output="$(archway config chains use local-1 --json)"
 validate "$output" '.["chain-id"] == "local-1"'
 

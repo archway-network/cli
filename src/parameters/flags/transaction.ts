@@ -58,7 +58,7 @@ export const TransactionFeeAccountFlag = Flags.string(ParamsTransactionFeeAccoun
  * Definition of Transaction Gas Adjustment flag
  */
 export const ParamsTransactionGasAdjustmentFlag = {
-  default: 1.3,
+  default: 1.5,
   description: GasAdjustmentDescription,
   parse: async (val: string): Promise<number> => Number(val),
   helpGroup: HelpGroup

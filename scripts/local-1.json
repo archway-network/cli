@@ -36,29 +36,29 @@
   },
   "codebase": {
     "git_repo": "https://github.com/archway-network/archway",
-    "recommended_version": "v1.0.1",
+    "recommended_version": "v5.0.2",
     "compatible_versions": [
-      "v1.0.0"
+      "v5.0.2"
     ],
     "binaries": {
-      "linux/amd64": "https://github.com/archway-network/archway/releases/download/v1.0.0/archwayd_linux_amd64",
-      "linux/arm64": "https://github.com/archway-network/archway/releases/download/v1.0.0/archwayd_linux_arm64"
+      "linux/amd64": "https://github.com/archway-network/archway/releases/download/v5.0.2/archwayd_linux_amd64",
+      "linux/arm64": "https://github.com/archway-network/archway/releases/download/v5.0.2/archwayd_linux_arm64"
     },
-    "cosmos_sdk_version": "v0.45.16",
+    "cosmos_sdk_version": "v0.47.5",
     "consensus": {
-      "type": "tendermint",
-      "version": "v0.34.27"
+      "type": "cometbft",
+      "version": "v0.37.2"
     },
     "cosmwasm_version": "v0.32.0",
     "cosmwasm_enabled": true,
-    "ibc_go_version": "v4.3.1",
+    "ibc_go_version": "v7.3.0",
     "genesis": {
       "genesis_url": "https://github.com/archway-network/networks/raw/main/archway-1/genesis/genesis.json.gz"
     },
     "versions": [
       {
-        "name": "v1.0.0",
-        "tag": "v1.0.0",
+        "name": "v5.0.2",
+        "tag": "v5.0.2",
         "height": 1
       }
     ]
@@ -68,13 +68,7 @@
     "svg": "https://raw.githubusercontent.com/cosmos/chain-registry/master/archway/images/archway.svg"
   },
   "peers": {
-    "seeds": [
-      {
-        "id": "3ba7bf08f00e228026177e9cdc027f6ef6eb2b39",
-        "address": "35.232.234.58:26656",
-        "provider": "Archway Foundation"
-      }
-    ]
+    "seeds": []
   },
   "apis": {
     "rpc": [
