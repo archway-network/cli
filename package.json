@@ -55,12 +55,12 @@
     "clean": "shx rm -rf ./dist",
     "build": "yarn clean && tsc -b && tsc-alias -p tsconfig.json",
     "lint": "eslint --ext .js,.cjs,.ts --no-error-on-unmatched-pattern ./src",
-    "postpack": "shx rm -f oclif.manifest.json",
+    "prepack": "pinst --disable && yarn build && oclif manifest && oclif readme",
+    "postpack": "pinst --enable && shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
-    "prepack": "yarn build && oclif manifest && oclif readme",
+    "postinstall": "husky install",
     "test": "mocha test/**/*.test.ts",
     "test:integration": "./test/integration/all.sh",
-    "prepare": "husky install",
     "changelog": "conventional-changelog -p conventionalcommits"
   },
   "dependencies": {
@@ -130,6 +130,7 @@
     "husky": "^8.0.3",
     "mocha": "^10.2.0",
     "oclif": "^3.17.2",
+    "pinst": "^3.0.0",
     "shx": "^0.3.4",
     "sinon": "^17.0.1",
     "spawk": "^1.8.1",
