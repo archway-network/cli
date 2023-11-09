@@ -69,7 +69,7 @@
     "@cosmjs/amino": "^0.31.0",
     "@cosmjs/cosmwasm-stargate": "^0.31.1",
     "@cosmjs/crypto": "^0.31.0",
-    "@cosmjs/encoding": "^0.31.0",
+    "@cosmjs/encoding": "^0.31.3",
     "@cosmjs/ledger-amino": "^0.31.0",
     "@cosmjs/proto-signing": "^0.31.0",
     "@cosmjs/stargate": "^0.31.0",
