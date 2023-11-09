@@ -58,7 +58,7 @@ __metadata:
   resolution: "@archwayhq/cli@workspace:."
   dependencies:
     "@archwayhq/arch3.js": ^0.5.0-beta.1
-    "@archwayhq/keyring-go": "github:archway-network/keyring-go.git#head=build/go1.19"
+    "@archwayhq/keyring-go": "github:archway-network/keyring-go.git#build/go1.19"
     "@commitlint/cli": ^18.2.0
     "@commitlint/config-conventional": ^18.1.0
     "@cosmjs/amino": ^0.31.3
@@ -135,7 +135,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@archwayhq/keyring-go@github:archway-network/keyring-go.git#head=build/go1.19":
+"@archwayhq/keyring-go@github:archway-network/keyring-go.git#build/go1.19":
   version: 0.1.1
   resolution: "@archwayhq/keyring-go@https://github.com/archway-network/keyring-go.git#commit=96ab09041593da5c31a8c53b953cdd9678c6ffa7"
   dependencies:
