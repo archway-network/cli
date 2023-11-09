@@ -72,7 +72,7 @@
     "@cosmjs/encoding": "^0.31.0",
     "@cosmjs/ledger-amino": "^0.31.0",
     "@cosmjs/proto-signing": "^0.31.0",
-    "@cosmjs/stargate": "^0.31.0",
+    "@cosmjs/stargate": "^0.31.3",
     "@cosmjs/tendermint-rpc": "^0.31.0",
     "@ledgerhq/hw-transport-node-hid": "^6.27.21",
     "@oclif/core": "^2.15.0",
