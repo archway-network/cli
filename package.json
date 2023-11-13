@@ -1,6 +1,6 @@
 {
   "name": "@archwayhq/cli",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Develop WASM smart contracts with the Archway Network's Developer CLI",
   "homepage": "https://docs.archway.io",
   "repository": "github:archway-network/cli",
@@ -58,7 +58,7 @@
     "prepack": "pinst --disable && yarn build && oclif manifest && oclif readme",
     "postpack": "pinst --enable && shx rm -f oclif.manifest.json",
     "posttest": "yarn lint",
-    "postinstall": "husky install",
+    "postinstall": "husky install || echo 'Skipped husky install'",
     "test": "mocha test/**/*.test.ts",
     "test:integration": "./test/integration/all.sh",
     "changelog": "conventional-changelog -p conventionalcommits"
