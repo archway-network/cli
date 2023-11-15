@@ -2,19 +2,9 @@
 
 set -euo pipefail
 
-if [[ "${DEBUG:-}" =~ (true|1|\*) ]]; then
-  set -x
-fi
+[[ "${DEBUG:-}" =~ (true|1|\*) ]] && set -x
 
-function require() {
-  if ! command -v "${1}" >/dev/null 2>&1; then
-    echo "Command '${1}' is required but not installed. Aborting." >&2
-    exit 1
-  fi
-}
-
-require jq
-require docker
+export TERM="${TERM:-dumb}"
 
 function ok() {
   echo " $(tput setaf 2)✔$(tput sgr0) ${1}"
@@ -24,6 +14,15 @@ function error() {
   echo " $(tput setaf 1)𝗑 Error:$(tput sgr0) ${1}" >&2
   exit 1
 }
+
+function require() {
+  if ! command -v "${1}" >/dev/null 2>&1; then
+    error "command '${1}' is required but not installed. Aborting."
+  fi
+}
+
+require jq
+require docker
 
 function topic() {
   echo
