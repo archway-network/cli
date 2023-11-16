@@ -70,34 +70,16 @@ or any other keyring compatible with the [Secret service API](https://www.gnu.or
 npm i -g @archwayhq/cli
 ```
 
-or
-
-```bash
-yarn global add @archwayhq/cli
-```
-
 ### Install the pre-release version
 
 ```bash
 npm i -g @archwayhq/cli@pre
 ```
 
-or
-
-```bash
-yarn global add @archwayhq/cli@pre
-```
-
 ### Install the development version
 
 ```bash
 npm i -g 'github:archway-network/cli'
-```
-
-or
-
-```bash
-yarn global add 'github:archway-network/cli'
 ```
 
 ## Commands
