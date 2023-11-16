@@ -58,7 +58,7 @@ __metadata:
   resolution: "@archwayhq/cli@workspace:."
   dependencies:
     "@archwayhq/arch3.js": ^0.5.0-beta.1
-    "@archwayhq/keyring-go": ^0.2.0-rc.3
+    "@archwayhq/keyring-go": ^0.2.0
     "@commitlint/cli": ^18.2.0
     "@commitlint/config-conventional": ^18.1.0
     "@cosmjs/amino": ^0.31.3
@@ -136,14 +136,14 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@archwayhq/keyring-go@npm:^0.2.0-rc.3":
-  version: 0.2.0-rc.3
-  resolution: "@archwayhq/keyring-go@npm:0.2.0-rc.3"
+"@archwayhq/keyring-go@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@archwayhq/keyring-go@npm:0.2.0"
   dependencies:
     node-addon-api: ^7.0.0
     node-gyp: ^10.0.1
     node-gyp-build: ^4.6.1
-  checksum: a966b5c47a85ff537b00a0fe3cb416a893f23c34f59a811282625ccbffc45f437fa1800e72d41121ab3e4a8b08d9015f4360e539e23ec68528df50e7d45c38fa
+  checksum: 80e40d0161a1e67ee9d894ef3ba83ee3a7689d95d5a326c4b36c1a68a64f296a26b7346a1a13ff334fec46262ec4076bf2a073165089771e420dae2d566cba79
   conditions: "!os=win32"
   languageName: node
   linkType: hard
