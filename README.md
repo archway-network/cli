@@ -145,7 +145,7 @@ Keyring Flags:
 Transaction Flags:
   -f, --from=<value>        Signer of the tx
   --fee=<value>             Extra fees to pay along with the transaction
-  --gas-adjustment=<value>  [default: 1.3] Multiplier that is applied to the default estimated gas to avoid running out
+  --gas-adjustment=<value>  [default: 1.5] Multiplier that is applied to the default estimated gas to avoid running out
                             of gas exceptions
 
 GLOBAL Flags:
@@ -699,7 +699,7 @@ Keyring Flags:
 Transaction Flags:
   -f, --from=<value>        Signer of the tx
   --fee=<value>             Extra fees to pay along with the transaction
-  --gas-adjustment=<value>  [default: 1.3] Multiplier that is applied to the default estimated gas to avoid running out
+  --gas-adjustment=<value>  [default: 1.5] Multiplier that is applied to the default estimated gas to avoid running out
                             of gas exceptions
 
 GLOBAL Flags:
@@ -768,7 +768,7 @@ Keyring Flags:
 Transaction Flags:
   -f, --from=<value>        Signer of the tx
   --fee=<value>             Extra fees to pay along with the transaction
-  --gas-adjustment=<value>  [default: 1.3] Multiplier that is applied to the default estimated gas to avoid running out
+  --gas-adjustment=<value>  [default: 1.5] Multiplier that is applied to the default estimated gas to avoid running out
                             of gas exceptions
 
 GLOBAL Flags:
@@ -843,7 +843,7 @@ Keyring Flags:
 Transaction Flags:
   -f, --from=<value>        Signer of the tx
   --fee=<value>             Extra fees to pay along with the transaction
-  --gas-adjustment=<value>  [default: 1.3] Multiplier that is applied to the default estimated gas to avoid running out
+  --gas-adjustment=<value>  [default: 1.5] Multiplier that is applied to the default estimated gas to avoid running out
                             of gas exceptions
 
 GLOBAL Flags:
@@ -901,7 +901,7 @@ Keyring Flags:
 Transaction Flags:
   -f, --from=<value>        Signer of the tx
   --fee=<value>             Extra fees to pay along with the transaction
-  --gas-adjustment=<value>  [default: 1.3] Multiplier that is applied to the default estimated gas to avoid running out
+  --gas-adjustment=<value>  [default: 1.5] Multiplier that is applied to the default estimated gas to avoid running out
                             of gas exceptions
 
 GLOBAL Flags:
@@ -1000,7 +1000,7 @@ Keyring Flags:
 Transaction Flags:
   -f, --from=<value>        Signer of the tx
   --fee=<value>             Extra fees to pay along with the transaction
-  --gas-adjustment=<value>  [default: 1.3] Multiplier that is applied to the default estimated gas to avoid running out
+  --gas-adjustment=<value>  [default: 1.5] Multiplier that is applied to the default estimated gas to avoid running out
                             of gas exceptions
 
 GLOBAL Flags:
@@ -1126,7 +1126,7 @@ Keyring Flags:
 Transaction Flags:
   -f, --from=<value>        Signer of the tx
   --fee=<value>             Extra fees to pay along with the transaction
-  --gas-adjustment=<value>  [default: 1.3] Multiplier that is applied to the default estimated gas to avoid running out
+  --gas-adjustment=<value>  [default: 1.5] Multiplier that is applied to the default estimated gas to avoid running out
                             of gas exceptions
 
 GLOBAL Flags:
@@ -1287,7 +1287,7 @@ Keyring Flags:
 Transaction Flags:
   -f, --from=<value>        Signer of the tx
   --fee=<value>             Extra fees to pay along with the transaction
-  --gas-adjustment=<value>  [default: 1.3] Multiplier that is applied to the default estimated gas to avoid running out
+  --gas-adjustment=<value>  [default: 1.5] Multiplier that is applied to the default estimated gas to avoid running out
                             of gas exceptions
 
 GLOBAL Flags:
