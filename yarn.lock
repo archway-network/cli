@@ -76,7 +76,7 @@ __metadata:
     "@types/chai": ^4.3.10
     "@types/debug": ^4.1.12
     "@types/dockerode": ^3.3.21
-    "@types/elliptic": ^6.4.16
+    "@types/elliptic": ^6.4.17
     "@types/expect": ^24.3.0
     "@types/ledgerhq__hw-transport": ^4.21.6
     "@types/lodash": ^4.14.200
@@ -1709,12 +1709,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/elliptic@npm:^6.4.16":
-  version: 6.4.16
-  resolution: "@types/elliptic@npm:6.4.16"
+"@types/elliptic@npm:^6.4.17":
+  version: 6.4.17
+  resolution: "@types/elliptic@npm:6.4.17"
   dependencies:
     "@types/bn.js": "*"
-  checksum: fedecadbab1a469a22bc9f8e44ce730bd945faed82230174c9df4748f29948d34d9d6f7c79122049cd37f048522e28019a470df7a55c86765a82fb0d05f3f415
+  checksum: a929a939a826e9dcd72a27a495ea9ebc06fe3a5d87e51bae7ff0e5832db7ceefcca57250f4df45ecfe64a70d2575891160a47494c5a3129e8a2c4e6cf2c74d93
   languageName: node
   linkType: hard
 
