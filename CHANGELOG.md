@@ -5,11 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## Unreleased
+## 2.1.0-rc.1 (2023-11-16)
+
+### ⚠ BREAKING CHANGES
+
+- the CLI will now only support the Archway protocol version `>=5.0.0` (#288)
+- bumped the minimum supported Node.js version to v18 as v16 LTS ended (#294)
 
 ### Fixed
 
-- **core:** fixed the version check hook storing the current version on cache (#286)
+- **core:** fixed the version check hook storing the current version
+  on cache (#286)
+- **core:** fixed installation on WSL that failed due to invalid build scripts
+  in the keyring-go package (#294)
 
 ## 2.0.1 (2023-11-06)
 
