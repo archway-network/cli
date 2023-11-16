@@ -1,7 +1,6 @@
 # Build Output
 build/
 dist/
-docs/
 
 # Logs
 logs
