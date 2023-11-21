@@ -12,11 +12,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@archwayhq/arch3-core@npm:^0.5.0-beta.1":
-  version: 0.5.0-beta.1
-  resolution: "@archwayhq/arch3-core@npm:0.5.0-beta.1"
+"@archwayhq/arch3-core@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@archwayhq/arch3-core@npm:0.5.0"
   dependencies:
-    "@archwayhq/arch3-proto": ^0.5.0-beta.1
+    "@archwayhq/arch3-proto": ^0.5.0
     "@cosmjs/amino": ^0.31.3
     "@cosmjs/cosmwasm-stargate": ^0.31.3
     "@cosmjs/math": ^0.31.3
@@ -25,13 +25,13 @@ __metadata:
     "@cosmjs/tendermint-rpc": ^0.31.3
     lodash: ^4.17.21
     long: ^5.2.3
-  checksum: 90a2f73d67aaadbb079d317716e58ae016bdb73d05fd7201c6b5af8adfc72f79f8036aa19b7fd76e5afc3a313989b2002b943974cbd8d248f0ad62564e7eecb0
+  checksum: 636c76f4eb6a04d54fd06ca6a5c33b836df6e631e02afc15f7ae8108ac5f95f49601d1b77d673c3dfd8517d450e629a499a57ac248ab9ee4dc8a64c1b50b23a4
   languageName: node
   linkType: hard
 
-"@archwayhq/arch3-proto@npm:^0.5.0-beta.1":
-  version: 0.5.0-beta.1
-  resolution: "@archwayhq/arch3-proto@npm:0.5.0-beta.1"
+"@archwayhq/arch3-proto@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@archwayhq/arch3-proto@npm:0.5.0"
   dependencies:
     "@cosmjs/amino": ^0.31.3
     "@cosmjs/proto-signing": ^0.31.3
@@ -39,17 +39,17 @@ __metadata:
     "@cosmjs/tendermint-rpc": ^0.31.3
     long: ^5.2.3
     protobufjs: ^7.2.5
-  checksum: 9e7f196ae0af6d763fea88382e47046cfef7265b6f5031afe4971fafc157c2a748733224170349b4226790e5ffc588fa553b0d533963b5db693301dab56ba9b2
+  checksum: 05bfd41af9298d59006d29186f5e7929f680bc9bdedfacb5bc4ef0aaf46dbdc127f7faa56a76e080e9af785e8b2825a6ee1eea2ac2200453acd7bfadc51d3fd7
   languageName: node
   linkType: hard
 
-"@archwayhq/arch3.js@npm:^0.5.0-beta.1":
-  version: 0.5.0-beta.1
-  resolution: "@archwayhq/arch3.js@npm:0.5.0-beta.1"
+"@archwayhq/arch3.js@npm:^0.5.0":
+  version: 0.5.0
+  resolution: "@archwayhq/arch3.js@npm:0.5.0"
   dependencies:
-    "@archwayhq/arch3-core": ^0.5.0-beta.1
-    "@archwayhq/arch3-proto": ^0.5.0-beta.1
-  checksum: b1d7e63db0a7fc553c9d1a5bebc4c283237ef926ff88afddc7439fa861f432677330c59eeba1a3de7eb9c588775777b8adc145d2446aa770d684bf09bcb14950
+    "@archwayhq/arch3-core": ^0.5.0
+    "@archwayhq/arch3-proto": ^0.5.0
+  checksum: c757f0b67852d0f2eb69e8f2681149f888a1578dfbd01573b1a9c20875bf0bd332d07f85a3623ef9c01140284d635f94332b356742c7eff8718a9f752c5d5e5b
   languageName: node
   linkType: hard
 
@@ -57,7 +57,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@archwayhq/cli@workspace:."
   dependencies:
-    "@archwayhq/arch3.js": ^0.5.0-beta.1
+    "@archwayhq/arch3.js": ^0.5.0
     "@archwayhq/keyring-go": ^0.2.0
     "@commitlint/cli": ^18.2.0
     "@commitlint/config-conventional": ^18.1.0
