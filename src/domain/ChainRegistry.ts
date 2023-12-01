@@ -4,6 +4,7 @@ import { Schema } from 'ajv';
 import debugInstance from 'debug';
 
 import { AlreadyExistsError, ConsoleError, ErrorCodes, InvalidFormatError } from '@/exceptions';
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import CosmosChainSchema from '@/repositories/chain.schema.json';
 import { BuiltInChains } from '@/services';
 import { CosmosChain } from '@/types';
