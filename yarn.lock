@@ -75,7 +75,7 @@ __metadata:
     "@oclif/test": ^2.5.6
     "@types/chai": ^4.3.10
     "@types/debug": ^4.1.12
-    "@types/dockerode": ^3.3.21
+    "@types/dockerode": ^3.3.23
     "@types/elliptic": ^6.4.16
     "@types/expect": ^24.3.0
     "@types/ledgerhq__hw-transport": ^4.21.6
@@ -1719,13 +1719,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/dockerode@npm:^3.3.21":
-  version: 3.3.21
-  resolution: "@types/dockerode@npm:3.3.21"
+"@types/dockerode@npm:^3.3.23":
+  version: 3.3.23
+  resolution: "@types/dockerode@npm:3.3.23"
   dependencies:
     "@types/docker-modem": "*"
     "@types/node": "*"
-  checksum: 025c97cd2549f1b3f0dc6e117e24e3b7e56dcf3e482e2abe5f2d6961e56e637b0e1f1b4f032e065cd7245302064ac3ccdb9c7dfdb0fe43a5bfb2b5f4ccbf4a8d
+  checksum: 065e9ae43f13641e0df149335914d10af95e559002efe5a5de8e56df9a21b4309b18dbc04fd4c59a4e893c4fedc7df892db28e9d25457bce0c4fd33d21a67834
   languageName: node
   linkType: hard
 
