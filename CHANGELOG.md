@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - **core:** fixed installation on WSL that failed due to invalid build scripts
   in the keyring-go package (#294)
 
+## 2.0.2 (2023-12-02)
+
+### Fixed
+
+- **config:** fixed an issue that impeded the user to differentiate chains by
+    the name (mainnet and testnet).
+
 ## 2.0.1 (2023-11-06)
 
 ### Fixed
