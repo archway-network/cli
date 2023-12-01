@@ -104,7 +104,7 @@
     "@types/chai": "^4.3.10",
     "@types/debug": "^4.1.12",
     "@types/dockerode": "^3.3.21",
-    "@types/elliptic": "^6.4.16",
+    "@types/elliptic": "^6.4.18",
     "@types/expect": "^24.3.0",
     "@types/ledgerhq__hw-transport": "^4.21.6",
     "@types/lodash": "^4.14.200",
