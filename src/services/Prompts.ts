@@ -23,10 +23,9 @@ export namespace Prompts {
 
     const choices = chainRegistry.chains.map((item: CosmosChain) => {
       return {
-        title: item?.pretty_name || item?.chain_name || '',
-        description: ChainPromptDetails[item.chain_id]?.description,
-        value: item?.chain_id,
-        disabled: ChainPromptDetails[item.chain_id]?.disabled,
+        title: item.pretty_name || item.chain_name || item.chain_id,
+        description: ChainPromptDetails[item.chain_id]?.description || item.chain_id,
+        value: item.chain_id,
       };
     });
 
