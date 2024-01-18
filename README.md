@@ -40,12 +40,6 @@ or any other keyring compatible with the [Secret service API](https://www.gnu.or
 npm i -g @archwayhq/cli
 ```
 
-### Install the pre-release version
-
-```bash
-npm i -g @archwayhq/cli@pre
-```
-
 ### Install the development version
 
 ```bash
