@@ -100,7 +100,7 @@
     "apis": {
       "rpc": [
         {
-          "address": "https://rpc.constantine.archway.tech",
+          "address": "https://rpc.constantine.archway.io",
           "provider": "Archway Foundation"
         },
         {
@@ -110,7 +110,7 @@
       ],
       "rest": [
         {
-          "address": "https://api.constantine.archway.tech",
+          "address": "https://api.constantine.archway.io",
           "provider": "Archway Foundation"
         },
         {
@@ -120,7 +120,7 @@
       ],
       "grpc": [
         {
-          "address": "grpc.constantine.archway.tech:443",
+          "address": "grpc.constantine.archway.io:443",
           "provider": "Archway Foundation"
         },
         {
