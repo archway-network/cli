@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## 2.1.0-rc.2 (UNRELEASED)
+
+### Fixed
+
+- **core:** bumped keyring-go package to fix edge case when installing the CLI
+  in WSL2 (#311)
+
+### Changed
+
+- **config:** updated the chain file for `constantine-3` (#309)
+
 ## 2.1.0-rc.1 (2023-11-16)
 
 ### ⚠ BREAKING CHANGES
@@ -24,7 +35,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 - **config:** fixed an issue that impeded the user to differentiate chains by
-    the name (mainnet and testnet).
+  the name (mainnet and testnet).
 
 ## 2.0.1 (2023-11-06)
 
@@ -93,7 +104,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   `archway-cli.json` to `.archway/config.json`.
 - **accounts:** any accounts created using version `2.0.0-alpha.1` must
   be recovered from the mnemonic using the command `archway accounts new
-  --recover {name}`.
+--recover {name}`.
 
 ### Added
 
@@ -159,9 +170,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 ### ⚠ BREAKING CHANGES
 
 - **archwayd:** Dropped support for the Docker version of `archwayd`. To migrate
-from Docker-based environments, users will have to install `archwayd` from the
-official binary releases in the protocol repository, and also export/import
-their keys using the available commands in `archwayd keys`.
+  from Docker-based environments, users will have to install `archwayd` from the
+  official binary releases in the protocol repository, and also export/import
+  their keys using the available commands in `archwayd keys`.
 
 ### Added
 
@@ -180,7 +191,7 @@ their keys using the available commands in `archwayd keys`.
 - **archwayd:** don't freeze the shell (#184)
 - **archwayd:** validate the minimum client version (#180)
 - **archwayd:** validate errors printed to stderr (#194)
-- **build:** throw exception instead of hardcoded text  (#176)
+- **build:** throw exception instead of hardcoded text (#176)
 - **cli:** check for newer versions using semver (#185)
 - **networks:** renamed local network to localnet (#188)
 - **cargo:** resolve the WASM file name on arm64 (#196)
