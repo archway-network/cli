@@ -1,6 +1,7 @@
 {
   "name": "@archwayhq/cli",
-  "version": "2.1.0-rc.1",
+  "version": "2.1.0-rc.2",
+  "stableVersion": "2.0.2",
   "description": "Develop WASM smart contracts with the Archway Network's Developer CLI",
   "homepage": "https://docs.archway.io",
   "repository": "github:archway-network/cli",
