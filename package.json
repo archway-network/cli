@@ -67,7 +67,7 @@
     "changelog": "conventional-changelog -p conventionalcommits"
   },
   "dependencies": {
-    "@archwayhq/arch3.js": "^0.6.0",
+    "@archwayhq/arch3.js": "^0.7.0",
     "@archwayhq/keyring-go": "^0.2.1",
     "@cosmjs/amino": "^0.32.2",
     "@cosmjs/cosmwasm-stargate": "^0.32.2",
