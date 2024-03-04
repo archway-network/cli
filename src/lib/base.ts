@@ -95,7 +95,10 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    * @param json - JSON object to be logged
    */
   public logJson(json: unknown): void {
-    super.logJson(json);
+    // FIXME: This is a workaround to avoid the error "TypeError: Do not know how to serialize a BigInt"
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const serialized = JSON.stringify(json, (_key, value) => (typeof value === 'bigint') ? value.toString() : value);
+    super.logJson(JSON.parse(serialized));
   }
 
   /**
