@@ -78,8 +78,8 @@ export const dummyStoreTransaction: UploadResult = {
       ],
     },
   ],
-  gasWanted: 1_199_279,
-  gasUsed: 935_691,
+  gasWanted: BigInt(1_199_279),
+  gasUsed: BigInt(935_691),
 };
 
 export const dummyInstantiateTransaction = {
