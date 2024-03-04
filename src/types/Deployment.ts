@@ -132,6 +132,7 @@ export const metadataValidator = ow.optional.object.partialShape({
   contractAddress: ow.string,
   ownerAddress: ow.optional.string,
   rewardsAddress: ow.optional.string,
+  withdrawToWallet: ow.optional.boolean,
 });
 
 /**

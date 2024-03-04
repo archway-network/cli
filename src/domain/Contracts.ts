@@ -6,9 +6,15 @@ import { StargateClient } from '@cosmjs/stargate';
 import debugInstance from 'debug';
 import toml from 'toml';
 
-import { ConsoleError, ErrorCodes, ExecuteError, InstantiateError, MigrateError, QueryError } from '@/exceptions';
-import { AccountBalances, Contract, DeploymentAction, InstantiateDeployment, StoreDeployment } from '@/types';
-import { bold, getErrorMessage, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright, sanitizeDirName } from '@/utils';
+import {
+  ConsoleError, ErrorCodes, ExecuteError, InstantiateError, MigrateError, QueryError
+} from '@/exceptions';
+import {
+  AccountBalances, Contract, DeploymentAction, InstantiateDeployment, StoreDeployment
+} from '@/types';
+import {
+  bold, getErrorMessage, getWorkspaceRoot, green, greenBright, prettyPrintBalancesList, readSubDirectories, redBright, sanitizeDirName
+} from '@/utils';
 
 import { Cargo } from './Cargo';
 import { Deployments } from './Deployments';
@@ -229,9 +235,7 @@ export class Contracts {
       contractsList += `\n  ${greenBright(item.name)} (${item.version})`;
     }
 
-    if (!contractsList) {
-      contractsList = '(none)';
-    }
+    contractsList ||= '(none)';
 
     return `${bold('Available contracts: ')}${contractsList}`;
   }
@@ -354,6 +358,7 @@ export class Contracts {
    */
   findStoreDeployment(contractName: string, chainId: string): StoreDeployment | undefined {
     const contract = this.getContractByName(contractName);
+    debug('findStoreDeployment', { contractName, chainId, contract });
 
     return contract.deployments.find(item => {
       const pastDeploy = item as StoreDeployment;
@@ -373,6 +378,7 @@ export class Contracts {
    */
   findInstantiateDeployment(contractName: string, chainId: string): InstantiateDeployment | undefined {
     const contract = this.getContractByName(contractName);
+    debug('findInstantiateDeployment', { contractName, chainId, contract });
 
     return contract.deployments.find(item => {
       const pastDeploy = item as InstantiateDeployment;

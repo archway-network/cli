@@ -6,9 +6,13 @@ import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { AmountRequiredFlag, KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { ArchwayClientBuilder } from '@/services';
-import { AccountWithSigner, Contract, DeploymentAction, InstantiateDeployment, PremiumDeployment } from '@/types';
+import {
+  AccountWithSigner, Contract, DeploymentAction, InstantiateDeployment, PremiumDeployment
+} from '@/types';
 import { showDisappearingSpinner } from '@/ui';
-import { blueBright, buildStdFee, greenBright, isValidAddress, prettyPrintCoin } from '@/utils';
+import {
+  blueBright, buildStdFee, greenBright, isValidAddress, prettyPrintCoin
+} from '@/utils';
 
 /**
  * Command 'contracts premium'
@@ -91,7 +95,7 @@ export default class ContractsPremium extends BaseCommand<typeof ContractsPremiu
     const instantiateDeployment = config.contractsInstance.findInstantiateDeployment(contractInstance.name, config.chainId);
 
     if (!instantiateDeployment) {
-      throw new NotFoundError('Instantiated deployment with a contract address');
+      throw new NotFoundError(`Could not find an instantiate deployment for the contract on chain ${config.chainId}`);
     }
 
     const contractAddress = instantiateDeployment.contract.address;
