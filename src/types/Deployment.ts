@@ -128,7 +128,7 @@ export const deploymentContractValidator = ow.object.exactShape({
 /**
  * Format validator for the {@link Metadata} interface
  */
-export const metadataValidator = ow.optional.object.exactShape({
+export const metadataValidator = ow.optional.object.partialShape({
   contractAddress: ow.string,
   ownerAddress: ow.optional.string,
   rewardsAddress: ow.optional.string,
