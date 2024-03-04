@@ -5,8 +5,13 @@ import _ from 'lodash';
 import ow from 'ow';
 
 import { InvalidFormatError } from '@/exceptions';
-import { Deployment, DeploymentAction, DeploymentFile, deploymentValidator } from '@/types';
-import { blueBright, bold, greenBright, prettyPrintTransaction, writeFileWithDir } from '@/utils';
+import { jsonStringify } from '@/lib/json';
+import {
+  Deployment, DeploymentAction, DeploymentFile, deploymentValidator
+} from '@/types';
+import {
+  blueBright, bold, greenBright, prettyPrintTransaction, writeFileWithDir
+} from '@/utils';
 
 /**
  * Manage the deployments of a specific chain, represented in a deployment file by chain id
@@ -120,7 +125,7 @@ export class DeploymentsByChain {
    * @returns Empty promise
    */
   async write(): Promise<void> {
-    const jsonData = JSON.stringify(this._data, null, 2);
+    const jsonData = jsonStringify(this._data, 2);
 
     await writeFileWithDir(this.path, jsonData);
   }

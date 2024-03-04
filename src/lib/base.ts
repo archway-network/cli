@@ -3,7 +3,11 @@ import debugInstance from 'debug';
 
 import { ConsoleError } from '@/exceptions';
 import { PromptCanceledError } from '@/ui';
-import { getErrorMessage, redBright, yellow } from '@/utils';
+import {
+  getErrorMessage, redBright, yellow
+} from '@/utils';
+
+import { jsonStringify } from './json';
 
 const debug = debugInstance('base-command');
 
@@ -96,8 +100,7 @@ export abstract class BaseCommand<T extends typeof Command> extends Command {
    */
   public logJson(json: unknown): void {
     // FIXME: This is a workaround to avoid the error "TypeError: Do not know how to serialize a BigInt"
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-    const serialized = JSON.stringify(json, (_key, value) => (typeof value === 'bigint') ? value.toString() : value);
+    const serialized = jsonStringify(json);
     super.logJson(JSON.parse(serialized));
   }
 
