@@ -31,7 +31,9 @@
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "target": "es2019"
+    "target": "es2019",
+    "allowJs": true,
+    "checkJs": false
   },
   "include": [
     "src"

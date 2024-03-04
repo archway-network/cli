@@ -3,6 +3,7 @@ import path from 'node:path';
 import { DEPLOYMENTS_FILE_EXTENSION, Deployments, DeploymentsByChain, LOCAL_CONFIG_PATH } from '../../src/domain';
 import { chainNames } from './chainRegistry';
 
+import { jsonStringify } from '../../src/lib/json';
 import { DeploymentAction } from '../../src/types';
 
 export const storeDeployment = {
@@ -76,7 +77,7 @@ export const deploymentFile = {
   deployments: [metadataDeployment, instantiateDeployment, storeDeployment],
 };
 
-export const deploymentString = JSON.stringify(deploymentFile);
+export const deploymentString = jsonStringify(deploymentFile);
 
 export const deploymentsInstance = new Deployments(
   [

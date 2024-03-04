@@ -8,6 +8,7 @@ import ow from 'ow';
 
 import { ChainRegistry, Contracts, Deployments } from '@/domain';
 import { AlreadyExistsError, InvalidFormatError, NotFoundError } from '@/exceptions';
+import { jsonStringify } from '@/lib/json';
 import {
   ConfigData,
   ConfigDataWithContracts,
@@ -17,7 +18,9 @@ import {
   KeystoreBackendType,
   configDataValidator
 } from '@/types';
-import { MergeMode, bold, getWorkspaceRoot, mergeCustomizer, pathExists, prettyPrintTransaction, writeFileWithDir } from '@/utils';
+import {
+  MergeMode, bold, getWorkspaceRoot, mergeCustomizer, pathExists, prettyPrintTransaction, writeFileWithDir
+} from '@/utils';
 
 import { DEFAULT_CHAIN_ID } from './ChainRegistry';
 import { DEFAULT_CONTRACTS_RELATIVE_PATH } from './Contracts';
@@ -288,7 +291,7 @@ export class Config {
    */
   async write(global = false): Promise<void> {
     const configPath = await this.getConfigPath(global);
-    await writeFileWithDir(configPath, JSON.stringify(global ? this.globalConfigData : this.localConfigData, undefined, 2));
+    await writeFileWithDir(configPath, jsonStringify(global ? this.globalConfigData : this.localConfigData, 2));
   }
 
   /**

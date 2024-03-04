@@ -8,6 +8,7 @@ import { Coin } from '@cosmjs/proto-signing';
 
 import { DEFAULT_ADDRESS_BECH_32_PREFIX } from '../../src/domain';
 import { toEntryTag } from '../../src/domain/keystore';
+import { jsonStringify } from '../../src/lib/json';
 import { AccountType, ExtendedHdPath, LocalAccount } from '../../src/types';
 
 // eslint-disable-next-line new-cap
@@ -47,7 +48,7 @@ export const {
 } = aliceAccountInstance;
 
 export const aliceStoreEntry = toEntryTag(aliceAccountInstance);
-export const aliceStoredAccount = JSON.stringify(aliceAccountInstance);
+export const aliceStoredAccount = jsonStringify(aliceAccountInstance);
 
 export const bobAccountName = 'Bob';
 export const {
@@ -62,7 +63,7 @@ export const {
 } = bobAccountInstance;
 
 export const bobStoreEntry = toEntryTag(bobAccountInstance);
-export const bobStoredAccount = JSON.stringify(bobAccountInstance);
+export const bobStoredAccount = jsonStringify(bobAccountInstance);
 
 export const dummyAmount: Coin = {
   amount: '10',
