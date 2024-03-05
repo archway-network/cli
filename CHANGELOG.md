@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
 - the CLI will now only support the Archway protocol version `>=6.0.0` (#288)
 - bumped the minimum supported Node.js version to v18 as v16 LTS ended (#294)
 
+### Added
+
+- **contracts:** added a flag in the `metadata` sub-command to withdraw rewards
+  directly to the wallet (#316)
+
 ### Fixed
 
 - **core:** fixed the version check hook storing the current version

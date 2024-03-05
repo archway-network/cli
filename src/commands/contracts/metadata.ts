@@ -7,9 +7,13 @@ import { BaseCommand } from '@/lib/base';
 import { ContractNameRequiredArg } from '@/parameters/arguments';
 import { KeyringFlags, TransactionFlags } from '@/parameters/flags';
 import { ArchwayClientBuilder } from '@/services';
-import { Account, AccountWithSigner, Contract, DeploymentAction, InstantiateDeployment, MetadataDeployment } from '@/types';
+import {
+  Account, AccountWithSigner, Contract, DeploymentAction, InstantiateDeployment, MetadataDeployment
+} from '@/types';
 import { showDisappearingSpinner } from '@/ui';
-import { blueBright, buildStdFee, greenBright, isValidAddress } from '@/utils';
+import {
+  blueBright, buildStdFee, greenBright, isValidAddress
+} from '@/utils';
 
 /**
  * Command 'contracts metadata'
@@ -24,6 +28,10 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
   static flags = {
     'owner-address': Flags.string({ description: 'Owner of the contract metadata' }),
     'rewards-address': Flags.string({ description: 'Rewards destination address' }),
+    'withdraw-to-wallet': Flags.boolean({
+      description: 'Defines if rewards should be immediately withdrawn to the wallet instead of creating a rewards record to be lazily withdrawn later',
+      default: true,
+    }),
     ...KeyringFlags,
     ...TransactionFlags,
   };
@@ -64,6 +72,7 @@ export default class ContractsMetadata extends BaseCommand<typeof ContractsMetad
       contractAddress,
       ownerAddress,
       rewardsAddress,
+      withdrawToWallet: this.flags['withdraw-to-wallet'],
     };
 
     this.logTransactionDetails(
