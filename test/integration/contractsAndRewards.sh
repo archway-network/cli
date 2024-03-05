@@ -23,6 +23,8 @@ source "${SCRIPT_DIR}/../../.env"
 source "${SCRIPT_DIR}/utils.sh"
 
 function cleanup_test_suite() {
+  [[ -z "${DEBUG:-}" ]] || return
+
   echo "Cleaning up the created files"
   cd "$SCRIPT_DIR"
   rm -rf "$TEMP_DIR"

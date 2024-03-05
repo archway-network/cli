@@ -253,5 +253,13 @@ module.exports = {
         'jsdoc/require-jsdoc': ['warn', { 'publicOnly': true }],
       },
     },
+    {
+      files: ['src/**/*.js'],
+      settings: {
+        jsdoc: {
+          mode: 'javascript'
+        }
+      }
+    },
   ],
 }

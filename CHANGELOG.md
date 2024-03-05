@@ -5,23 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## 2.1.0-rc.2 (2024-02-28)
-
-### Fixed
-
-- **core:** bumped keyring-go package to fix edge case when installing the CLI
-  in WSL2 (#311)
-
-### Changed
-
-- **config:** updated the chain file for `constantine-3` (#309)
-
-## 2.1.0-rc.1 (2023-11-16)
+## 2.1.0 (2024-03-04)
 
 ### ⚠ BREAKING CHANGES
 
-- the CLI will now only support the Archway protocol version `>=5.0.0` (#288)
+- the CLI will now only support the Archway protocol version `>=6.0.0` (#288)
 - bumped the minimum supported Node.js version to v18 as v16 LTS ended (#294)
+
+### Added
+
+- **contracts:** added a flag in the `metadata` sub-command to withdraw rewards
+  directly to the wallet (#316)
 
 ### Fixed
 
@@ -29,6 +23,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/).
   on cache (#286)
 - **core:** fixed installation on WSL that failed due to invalid build scripts
   in the keyring-go package (#294)
+- **core:** bumped keyring-go package to fix edge case when installing the CLI
+  in WSL2 (#311)
+
+### Changed
+
+- **config:** updated the chain file for `constantine-3` (#309)
 
 ## 2.0.2 (2023-12-02)
 
