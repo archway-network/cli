@@ -52,7 +52,7 @@ export class OptimizerError extends Error {
 export class DockerOptimizer {
   static RustOptimizerImage = 'cosmwasm/rust-optimizer';
   static WorkspaceOptimizerImage = 'cosmwasm/workspace-optimizer';
-  static Version = '0.14.0';
+  static Version = '0.16.1';
 
   /**
    * Docker instance
