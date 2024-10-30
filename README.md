@@ -1,3 +1,5 @@
+![Archway Developer CLI](https://github.com/archway-network/cli/blob/main/docs/assets/cover.png?raw=true)
+
 # Archway Developer CLI
 
 [![Archway CLI](https://img.shields.io/badge/cli-archway-brightgreen.svg)](https://docs.archway.io)
@@ -23,10 +25,10 @@ Develop WASM smart contracts with the Archway Network's Developer CLI.
 Make sure you've installed and configured all dependencies. For the full
 installation and setup instructions, [visit the docs](https://docs.archway.io/developers/getting-started/install).
 
-- [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm "Install Node.js and NPM")
-- [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html "Install Cargo")
-- [cargo-generate](https://crates.io/crates/cargo-generate "Install Cargo Generate")
-- [docker](https://docs.docker.com/get-docker "Install Docker")
+- [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm 'Install Node.js and NPM')
+- [cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html 'Install Cargo')
+- [cargo-generate](https://crates.io/crates/cargo-generate 'Install Cargo Generate')
+- [docker](https://docs.docker.com/get-docker 'Install Docker')
 
 If you are on a Linux machine with a distribution different from Ubuntu, you may
 need to install the [GNOME Keyring](https://wiki.archlinux.org/title/GNOME/Keyring),
@@ -55,7 +57,6 @@ npm i -g 'github:archway-network/cli'
 ## Commands
 
 <!-- commands -->
-
 
 - [`archway accounts`](docs/accounts.md) - Manages a local keyring with wallets to sign transactions
 - [`archway autocomplete`](docs/autocomplete.md) - display autocomplete installation instructions
